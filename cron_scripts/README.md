@@ -17,9 +17,6 @@ It is planned to convert these scripts to accept dynamic parameters when they ar
 ## Common_Crawl directory
 Common Crawl provides two types of data. The first type of data is graph data. The script for graph data has been moved to the Python 3 directory. The second type of data that Common Crawl provides is WARC data files which include the response from the server. This script is deprecated since the data was considered less useful at the time given the resources required to run it. However, the script for that work is still kept in this directory as a historical reference in case the efforts are resumed in the future. 
 
-## RiskIQ
-The Risk IQ interface has been deprecated. The original RiskIQ script is being kept as a reference but it is not being actively maintained and has not been touched in some time.
-
 ## libs2 
 The libs2 directory contains classes for interacting with the databases and third-party services. The MongoConnector library is necessary for interactions with the primary database. The other libraries are necessary for specific connections as specified by their name. 
 
