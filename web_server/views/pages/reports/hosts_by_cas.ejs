@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CAs on tracked hosts</title>
+    <% include ../../partials/head %>
+    <script src="/javascripts/certs.js"></script>
+</head>
+<body>
+    
+<% include ../../partials/header %>
+
+<h3>Certificate CAs on Adobe hosts</h3>
+<p>This is a list of all the CA's found on tracked hosts. Click on the CA in order to see the relevant list of IPs.</p>
+<p>Note: The queries for this page can be slow</p>
+
+<section class="divTable">
+    <div class="tableRow">
+        <div class="tableCell">
+            <div id="summaryList"></div>
+        </div>
+        <div class="tableCell">  
+            <span id="tableTitle"></span>
+            <table>
+                <tbody>
+                    <tr>
+                        <td id="report_details"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+    
+<% include ../../partials/footer %>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Zone List</title>
+    <% include ../../partials/head %>
+    <script src="/javascripts/meta.js"></script>
+</head>
+<body>
+
+<% include ../../partials/header %>
+
+<form class="coral-Form coral-Form--vertical">
+  <section class="coral-Form-fieldset">
+    <label id="zoneLabel" class="coral-Form-fieldlabel">Enter a pattern to search.</label>
+    <coral-search value="" name="zoneSearch" labelledby="zoneLabel" id="zone_input"></coral-search>
+  </section>
+</form>
+
+<div id="alphaJumps">
+    <a href="#0">0</a>
+    <a href="#1">1</a>
+    <a href="#2">2</a>
+    <a href="#3">3</a>
+    <a href="#4">4</a>
+    <a href="#5">5</a>
+    <a href="#6">6</a>
+    <a href="#7">7</a>
+    <a href="#8">8</a>
+    <a href="#9">9</a>
+    <a href="#a">A</a>
+    <a href="#b">B</a>
+    <a href="#c">C</a>
+    <a href="#d">D</a>
+    <a href="#e">E</a>
+    <a href="#f">F</a>
+    <a href="#g">G</a>
+    <a href="#h">H</a>
+    <a href="#i">I</a>
+    <a href="#j">J</a>
+    <a href="#k">K</a>
+    <a href="#l">L</a>
+    <a href="#j">J</a>
+    <a href="#k">K</a>
+    <a href="#l">L</a>
+    <a href="#m">M</a>
+    <a href="#n">N</a>
+    <a href="#o">O</a>
+    <a href="#p">P</a>
+    <a href="#q">Q</a>
+    <a href="#r">R</a>
+    <a href="#s">S</a>
+    <a href="#t">T</a>
+    <a href="#u">U</a>
+    <a href="#v">V</a>
+    <a href="#w">W</a>
+    <a href="#x">X</a>
+    <a href="#y">Y</a>
+    <a href="#z">Z</a>
+    <a href="#other">Other</a>
+    <a href="#expired">Expired</a>
+    <a href="#false_positives">False Positives</a>
+</div>
+<br/>
+<div id="zoneCount">Zones identified: </div>
+<br/>
+    
+<div id="zoneList"></div>
+    
+<% include ../../partials/footer %>
+
+</body>
+</html>

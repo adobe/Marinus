@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "properties": {
+        "message": {
+            "type" : "string",
+            "description": "Error message indicating what went wrong with the request.",
+            "example": "An error occurred at the server."
+        }
+    }
+}

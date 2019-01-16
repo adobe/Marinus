@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Database statistics</title>
+    <% include ../../partials/head %>
+    <script src="/javascripts/data.js"></script>
+</head>
+<body>
+
+<% include ../../partials/header %>
+
+<h1>Data Statistics </h1>
+<p>This page is mostly for debugging and summarizes the number of records that Marinus has from each source.</p>
+<br/>
+
+<h3>Zone Statistics</h3>
+Active Zones: <div class="inline" id="activeZones"></div><br/>
+Expired Zones: <div class="inline" id="expiredZones"></div><br/>
+False Positive Zones: <div class="inline" id="fpZones"></div><br/>
+Active IP Zones: <div class="inline" id="ipZones"></div><br/>
+Active IPv6 Zones: <div class="inline" id="ipv6Zones"></div><br/>
+Whois Records: <div class="inline" id="whoisRecords"></div><br/>
+<div class="table">
+    <div class="tableRow">
+        <div class="tableCell">Zone Sources: </div><div class="tableCell" id="zoneSources"></div>
+    </div>
+</div><br/>
+
+
+<h3>DNS Statistics</h3>
+DNS Count: <div class="inline" id="dnsStatistics"></div><br/>
+Reverse DNS Count: <div class="inline" id="rdnsStatistics"></div><br/>
+Dead DNS Count: <div class="inline" id="deadDnsStatistics"></div><br/>
+<div class="table">
+    <div class="tableRow">
+        <div class="tableCell">DNS Sources: </div><div class="tableCell" id="dnsSources"></div>
+    </div>
+</div><br/>
+
+
+<h3>Certificate Transparency Statistics</h3>
+CT Total Count: <div id="ctStatistics"></div><br/>
+CT RSA SHA1 Count: <div id="sha1Statistics"></div><br/>
+CT Internal Domain Count (w/o expired): <div id="corpStatistics"></div><br/>
+CT Internal Domain Count (with expired): <div id="corpExpStatistics"></div><br/>
+
+<div class="table">
+    <div class="tableRow">
+        <div class="tableCell">CT Tracked TLS Orgs: </div><div class="tableCell" id="trackedOrgs"></div>
+    </div>
+</div><br/>
+
+
+
+<div id="censysSection">
+    <h3>Censys Statistics</h3>
+    Censys Internal Domain Count: <div id="CensysCorpSSLCount"></div><br/>
+    Censys SSLv2 Count: <div id="SSL2Count"></div><br/>
+    Censys SSLv3 Count: <div id="SSL3Count"></div><br/>
+    Censys TLS Count: <div id="TLSCount"></div><br/>
+    Censys DHE Count: <div id="SSLDHECount"></div><br/>
+    Censys DHE Export Count: <div id="SSLDHEExportCount"></div><br/>
+    Censys RSA Export Count: <div id="SSLRSAExportCount"></div><br/>
+    Censys Total Count: <div id="censysCount"></div><br/>
+
+    <div class="table">
+        <div class="tableRow">
+            <div class="tableCell">Censys Tracked TLS Orgs: </div><div class="tableCell" id="censysOrgs"></div>
+        </div>
+    </div><br/>
+
+    <div class="table">
+        <div class="tableRow">
+            <div class="tableCell">Censys Ports: </div><div class="tableCell" id="censysPorts"></div>
+        </div>
+    </div><br/>
+</div>
+
+<div id="scanSection">
+    <h3>Zgrab Statistics</h3>
+    Zgrab 80 IP Count: <div id="zgrab80IP"></div><br/>
+    Zgrab 80 Domain Count: <div id="zgrab80Domain"></div><br/>
+    Zgrab 80 Total Count: <div id="zgrab80Total"></div><br/>
+    Zgrab 443 IP Count: <div id="zgrab443IP"></div><br/>
+    Zgrab 443 Domain Count: <div id="zgrab443Domain"></div><br/>
+    Zgrab 443 Total Count: <div id="zgrab443Total"></div><br/>
+    Zgrab Port Total Count: <div id="zgrabPortTotal"></div><br/>
+
+    <div class="table">
+        <div class="tableRow">
+            <div class="tableCell">Zgrab Tracked TLS Orgs: </div><div class="tableCell" id="zgrabOrgs"></div>
+        </div>
+    </div><br/>
+
+    <div class="table">
+        <div class="tableRow">
+            <div class="tableCell">ZGrab Ports: </div><div class="tableCell" id="zgrabPorts"></div>
+        </div>
+    </div><br/>
+</div>
+
+
+<% include ../../partials/footer %>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+azure-mgmt-resource
+azure-mgmt-dns
+backoff
+boto3
+bson
+certifi
+configparser
+HTMLParser
+netaddr
+networkx
+pymongo
+python-dateutil
+python-whois
+requests
+tld

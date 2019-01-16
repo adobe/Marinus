@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Domains</title>
+    <% include ../partials/head %>
+    <script src="/javascripts/api.js"></script>
+</head>
+<body>
+
+<% include ../partials/header %>
+
+<form class="coral-Form coral-Form--vertical">
+    <section class="coral-Form-fieldset">
+      <label id="ipLabel" class="coral-Form-fieldlabel">Please enter a fully qualified domain name.</label>
+      <coral-search value="" name="domainSearch" labelledby="domainLabel" id="search_input"></coral-search>
+    </section>
+</form>
+<br/>
+<br/>
+
+<div id="hostingLocation"></div>
+
+<div id="ownershipInformation"></div>
+
+<div id="dnsRecords"></div>
+
+<div id="reverseDnsRecords"></div>
+
+<div id="certificateRecords"></div>
+
+<div id="scanInformation" class="hidden">
+    <h3>Open Ports</h3>
+    <div class="divTable">
+        <div id="scanTitleRow" class="tableRow"></div>
+        <div id="scanDataRow" class="tableRow"></div>
+    </div>
+    <div id="scanOutput" class="coral-Well"></div>
+</div>
+
+<div id="censysInformation"></div>
+
+<div id="dyanmic_whois" class="hidden"></div>
+
+<% include ../partials/footer %>
+
+</body>
+</html>

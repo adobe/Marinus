@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>IPv6</title>
+    <% include ../partials/head %>
+    <script src="/javascripts/api.js"></script>
+</head>
+<body>
+
+<% include ../partials/header %>
+
+<form class="coral-Form coral-Form--vertical">
+  <section class="coral-Form-fieldset">
+    <label id="ipLabel" class="coral-Form-fieldlabel">Please enter an IPv6 address.</label>
+    <coral-search value="" name="ipv6Search" labelledby="ipv6Label" id="search_input"></coral-search>
+  </section>
+</form>
+
+
+<div id="hostingLocation"></div>
+
+<div id="ownershipInformation"></div>
+
+<div id="dnsRecords"></div>
+
+<div id="dyanmic_whois" class="coral-Well"></div>
+
+<% include ../partials/footer %>
+
+</body>
+</html>

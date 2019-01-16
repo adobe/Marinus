@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>IP Range List</title>
+    <% include ../partials/head %>
+    <script src="/javascripts/ip_range.js"></script>
+</head>
+<body>
+
+<% include ../partials/header %>
+    
+<form class="coral-Form coral-Form--vertical">
+  <section class="coral-Form-fieldset">
+    <label id="rangeLabel" class="coral-Form-fieldlabel">Please enter a CIDR.</label>
+    <coral-search value="" name="rangeSearch" labelledby="rangeLabel" id="search_input"></coral-search>
+  </section>
+</form>
+
+<br/>
+
+<div class="divTable">
+  <div class="tableRow">
+    <div id="rangeCounts" class="tableCell">
+        <table class="coral-Table apiTable" id="ipRangeTable">
+            <thead class="coral-Table-head apiTableHead">
+                <tr class="coral-Table-row">
+                    <th class="coral-Table-headerCell">Type</th>
+                    <th class="coral-Table-headerCell">Count</th>
+                </tr>
+            </thead>
+            <tbody class="coral-Table-body apiTableBody" id="ipRangeBody">
+            </tbody>
+        </table>
+    </div>
+    <div id="rangeInfo" class="coral-Well">
+    </div>
+  </div>
+</div>
+<br/>
+
+<div id="dyamic_whois_section"></div>
+
+<% include ../partials/footer %>
+
+</body>
+</html>

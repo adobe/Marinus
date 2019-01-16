@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Port Summary</title>
+    <% include ../../partials/head %>
+    <script src="/javascripts/meta.js"></script>
+</head>
+<body>
+
+<% include ../../partials/header %>
+
+<h3>Ports listed in DNS SRV records</h3>
+<div class="divTable">
+  <div class="tableRow">
+      <div id="srvPortCounts" class="tableCell">
+          <table class="coral-Table apiTable" id="srvPortListTable">
+              <thead class="coral-Table-head apiTableHead">
+                  <tr>
+                    <th class="coral-Table-headerCell">Srv Record Port</th>
+                    <th class="coral-Table-headerCell">Record Count</th>
+                  </tr>
+              </thead>
+              <tbody class="coral-Table-body apiTableBody" id="srvPortListBody"></tbody>
+          </table>
+      </div>
+      <div id="srvPortInfo" class="coral-Well tableCell fullWidth">
+        <span id="srvTableTitle"></span>
+        <table class="coral-Table apiTable" id="srvOutputTable">
+          <thead class="coral-Table-head apiTableHead">
+              <tr class="coral-Table-row">
+                  <th class="coral-Table-headerCell">FQDN</th>
+                  <th class="coral-Table-headerCell">Value</th>
+              </tr>
+          </thead>
+          <tbody class="coral-Table-body apiTableBody" id="srvOutputBody">
+          </tbody>
+        </table>
+      </div>
+  </div>
+</div>
+<br/>
+<h3>Information from IP-based port scans</h3>
+<div class="divTable">
+  <div class="tableRow">
+    <div id="portCounts" class="tableCell">
+        <table class="coral-Table apiTable" id="portListTable">
+            <thead class="coral-Table-head apiTableHead">
+                <tr class="coral-Table-row">
+                    <th class="coral-Table-headerCell">Scanned Port</th>
+                    <th class="coral-Table-headerCell">Unique IP Count</th>
+                </tr>
+            <tbody class="coral-Table-body apiTableBody" id="portListBody"></tbody>
+        </table>
+    </div>
+    <div id="portInfo" class="coral-Well tableCell fullWidth">
+      <span id="ipTableTitle"></span>
+      <table class="coral-Table apiTable" id="outputTable">
+        <thead class="coral-Table-head apiTableHead">
+            <tr class="coral-Table-row">
+                <th class="coral-Table-headerCell">IP</th>
+                <th class="coral-Table-headerCell">Tracked CIDR</th>
+                <th class="coral-Table-headerCell">AWS IP</th>
+                <th class="coral-Table-headerCell">Azure IP</th>
+                <th class="coral-Table-headerCell">Notes</th>
+            </tr>
+        </thead>
+        <tbody class="coral-Table-body apiTableBody" id="outputBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<br/>
+<div id="zgrab_domain_scans" class="hidden">
+    <h3>Information from Domain-based HTTP connections</h3>
+    <div class="divTable">
+        <div class="tableRow">
+            <div id="httpPortCounts" class="tableCell">
+                <table class="coral-Table apiTable" id="httpPortListTable">
+                    <thead class="coral-Table-head apiTableHead">
+                        <tr class="coral-Table-row">
+                            <th class="coral-Table-headerCell">HTTP Port</th>
+                            <th class="coral-Table-headerCell">Unique domain Count</th>
+                        </tr>
+                    <tbody class="coral-Table-body apiTableBody" id="httpPortListBody"></tbody>
+                </table>
+            </div>
+            <div id="portInfo" class="coral-Well tableCell fullWidth">
+                <span id="httpTableTitle"></span>
+                <table class="coral-Table apiTable" id="httpOutputTable">
+                    <thead class="coral-Table-head apiTableHead">
+                        <tr class="coral-Table-row">
+                            <th class="coral-Table-headerCell">Domain</th>
+                            <th class="coral-Table-headerCell">Zone</th>
+                        </tr>
+                    </thead>
+                    <tbody class="coral-Table-body apiTableBody" id="httpOutputBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<% include ../../partials/footer %>
+
+</body>
+</html>

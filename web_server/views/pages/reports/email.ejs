@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Mail Configuration Information</title>
+    <% include ../../partials/head %>
+    <script src="/javascripts/email.js"></script>
+</head>
+<body>
+
+<% include ../../partials/header %>    
+
+<H3>Email MX and TXT Records</H3>
+<coral-tabview>
+  <coral-tablist target="coral-demo-panel-1">
+    <coral-tab>MX Records</coral-tab>
+    <coral-tab>SPF Records</coral-tab>
+    <coral-tab>DKIM Records</coral-tab>
+  </coral-tablist>
+  <coral-panelstack id="coral-demo-panel-1">
+    <coral-panel class="coral-Well">
+      <section class="divTable">
+        <div class="tableRow">
+            <div class="tableCell" id="mxTable"></div>
+            <div class="tableCell" id="mxResult"></div>
+        </div>    
+      </section>
+    </coral-panel>
+    <coral-panel class="coral-Well">
+      <section class="divTable">
+        <div class="tableRow">
+            <div class="tableCell" id="spfTable"></div>
+            <div class="tableCell" id="spfResult"></div>
+        </div>    
+      </section>
+    </coral-panel>
+    <coral-panel class="coral-Well">
+      <section class="divTable">
+        <div class="tableRow">
+            <div class="tableCell" id="dkimTable"></div>
+            <div class="tableCell" id="dkimResult"></div>
+        </div>    
+      </section>
+    </coral-panel>
+  </coral-panelstack>
+</coral-tabview>
+
+    
+<% include ../../partials/footer %>
+
+</body>
+</html>

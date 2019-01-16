@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Administration Control Panel</title>
+    <% include ../../partials/head %>
+    <script src="/javascripts/config.js"></script>
+</head>
+<body>
+
+<% include ../../partials/header %>
+
+<!-- use autofill list -->
+    
+<coral-tabview>
+  <coral-tablist target="coral-demo-panel-1">
+    <coral-tab>Users</coral-tab>
+    <coral-tab>Groups</coral-tab>
+  </coral-tablist>
+  <coral-panelstack id="coral-demo-panel-1">
+    <coral-panel class="coral-Well">
+      <div id="userResult">
+      <div id="userList">
+      </div>
+      <form class="coral-Form coral-Form--vertical">
+        <section class="coral-Form-fieldset">
+            <label id="userLabel" class="coral-Form-fieldlabel">Add User</label>
+            <input is="coral-textfield" placeholder="Enter a user to add" name="field" value="" id="newUser">
+            <button is="coral-button" icon="add" iconsize="S" id="addUser">Add User</button>
+        </section>
+      </form>
+      </div>
+    </coral-panel>
+    <coral-panel class="coral-Well">
+      <div id="groupResult">
+      <div id="groupList">
+      </div>
+      <form class="coral-Form coral-Form--vertical">
+        <section class="coral-Form-fieldset">
+            <label id="groupLabel" class="coral-Form-fieldlabel">Please select a group to modify.</label>
+            <coral-select name="Select" placeholder="Choose an item" id="selectGroup"></coral-select>
+            <input is="coral-textfield" placeholder="UserID" id="groupUser" name="groupUser" value=""/>
+            <button is="coral-button" icon="add" iconsize="S" id="addUserToGroup">Add User</button>
+        </section>
+      </form>
+      </div>
+    </coral-panel>
+  </coral-panelstack>
+</coral-tabview>
+    
+<% include ../../partials/footer %>
+
+</body>
+</html>

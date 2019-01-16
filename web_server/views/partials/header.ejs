@@ -1,0 +1,88 @@
+<section class="divTable">
+ <div class="tableRow">
+     <div class="tableCell" id="appName"><a href="/">Marinus</a></div>
+     <div class="tableCell">
+        <coral-accordion variant="quiet">
+            <coral-accordion-item>
+                <coral-accordion-item-label>Host Details</coral-accordion-item-label>
+                <coral-accordion-item-content>
+                    <a href="/domain">Hostname</a><br/><br/>
+                    <a href="/ip">IP Address</a><br/><br/>
+                    <a href="/ipv6">IPv6 Address</a><br/><br/>
+                    <a href="/zone">Root Domain</a><br/><br/>
+                    <a href="/ip_range">CIDR</a><br/><br/>
+                    <a href="/cert">Certificate</a><br/><br/>
+                    <% include custom/custom_host_header %>
+                </coral-accordion-item-content>
+            </coral-accordion-item>
+        </coral-accordion>
+     </div>
+     <div class="tableCell">
+        <coral-accordion variant="quiet">
+            <coral-accordion-item>
+                <coral-accordion-item-label>Meta Search</coral-accordion-item-label>
+                <coral-accordion-item-content>
+                    <a href="/meta/port_list">Port List</a><br/><br/>
+                    <a href="/meta/zone_list">Zone List</a><br/><br/>
+                    <a href="/meta/ip_zone_list">IP Zone List</a><br/><br/>
+                    <a href="/meta/ipv6_zone_list">IPv6 Zone List</a><br/><br/>
+                    <a href="/meta/whois_dns_list">Whois DNS List</a><br/><br/>
+                    <a href="/meta/tpd_list">Third-Party Domain List</a><br/><br/>
+                    <a href="/meta/headers">HTTP response headers</a><br/><br/>
+                </coral-accordion-item-content>
+            </coral-accordion-item>
+        </coral-accordion>
+     </div>
+     <div class="tableCell">
+        <coral-accordion variant="quiet">
+            <coral-accordion-item>
+                <coral-accordion-item-label>Reports</coral-accordion-item-label>
+                <coral-accordion-item-content>
+                    <a href="/reports/ct_corp_ssl">CT Corp Certs</a><br/><br/>
+                    <a href="/reports/ct_issuers">CT CA Issuers</a><br/><br/>
+                    <a href="/reports/hosts_by_cas">Hosts by CA</a><br/><br/>
+                    <a href="/reports/scan_corp_certs">Corporate Certs</a><br/><br/>
+                    <a href="/reports/scan_expired_ssl">Expired Certs</a><br/><br/>
+                    <a href="/reports/scan_algorithm_ssl">RSA-SHA1 Certs</a><br/><br/>
+                    <!--<a href="/reports/heartbleed">Heartbleed Detections</a><br/><br/>-->
+                    <a href="/reports/dead_dns">Dead DNS records</a><br/><br/>
+                    <a href="/reports/amazon">Amazon Services</a><br/><br/>
+                    <a href="/reports/virustotal_threats">VirusTotal Detections</a><br/><br/>
+                    <a href="/reports/email">Email servers and SPF/DKIM</a><br/>
+                    <% include custom/custom_reports_header %>
+                </coral-accordion-item-content>
+            </coral-accordion-item>
+        </coral-accordion>
+     </div>
+     <div class="tableCell">
+<% if (username) { %>
+         <coral-accordion variant="quiet">
+            <coral-accordion-item>
+                <coral-accordion-item-label>
+                    <coral-icon icon="user" size="S"></coral-icon>
+                </coral-accordion-item-label>
+                <coral-accordion-item-content>
+                    <coral-icon icon="user" size="S"></coral-icon> <a href="/admin/user">View <%= username %></a><br/>
+                    <% if (isAdmin) { %>
+                    <coral-icon icon="gear" size="S"></coral-icon> <a href="/admin/user_config">User Admin</a><br/>
+                    <% } %>
+                    <% if (isDataAdmin) { %>
+                    <coral-icon icon="gear" size="S"></coral-icon> <a href="/admin/data_config">Zone Admin</a><br/>
+                    <% } %>
+                    <% if (isAdmin) { %>
+                    <coral-icon icon="gear" size="S"></coral-icon> <a href="/admin/stats">Data Statistics</a><br/>
+                    <coral-icon icon="gear" size="S"></coral-icon> <a href="/admin/jobs">Job Status</a><br/>
+                    <% } %>
+                    <coral-icon icon="lockOn" size="S"></coral-icon> <a href="/auth/logout">Logout</a><br/>
+                </coral-accordion-item-content>
+            </coral-accordion-item>
+        </coral-accordion>
+<% } else { %>
+  <a href="/auth/login">Sign In</a>
+<% } %>
+     </div>
+     <div class="tableCell"><a is="coral-anchorbutton" icon="helpCircle" variant="quiet" iconsize="S" href="/help">Help</a></div>
+ </div>
+</section>
+<br/>
+<div id="errorMessage"></div><br/>

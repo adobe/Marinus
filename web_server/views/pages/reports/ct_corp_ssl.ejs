@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate Transparency SSL Data</title>
+    <% include ../../partials/head %>
+    <script src="/javascripts/certs.js"></script>
+</head>
+<body>
+
+<% include ../../partials/header %>
+    
+<h3>Certificate Transparency Database</h3>
+<b>The corporate certificates currently recorded in the CT database.</b><br/>
+<br/>
+<div class="table">
+    <div class="tableRow">
+       <div class="tableCell tdMiddle">Exclude expired certificates: </div><div class="tableCell"><coral-switch id="excludeExpired"></coral-switch></div>
+    </div>
+</div>
+<br/>
+
+<div id="ct_corp_certs"><coral-wait></coral-wait></div><br>
+    
+<% include ../../partials/footer %>
+
+</body>
+</html>

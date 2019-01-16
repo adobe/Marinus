@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+
+ <head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <% include ../partials/head %>
+    <script src="/javascripts/login.js"></script>
+</head>
+
+ <body>
+
+    <% include ../partials/header %>
+     
+    <% if (state == "development") { %>
+
+        <p>Please enter your credentials.</p>
+        <form method="post" action="/auth/login" enctype="application/x-www-form-urlencoded">
+            <input type="hidden" id="returnPath" name="returnPath" value="<%= redirect %>">
+            <table>
+                <tr>
+                    <td>Username:</td>
+                    <td>
+                        <input type="text" id="username" name="username">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Password:</td>
+                    <td>
+                        <input type="password" id="password" name="password">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input type="submit" id="submit" value="Submit">
+                    </td>
+                    <td></td>
+                </tr>
+            </table>
+        </form>
+     
+    <% } else { %>
+       <br/>
+       <button is="coral-button" icon="lockOn" iconsize="M" id="loginButton">Sign In</button>
+       <br/>
+    <% } %>
+
+
+    <% include ../partials/footer %>
+
+ </body>
+
+</html>

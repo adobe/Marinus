@@ -1,0 +1,308 @@
+#!/usr/bin/python3
+
+# Copyright 2018 Adobe. All rights reserved.
+# This file is licensed to you under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License. You may obtain a copy
+# of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+# OF ANY KIND, either express or implied. See the License for the specific language
+# governing permissions and limitations under the License.
+
+"""
+This script creates d3.js maps of the certificates stored within Marinus.
+It stores the graphs within the Marinus database for later retrieval by the UI.
+This assumes that you have already collected data from either Censys, CT Logs, or zgrab sans.
+Use the command line to specify which of those sources exist.
+You can specify multiple sources on the command line.
+"""
+
+import argparse
+import json
+from datetime import datetime
+
+import networkx as nx
+from networkx.readwrite import json_graph
+
+from libs3 import DNSManager, MongoConnector
+from libs3.ZoneManager import ZoneManager
+
+
+
+def get_current_ct_certificates(ct_connection, zone):
+    """
+    Get the list of non-expired certificate transparency certificates for the indicated zone.
+    """
+
+    results = ct_connection.find({'isExpired': False, 'subject_common_names': {"$regex": r'^(.+\.)*' + zone + '$'}, 'subject_dns_names': {"$regex": r'^(.+\.)*' + zone + '$'}},
+                                 {'fingerprint_sha256':1, 'subject_common_names': 1, 'subject_dns_names': 1})
+
+    collection = []
+    for result in results:
+        item = {'id': result['fingerprint_sha256']}
+        item['dns_entries'] = result['subject_common_names'] + result['subject_dns_names']
+        item['sources'] = ['ct_logs']
+        collection.append(item)
+
+    return collection
+
+
+def get_censys_count(censys_collection, sha256_hash):
+    """
+    Get the count of matching certificates for the provided hash
+    """
+    result_count = censys_collection.find({'p443.https.tls.certificate.parsed.fingerprint_sha256': sha256_hash}).count()
+    return result_count
+
+
+def add_censys_certificates(censys_collection, zone, current_certs):
+    """
+    Get the list of current certificates from censys for the specified zones.
+    Append any new entries to the provided array of current_certs.
+    """
+
+    results = censys_collection.find({"$or":[{'p443.https.tls.certificate.parsed.subject.common_name': {"$regex": r'^(.+\.)*' + zone + '$'}},
+        {'p443.https.tls.certificate.parsed.extensions.subject_alt_name.dns_names': {"$regex": r'^(.+\.)*' + zone + '$'}}]},
+        {"p443.https.tls.certificate.parsed.subject.common_name": 1,
+         "p443.https.tls.certificate.parsed.extensions.subject_alt_name.dns_names": 1,
+         "p443.https.tls.certificate.parsed.fingerprint_sha256": 1})
+
+    for result in results:
+        i = next((index for (index, item) in enumerate(current_certs)\
+                       if item["id"] == result['p443']['https']['tls']['certificate']['parsed']['fingerprint_sha256']), None)
+        if i is None:
+            item = {'id': result['p443']['https']['tls']['certificate']['parsed']['fingerprint_sha256']}
+            dns_list = []
+            try:
+                for dns_name in result["p443"]["https"]["tls"]["certificate"]["parsed"]["subject"]["common_name"]:
+                    if dns_name not in dns_list:
+                        dns_list.append(dns_name)
+            except KeyError:
+                pass
+
+            # Not all certificates contain alternative names.
+            try:
+                for dns_name in result["p443"]["https"]["tls"]["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
+                    if dns_name not in dns_list:
+                        dns_list.append(dns_name)
+            except KeyError:
+                # "ALT Name key not found."
+                pass
+
+            item['dns_entries'] = dns_list
+            item['sources'] = ['censys']
+            item['censys_count'] = get_censys_count(censys_collection, result['p443']['https']['tls']['certificate']['parsed']['fingerprint_sha256'])
+            current_certs.append(item)
+        else:
+            # The certificate is already stored so there is nothing more to add.
+            if 'censys' not in current_certs[i]['sources']:
+                current_certs[i]['sources'].append('censys')
+            if 'censys_count' not in current_certs[i]:
+                current_certs[i]['censys_count'] = get_censys_count(censys_collection, result['p443']['https']['tls']['certificate']['parsed']['fingerprint_sha256'])
+
+    return current_certs
+
+
+def get_scan_count(zgrab_collection, sha256_hash):
+    """
+    Get the count of matching certificates for the provided hash
+    """
+    result_count = zgrab_collection.find({"$or": [{'data.http.response.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash},
+                                                  {'data.http.response.redirect_response_chain.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash}]}).count()
+    return result_count
+
+
+def add_terminal_zgrab_certificates(zgrab_collection, zone, current_certs):
+    """
+    Get the list of current certificates from zgrab scans for the specified zones.
+    Append any new entries to the provided array of current_certs.
+    This currently does not check
+    """
+
+    results = zgrab_collection.find({"$or":[{'data.http.response.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': {"$regex": r'^(.+\.)*' + zone + '$'}},
+        {'data.http.response.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': {"$regex": r'^(.+\.)*' + zone + '$'}}]},
+        {"data.http.response.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name": 1,
+         "data.http.response.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names": 1,
+         "data.http.response.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256": 1})
+
+    for result in results:
+        i = next((index for (index, item) in enumerate(current_certs)\
+                       if item["id"] == result['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256']), None)
+        if i is None:
+            item = {'id': result['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256']}
+            dns_list = []
+            try:
+                for dns_name in result['data']['http']['response']['request']['tls_handshake']['server_certificates']["certificate"]["parsed"]["subject"]["common_name"]:
+                    if dns_name not in dns_list:
+                        dns_list.append(dns_name)
+            except KeyError:
+                pass
+
+            # Not all certificates contain alternative names.
+            try:
+                for dns_name in result['data']['http']['response']['request']['tls_handshake']['server_certificates']["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
+                    if dns_name not in dns_list:
+                        dns_list.append(dns_name)
+            except KeyError:
+                # "ALT Name key not found."
+                pass
+
+            item['dns_entries'] = dns_list
+            item['sources'] = ['zgrab_443_scan']
+            item['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'])
+            current_certs.append(item)
+        else:
+            # The certificate is already stored so there is nothing more to add.
+            if 'zgrab_443_scan' not in current_certs[i]['sources']:
+                current_certs[i]['sources'].append('zgrab_443_scan')
+            if 'zgrab_count' not in current_certs[i]:
+                current_certs[i]['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'])
+
+    return current_certs
+
+def add_initial_zgrab_certificates(zgrab_collection, zone, current_certs):
+    """
+    Get the list of current certificates from zgrab scans for the specified zones.
+    Append any new entries to the provided array of current_certs.
+    This currently does not check
+    """
+
+    results = zgrab_collection.find({"$or":[{'data.http.redirect_response_chain.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': {"$regex": r'^(.+\.)*' + zone + '$'}},
+        {'data.http.redirect_response_chain.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': {"$regex": r'^(.+\.)*' + zone + '$'}}]},
+        {"data.http.redirect_response_chain": 1})
+
+    for result in results:
+        i = next((index for (index, item) in enumerate(current_certs)\
+                       if item["id"] == result['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256']), None)
+        if i is None:
+            item = {'id': result['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256']}
+            dns_list = []
+            try:
+                for dns_name in result['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']["certificate"]["parsed"]["subject"]["common_name"]:
+                    if dns_name not in dns_list:
+                        dns_list.append(dns_name)
+            except KeyError:
+                pass
+
+            # Not all certificates contain alternative names.
+            try:
+                for dns_name in result['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
+                    if dns_name not in dns_list:
+                        dns_list.append(dns_name)
+            except KeyError:
+                # "ALT Name key not found."
+                pass
+
+            item['dns_entries'] = dns_list
+            item['sources'] = ['zgrab_443_scan']
+            item['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'])
+            current_certs.append(item)
+        else:
+            # The certificate is already stored so there is nothing more to add.
+            if 'zgrab_443_scan' not in current_certs[i]['sources']:
+                current_certs[i]['sources'].append('zgrab_443_scan')
+            if 'zgrab_count' not in current_certs[i]:
+                current_certs[i]['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'])
+
+    return current_certs
+
+def create_nodes(graph, mongo_connector, zone, all_certs):
+    """
+    Create the list of D3.js nodes and links based on the collected certificates
+    """
+    DNS_MGR = DNSManager.DNSManager(mongo_connector)
+
+    for cert in all_certs:
+        matched_count = 0
+        if "censys_count" in cert:
+            matched_count = cert['censys_count']
+
+        if "zgrab_count" in cert:
+            matched_count = matched_count + cert['zgrab_count']
+
+        graph.add_node(cert['id'], type='certificate', sources=cert['sources'], total_count=matched_count)
+        for dns_entry in cert['dns_entries']:
+            lookup = DNS_MGR.find_one({'fqdn': dns_entry}, None)
+
+            root_flag = "false"
+            if dns_entry == zone:
+                root_flag = "true"
+
+            if lookup is None:
+                graph.add_node(dns_entry, root=root_flag, status="No Host", type="domain", sources=cert['sources'])
+            else:
+                graph.add_node(dns_entry, root=root_flag, status="Resolves", type="domain", sources=cert['sources'])
+
+            graph.add_edge(cert['id'], dns_entry, type="sans")
+            graph.add_edge(dns_entry, cert['id'], type="uses")
+
+    return graph
+
+
+def main():
+    """
+    Begin Main()
+    """
+
+    now = datetime.now()
+    print("Starting: " + str(now))
+
+    mongo_connector = MongoConnector.MongoConnector()
+    jobs_collection = mongo_connector.get_jobs_connection()
+    mongo_ct = mongo_connector.get_certificate_transparency_connection()
+    cert_graphs_collection = mongo_connector.get_cert_graphs_connection()
+
+    zones = ZoneManager.get_distinct_zones(mongo_connector)
+
+    parser = argparse.ArgumentParser(description='Creates and stores certificate graphs in the database based on one or more sources.')
+    parser.add_argument('--check_censys', action='store_true', default=False, required=False, help='Whether to check the Censys collection in the database')
+    parser.add_argument('--check_443_scans', action='store_true', default=False, required=False, help='Whether to check the zgrab collection in the database')
+    parser.add_argument('--check_ct_scans', action='store_true', default=False, required=False, help='Whether to check the CT collection in the database')
+    args = parser.parse_args()
+
+    if args.check_censys is True:
+        censys_collection = mongo_connector.get_censys_connection()
+
+    if args.check_443_scans is True:
+        zgrab_collection = mongo_connector.get_zgrab_443_data_connection()
+
+    for zone in zones:
+        print("Creating: " + zone)
+        graph = nx.DiGraph()
+
+        certs_list = {}
+
+        if args.check_ct_scans:
+            certs_list = get_current_ct_certificates(mongo_ct, zone)
+        if args.check_censys:
+            certs_list = add_censys_certificates(censys_collection, zone, certs_list)
+        if args.check_443_scans:
+            certs_list = add_terminal_zgrab_certificates(zgrab_collection, zone, certs_list)
+            certs_list = add_initial_zgrab_certificates(zgrab_collection, zone, certs_list)
+
+
+
+        graph = create_nodes(graph, mongo_connector, zone, certs_list)
+        data = json_graph.node_link_data(graph)
+
+        my_data = {}
+        my_data['links'] = data['links']
+        my_data['nodes'] = data['nodes']
+        my_data['zone'] = zone
+        my_data['created'] = datetime.now()
+
+        cert_graphs_collection.remove({'zone': zone})
+        cert_graphs_collection.insert(my_data)
+
+    # Record status
+    jobs_collection.update_one({'job_name': 'create_cert_graphs'},
+                               {'$currentDate': {"updated": True},
+                                "$set": {'status': 'COMPLETE'}})
+
+    now = datetime.now()
+    print("Ending: " + str(now))
+
+
+if __name__ == "__main__":
+    main()

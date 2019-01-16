@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Administration Control Panel</title>
+    <% include ../../partials/head %>
+    <script src="/javascripts/config.js"></script>
+</head>
+<body>
+
+<% include ../../partials/header %>
+
+<!-- use autofill list -->
+    
+<coral-tabview>
+  <coral-tablist target="coral-demo-panel-1">
+    <coral-tab>Root Domains</coral-tab>
+    <coral-tab>IPv4 CIDRs</coral-tab>
+    <coral-tab>IPv6 Ranges</coral-tab>
+  </coral-tablist>
+  <coral-panelstack id="coral-demo-panel-1">
+    <coral-panel>
+      <h3>Add a new root domain</h3>
+      <div class="coral-Well">
+        <label id="zoneLabel" class="coral-Form-fieldlabel">Please enter the new root domain.</label><br/>
+        <input is="coral-textfield" placeholder="TLD" name="zoneInput" labelledby="zoneLabel" id="zone_add_input"/>
+        <button is="coral-button" icon="add" iconsize="S" id="addZone">Add</button>
+     </div>
+     <div id="zoneUpdateResult"></div>
+     <h3>Modify an existing root domain record</h3>
+     <div class="coral-Well">
+       <form class="coral-Form coral-Form--vertical">
+          <section class="coral-Form-fieldset">
+            <label id="zoneLabel" class="coral-Form-fieldlabel">Please enter the root domain to modify.</label>
+            <coral-search value="" name="zoneSearch" labelledby="zoneLabel" id="zone_search_input"></coral-search>
+          </section>
+        </form>
+        <div id="zoneResult"></div>
+        <div id="zoneDetails">
+            <span id="zoneName"></span>
+            <coral-select name="Select" placeholder="Choose an item" id="zoneStatus">
+                <coral-select-item value="confirmed" selected>confirmed</coral-select-item>
+                <coral-select-item value="unconfirmed">unconfirmed</coral-select-item>
+                <coral-select-item value="false_positive">false_positive</coral-select-item>
+                <coral-select-item value="expired">expired</coral-select-item>
+            </coral-select>
+            <button is="coral-button" icon="upload" iconsize="S" id="updateZoneStatus">Update</button><br/>
+            <input is="coral-textfield" placeholder="Tag" name="field" id="zoneNotes" value=""/>
+            <button is="coral-button" icon="add" iconsize="S" id="updateZoneNotes">Add</button><br>
+            <div id="zonePatchResult"></div>
+        </div>
+       </div>
+    </coral-panel>
+    <coral-panel>
+      <h3>Add a new IPv4 range</h3>
+      <div class="coral-Well">
+       <label id="ipZoneLabel" class="coral-Form-fieldlabel">Please enter the CIDR to add.</label><br/>
+       <input is="coral-textfield" placeholder="CIDR" name="cidrInput" labelledby="ipZoneLabel" id="ipZone_add_input"/>
+       <button is="coral-button" icon="add" iconsize="S" id="addIPZone">Add</button>
+      </div>
+      <div id="ipZoneUpdateResult"></div>
+     <h3>Modify an existing IP zone</h3>
+      <div class="coral-Well">
+       <form class="coral-Form coral-Form--vertical">
+          <section class="coral-Form-fieldset">
+            <label id="ipZoneLabel" class="coral-Form-fieldlabel">Please enter the CIDR to modify.</label>
+            <coral-search value="" name="cidrSearch" labelledby="ipZoneLabel" id="cidr_search_input"></coral-search>
+          </section>
+       </form>
+       <div id="ipZoneResult"></div>
+       <div id="ipZoneDetails">
+            <coral-select name="Select" placeholder="Choose an item" id="ipZoneStatus">
+                <coral-select-item value="confirmed" selected>confirmed</coral-select-item>
+                <coral-select-item value="unconfirmed">unconfirmed</coral-select-item>
+                <coral-select-item value="false_positive">false_positive</coral-select-item>
+            </coral-select>
+            <button is="coral-button" icon="gearsEdit" iconsize="S" id="updateCIDRStatus">Update</button><br/>
+            <br/>
+            <input is="coral-textfield" placeholder="Tag" name="field" id="cidrNotes" value=""/>
+            <button is="coral-button" icon="add" iconsize="S" id="updateCIDRNotes">Add</button><br/>
+            <div id="ipZonePatchResult"></div>
+       </div>
+      </div>
+    </coral-panel>
+    <coral-panel>
+      <h3>Add a new IPv6 range</h3>
+      <div class="coral-Well">
+       <label id="ipv6ZoneLabel" class="coral-Form-fieldlabel">Please enter the IPv6 range to add.</label><br/>
+       <input is="coral-textfield" placeholder="IPv6Range" name="ipv6Input" labelledby="ipv6ZoneLabel" id="ipv6Zone_add_input"/>
+       <button is="coral-button" icon="add" iconsize="S" id="addIPv6Zone">Add</button>
+      </div>
+      <div id="ipv6ZoneUpdateResult"></div>
+     <h3>Modify an existing IPv6 zone</h3>
+      <div class="coral-Well">
+       <form class="coral-Form coral-Form--vertical">
+          <section class="coral-Form-fieldset">
+            <label id="ipv6ZoneLabel" class="coral-Form-fieldlabel">Please enter the IPv6 zone to modify.</label>
+            <coral-search value="" name="ipv6Search" labelledby="ipv6ZoneLabel" id="ipv6_search_input"></coral-search>
+          </section>
+       </form>
+       <div id="ipv6ZoneResult"></div>
+       <div id="ipv6ZoneDetails">
+            <coral-select name="Select" placeholder="Choose an item" id="ipv6ZoneStatus">
+                <coral-select-item value="confirmed" selected>confirmed</coral-select-item>
+                <coral-select-item value="unconfirmed">unconfirmed</coral-select-item>
+                <coral-select-item value="false_positive">false_positive</coral-select-item>
+            </coral-select>
+            <button is="coral-button" icon="gearsEdit" iconsize="S" id="updateIPv6Status">Update</button><br/>
+            <br/>
+            <input is="coral-textfield" placeholder="Tag" name="field" id="ipv6Notes" value=""/>
+            <button is="coral-button" icon="add" iconsize="S" id="updateIPv6Notes">Add</button><br/>
+            <div id="ipv6ZonePatchResult"></div>
+       </div>
+      </div>
+    </coral-panel>
+  </coral-panelstack>
+</coral-tabview>
+    
+<% include ../../partials/footer %>
+
+</body>
+</html>

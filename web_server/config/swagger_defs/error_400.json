@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "properties": {
+        "message": {
+            "type" : "string",
+            "description": "Missing request parameters",
+            "example": "One or more values are missing or malformed."
+        }
+    }
+}

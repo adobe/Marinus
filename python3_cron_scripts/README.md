@@ -1,0 +1,104 @@
+# Marinus Python 3 Cron Scripts
+
+## General overview
+Marinus collects the majority of its data from common commercial and open source remote repositories such as Censys, Rapid7, Common Crawl, Certificate Transparency Logs, commercial integrations, and Google DNS over HTTPS. Marinus also supports pulling data from commercial infrastructure applications such as Infoblox, Azure DNS, AWS Route53, and UltraDNS. The scripts in this directory are responsible for obtaining the data from those sources and are the first step in getting Marinus up and running.
+
+All scripts need to run within an environment. The current Marinus infrastructure at Adobe is quite robust and can serve as an example of running Marinus within a large organization. Smaller organizations and/or smaller deployments will not need this level of infrastructure in order to process the data. Experimentation and a little tuning will help you to determine the best way to deploy the scripts within your organization.
+
+Let's assume that you are working for a complex organization with thousands of records. At Adobe, the processing is split into two groups. There is a remote environment for the scripts that require powerful machines and from which we can conduct remote scanning. There is an also a group of instances inside the internal network which runs the majority of scripts which don't require a lot of resources. A Mongo DB instance sits within both groups with the internal database acting as the single source of truth. The deployment is broken down as follows:
+
+### External cloud environment
+* One server with a large CPU and a 1.5TB drive for handling Censys data.
+* Two servers for running the zgrab scripts. They are separated on different machines to split up the network traffic.
+* One remote MongoDB server to cache the data until it can be pulled down by the primary database. This is fairly light weight and can exist on the Censys server.
+
+### Internal environment
+* A MongoDB that is the single source of truth
+* One server for short running scripts (3 days or less)
+* Five servers for the sonar scripts with 300GB partitions
+* One server for the Certificate Transparency jobs with a 300GB partition
+* One server for the common crawl graph job.
+* One server for hosting the web site
+
+The majority of the scripts are CPU-bound problems. Therefore, your performance will be gated by your CPU rather than RAM or disk speed. With the exception of the Certificate and Zgrab scripts, most of the scripts do not support multiple threads at this time so the jobs will not be spread across cores.
+
+The Sonar, Censys, and Certificate transparency machines must have GBs of free disk space in order to download and then unzip the relevant data. In the case of the Censys data, the last measurement was around 250GB as an lz4 compressed file and a little over 1 TB when unpacked which means you need around 1.5 TB in order to download the compressed file and have space to create the decompressed with a margin of safety. This should be set up as a separate mounted partition from the core OS. By using a separate partition, you can ensure that the OS can continue run if the separate partition ever becomes full. The machines processing Sonar data require around 300GB free. If you use the older Common Crawl WARC files script, then it is 67.79TB of compressd data that is spread out into smaller 1.3 GB of compressed files. The Common Crawl graph script is much faster and needs less than 50GB of space.
+
+## Mongo databases
+The scripts assume that there are two MongoDB instances:
+ 
+ * A primary instance that is hosted in an internal network. It is the authorative store for all data.
+ * A remote database that lives in a remote cloud environment.
+ 
+The remote database allows for scripts to be executed in a separate remote network. A few of the collections from the primary instance are mirrored to the remote database so that scripts have the relevant data for their tasks. The updated data is then copied back to the primary database when processing completes.
+
+If you are able to run all of your scripts within a single environment, then the remote database is not necessary. Specifying the same connnection information for both databases within the connector.config file will force the scripts to use a single database. You will also not need to run the send_remote_server.py or download_from_remote_database.py scripts.
+
+## Set up
+The scripts and the associated libs directory can be placed anywhere on an instance so long as it meets the following requirements:
+
+* Python 3.x is installed with the libraries referenced in the requirements.txt file. The scripts assume that python is installed in /usr/bin/python3 but you can modify this at the top of the scripts.
+* A connector.config file exists with the database connection information. The connector.config files also contain the credentials for any third-party services, such as VirusTotal.
+* A configured mongoCA.pem file may be necessary if your database leverages TLS.
+
+Once the requirements have been installed and the connector.config has the relevant database information, the setup.py script can be run to configure Marinus. Please see the GettingStarted.md file for further information on what is needed to configure Marinus.
+
+## Running Time
+The running time for the scripts will vary based on the number of root domains that are tracked and the CPU power of the server. Also, many of the scripts have a time.sleep() call in order to prevent the scripts from over taxing their dependencies. For instance, some third-party providers have limits on the number of requests that are allowed per day. If you have a small enough environment, then you may want to remove those sleep statements to increase the speed of the scripts. Please consult the respective third-party documentation on their rate-limiting policies. It is assumed that most scripts are run once a week.
+
+## Crontab.cron
+This is an example file that contains information on the order in which the scripts should be run. All of the scripts print out a starting time and an ending time so that you can see how long they will take to run in your specific environment. Once you know how long they take to run in your environment, you can adjust the crontab file accordingly. If you are spreading the scripts across multiple machines, it is possible for many of the scripts to run concurrently. You will need to run the scripts that collect zones (aka root domains) first. The scripts that peform the second pass on the cname records and those that create the graphs should be run at the end of the process. The rest of the scripts can be run anywhere in between. As your Marinus deployment reaches a steady state where scripts are regularly run, the order of the scripts will matter less.
+
+## Sonar searches
+The sonar scripts (get_data_by_cidr_unified, get_sonar_data_unified) each run daily. If the scripts detect that they are already running, then they will exit. Within Adobe's environment, it takes five machines to run these scripts because each script can be run in one of two modes (searching Sonar RDNS or searching Sonar DNS). The forward DNS runs are split across two machines since there are different files involved.
+
+## Censys searches and Zzrab scripts
+The get_censys_files script will download and unpack the Censys file. The search_censys_files script will search the downloaded file for the relevant zone relevant entries. It could technically be one script but there were certain advantages to keeping them separate. This script requires a commercial subscription to Censys.
+
+The Censys project utilizes tools from the ZMap Project to collect data. The Marinus zgrab scripts allow you to collect data similar to Censys that can be used in conjunction or as an alternative to their services. The Marinus zgrab scripts can be used to collect data on ports 22, 25, 443, and 465. The zgrab_port_ip scripts will capture the handshake for these ports. The zgrab_http_domain and zgrab_http_ip scripts will record HTTP specific information from servers, such as HTTP headers, that can be used to more deeply measure and monitor web servers. These are currently based on the original zgrab scripts. Research is being done on how to port them to the new zgrab 2.0 project.
+
+## Certificate transparency scripts
+The CT scripts in the Python2 cron_scripts directory go through a selection of the CT servers (download_aviator, download_digicert, etc.) and save the identified certificates to the filesystem. The CT servers that are currently selected are a reference. Each CT server has its own collection of certificates. Therefore, if you are not a Digicert customer, then you will likely get fewer hits using the Digicert CT script. You would need to make your own copy of the CT script for the database associated with your CA. Certificate Transparency databases change frequently so, depending on when you read this, you may need to experiment with other CT servers.
+
+There is also a Python 3 script in this folder for querying the Facebook Graph API for relevant certificates if you have a Facebook Graph account. The Facebook script has a sleep command to avoid exceeding their per hour limits.
+
+Once all of the downloads from both the Python 2 and Python 3 scripts are complete, the hash_based_upload script will ensure that the new, unique certificates found in the searches are uploaded to the Mongo database.
+
+These scripts assume that they are running from the path "/mnt/workspace/". If you are going to deploy them in a different location, then you will need to update the scripts with the correct path.
+
+## Common Crawl scripts
+There are two scripts for parsing data from the Common Crawl project. One script is for processing WARC files from the Common Crawl database that is present in the Python 2 directory. Due to the large amount of resources necessary to parse the WARC files and its redundancy with other methods, maintanence on the script has not been maintained. It has been included as a reference for people who may want to dig deeper into that data set. However, it likely needs to be updated for any changes since it was last used over a year ago.
+
+The second script is in the Python 3 directory and it parses the Common Crawl graph data. This requires far fewer resources and this script is currently acively maintained. The Common Crawl team only publish their graph data once a quarter. Therefore, the script needs to be manually updated with a new path and run once a new dataset becomes available.
+
+## Infoblox, Azure, AWS Route53, and UltraDNS scripts
+These scripts are useful for people that internally leverage these commercial tools as part of their DNS infrastructure. Pulling data from your internal DNS infrastructure will allow you to compare and contrast with what the Internet sees. This comparison could allow you to find shadow IT, dead DNS records, or forgotten systems. The internal information can also useful when you identify an issue and you are trying to track down where in the organization a host lives.
+
+The Infoblox scripts are split into separate searches and have several sleep commands. The sleep commands are due to limitations noticed when leveraging their API at speed. The extattr scripts are only necessary if your organization uses the extattrs property to record additional information. Within Marinus, the UI will search these properties looking for fields that contain the word, "owner."
+
+## get_passivetotal_data.py
+PassiveTotal's commercial services include an API to search their database of whois records. If you have a PassiveTotal account, you can use this to monitor for when new domains are registered.
+
+## get_virustotal_data.py
+Virustotal's APIs provide information on the domains that show up in their malware analysis. These APIs are available to both free and paid customers. This script will check the VirusTotal APIs to see whether your domains are appearing in any malware campaigns.
+
+## Extract_vt, extract_ssl, marinus_dns, and sonar_round_two
+Domains which are identified in VirusTotal searches, TLS certificate CN fields, and sonar files are immediately recorded without further analysis. However, it may be the case that if you do a DNS lookup on the domains from these sources, then it will be a CNAME reference to another tracked domain name. These scripts go through and perform recursive DNS lookups on data from these sources in order to find additional references. The scripts use the Google HTTPS over DNS service because Marinus wants to ensure that the results are not biased by internal DNS servers.
+
+## Graph creation scripts
+These scripts will take the data is available and create d3.js data models that will be used by the UI to provide graph summaries of the networks, certificates, and third-party services. These scripts should be run at the end of the process when the most data is available.
+
+## remove_expired_entries and remove_fixed_dead_dns_records
+Marinus is not intended to be a historical record of your database. The remove_expired_entries script will remove any entries that haven't been updated within two months. Prior to expiring the records, Marinus will use Google HTTPS-over-DNS to validate whether the record still exists. If the record stills exists but is no longer monitored by the third-party, then Marinus will save the record under its name. This script can be run daily. Marinus also tracks "dead DNS" records which are records that point to non-existent resources. This script will remove a host from the dead DNS list when it is corrected.
+
+## libs3
+The libs3 directory contains Python 3 classes for interacting with the databases and third-party services. The MongoConnector library is necessary for any script that talks to the main database (which is most of them). Many of the other libraries are necessary for specific connections as specified by their name.
+
+## MongoCA.pem
+This file is necessary if your Mongo Database uses TLS based on its own certificate authority. If you use a MongoDB with TLS (and you should :-) ), then you will need to replace this file your own MongoCA.pem file that contains the public CA certificate for your database.
+
+## MongoDB jobs table
+Most of the scripts record their status in a *jobs* collection within MongoDB. The scripts assume that the collection exists and that an entry for their script is already present. Therefore, in order for a new script to record its status in MongoDB, an entry for that script must be added to the jobs collection. The setup.py script will populate the jobs collection for all of the current scripts.
+
+## Requirements.txt
+This file contains the Python libraries used by the various scripts. Run 'pip install -r requirements.txt' in order to install of the required dependencies.

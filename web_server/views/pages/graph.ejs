@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+        <meta charset="utf-8">
+        <title>Network Graph</title>
+        <link rel="stylesheet" type="text/css" href="/stylesheets/general.css">
+        <link rel="stylesheet" type="text/css" href="/stylesheets/graph_style.css">
+        <link rel="stylesheet" type="text/css" href="/stylesheets/graph_svg.css">
+    </head>
+    <body class="graph-body">
+        <div id="errorMessage"></div>
+        <div id="split-container">
+            <div id="graph-header" class="fullWidth">
+             <div class="table">
+              <div class="tableRow">
+                <div class="tableCell noWrap"><form id="searchForm"><label for="searchField">Search for nodes that contain the following string: </label><input type="text" id="searchField"></input>&nbsp;<input type="button" value="search" id="searchButton"></form></div>
+                <div class="tableCell noWrap"><form id="reloadForm"><label for="reloadField">Load a new zone: </label><input type="text" id="reloadField"></input>&nbsp;<input type="button" value="reload" id="reloadButton"></form></div>
+                <div class="tableCell fullWidth alignRight"><a href="/">Home</a>&nbsp;&nbsp;&nbsp;<a href="/help" target="_blank">Help</a>&nbsp;&nbsp;</div>
+              </div>
+             </div>
+            </div>
+            <div id="graph-container">
+                <div id="graph">
+	            <svg><g transform="translate(20,20)"></svg>
+	        </div>
+            </div>
+            <div id="docs-container">
+                <a id="docs-close" href="#" class="docs-close">×</a>
+                <div id="docs" class="docs"></div>
+            </div>
+        </div>
+        <script src="/javascripts/jquery-3.1.1.min.js"></script>
+        <script src="/javascripts/d3/d3.js"></script>
+        <script src="/javascripts/d3-scale/d3-scale-chromatic.min.js"></script>
+        <script src="/javascripts/utilities.js"></script>
+        <script src="/javascripts/geometry.js"></script>
+        <script src="/javascripts/draw_graph.js"></script>
+    </body>
+</html>

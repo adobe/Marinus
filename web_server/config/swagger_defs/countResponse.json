@@ -1,0 +1,10 @@
+{
+    "type": "object",
+    "properties": {
+        "count": {
+            "type" : "integer",
+            "description": "The number of matching responses",
+            "example": "3035"
+        }
+    }
+}

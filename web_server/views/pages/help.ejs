@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Help</title>
+    <% include ../partials/head %>
+    <link href='/stylesheets/general.css' rel='stylesheet'>
+    <link href='/stylesheets/help.css' rel='stylesheet'>
+</head>
+<body>
+
+<% include ../partials/header %>
+    
+
+<h1>Help</h1>
+<br/>
+<img src="images/satyrusmarinus-small.jpg" id="satyrus"/>
+<h3>About</h3>
+<p>Marinus is named after <a href="https://en.wikipedia.org/wiki/Marinus_of_Tyre">Marinus of Tyre (AD 70–130)</a>. Marinus
+was the first cartographer to use longitude and latitude on maps (although his meridians were not placed where ours are today).
+He introduced equirectangular projection which is how you get a spherical planet on a flat map. Marinus was also able to
+project the size of equator within 17% which wasn't bad given his time period. The Antartic owes its name to him. Most
+importantly, Ptolemy's <i>Geography</i>, which is the foundational reference of modern geography, was based on Marinus' work in
+cartography. Since this tool aims to map an organization's network, it is named after Marinus of Tyre.</p>
+    
+<p>Marinus tries to combine data from widely different sources that don't always make obvious sense when put together. In that
+spirit, the Satyrus Marinus was chosen as the icon for the tool because it is part man, part goat, and part fish.</p>
+    
+<h3>Overview</h3>
+<p>Marinus is a consolidator of information from several online archives including VirusTotal, the Open Data project, and Whois
+records. The goal is to make it easier to review and consolidate infomration about networks. By comparing internal and external
+sources, Marinus can help identify abandoned domains, identify our network scope, and other useful tasks.</p>
+    
+<p>Overall, Marinus is not a real-time system. It updates from repositories about once a week. There are a few things that
+Marinus can do real time such as a whois lookup but those are the exception. Marinus is also not a historical record. If
+something was recorded by a source one week and it wasn't recorded the following week, then it is deleted from the database.
+Several of the sources that I pull from are not "on demand". Therefore, if they didn't release an update this week, then the
+database won't be updated.</p>
+
+<br/>
+
+<h3>Key Terminology</h3>
+<p><b>Root Domain:</b> Marinus uses "Root Domain" to refer to things like "example.com" or "example.org". The domain
+"images.example.org" would not be considered a fully qualified domain name since it includes a sub-domain.</p>
+<p><b>CIDR</b> A CIDR refers to a range of IP addresses described using the "/##" notation. For instance, it might refer to the
+Class C range "250.250.16.0/24". </p>
+<p><b>Zone:</b> The term zone typically refers to a grouping of data either by the First Level Domain ("Zone") or the CIDR
+("IP Zone").</p>
+    
+<br/>
+<h3>Navigation</h3>
+<p>The Navigation in the header is grouped into types of searches. These include:</p>
+<p><b>Host Details:</b> This section is for when you are searching for something specific such as a specific domain or IP
+Address.</p>
+<p><b>Meta Search:</b> This section is for when you are trying to search for hosts based on specific properties such as Port or
+HTTP headers. The Meta search provides the lists of all the IPs and root domains that are tracked by Marinus. Therefore,if you don't
+know exactly what you need, then this is a good place to start.</p>
+<p><b>Reports:</b> This section includes reports on potential security issues such as internal data that is externally viewable,
+TLS issues, and similar findings.</p>
+<p><b>User:</b> Underneath the user icon, you can find out details about your account and access administrative features if you have
+proper permissions.</p>
+<p><b>Help:</b> You are looking at it.</p>
+<br/>
+
+<h3>Graphs</h3>
+<p>Marinus uses the d3.js library to create graphs of networks and certificate relationships. The legend on the left hand side groups
+together similar nodes by color. By moving the mouse over the boxes in the legend, you will be able to highlight the related nodes.
+You can use the search at the top of the graph to identify nodes with specific strings. IP addresses within the Azure or AWS clouds
+will all be grouped together. IP addresses that are not a part of those two clouds are grouped together by their Class C. The legend
+is also useful for getting a quick summary of the related third-party domains.</p>
+<p>For complex networks, the graph will often exceed the initial visible viewing area. By using the scroll functionality on
+your mouse or the two finger swipe on a Mac, then the map can be zoomed in and out. It is also possible to drag nodes
+across the screen. Unfortunately, there is an upper limit on the size of graphs that the browser can render and it will start
+to struggle if there are thousands of nodes.</p>
+<p>Clicking on nodes will provide mode detailed information in a pop up that appears below. Clicking the "X" on
+the right hand side will close the pop up. In addition, mousing over the square boxes in the legend will highlight all the
+nodes in that group.</p>
+</br>
+    
+<h3>Bookmarking</h3>
+<p>The pages under the "Host" pull down menu support a "search" parameter in the URL that can be bookmarked by your web
+browser.</p>
+<br/>
+
+<h3>Performance</h3>
+<p>Some pages are currently slow to load due to complex database queries and the data may incrementally populate in the web
+page over time. This is a known issue and it will hopefully be improved going forward.</p>
+<br/>
+
+<h3>Leveraging the API</h3>
+<p>Marinus is completely API driven. This design choice is meant to empower people to create their own reports based on the
+data. Each account has an "apiKey" generated so that the user can create utilities based on Marinus data. You can provide the
+"apiKey" via GET parameters in the URL for authentication (or the body if you are doing a post). It is also possible to provide
+the key as an Header: x-api-key . The latter is preferred since prevents the API key from being recorded in the access logs.
+</p>
+<p>Details regarding the Marinus API is available in Swagger format at <a href="/docs/">/docs</a>.</p>
+<br/>
+
+<h3>Zone Status</h3>
+<p>If you have been granted data admin rights, then you can change the status and add notes to zones. There are three statuses
+for a zone:</p>
+<b>Confirmed:</b> This has been reviewed by a human and confirmed to be factual data about the organization.<br/>
+<b>Unconfirmed:</b> Marinus has picked up this data in its search but it has never been reviewed by a human. Marinus has a low
+false positive rate but the rate is not zero. Therefore, it is listed as unconfirmed.<br/>
+<b>False Positive:</b> A human has reviewed this and determined that this piece of data is a false positive. While it may have
+been related to the organization at some point, is no longer related to the organization.<br/>
+<b>Expired:</b> This was registered to the organization at one time but has not been renewed.<br/>
+<br/>
+
+<h3>Zone Notes</h3>
+<p>Marinus supports the capability to tag a zone with a note. These notes are not intended to be multi-paragraph descriptions
+of everything regarding the zone. Instead, these should be simple tags that are consistently applied. If they are simple tags,
+then it is possible to search based on tags. Ideally, the tags would be things like the product name, "Akamai", etc.</p>
+<p><b>Warning:</b> Delete functionality is not currently supported. This must be done manually by the database administrator.
+</p>
+
+<br/>
+
+<h3>Data Sources</h3>
+<p>Marinus has the ability to pull data from various external sources of information such as Censys, Rapid7 Open Data, Whois
+records, Common Crawl, and VirusTotal. If configured, it can also pull from private sources such as Infoblox, AWS Route53,
+Azure DNS, and UltraDNS services. The data sources are chosen by the administrator of the tool.</p>
+
+<% include ../partials/footer %>
+
+</body>
+</html>

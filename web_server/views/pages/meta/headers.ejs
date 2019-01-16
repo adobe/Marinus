@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Header Reports</title>
+    <% include ../../partials/head %>
+    <script src="/javascripts/zgrab_headers.js"></script>
+    <script src="/javascripts/headers.js"></script>
+</head>
+<body>
+
+ <% include ../../partials/header %>
+    
+<h3>HTTP response headers detected by zgrab during an HTTP request</h3>
+Select from the supported headers below to see the detected values and the detection count for each value.<br/><br/>
+<section class="divTable">
+  <div class="tableRow">
+     <div class="tableCell">
+       Port:<div id="portInfo"><coral-radio id="p443" name="portGroup" value="443" checked>443</coral-radio><coral-radio id="p80" name="portGroup" value="80">80</coral-radio></div>
+     </div>
+     <div class="tableCell">
+       Header:<br><div id="selectDiv"><coral-select id="headerSelect" name="headerSelect" placeholder="Choose a header"></coral-select></div>
+     </div>
+     <div class="tableCell">Zone:<br><input id="zone" is="coral-textfield" placeholder="Filter by zone (e.g. example.org)" name="zone" value=""> <button is="coral-button" icon="Filter" iconsize="S" id="updateZone">Filter (optional)</button></div>
+  </div>
+</section>
+
+<h3>Header summary</h3>
+<div id="headerList"></div>
+    
+<% include ../../partials/footer %>
+
+</body>
+</html>
