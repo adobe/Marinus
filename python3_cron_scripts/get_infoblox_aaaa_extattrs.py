@@ -34,7 +34,7 @@ def main():
     mc = MongoConnector.MongoConnector()
     jobs_collection = mc.get_jobs_connection()
 
-    iem = InfobloxExtattrManager.InfobloxExtattrrManager('aaaa')
+    iem = InfobloxExtattrManager.InfobloxExtattrManager('aaaa')
     iem.get_infoblox_extattr()
 
     # Record status
