@@ -31,7 +31,10 @@ The web server cannot run immediately after a git check out. There are several k
 ## The nginx proxy
 It is a common practice to place an nginx reverse proxy in front of a Node.js deployment. This directory provides a minimual nginx configuration for organizations that want to take this approach. The use of the nginx proxy is optional.
 
-## Marinus Development
+## Project updates
+The Marinus project does not follow a waterfall release model. New features and scripts are added as they become available. Users should track the CHANGELOG to see what has been improved since their last clone.
+
+## Marinus development
 Marinus is an open-source project and code contributions are welcome. Please create a GitHub issue before starting to author code so that we can come to an agreement on the best approach before coding. Information on how to contribute are in the CONTRIBUTING.md, PULL_REQUEST_TEMPLATE, and ISSUE_TEMPLATE.
  
 ## Author

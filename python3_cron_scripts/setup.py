@@ -50,7 +50,7 @@ def create_job_collection(mongo_connector):
     jobs_manager = JobsManager.JobsManager(mongo_connector, "")
 
     script_names = ["remote_download", "get_virustotal_data", "get_riskiq_data", "get_iblox_cname", "get_iblox_host", "get_iblox_alpha_zones",
-                    "get_aws_data", "send_remote_server", "remove_expired_entries", "get_iblox_a", "get_crt_sh", "get_data_by_cidr_dns",
+                    "get_aws_data", "send_remote_server", "remove_expired_entries", "get_iblox_a", "get_data_by_cidr_dns", "get_crt_sh",
                     "get_sonar_data_rdns", "get_sonar_data_dns-any", "get_data_by_cidr_rdns", "get_passivetotal_data", "create_tpd_graphs",
                     "create_netaddr_graphs", "get_external_cnames", "create_graphs2", "extract_mx_records", "extract_ssl_domains",
                     "common_crawl_graph", "dead_dns_cleanup", "create_cert_graphs", "get_infoblox_zone_extattrs", "get_infoblox_cname_extattrs",
@@ -58,7 +58,7 @@ def create_job_collection(mongo_connector):
                     "marinus_dns", "get_sonar_data_dns-a", "get_ultradns_zones","get_ultradns_zones_info", "mark_expired", "whois_lookups",
                     "sonar_round_two", "get_infoblox_aaaa_extattrs", "extract_vt_domains", "facebook_certs", "fetch_azure_dns", "upload_akamai_data",
                     "zgrab_domain-80", "zgrab_domain-443", "zgrab_ip-80", "zgrab_ip-443", "zgrab_port_ip-22", "zgrab_port_ip-25", "zgrab_port_ip-443",
-                    "zgrab_port_ip-465", "hash_based_upload"]
+                    "zgrab_port_ip-465"]
 
     for job_name in script_names:
         jobs_manager.create_job(job_name)

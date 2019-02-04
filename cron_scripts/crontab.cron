@@ -25,12 +25,3 @@
 ## You will need to experiment with the scripts in order to determine the proper timing for your organization.
 ## You will also want to look at modifying the scripts to use CT logs that are relevant to your organization.
 
-# Download_certs uses an older Google CT log that is quite large. It can take a long time to search.
-0 0 1 * * cd /mnt/workspace/ct_scripts;/mnt/workspace/ct_scripts/download_certs.py >> /mnt/workspace/ct_scripts/logs/download_certs.log 2>&1
-0 12 20 * * cd /mnt/workspace/ct_scripts;/mnt/workspace/ct_scripts/download_digicert_certs.py >> /mnt/workspace/ct_scripts/logs/digicert_certs.log 2>&1
-# 0 12 * * 3 cd /mnt/workspace/ct_scripts;/mnt/workspace/ct_scripts/download_aviator_certs.py >> /mnt/workspace/ct_scripts/logs/aviator_certs.log 2>&1
-
-# Searches take lengthy periods of time. Upload twice a week.
-48 0 * * 3 cd /mnt/workspace/ct_scripts;/mnt/workspace/ct_scripts/hash_based_upload.py >> /mnt/workspace/ct_scripts/logs/hash_based_upload.log 2>&1
-0 22 * * 6 cd /mnt/workspace/ct_scripts;/mnt/workspace/ct_scripts/hash_based_upload.py >> /mnt/workspace/ct_scripts/logs/hash_based_upload.log 2>&1
-

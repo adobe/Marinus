@@ -52,12 +52,17 @@
 ## This is not a complete list of all the scripts that can be run in this phase.
 0 12 * * 4 cd /your/directory/;/your/directory/get_virustotal_data.py >> /your/directory/logs/virustotal_data.log 2>&1
 0 12 20 * * cd /your/directory/ct_scripts;/your/directory/ct_scripts/download_digicert_certs.py >> /your/directory/ct_scripts/logs/digicert_certs.log 2>&1
-50 02 * * *  cd /your/directory/;/your/directory/get_sonar_data_unified.py --sonar_file_type rdns >> /your/directory /logs/sonar_data.log 2>&1
+50 02 * * * cd /your/directory/;/your/directory/get_sonar_data_unified.py --sonar_file_type rdns >> /your/directory /logs/sonar_data.log 2>&1
 25 16 * * * cd /your/directory/;/your/directory/get_data_by_cidr_unified.py --sonar_file_type dns >> /your/directory/logs/sonar_cidr_data.log 2>&1
 0 1 * * * cd /your/directory/;/your/directory/common_crawl_graph.py >> /your/directory/logs/common_crawl_graph.log 2>&1
 0 11 * * 1 cd /your/directory/;/your/directory/whois_lookups.py >> /your/directory/logs/whois_lookups.log 2>&1
 00 1 */2 * * cd /your/directory/;/your/directory/get_censys_files.py >> /your/directory/logs/get_files.log 2>&1
 30 12 * * * cd /your/directory/;/your/directory/search_censys_files_new.py >> /your/directory/logs/search_files.log 2>&1
+30 14 * * 5 cd /your/directory/;/your/directory/get_crt_sh.py --fetch_dns_records --download_methods dbAndSave --cert_save_location /your/directory/cert_sh_files >> /your/directory/logs/crt_sh.log 2>&1
+
+# Do this step for each individual CT log that you want to manually search. Replace YOUR_LOG_NAME with the logs you want to directly query.
+30 14 * * 6 cd /your/directory/;/your/directory/get_original_ct_logs.py --download_methods dbAndSave --cert_save_location /your/directory/cert_sh_files --log_source YOUR_LOG_NAME --save_type PEM >> /your/directory/logs/ct_YOUR_LOG_NAME.log 2>&1
+
 
 
 ## Step 3b: (Optional) Collect your own scan data using zgrab scripts to scan your networks

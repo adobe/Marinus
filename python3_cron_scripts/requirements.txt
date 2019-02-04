@@ -5,10 +5,12 @@ boto3
 bson
 certifi
 configparser
+cryptography
 HTMLParser
 netaddr
 networkx
 pymongo
+pyopenssl
 python-dateutil
 python-whois
 requests

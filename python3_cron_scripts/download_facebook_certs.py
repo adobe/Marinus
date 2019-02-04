@@ -11,22 +11,23 @@
 # governing permissions and limitations under the License.
 
 """
-This script pulls certificate information from the Facebook Graph API.
+This script pulls certificate information from the Facebook Graph API assuming that you
+have a Facebook Graph account.
 
-Data is written to: /mnt/workspace/ct_facebook/
-The hash_based_upload script will look for the results in that path.
-If you change the directory in this script, then it must also be changed in hash_based_upload.
+Unless otherwise specified, data is written to: /mnt/workspace/ct_facebook/
+The hash_based_upload script is no longer necessary for this script.
 
 https://developers.facebook.com/docs/certificate-transparency-api
 """
 
+import argparse
 import json
 import time
 from datetime import datetime
 
 import requests
 
-from libs3 import FacebookConnector, MongoConnector
+from libs3 import FacebookConnector, MongoConnector, X509Parser, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -96,14 +97,24 @@ def main():
     print("Starting: " + str(now))
 
     # Make database connections
-    mc_connector = MongoConnector.MongoConnector()
+    mongo_connector = MongoConnector.MongoConnector()
+    ct_collection = mongo_connector.get_certificate_transparency_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "facebook_certs")
+
+    jobs_manager.record_job_start()
 
     file_path = "/mnt/workspace/ct_facebook/"
 
     fb_connector = FacebookConnector.FacebookConnector()
     access_token = fb_connector.get_facebook_access_token()
 
-    zones = ZoneManager.get_distinct_zones(mc_connector)
+    zones = ZoneManager.get_distinct_zones(mongo_connector)
+    x509_parser = X509Parser.X509Parser()
+
+    parser = argparse.ArgumentParser(description='Download DNS and/or certificate information from crt.sh.')
+    parser.add_argument('--fetch_cert_records', choices=['dbAndSave', 'dbOnly'], default="dbAndSave", help='Indicates whether to download the raw files or just record in the database')
+    parser.add_argument('--cert_save_location', required=False, default=file_path, help='Indicates where to save the certificates on disk when choosing dbAndSave')
+    args = parser.parse_args()
 
     for zone in zones:
         time.sleep(15)
@@ -116,9 +127,18 @@ def main():
         print(zone + ": " + str(len(results)))
 
         for result in results:
-            cert_f = open(file_path + zone + "_" + result['id'] + ".pem", "w")
-            cert_f.write(result['certificate_pem'])
-            cert_f.close()
+            if args.fetch_cert_records == "dbAndSave":
+                cert_f = open(args.cert_save_location + zone + "_" + result['id'] + ".pem", "w")
+                cert_f.write(result['certificate_pem'])
+                cert_f.close()
+
+            cert = x509_parser.parse_data(result['certificate_pem'], "facebook")
+            cert['facebook_id'] = result['id']
+
+            if ct_collection.find({'fingerprint_sha256': cert['fingerprint_sha256']}).count() == 0:
+                ct_collection.insert(cert)
+
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))
