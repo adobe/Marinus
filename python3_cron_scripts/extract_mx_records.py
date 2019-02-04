@@ -11,7 +11,7 @@
 # governing permissions and limitations under the License.
 
 """
-This script extracts domain names from all the MX certificates collected by Marinus.
+This script extracts domain names from all the MX records collected by Marinus.
 The script will then use Google HTTPS over DNS to get their DNS records and store them.
 """
 
@@ -82,49 +82,6 @@ def extract_mx_names(dns_names, dns_manager):
                 name = name[:-1]
 
         add_to_list(name, dns_names)
-
-
-def lookup_hostname(host, round_two, zones):
-    """
-    Use the Google DNS over HTTPS API to look up the provided host.
-    This script uses Google because internal DNS servers may return different data.
-    The zones are used to determine whether the DNS record is a CNAME to another tracked host.
-    """
-    try:
-        req = requests.get("https://dns.google.com/resolve?name=" + host)
-    except:
-        print("Requests attempt failed!")
-        return []
-
-    if req.status_code != 200:
-        print("Error looking up: " + host)
-        return []
-
-    nslookup_results = json.loads(req.text)
-
-    if nslookup_results['Status'] != 0:
-        print("Status error looking up: " + host)
-        return []
-
-    if "Answer" not in nslookup_results:
-        print("Could not find Answer in DNS result for " + host)
-        print(req.text)
-        return []
-
-    results = []
-    for answer in nslookup_results['Answer']:
-        if answer['type'] == 5:
-            results.append({'type': 'cname', 'value': answer['data'][:-1]})
-            if is_tracked_zone(answer['data'][:-1], zones):
-                add_to_round_two(answer['data'][:-1], round_two)
-        elif answer['type'] == 1:
-            results.append({'type': 'a', 'value': answer['data']})
-        elif answer['type'] == 28:
-            results.append({'type': 'aaaa', 'value': answer['data']})
-        else:
-            print("Unrecognized type: " + str(answer['type']))
-
-    return results
 
 
 def main():
