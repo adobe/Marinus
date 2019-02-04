@@ -25,7 +25,7 @@ from datetime import datetime
 import requests
 from tld import get_fld
 
-from libs3 import DNSManager, MongoConnector, GoogleDNS
+from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -75,7 +75,8 @@ def main():
 
     mongo_connector = MongoConnector.MongoConnector()
     all_dns_collection = mongo_connector.get_all_dns_connection()
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'marinus_dns')
+    jobs_manager.record_job_start()
 
     dns_manager = DNSManager.DNSManager(mongo_connector)
 
@@ -113,9 +114,7 @@ def main():
             if new_record['zone'] != '':
                 dns_manager.insert_record(new_record, "marinus")
 
-    jobs_collection.update_one({'job_name': 'marinus_dns'},
-                               {'$currentDate': {"updated" : True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print ("Complete: " + str(now))

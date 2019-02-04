@@ -29,7 +29,7 @@ import re
 from datetime import datetime, timedelta
 from tld import get_tld
 
-from libs3 import MongoConnector
+from libs3 import MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -67,7 +67,8 @@ def main():
     whois_collection = mongo_connector.get_whois_connection()
     all_dns_collection = mongo_connector.get_all_dns_connection()
     zones_collection = mongo_connector.get_zone_connection()
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'mark_expired')
+    jobs_manager.record_job_start()
 
     # Grab all zones that are not expired of false_positives
     # Also exclude any that were recently created since they won't have data yet
@@ -125,10 +126,7 @@ def main():
 
 
     # Record status
-    jobs_collection.update_one({'job_name': 'mark_expired'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
-
+    jobs_manager.record_job_start()
 
     now = datetime.now()
     print("Ending: " + str(now))

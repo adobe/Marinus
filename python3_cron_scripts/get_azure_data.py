@@ -28,9 +28,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from html.parser import HTMLParser
 import requests
-from libs3 import MongoConnector
-
-mongo_connector = MongoConnector.MongoConnector()
+from libs3 import MongoConnector, JobsManager
 
 XML_LOCATION = "https://www.microsoft.com/en-us/download/confirmation.aspx?id=41653"
 
@@ -62,16 +60,16 @@ def main():
     now = datetime.now()
     print ("Starting: " + str(now))
 
-    jobs_collection = mongo_connector.get_jobs_connection()
+    mongo_connector = MongoConnector.MongoConnector()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_azure_data')
+    jobs_manager.record_job_start()
 
     # Download the XML file
     req = requests.get(XML_LOCATION)
 
     if req.status_code != 200:
         print("Bad Request")
-        jobs_collection.update_one({'job_name': 'get_azure_data'},
-                                   {'$currentDate': {"updated" :True},
-                                    "$set": {'status': 'ERROR'}})
+        jobs_manager.record_job_error()
         exit(0)
 
     parser = MyHTMLParser()
@@ -79,18 +77,14 @@ def main():
 
     if parser.URL == "":
         print("Unable to identify URL in Microsoft HTML")
-        jobs_collection.update_one({'job_name': 'get_azure_data'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'ERROR'}})
+        jobs_manager.record_job_error()
         exit(0)
 
     req = requests.get(parser.URL)
 
     if req.status_code != 200:
         print("Bad Request")
-        jobs_collection.update_one({'job_name': 'get_azure_data'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'ERROR'}})
+        jobs_manager.record_job_error()
         exit(0)
 
     root = ET.fromstring(req.text)
@@ -110,9 +104,7 @@ def main():
     azure_ips.insert(insert_json)
 
     # Record status
-    jobs_collection.update_one({'job_name': 'get_azure_data'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))

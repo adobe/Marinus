@@ -24,7 +24,7 @@ import time
 from datetime import datetime
 
 import requests
-from libs3 import DNSManager, MongoConnector, Rapid7
+from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager
 from libs3.ZoneManager import ZoneManager
 from netaddr import IPAddress, IPNetwork
 
@@ -227,7 +227,7 @@ def update_rdns(rdns_file, cidrs, zones):
 
 
 
-def download_remote_files(s, file_reference, data_dir, job_name, jobs_collection):
+def download_remote_files(s, file_reference, data_dir, jobs_manager):
     """
     Download and unzip the given file reference.
     """
@@ -242,9 +242,7 @@ def download_remote_files(s, file_reference, data_dir, job_name, jobs_collection
         subprocess.run(["gunzip", dns_file], check=True)
     except:
         print("Could not unzip file: " + dns_file)
-        jobs_collection.update_one({'job_name': job_name},
-                                   {'$currentDate': {"updated" :True},
-                                    "$set": {'status': 'ERROR'}})
+        jobs_manager.record_job_error()
         exit(1)
 
     unzipped_dns = dns_file.replace(".gz", "")
@@ -265,8 +263,6 @@ def main():
     print("Starting: " + str(now))
 
     r7 = Rapid7.Rapid7()
-    
-    jobs_collection = mongo_connection.get_jobs_connection()
 
     cidrs = get_cidrs(mongo_connection)
     print ("IPv4 CIDR length: " + str(len(cidrs)))
@@ -283,72 +279,57 @@ def main():
     s = requests.Session()
 
     if args.sonar_file_type == "rdns":
-
-        jobs_collection.update_one({'job_name': 'get_data_by_cidr_rdns'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'RUNNING'}})
+        jobs_manager = JobsManager.JobsManager(mongo_connection, 'get_data_by_cidr_rdns')
+        jobs_manager.record_job_start()
 
         try:
-            html_parser = r7.find_file_locations(s, "rdns", "get_data_by_cidr_rdns", jobs_collection)
+            html_parser = r7.find_file_locations(s, "rdns", jobs_manager)
             if html_parser.rdns_url == "":
                 now = datetime.now()
                 print ("Unknown Error: " + str(now))
-                jobs_collection.update_one({'job_name':'get_data_by_cidr_rdns'},
-                                           {'$currentDate': {"updated": True},
-                                            "$set": {'status': 'ERROR'}})
+                jobs_manager.record_job_error()
                 exit(0)
-            
-            unzipped_rdns = download_remote_files(s, html_parser.rdns_url, global_data_dir, "get_data_by_cidr_rdns", jobs_collection)
+
+            unzipped_rdns = download_remote_files(s, html_parser.rdns_url, global_data_dir, jobs_manager)
             update_rdns(unzipped_rdns, cidrs, zones)
         except Exception as ex:
             now = datetime.now()
             print ("Unknown error occured at: " + str(now))
             print ("Unexpected error: " + str(ex))
-
-            jobs_collection.update_one({'job_name': 'get_data_by_cidr_rdns'},
-                                       {'$currentDate': {"updated": True},
-                                        "$set": {'status': 'ERROR'}})
+            jobs_manager.record_job_error()
             exit(0)
 
         now = datetime.now()
         print ("RDNS Complete: " + str(now))
-
-        jobs_collection.update_one({'job_name': 'get_data_by_cidr_rdns'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'COMPLETE'}})
+        jobs_manager.record_job_complete()
 
     elif args.sonar_file_type == "dns":
-        jobs_collection.update_one({'job_name': 'get_data_by_cidr_dns'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'RUNNING'}})
+        jobs_manager = JobsManager.JobsManager(mongo_connection, 'get_data_by_cidr_dns')
+        jobs_manager.record_job_start()
+
         try:
-            html_parser = r7.find_file_locations(s, "fdns", "get_data_by_cidr_dns", jobs_collection)
+            html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
             if html_parser.any_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.any_url, global_data_dir, "get_data_by_cidr_dns", jobs_collection)
+                unzipped_dns = download_remote_files(s, html_parser.any_url, global_data_dir, jobs_manager)
                 update_dns(unzipped_dns, cidrs, zones)
             if html_parser.a_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.a_url, global_data_dir, "get_data_by_cidr_dns", jobs_collection)
+                unzipped_dns = download_remote_files(s, html_parser.a_url, global_data_dir, jobs_manager)
                 update_dns(unzipped_dns, cidrs, zones)
             if html_parser.aaaa_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.aaaa_url, global_data_dir, "get_data_by_cidr_dns", jobs_collection)
+                unzipped_dns = download_remote_files(s, html_parser.aaaa_url, global_data_dir, jobs_manager)
                 update_dns(unzipped_dns, cidrs, zones)
         except Exception as ex:
             now = datetime.now()
             print ("Unknown error occured at: " + str(now))
             print ("Unexpected error: " + str(ex))
 
-            jobs_collection.update_one({'job_name': 'get_data_by_cidr_dns'},
-                                       {'$currentDate': {"updated": True},
-                                        "$set": {'status': 'ERROR'}})
+            jobs_manager.record_job_error()
             exit(0)
 
         now = datetime.now()
         print ("DNS Complete: " + str(now))
 
-        # Update used instead of update_one due to old pymongo library on IT machines
-        jobs_collection.update_one({'job_name': 'get_data_by_cidr_dns'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'COMPLETE'}})
+        jobs_manager.record_job_complete()
 
     else:
         print ("Unrecognized sonar_file_type option. Exiting...")

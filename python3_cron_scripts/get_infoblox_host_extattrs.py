@@ -20,7 +20,7 @@ extattr functionality.
 
 from datetime import datetime
 
-from libs3 import InfobloxExtattrManager, MongoConnector
+from libs3 import InfobloxExtattrManager, MongoConnector, JobsManager
 
 
 def main():
@@ -32,15 +32,14 @@ def main():
 
     # Make database connections
     mc = MongoConnector.MongoConnector()
-    jobs_collection = mc.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mc, 'get_infoblox_host_extattrs')
+    jobs_manager.record_job_start()
 
     iem = InfobloxExtattrManager.InfobloxExtattrManager('host')
     iem.get_infoblox_extattr()
 
     # Record status
-    jobs_collection.update_one({'job_name': 'get_infoblox_host_extattrs'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     print("Ending: " + str(datetime.now()))
 

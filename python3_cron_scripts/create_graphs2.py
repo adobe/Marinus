@@ -32,9 +32,8 @@ from netaddr import IPAddress, IPNetwork
 from networkx.readwrite import json_graph
 from tld import get_fld
 
-from libs3 import DNSManager, MongoConnector
+from libs3 import DNSManager, MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
-
 
 
 # Global constants
@@ -311,11 +310,12 @@ def main():
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
-    jobs_collection = mongo_connector.get_jobs_connection()
     graphs_collection = mongo_connector.get_graphs_connection()
     graphs_data_collection = mongo_connector.get_graphs_data_connection()
     graphs_links_collection = mongo_connector.get_graphs_links_connection()
     graphs_docs_collection = mongo_connector.get_graphs_docs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'create_graphs2')
+    jobs_manager.record_job_start()
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
@@ -445,9 +445,7 @@ def main():
     graphs_docs_collection.remove({'created': {"$lt": lastweek}})
 
     # Record status
-    jobs_collection.update_one({'job_name': 'create_graphs2'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Ending: " + str(now))

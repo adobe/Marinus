@@ -17,8 +17,7 @@ This script is only necessary if a remote MongoDB is set up.
 This script can be run daily.
 """
 from datetime import datetime, timedelta
-from libs3 import MongoConnector
-from libs3 import RemoteMongoConnector
+from libs3 import MongoConnector, RemoteMongoConnector, JobsManager
 
 # Connect to the remote databases
 mongo_connector = MongoConnector.MongoConnector()
@@ -122,7 +121,8 @@ def main():
     now = datetime.now()
     print("Starting: " + str(now))
 
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'remote_download')
+    jobs_manager.record_job_start()
 
     remote_jobs_collection = rm_connector.get_jobs_connection()
 
@@ -176,9 +176,7 @@ def main():
 
 
     # Update the local jobs database to done
-    jobs_collection.update_one({'job_name': 'censys_download'},
-                               {'$currentDate': {"updated" : True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Ending: " + str(now))

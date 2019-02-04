@@ -32,7 +32,7 @@ from dateutil.parser import parse
 from datetime import datetime, timedelta
 from netaddr import IPAddress, IPNetwork
 
-from libs3 import RemoteMongoConnector
+from libs3 import RemoteMongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -222,6 +222,8 @@ def main():
 
     rm_connector = RemoteMongoConnector.RemoteMongoConnector()
     all_dns_collection = rm_connector.get_all_dns_connection()
+    jobs_manager = JobsManager.JobsManager(rm_connector, "zgrab_http_domain-" + args.p)
+    jobs_manager.record_job_start()
 
     if args.p == "443":
         zgrab_collection = rm_connector.get_zgrab_443_data_connection()
@@ -229,7 +231,6 @@ def main():
     else:
         zgrab_collection = rm_connector.get_zgrab_80_data_connection()
         run_command = run_port_80_command
-
 
     zones = ZoneManager.get_distinct_zones(rm_connector)
 
@@ -277,6 +278,8 @@ def main():
     # Remove last week's old entries
     lastweek = datetime.now() - timedelta(days=7)
     zgrab_collection.remove({'domain': {"$ne": "<nil>"}, 'timestamp': {"$lt": lastweek}})
+
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))

@@ -18,10 +18,12 @@ At that time, it would be good to confirm that the Akamai IP ranges have not cha
 """
 
 from datetime import datetime
-from libs3 import MongoConnector
+from libs3 import MongoConnector, JobsManager
 
 mongo_connector = MongoConnector.MongoConnector()
 AKAMAI_COLLECTION = mongo_connector.get_akamai_ips_connection()
+jobs_manager = JobsManager.JobsManager(mongo_connector, "upload_akamai_data")
+jobs_manager.record_job_start()
 
 # Clear previous data
 AKAMAI_COLLECTION.remove({})
@@ -68,5 +70,7 @@ AKAMAI_DATA['ipv6_ranges'].append({'cidr': '2600:1400::/24',
 
 # Insert the data
 AKAMAI_COLLECTION.insert(AKAMAI_DATA)
+
+jobs_manager.record_job_complete()
 
 exit(0)

@@ -155,7 +155,7 @@ class Rapid7(object):
         self._init_Rapid7(config)
 
 
-    def find_file_locations(self, s, list_type, job_name, jobs_collection):
+    def find_file_locations(self, s, list_type, jobs_manager):
         """
         In order to login, it is necessary go through several Okta steps since Rapid 7 doesn't have an API key.
         """
@@ -215,9 +215,7 @@ class Rapid7(object):
 
         if req.status_code != 200:
             print("Bad Request")
-            jobs_collection.update_one({'job_name': job_name},
-                                    {'$currentDate': {"updated" :True},
-                                        "$set": {'status': 'ERROR'}})
+            jobs_manager.record_job_error()
             exit(0)
 
         parser = MyHTMLParser()

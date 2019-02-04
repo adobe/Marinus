@@ -26,7 +26,7 @@ The "{source}_saved" indicates the original source while also indicating that Ma
 
 from datetime import datetime
 
-from libs3 import DNSManager, MongoConnector, GoogleDNS
+from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 def is_tracked_zone(cname, zones):
@@ -84,10 +84,10 @@ def main():
     all_dns_collection = mongo_connector.get_all_dns_connection()
     dns_manager = DNSManager.DNSManager(mongo_connector)
     GDNS = GoogleDNS.GoogleDNS()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'remove_expired_entries')
+    jobs_manager.record_job_start()
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
-
-    jobs_collection = mongo_connector.get_jobs_connection()
 
     # Get the date for today minus two months
     d_minus_2m = monthdelta(datetime.now(), -2)
@@ -135,9 +135,7 @@ def main():
         dns_manager.remove_all_by_source_and_date(source, entry['diff'])
 
     # Record status
-    jobs_collection.update_one({'job_name': 'remove_expired_entries'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))

@@ -43,7 +43,7 @@ class UltraDNSZone(object):
             else:
                 self.APIH.handle_api_error(
                     'Unable to parse response JSON for 20 zones: ' + repr(err),
-                    'get_ultradns_zones',
+                    self.UH.jobs_manager,
                 )
         else:
             # the zone names end in '.'. Removing that before ingesting into collection.
@@ -87,9 +87,9 @@ class UltraDNSZone(object):
                 self.UH.login('refresh_token')
                 self.__paginated_ultradns_zones_request()
             else:
-                self.APIH.handle_api_error(herr, 'get_ultradns_zones')
+                self.APIH.handle_api_error(herr, self.UH.jobs_manager)
         except requests.exceptions.RequestException as err:
-            self.APIH.handle_api_error(err, 'get_ultradns_zones')
+            self.APIH.handle_api_error(err, self.UH.jobs_manager)
         else:
             self.__ultradns_zone_response_handler(res)
 
@@ -98,6 +98,7 @@ class UltraDNSZone(object):
         Extracts the zones listing from UltraDNS in a paginated manner.
         """
         print("Starting: " + str(datetime.now()))
+        self.UH.jobs_manager.record_job_start()
 
         # Part of clean_collection code.
         # self.UH.get_previous_zones()
@@ -107,9 +108,7 @@ class UltraDNSZone(object):
             self.__paginated_ultradns_zones_request()
 
         # Record status
-        self.APIH.jobs_collection.update_one({'job_name': 'get_ultradns_zones'},
-                                             {'$currentDate': {"updated": True},
-                                              "$set": {'status': 'COMPLETE'}})
+        self.UH.jobs_manager.record_job_complete()
 
         print("Ending: " + str(datetime.now()))
 

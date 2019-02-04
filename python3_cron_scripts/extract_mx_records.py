@@ -21,7 +21,7 @@ from datetime import datetime
 
 import requests
 
-from libs3 import DNSManager, MongoConnector, GoogleDNS
+from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -94,9 +94,10 @@ def main():
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'extract_mx_domains')
     google_dns = GoogleDNS.GoogleDNS()
 
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager.record_job_start()
 
     dns_names = []
     round_two = []
@@ -176,9 +177,7 @@ def main():
         dns_manager.insert_record(final_result, "mx")
 
     # Record status
-    jobs_collection.update_one({'job_name': 'extract_mx_domains'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print ("Ending: " + str(now))

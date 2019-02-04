@@ -25,7 +25,7 @@ This script is only necessary if a remote MongoDB is deployed.
 
 from datetime import datetime
 
-from libs3 import MongoConnector, RemoteMongoConnector
+from libs3 import MongoConnector, RemoteMongoConnector, JobsManager
 
 
 def update_zones(mongo_connector, rm_connector):
@@ -149,7 +149,8 @@ def main():
     mongo_connector = MongoConnector.MongoConnector()
     remote_mongo_connector = RemoteMongoConnector.RemoteMongoConnector()
 
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'send_remote_server')
+    jobs_manager.record_job_start()
 
     zone_list = update_zones(mongo_connector, remote_mongo_connector)
     update_ip_zones(mongo_connector, remote_mongo_connector)
@@ -160,10 +161,7 @@ def main():
     update_all_dns(mongo_connector, remote_mongo_connector, zone_list)
 
     # Record status
-    jobs_collection.update_one({'job_name': 'send_remote_server'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
-
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print ("Complete: " + str(now))

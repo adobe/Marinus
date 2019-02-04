@@ -30,7 +30,7 @@ from datetime import datetime
 
 from tld import get_fld
 
-from libs3 import DNSManager, MongoConnector
+from libs3 import DNSManager, MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -113,8 +113,8 @@ def main():
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
-
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_external_cnames')
+    jobs_manager.record_job_start()
 
     groups = {}
 
@@ -144,9 +144,7 @@ def main():
         tpds_collection.insert(groups[key])
 
     # Record status
-    jobs_collection.update_one({'job_name': 'get_external_cnames'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print ("Ending: " + str(now))

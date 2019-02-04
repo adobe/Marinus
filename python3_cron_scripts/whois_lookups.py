@@ -31,7 +31,7 @@ from datetime import datetime, timedelta
 import whois
 from tld import get_fld
 
-from libs3 import RemoteMongoConnector
+from libs3 import RemoteMongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -158,7 +158,8 @@ def main():
     print("Starting: " + str(now))
 
     mongo_connector = RemoteMongoConnector.RemoteMongoConnector()
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'whois_lookups')
+    jobs_manager.record_job_start()
 
     # Collect the tracked zones...
     zones = get_zones(mongo_connector)
@@ -195,9 +196,7 @@ def main():
             break
 
     # Record status
-    jobs_collection.update_one({'job_name': 'whois_lookups'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Ending: " + str(now))

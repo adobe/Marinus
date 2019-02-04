@@ -25,7 +25,7 @@ from datetime import datetime
 
 import requests
 
-from libs3 import DNSManager, MongoConnector, Rapid7
+from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -154,7 +154,7 @@ def update_rdns(rdns_file, zones, mongo_connector):
                                             '$currentDate': {"updated": True}})
 
 
-def download_remote_files(s, file_reference, data_dir, job_name, jobs_collection):
+def download_remote_files(s, file_reference, data_dir, jobs_manager):
     """
     Download the provided file URL
     """
@@ -169,9 +169,7 @@ def download_remote_files(s, file_reference, data_dir, job_name, jobs_collection
         subprocess.run(["gunzip", dns_file], check=True)
     except:
         print("Could not unzip file: " + dns_file)
-        jobs_collection.update_one({'job_name': job_name},
-                                   {'$currentDate': {"updated" :True},
-                                    "$set": {'status': 'ERROR'}})
+        jobs_manager.record_job_error()
         exit(1)
 
     unzipped_dns = dns_file.replace(".gz", "")
@@ -199,99 +197,76 @@ def main():
     parser.add_argument('--sonar_file_type', required=True, help='Specify "dns-any", "dns-a", or "rdns"')
     args = parser.parse_args()
 
-    jobs_collection = mongo_connector.get_jobs_connection()
-
     # A session is necessary for the multi-step log-in process
     s = requests.Session()
 
     if args.sonar_file_type == "rdns":
         now = datetime.now()
         print ("Updating RDNS: " + str(now))
-
-        jobs_collection.update_one({'job_name': 'get_sonar_data_rdns'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'RUNNING'}})
+        jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_sonar_data_rdns')
+        jobs_manager.record_job_start()
 
         try:
-            html_parser = r7.find_file_locations(s, "rdns", "get_sonar_data_rdns", jobs_collection)
+            html_parser = r7.find_file_locations(s, "rdns", jobs_manager)
             if html_parser.rdns_url == "":
                 now = datetime.now()
                 print ("Unknown Error: " + str(now))
-                jobs_collection.update_one({'job_name':'get_sonar_data_rdns'},
-                                           {'$currentDate': {"updated": True},
-                                            "$set": {'status': 'ERROR'}})
+                jobs_manager.record_job_error()
                 exit(0)
 
-            unzipped_rdns = download_remote_files(s, html_parser.rdns_url, global_data_dir, "get_sonar_data_rdns", jobs_collection)
+            unzipped_rdns = download_remote_files(s, html_parser.rdns_url, global_data_dir, jobs_manager)
             update_rdns(unzipped_rdns, zones, mongo_connector)
         except Exception as ex:
             now = datetime.now()
             print ("Unknown error occured at: " + str(now))
             print ("Unexpected error: " + str(ex))
-            jobs_collection.update_one({'job_name':'get_sonar_data_rdns'},
-                                       {'$currentDate': {"updated": True},
-                                        "$set": {'status': 'ERROR'}})
+            jobs_manager.record_job_error()
             exit(0)
 
-        # Update used instead of update_one due to old pymongo library on IT machines
-        jobs_collection.update_one({'job_name': 'get_sonar_data_rdns'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'COMPLETE'}})
+        jobs_manager.record_job_complete()
     elif args.sonar_file_type == "dns-any":
         now = datetime.now()
         print ("Updating DNS: " + str(now))
 
-        jobs_collection.update_one({'job_name': 'get_sonar_data_dns-any'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'RUNNING'}})
+        jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_sonar_data_dns-any')
+        jobs_manager.record_job_start()
 
         try:
-            html_parser = r7.find_file_locations(s, "fdns", "get_sonar_data_dns-any", jobs_collection)
+            html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
             if html_parser.any_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.any_url, global_data_dir, "get_sonar_data_dns-any", jobs_collection)
+                unzipped_dns = download_remote_files(s, html_parser.any_url, global_data_dir, jobs_manager)
                 update_dns(unzipped_dns, zones, global_dns_manager)
         except Exception as ex:
             now = datetime.now()
             print ("Unknown error occured at: " + str(now))
             print ("Unexpected error: " + str(ex))
-            jobs_collection.update_one({'job_name': 'get_sonar_data_dns-any'},
-                                       {'$currentDate': {"updated": True},
-                                        "$set": {'status': 'ERROR'}})
+            jobs_manager.record_job_error()
             exit(0)
 
-        # Update used instead of update_one due to old pymongo library on IT machines
-        jobs_collection.update_one({'job_name': 'get_sonar_data_dns-any'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'COMPLETE'}})
+        jobs_manager.record_job_complete()
     elif args.sonar_file_type == "dns-a":
         now = datetime.now()
         print ("Updating DNS: " + str(now))
 
-        jobs_collection.update_one({'job_name': 'get_sonar_data_dns-a'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'RUNNING'}})
+        jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_sonar_data_dns-a')
+        jobs_manager.record_job_start()
 
         try:
-            html_parser = r7.find_file_locations(s, "fdns", "get_sonar_data_dns-a", jobs_collection)
+            html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
             if html_parser.a_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.a_url, global_data_dir, "get_sonar_data_dns-a", jobs_collection)
+                unzipped_dns = download_remote_files(s, html_parser.a_url, global_data_dir, jobs_manager)
                 update_dns(unzipped_dns, zones, global_dns_manager)
             if html_parser.aaaa_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.aaaa_url, global_data_dir, "get_sonar_data_dns-a", jobs_collection)
+                unzipped_dns = download_remote_files(s, html_parser.aaaa_url, global_data_dir, jobs_manager)
                 update_dns(unzipped_dns, zones, global_dns_manager)
         except Exception as ex:
             now = datetime.now()
             print ("Unknown error occured at: " + str(now))
             print ("Unexpected error: " + str(ex))
-            jobs_collection.update_one({'job_name': 'get_sonar_data_dns-a'},
-                                       {'$currentDate': {"updated": True},
-                                        "$set": {'status': 'ERROR'}})
+            jobs_manager.record_job_error()
             exit(0)
 
-        # Update used instead of update_one due to old pymongo library on IT machines
-        jobs_collection.update_one({'job_name': 'get_sonar_data_dns-a'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'COMPLETE'}})
+        jobs_manager.record_job_complete()
     else:
         print ("Unrecognized sonar_file_type option. Exiting...")
 

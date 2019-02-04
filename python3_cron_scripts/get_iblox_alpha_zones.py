@@ -30,7 +30,7 @@ import requests
 import string
 import backoff
 from requests.auth import HTTPBasicAuth
-from libs3 import MongoConnector, ZoneIngestor, InfobloxHelper, APIHelper
+from libs3 import MongoConnector, ZoneIngestor, InfobloxHelper, APIHelper, JobsManager
 
 
 class InfobloxZone(object):
@@ -41,9 +41,9 @@ class InfobloxZone(object):
 
     # Connect to the database
     MC = MongoConnector.MongoConnector()
-    jobs_collection = MC.get_jobs_connection()
     zone_collection = MC.get_zone_connection()
     ip_collection = MC.get_ipzone_connection()
+    job_manager = None
 
     ZI = ZoneIngestor.ZoneIngestor()
 
@@ -158,7 +158,7 @@ class InfobloxZone(object):
             else:
                 self.APIH.handle_api_error(
                     'Unable to parse response JSON for 20 alphabets: ' + repr(err),
-                    'get_iblox_alpha_zones',
+                    self.job_manager,
                 )
         else:
             for entry in response_result:
@@ -211,9 +211,9 @@ class InfobloxZone(object):
             response = self.__backoff_api_retry()
             response.raise_for_status()
         except requests.exceptions.HTTPError as herr:
-            self.APIH.handle_api_error(herr, 'get_iblox_alpha_zones')
+            self.APIH.handle_api_error(herr, self.job_manager)
         except requests.exceptions.RequestException as err:
-            self.APIH.handle_api_error(err, 'get_iblox_alpha_zones')
+            self.APIH.handle_api_error(err, self.job_manager)
         else:
             self.next_page_id = None
             self.__infoblox_response_handler(response)
@@ -223,6 +223,8 @@ class InfobloxZone(object):
         Extracts the Infoblox zones using paginated requests.
         """
         print("Starting: " + str(datetime.now()))
+        self.job_manager = JobsManager.JobsManager(self.MC, 'get_iblox_alpha_zones')
+        self.job_manager.record_job_start()
 
         self.__get_previous_zones()
         for alphabet in self.alphabets:
@@ -235,9 +237,7 @@ class InfobloxZone(object):
         self.__clean_collection()
 
         # Record status
-        self.jobs_collection.update_one({'job_name': 'get_iblox_alpha_zones'},
-                                        {'$currentDate': {"updated": True},
-                                        "$set": {'status': 'COMPLETE'}})
+        self.job_manager.record_job_complete()
 
         print("Ending: " + str(datetime.now()))
 

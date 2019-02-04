@@ -20,7 +20,7 @@ Therefore, we use the free API in order to save the paid API credits for more cr
 import time
 from datetime import datetime
 
-from libs3 import MongoConnector, VirusTotal
+from libs3 import MongoConnector, VirusTotal, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -36,9 +36,10 @@ def main():
 
     # Get collections for the queries
     mongo_connector = MongoConnector.MongoConnector()
-
     vt_collection = mongo_connector.get_virustotal_connection()
-    jobs_collection = mongo_connector.get_jobs_connection()
+
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_virustotal_data')
+    jobs_manager.record_job_start()
 
     # Collect the list of tracked TLDs
     zones = ZoneManager.get_distinct_zones(mongo_connector)
@@ -74,9 +75,7 @@ def main():
 
 
     # Record status
-    jobs_collection.update_one({'job_name': 'get_virustotal_data'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))

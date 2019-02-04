@@ -24,7 +24,7 @@ from datetime import datetime
 
 from azure.mgmt.dns.models import ZoneType
 
-from libs3 import ZoneIngestor, AzureConnector, DNSManager, MongoConnector
+from libs3 import ZoneIngestor, AzureConnector, DNSManager, MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -194,6 +194,8 @@ def main():
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
     zone_ingestor = ZoneIngestor.ZoneIngestor()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'fetch_azure_dns')
+    jobs_manager.record_job_start()
 
     current_zones = ZoneManager.get_distinct_zones(mongo_connector)
 
@@ -247,6 +249,8 @@ def main():
                                 dns_manager.insert_record(result, "azure:" + data["resourceGroups"])
             except:
                 print("No records found")
+
+    jobs_manager.record_job_complete()
 
 
 if __name__ == "__main__":

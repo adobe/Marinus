@@ -33,7 +33,7 @@ import networkx as nx
 from netaddr import IPAddress, IPNetwork
 from networkx.readwrite import json_graph
 
-from libs3 import MongoConnector
+from libs3 import MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -153,7 +153,8 @@ def main():
     print("Starting: " + str(now))
 
     mongo_connector = MongoConnector.MongoConnector()
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'create_tpd_graphs')
+    jobs_manager.record_job_start()
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
@@ -266,9 +267,7 @@ def main():
     tpd_graphs_collection.remove({'created': {"$lt": lastweek}})
 
     # Record status
-    jobs_collection.update_one({'job_name': 'create_tpd_graphs'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))

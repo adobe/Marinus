@@ -23,7 +23,6 @@ from netaddr import IPAddress
 from netaddr.core import AddrFormatError
 from libs3 import APIHelper, DNSManager, UltraDNSHelper
 
-
 class UltraDNSZonesInfo(object):
 
     UH = UltraDNSHelper.UltraDNSHelper('get_ultradns_zones_info')
@@ -46,7 +45,7 @@ class UltraDNSZonesInfo(object):
             else:
                 self.APIH.handle_api_error(
                     'Unable to parse response JSON for 20 zones: ' + repr(err),
-                    'get_ultradns_zones_info',
+                    self.UH.jobs_manager,
                 )
         else:
             for record in record_sets:
@@ -105,9 +104,9 @@ class UltraDNSZonesInfo(object):
                 self.UH.login('refresh_token')
                 self.__paginated_ultradns_zones_info_request()
             else:
-                self.APIH.handle_api_error(herr, 'get_ultradns_zones_info')
+                self.APIH.handle_api_error(herr, self.UH.jobs_manager)
         except requests.exceptions.RequestException as err:
-            self.APIH.handle_api_error(err, 'get_ultradns_zones_info')
+            self.APIH.handle_api_error(err, self.UH.jobs_manager)
         else:
             self.__ultradns_zone_info_response_handler(response)
 
@@ -116,6 +115,7 @@ class UltraDNSZonesInfo(object):
         Extracts the zone DNS information from UltraDNS in a paginated manner for the UltraDNS zones.
         """
         print("Starting: " + str(datetime.now()))
+        self.UH.jobs_manager.record_job_start()
         self.UH.get_previous_zones()
 
         # For querying UltraDNS, we need to query on the exact zones reported
@@ -128,9 +128,7 @@ class UltraDNSZonesInfo(object):
                 self.__paginated_ultradns_zones_info_request()
 
         # Record status
-        self.APIH.jobs_collection.update_one({'job_name': 'get_ultradns_zones_info'},
-                                             {'$currentDate': {"updated": True},
-                                              "$set": {'status': 'COMPLETE'}})
+        self.UH.jobs_manager.record_job_complete()
         print("Ending: " + str(datetime.now()))
 
     def __init__(self):

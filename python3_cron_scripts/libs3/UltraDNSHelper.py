@@ -21,7 +21,7 @@ grant_type=refresh_token
 import backoff
 import requests
 
-from libs3 import APIHelper, MongoConnector, UltraDNSConnector
+from libs3 import APIHelper, MongoConnector, UltraDNSConnector, JobsManager
 
 
 class UltraDNSHelper(object):
@@ -29,7 +29,7 @@ class UltraDNSHelper(object):
     access_token = None
     zone_queried = None
     previous_zones = None
-    invoking_job = None
+    jobs_manager = None
     offset = 0
     source = 'UltraDNS'
     # This is as required by the UltraDNS documentation.
@@ -81,7 +81,7 @@ class UltraDNSHelper(object):
             res = requests.post(login_url, data)
             res.raise_for_status()
         except requests.exceptions.HTTPError as herr:
-            self.APIH.handle_api_error(str(herr) + ' : ' + res.text, self.invoking_job)
+            self.APIH.handle_api_error(str(herr) + ' : ' + res.text, self.jobs_manager)
         else:
             token = res.json()
             self.refresh_token = token['refreshToken']
@@ -123,5 +123,5 @@ class UltraDNSHelper(object):
     def __init__(self, invoking_job):
         self.incorrect_response_json_allowed = self.APIH.INCORRECT_RESPONSE_JSON_ALLOWED
         # invoking_job is the job accessing the helper.
-        self.invoking_job = invoking_job
+        self.jobs_manager = JobsManager.JobsManager(self.MC, invoking_job)
         self.login('password')

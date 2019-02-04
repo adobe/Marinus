@@ -27,10 +27,10 @@ import json
 import re
 from datetime import datetime
 
-from libs3 import MongoConnector, PassiveTotal, ZoneIngestor
+from libs3 import MongoConnector, PassiveTotal, ZoneIngestor, JobsManager
 
 
-def search_pt_email(email, pt, zi, jobs_collection):
+def search_pt_email(email, pt, zi, jobs_manager):
     """
     Search PassiveTotal for records associated with the provided email address.
     """
@@ -39,9 +39,7 @@ def search_pt_email(email, pt, zi, jobs_collection):
 
     if results is None:
         print("Error querying email: " + email)
-        jobs_collection.update_one({'job_name': 'get_passivetotal_data'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'ERROR'}})
+        jobs_manager.record_job_error()
         exit(0)
 
     print("Results for " + email + ": " + str(len(results['results'])))
@@ -57,7 +55,7 @@ def search_pt_email(email, pt, zi, jobs_collection):
         zi.add_zone(domain, 'PassiveTotal')
 
 
-def search_pt_org(org, pt, zi, jobs_collection):
+def search_pt_org(org, pt, zi, jobs_manager):
     """
     Search PassiveTotal for records associated with the provided organization.
     """
@@ -66,9 +64,7 @@ def search_pt_org(org, pt, zi, jobs_collection):
 
     if results is None:
         print("Error querying org: " + org)
-        jobs_collection.update_one({'job_name': 'get_passivetotal_data'},
-                                   {'$currentDate': {"updated": True},
-                                    "$set": {'status': 'ERROR'}})
+        jobs_manager.record_job_error()
         exit(0)
 
     print("Results for " + org + ": " + str(len(results['results'])))
@@ -98,19 +94,18 @@ def main():
     config_collection = MC.get_config_connection()
     res = config_collection.find({})
 
-    jobs_collection = MC.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(MC, 'get_passivetotal_data')
+    jobs_manager.record_job_start()
 
     # Perform a search for each email address
     for i in range(0, len(res[0]['DNS_Admins'])):
-        search_pt_email(res[0]['DNS_Admins'][i], PT, zi, jobs_collection)
+        search_pt_email(res[0]['DNS_Admins'][i], PT, zi, jobs_manager)
 
     for i in range(0, len(res[0]['Whois_Orgs'])):
-        search_pt_org(res[0]['Whois_Orgs'][i], PT, zi, jobs_collection)
+        search_pt_org(res[0]['Whois_Orgs'][i], PT, zi, jobs_manager)
 
     # Record status
-    jobs_collection.update_one({'job_name': 'get_passivetotal_data'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))

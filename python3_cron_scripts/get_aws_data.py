@@ -18,10 +18,8 @@ It has no dependencies on other scripts.
 import json
 from datetime import datetime
 import requests
-from libs3 import MongoConnector
+from libs3 import MongoConnector, JobsManager
 
-# Make database connections
-mongo_connector = MongoConnector.MongoConnector()
 
 JSON_LOCATION = "https://ip-ranges.amazonaws.com/ip-ranges.json"
 
@@ -29,19 +27,21 @@ def main():
     """
     Begin main...
     """
+    # Make database connections
+    mongo_connector = MongoConnector.MongoConnector()
+
     now = datetime.now()
     print ("Starting: " + str(now))
 
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_aws_data')
+    jobs_manager.record_job_start()
 
     # Download the JSON file
     req = requests.get(JSON_LOCATION)
 
     if req.status_code != 200:
         print("Bad Request")
-        jobs_collection.update_one({'job_name': 'get_aws_data'},
-                                   {'$currentDate': {"updated" :True},
-                                    "$set": {'status': 'ERROR'}})
+        jobs_manager.record_job_error()
         exit(0)
 
 
@@ -54,9 +54,7 @@ def main():
     aws_collection.insert(json_data)
 
     # Record status
-    jobs_collection.update_one({'job_name': 'get_aws_data'},
-                               {'$currentDate': {"updated" :True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print ("Complete: " + str(now))

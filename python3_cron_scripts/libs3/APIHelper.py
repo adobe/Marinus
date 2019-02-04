@@ -10,27 +10,24 @@
 # OF ANY KIND, either express or implied. See the License for the specific language
 # governing permissions and limitations under the License.
 
-from libs3 import MongoConnector
+from libs3 import MongoConnector, JobsManager
 
 
 class APIHelper(object):
 
     MC = MongoConnector.MongoConnector()
-    jobs_collection = MC.get_jobs_connection()
 
     INCORRECT_RESPONSE_JSON_ALLOWED = 20
 
-    def handle_api_error(self, err, job_name):
+    def handle_api_error(self, err, job_manager):
         """
         Exits the script execution post setting the status in database.
         :param err: Exception causing script exit.
-        :param job_name: Script exiting.
+        :param job_manager: The JobManager for the exiting script.
         """
         print(err)
         print('Exiting script execution.')
-        self.jobs_collection.update_one({'job_name': job_name},
-                                        {'$currentDate': {'updated': True},
-                                         '$set': {'status': 'ERROR'}})
+        job_manager.record_job_error()
         exit(1)
 
     @staticmethod

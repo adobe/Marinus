@@ -18,7 +18,7 @@ This script is only useful to Infoblox customers.
 
 from datetime import datetime
 
-from libs3 import InfobloxDNSManager, MongoConnector
+from libs3 import InfobloxDNSManager, MongoConnector, JobsManager
 
 
 def main():
@@ -30,15 +30,14 @@ def main():
 
     # Make database connections
     mc = MongoConnector.MongoConnector()
-    jobs_collection = mc.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mc, 'get_iblox_mx')
+    jobs_manager.record_job_start()
 
     idm = InfobloxDNSManager.InfobloxDNSManager('mx')
     idm.get_infoblox_dns()
 
     # Record status
-    jobs_collection.update_one({'job_name': 'get_iblox_mx'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     print("Ending: " + str(datetime.now()))
 

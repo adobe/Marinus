@@ -22,7 +22,7 @@ from datetime import datetime
 import requests
 from tld import get_fld
 
-from libs3 import DNSManager, MongoConnector, GoogleDNS
+from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -106,8 +106,9 @@ def main():
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'sonar_round_two')
     google_dns = GoogleDNS.GoogleDNS()
+    jobs_manager.record_job_start()
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
@@ -181,9 +182,7 @@ def main():
 
 
     # Record status
-    jobs_collection.update_one({'job_name': 'sonar_round_two'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print ("Ending: " + str(now))

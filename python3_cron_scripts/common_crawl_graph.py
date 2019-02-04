@@ -36,7 +36,7 @@ import subprocess
 import time
 from datetime import datetime
 
-from libs3 import MongoConnector, DNSManager, GoogleDNS
+from libs3 import MongoConnector, DNSManager, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -194,7 +194,8 @@ def main():
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'common_crawl_graph')
+    jobs_manager.record_job_start()
 
     reversed_zones = ZoneManager.get_reversed_zones(mongo_connector)
 
@@ -251,9 +252,7 @@ def main():
     # Note: This commented out because Common Crawl graph data is not additive.
     # dns_manager.remove_all_by_source_and_date("common_crawl", -4)
 
-    jobs_collection.update_one({'job_name': 'common_crawl_graph'},
-                               {'$currentDate': {"updated" : True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Ending: " + str(now))

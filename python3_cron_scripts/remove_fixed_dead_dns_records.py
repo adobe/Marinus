@@ -26,7 +26,7 @@ from datetime import datetime
 import requests
 from bson.objectid import ObjectId
 
-from libs3 import DNSManager, MongoConnector, GoogleDNS
+from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
 
 
 def main():
@@ -38,8 +38,9 @@ def main():
     print ("Starting: " + str(now))
 
     mongo_connector = MongoConnector.MongoConnector()
-    jobs_collection = mongo_connector.get_jobs_connection()
     dead_dns_collection = mongo_connector.get_dead_dns_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'dead_dns_cleanup')
+    jobs_manager.record_job_start()
 
     google_dns = GoogleDNS.GoogleDNS()
 
@@ -53,9 +54,7 @@ def main():
             dead_dns_collection.remove({"_id":ObjectId(result['_id'])})
 
     # Record status
-    jobs_collection.update_one({'job_name': 'dead_dns_cleanup'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print ("Ending: " + str(now))

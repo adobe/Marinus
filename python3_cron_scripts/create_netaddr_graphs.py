@@ -33,7 +33,7 @@ import networkx as nx
 from netaddr import IPAddress, IPNetwork
 from networkx.readwrite import json_graph
 
-from libs3 import DNSManager, MongoConnector
+from libs3 import DNSManager, MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -392,7 +392,9 @@ def main():
     # Set up all the database connections
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
-    jobs_collection = mongo_connector.get_jobs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'create_netaddr_graphs')
+    jobs_manager.record_job_start()
+
 
     # Get the list of the all Class C's in Marinus
     groups = []
@@ -501,9 +503,7 @@ def main():
     cidr_graphs_collection.remove({'created': {"$lt": lastweek}})
 
     # Record status
-    jobs_collection.update_one({'job_name': 'create_netaddr_graphs'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Ending: " + str(now))

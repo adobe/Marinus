@@ -25,7 +25,7 @@ from datetime import datetime
 import networkx as nx
 from networkx.readwrite import json_graph
 
-from libs3 import DNSManager, MongoConnector
+from libs3 import DNSManager, MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -249,9 +249,10 @@ def main():
     print("Starting: " + str(now))
 
     mongo_connector = MongoConnector.MongoConnector()
-    jobs_collection = mongo_connector.get_jobs_connection()
     mongo_ct = mongo_connector.get_certificate_transparency_connection()
     cert_graphs_collection = mongo_connector.get_cert_graphs_connection()
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'create_cert_graphs')
+    jobs_manager.record_job_start()
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
@@ -296,9 +297,7 @@ def main():
         cert_graphs_collection.insert(my_data)
 
     # Record status
-    jobs_collection.update_one({'job_name': 'create_cert_graphs'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Ending: " + str(now))

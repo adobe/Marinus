@@ -40,7 +40,7 @@ from bson.objectid import ObjectId
 from dateutil.parser import parse
 from netaddr import IPAddress, IPNetwork
 
-from libs3 import RemoteMongoConnector
+from libs3 import RemoteMongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -575,6 +575,8 @@ def main():
 
     rm_connector = RemoteMongoConnector.RemoteMongoConnector()
     all_dns_collection = rm_connector.get_all_dns_connection()
+    jobs_manager = JobsManager.JobsManager(rm_connector, "zgrab_port_ip-" + args.p)
+    jobs_manager.record_job_start()
 
     zones_struct = {}
     zones_struct['zones'] = ZoneManager.get_distinct_zones(rm_connector)
@@ -668,6 +670,8 @@ def main():
 
     # Remove any completely empty entries
     zgrab_collection.remove({'data': {}})
+
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))
