@@ -53,7 +53,7 @@ class JobsManager(object):
         """
         if self.jobs_collection.find({'job_name': job_name}).count() == 0:
             now = datetime.now()
-            self.jobs_collection.insert({"job_name": job_name, "status": "NOT_RUN", "updated": now})
+            self.jobs_collection.insert({"job_name": job_name, "status": self.NOT_RUN, "updated": now})
 
 
     def create_job(self, job_name):
