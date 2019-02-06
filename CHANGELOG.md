@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## February 5, 2019 
+* PTR records are now added to the all_dns collection when RDNS records are identified in Sonar. 
+* A few bug fixes and touch ups.
+
 ## February 4, 2019 (Certificate Transparency Upgrades & JobsManager)
 * A Python 3 JobsManager class was created in order to remove redundancy in the code.
 * The Python 2 versions of hash_based_upload and download_* were removed.

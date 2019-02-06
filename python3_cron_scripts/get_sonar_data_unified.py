@@ -16,6 +16,7 @@ This script searches the data for the root domains tracked by Marinus.
 """
 
 import argparse
+import ipaddress
 import json
 import os.path
 import subprocess
@@ -125,11 +126,34 @@ def update_dns(dns_file, zones, dns_mgr):
                 dns_mgr.insert_record(insert_json, "sonar_dns")
 
 
+def check_for_ptr_record(ipaddr, g_dns, zones):
+    """
+    For an identified Sonar RDNS record, confirm that there
+    is a related PTR record for the IP address. If confirmed,
+    add the record to the all_dns collection.
+    """
+    arpa_record = ipaddress.ip_address(ipaddr).reverse_pointer
+    dns_result = g_dns.fetch_DNS_records(arpa_record, g_dns.DNS_TYPES['ptr'])
+    if dns_result == []:
+        # Lookup failed
+        return
+
+    rdns_zone = find_zone(dns_result[0]['value'], zones)
+
+    if rdns_zone != "":
+        new_record = dns_result[0]
+        new_record['zone'] = rdns_zone
+        new_record['created'] = datetime.now()
+        new_record['status'] = 'unknown'
+        global_dns_manager.insert_record(new_record, "sonar_rdns")
+
+
 def update_rdns(rdns_file, zones, mongo_connector):
     """
     Insert any matching Sonar RDNS records in the Marinus database.
     """
     rdns_collection = mongo_connector.get_sonar_reverse_dns_connection()
+    g_dns = GoogleDNS.GoogleDNS()
 
     with open(rdns_file, "r") as read_f:
         for line in read_f:
@@ -157,7 +181,7 @@ def update_rdns(rdns_file, zones, mongo_connector):
                     insert_json['ip'] = ip_addr
                     insert_json['zone'] = zone
                     insert_json['fqdn'] = domain
-                    insert_json['status'] = 'unknown' 
+                    insert_json['status'] = 'unknown'
                     insert_json['sonar_timestamp'] = int(timestamp)
                     insert_json['created'] = datetime.now()
                     insert_json['updated'] = datetime.now()
@@ -166,6 +190,8 @@ def update_rdns(rdns_file, zones, mongo_connector):
                     rdns_collection.update({"ip": ip_addr},
                                            {'$set': {"fqdn": domain},
                                             '$currentDate': {"updated": True}})
+
+                check_for_ptr_record(ip_addr, g_dns, zones)
 
 
 def download_remote_files(s, file_reference, data_dir, jobs_manager):

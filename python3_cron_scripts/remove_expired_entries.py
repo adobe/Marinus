@@ -84,10 +84,11 @@ def main():
 
     # The sources for which to remove expired entries
     # Infoblox is handled separately
-    # Sonar RDNS is hard code below in a separate section
     # {"source_name": date_difference_in_months}
     sources = [{"name": "sonar_dns", "diff": -2},
                {"name": "sonar_dns_saved", "diff": -2},
+               {"name": "sonar_rdns", "diff": -2},
+               {"name": "sonar_rdns_saved", "diff": -2},
                {"name": "ssl", "diff": -2},
                {"name": "ssl_saved", "diff": -2},
                {"name": "virustotal", "diff": -2},

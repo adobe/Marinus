@@ -16,6 +16,7 @@ This script searches the records using the CIDRs related to the tracked organiza
 """
 
 import argparse
+import ipaddress
 import json
 import os.path
 import subprocess
@@ -24,7 +25,7 @@ import time
 from datetime import datetime
 
 import requests
-from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager
+from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager, GoogleDNS
 from libs3.ZoneManager import ZoneManager
 from netaddr import IPAddress, IPNetwork
 
@@ -181,10 +182,33 @@ def update_dns(dns_file, cidrs, zones):
                 global_dns_manager.insert_record(insert_json, "sonar_dns")
 
 
+def check_for_ptr_record(ipaddr, g_dns, zones):
+    """
+    For an identified Sonar RDNS record, confirm that there
+    is a related PTR record for the IP address. If confirmed,
+    add the record to the all_dns collection.
+    """
+    arpa_record = ipaddress.ip_address(ipaddr).reverse_pointer
+    dns_result = g_dns.fetch_DNS_records(arpa_record, g_dns.DNS_TYPES['ptr'])
+    if dns_result == []:
+        # Lookup failed
+        return
+
+    rdns_zone = find_zone(dns_result[0]['value'], zones)
+
+    if rdns_zone != "":
+        new_record = dns_result[0]
+        new_record['zone'] = rdns_zone
+        new_record['created'] = datetime.now()
+        new_record['status'] = 'unknown'
+        global_dns_manager.insert_record(new_record, "sonar_rdns")
+
+
 def update_rdns(rdns_file, cidrs, zones):
     """
     Search RDNS file and insert relevant records into the database.
     """
+    g_dns = GoogleDNS.GoogleDNS()
     with open(rdns_file, "r") as rdns_f:
         for line in rdns_f:
             try:
@@ -225,6 +249,8 @@ def update_rdns(rdns_file, cidrs, zones):
                                            {'$set': {"fqdn": domain},
                                             '$currentDate': {"updated" : True}})
 
+
+                check_for_ptr_record(ip_addr, g_dns, zones)
 
 
 def download_remote_files(s, file_reference, data_dir, jobs_manager):
