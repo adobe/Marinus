@@ -35,6 +35,9 @@ class ZoneManager(object):
     EXPIRED = "expired"
 
     # The MongoConnector
+    mongo_connector = None
+
+    # The zone collection
     zone_collection = None
 
 
@@ -42,6 +45,7 @@ class ZoneManager(object):
         """
         Initialize the MongoDB Connector
         """
+        self.mongo_connector = mongo_connector
         self.zone_collection = mongo_connector.get_zone_connection()
 
 
@@ -65,9 +69,9 @@ class ZoneManager(object):
         zones_collection = mongo_connector.get_zone_connection()
 
         if includeAll:
-            zone_results = zones_collection.distinct('zone')
+            zone_results = mongo_connector.perform_distinct(zones_collection, 'zone')
         else:
-            zone_results = zones_collection.distinct('zone', {'status': {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
+            zone_results = mongo_connector.perform_distinct(zones_collection, 'zone', {'status': {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
 
         zones = []
         for zone in zone_results:
@@ -83,7 +87,7 @@ class ZoneManager(object):
         Retrieve the list of active zones and then reverse them to match the Common Crawl format
         """
         zones_collection = mongo_connector.get_zone_connection()
-        zone_results = zones_collection.distinct('zone', {'status': {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
+        zone_results = mongo_connector.perform_distinct(zones_collection, 'zone', {'status': {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
 
         zones = []
         for zone in zone_results:
@@ -110,10 +114,10 @@ class ZoneManager(object):
         zone_collection = mongo_connector.get_zone_connection()
 
         if includeAll:
-            zones = zone_collection.distinct('zone', {
+            zones = mongo_connector.perform_distinct(zone_collection, 'zone', {
                 'reporting_sources.source': source})
         else:
-            zones = zone_collection.distinct('zone', {
+            zones = mongo_connector.perform_distinct(zone_collection, 'zone', {
                 'reporting_sources.source': source,
                 'status': {'$nin': [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
 
@@ -130,9 +134,9 @@ class ZoneManager(object):
         zones_collection = mongo_connector.get_zone_connection()
 
         if includeAll:
-            zone_results = zones_collection.find({})
+            zone_results = mongo_connector.perform_find(zones_collection, {})
         else:
-            zone_results = zones_collection.find({'status': {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
+            zone_results = mongo_connector.perform_find(zones_collection, {'status': {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
 
         zones = []
         for zone in zone_results:
@@ -148,7 +152,7 @@ class ZoneManager(object):
         This is not a staticmethod since it would probably be called repeatedly.
         """
 
-        return(self.zone_collection.find({'zone': zone}))
+        return self.mongo_connector.perform_find(self.zone_collection, {'zone': zone})
 
 
     def get_zones_by_status(self, status):
@@ -161,7 +165,7 @@ class ZoneManager(object):
         if not self._check_valid_status(status):
             return
 
-        zone_results = self.zone_collection.distinct('zone', {'status': status})
+        zone_results = self.mongo_connector.perform_distinct(self.zone_collection, 'zone', {'status': status})
 
         zones = []
         for zone in zone_results:
@@ -200,3 +204,4 @@ class ZoneManager(object):
         """
 
         self.zone_collection.update({"zone": zone}, {"$addToSet": {"notes": note}})
+

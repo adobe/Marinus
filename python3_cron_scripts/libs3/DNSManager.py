@@ -32,9 +32,11 @@ class DNSManager(object):
     """
 
     all_dns_collection = None
-    
+    mongo_connector = None
+
 
     def __init__(self, mongo_connector):
+        self.mongo_connector = mongo_connector
         self.all_dns_collection = mongo_connector.get_all_dns_connection()
 
 
@@ -60,9 +62,10 @@ class DNSManager(object):
                        the fqdn, type, value, zone, and created values.
         :param source_name: The DNS record source ("ssl","virustotal","sonar_dns","common_crawl")
         """
-        check = self.all_dns_collection.find_one({'fqdn': result['fqdn'],
-                                                  'type': result['type'],
-                                                  'value': result['value']})
+        query = {'fqdn': result['fqdn'],
+                 'type': result['type'],
+                 'value': result['value']}
+        check = self.mongo_connector.perform_find_one(self.all_dns_collection, query)
 
         if check is None:
             result['sources'] = []
@@ -105,7 +108,7 @@ class DNSManager(object):
         if source != None:
             criteria['sources.source'] = source
 
-        check = self.all_dns_collection.find(criteria)
+        check = self.mongo_connector.perform_find(self.all_dns_collection, criteria)
         return check
 
 
@@ -120,7 +123,7 @@ class DNSManager(object):
         if source != None:
             criteria['sources.source'] = source
 
-        check = self.all_dns_collection.find_one(criteria)
+        check = self.mongo_connector.perform_find_one(self.all_dns_collection, criteria)
         return check
 
 
@@ -135,7 +138,7 @@ class DNSManager(object):
         if source != None:
             criteria['sources.source'] = source
 
-        check = self.all_dns_collection.find(criteria).count()
+        check = self.mongo_connector.perform_count(self.all_dns_collection, criteria)
         return check
 
 
@@ -236,3 +239,4 @@ class DNSManager(object):
                 self.all_dns_collection.update({'_id': ObjectId(result['_id'])},
                                                {"$pull": {"sources": {"source": source}}})
         return True
+

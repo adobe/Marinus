@@ -16,7 +16,10 @@ This module is for handling connections to the remote Mongo server.
 
 
 import configparser
+import time
 from pymongo import MongoClient
+from pymongo.errors import AutoReconnect
+
 
 class RemoteMongoConnector(object):
     """
@@ -104,6 +107,103 @@ class RemoteMongoConnector(object):
             exit(0)
 
         self._init_mongo_connection(config)
+
+
+    def perform_find(self, collection, query, filter=None):
+        """
+        This will perform a find with a retry for dropped connections
+        """
+        success = False
+        num_tries = 0
+        while not success:
+            try:
+                if filter is not None:
+                    result = collection.find(query, filter)
+                else:
+                    result = collection.find(query)
+                success = True
+            except AutoReconnect:
+                if num_tries < 5:
+                    print("Warning: Failed to connect to the database. Retrying.")
+                    time.sleep(5)
+                    num_tries = num_tries + 1
+                else:
+                    print("ERROR: Exceeded the max number of connection attempts to MongoDB!")
+                    exit(1)
+
+        return result
+
+
+    def perform_find_one(self, collection, query, filter=None):
+        """
+        This will perform a find_one with a retry for dropped connections
+        """
+        success = False
+        num_tries = 0
+        while not success:
+            try:
+                if filter is not None:
+                    result = collection.find_one(query, filter)
+                else:
+                    result = collection.find_one(query)
+                success = True
+            except AutoReconnect:
+                if num_tries < 5:
+                    print("Warning: Failed to connect to the database. Retrying.")
+                    time.sleep(5)
+                    num_tries = num_tries + 1
+                else:
+                    print("ERROR: Exceeded the max number of connection attempts to MongoDB!")
+                    exit(1)
+
+        return result
+
+
+    def perform_count(self, collection, query):
+        """
+        This will perform a find.count() with a retry for dropped connections
+        """
+        success = False
+        num_tries = 0
+        while not success:
+            try:
+                result = collection.find(query).count()
+                success = True
+            except AutoReconnect:
+                if num_tries < 5:
+                    print("Warning: Failed to connect to the database. Retrying.")
+                    time.sleep(5)
+                    num_tries = num_tries + 1
+                else:
+                    print("ERROR: Exceeded the max number of connection attempts to MongoDB!")
+                    exit(1)
+
+        return result
+
+
+    def perform_distinct(self, collection, field, query=None):
+        """
+        This will perform a distinct with a retry for dropped connections
+        """
+        success = False
+        num_tries = 0
+        while not success:
+            try:
+                if query is not None:
+                    result = collection.distinct(field, query)
+                else:
+                    result = collection.distinct(field)
+                success = True
+            except AutoReconnect:
+                if num_tries < 5:
+                    print("Warning: Failed to connect to the database. Retrying.")
+                    time.sleep(5)
+                    num_tries = num_tries + 1
+                else:
+                    print("ERROR: Exceeded the max number of connection attempts to MongoDB!")
+                    exit(1)
+
+        return result
 
 
     def get_results_connection(self):

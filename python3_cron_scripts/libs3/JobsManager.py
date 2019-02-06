@@ -20,7 +20,7 @@ class JobsManager(object):
     The jobs collection is responsible for tracking the progress of the various scripts.
     This class is responsible for recording the status of jobs within the jobs collection.
     """
-        
+
     # Job states
     NOT_RUN = "NOT_RUN"
 
@@ -36,13 +36,17 @@ class JobsManager(object):
     # JobsCollection
     _jobs_collection = None
 
+    # Mongo_Connector
+    _mongo_connector = None
+
     # Job Name
     _job_name = ""
 
 
     def __init__(self, mongo_connector, job_name, debug=False):
         self.debug = debug
-        self.jobs_collection = mongo_connector.get_jobs_connection()
+        self._mongo_connector = mongo_connector
+        self._jobs_collection = mongo_connector.get_jobs_connection()
         self._job_name = job_name
 
 
@@ -51,9 +55,9 @@ class JobsManager(object):
         Verify that the job name exists in the collection.
         If the job does not exist, this will create it.
         """
-        if self.jobs_collection.find({'job_name': job_name}).count() == 0:
+        if self._mongo_connector.perform_count(self._jobs_collection, {'job_name': job_name}) == 0:
             now = datetime.now()
-            self.jobs_collection.insert({"job_name": job_name, "status": self.NOT_RUN, "updated": now})
+            self._jobs_collection.insert({"job_name": job_name, "status": self.NOT_RUN, "updated": now})
 
 
     def create_job(self, job_name):
@@ -68,9 +72,9 @@ class JobsManager(object):
         This will record the job as having started processing.
         """
         self.__check_job_exists(self._job_name)
-        self.jobs_collection.update_one({'job_name': self._job_name},
-                                        {'$currentDate': {"updated": True},
-                                        "$set": {'status': self.RUNNING}})
+        self._jobs_collection.update_one({'job_name': self._job_name},
+                                         {'$currentDate': {"updated": True},
+                                          "$set": {'status': self.RUNNING}})
 
 
     def record_job_error(self):
@@ -78,9 +82,9 @@ class JobsManager(object):
         This will record the job as having encountered an ERROR during its run.
         """
         self.__check_job_exists(self._job_name)
-        self.jobs_collection.update_one({'job_name': self._job_name},
-                                        {'$currentDate': {"updated": True},
-                                        "$set": {'status': self.ERROR}})
+        self._jobs_collection.update_one({'job_name': self._job_name},
+                                         {'$currentDate': {"updated": True},
+                                          "$set": {'status': self.ERROR}})
 
 
     def record_job_complete(self):
@@ -88,6 +92,7 @@ class JobsManager(object):
         This will record the job as having successfully completed its run.
         """
         self.__check_job_exists(self._job_name)
-        self.jobs_collection.update_one({'job_name': self._job_name},
-                                        {'$currentDate': {"updated": True},
-                                        "$set": {'status': self.COMPLETE}})
+        self._jobs_collection.update_one({'job_name': self._job_name},
+                                         {'$currentDate': {"updated": True},
+                                          "$set": {'status': self.COMPLETE}})
+
