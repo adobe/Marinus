@@ -77,21 +77,6 @@ def update_config(mongo_connector, rm_connector):
         remote_config_collection.insert(config)
 
 
-def update_braas(mongo_connector, rm_connector):
-    """
-    Copy all of the public Braas IP addresses to the remote database.
-    """
-    print("Starting Public Braas..")
-    braas_public_collection = mongo_connector.get_braas_public_connection()
-    remote_braas_public_collection = rm_connector.get_braas_public_connection()
-
-    braas_public = braas_public_collection.find({}, {"_id": 0})
-
-    remote_braas_public_collection.remove({})
-    for ip_addr in braas_public:
-        remote_braas_public_collection.insert(ip_addr)
-
-
 def update_aws_cidrs(mongo_connector, rm_connector):
     """
     Copy the list of AWS CIDRs to the remote database
@@ -157,7 +142,6 @@ def main():
     update_aws_cidrs(mongo_connector, remote_mongo_connector)
     update_azure_cidrs(mongo_connector, remote_mongo_connector)
     update_config(mongo_connector, remote_mongo_connector)
-    update_braas(mongo_connector, remote_mongo_connector)
     update_all_dns(mongo_connector, remote_mongo_connector, zone_list)
 
     # Record status
