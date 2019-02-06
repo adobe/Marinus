@@ -193,17 +193,19 @@ def main():
         time.sleep(5)
 
         # This could be done with backoff but we don't want to be overly aggressive.
-        json_result = json.loads(make_https_request("https://crt.sh/?q=%25." + zone + "&output=json"))
+        json_result = make_https_request("https://crt.sh/?q=%25." + zone + "&output=json")
         if json_result is None:
             time.sleep(3)
-            json_result = json.loads(make_https_request("https://crt.sh/?q=%25." + zone + "&output=json"))
+            json_result = make_https_request("https://crt.sh/?q=%25." + zone + "&output=json")
             if json_result is None:
                 print("Can't reach crt.sh. Exiting for now")
                 exit(0)
 
+        json_data = json.loads(json_result)
+
         new_names = []
         new_ids = []
-        for entry in json_result:
+        for entry in json_data:
             if entry['min_cert_id'] not in new_ids:
                 new_ids.append(entry['min_cert_id'])
 
