@@ -51,6 +51,32 @@ def monthdelta(date, delta):
     return date.replace(day=d, month=m, year=y)
 
 
+def get_int_for_unk_type(dtype):
+    """
+    Returns the int for an unknown type from Sonar.
+    The DNS type is the integer at the end of the "unk_in_{num}" string.
+    """
+    return int(dtype[7:])
+
+
+def fix_unk_types(dtype, g_dns):
+    """
+    This is to address issues with Sonar data for unknown values.
+    This function will try to determine if Marinus is able to recognize the DNS type.
+    """
+    if dtype.startswith("unk_in_"):
+        type_num = get_int_for_unk_type(dtype)
+        for key, value in g_dns.DNS_TYPES.items():
+            if value == type_num:
+                dtype = key
+                break
+
+    if dtype.startswith("unk_in_"):
+        print("Warning: Unknown type: " + dtype)
+
+    return dtype
+
+
 def main():
     """
     Begin Main...
@@ -68,8 +94,6 @@ def main():
                {"name": "virustotal_saved", "diff": -2},
                {"name": "UltraDNS", "diff": -2},
                {"name": "UltraDNS_saved", "diff": -2},
-               {"name": "skms", "diff": -2},
-               {"name": "skms_saved", "diff": -2},
                {"name": "marinus", "diff": -2},
                {"name": "marinus_saved", "diff": -2},
                {"name": "mx", "diff": -2},
@@ -105,13 +129,28 @@ def main():
         removal_date = monthdelta(datetime.now(), entry['diff'])
         source = entry['name']
         print("Removing " + source + " as of: " + str(removal_date))
-        
+
         last_domain = ""
         results = all_dns_collection.find({'sources': {"$size": 1}, 'sources.source': source, 'sources.updated': {"$lt": removal_date}})
         for result in results:
             if result['fqdn'] != last_domain:
                 last_domain = result['fqdn']
-                dns_result = GDNS.fetch_DNS_records(result['fqdn'], GDNS.DNS_TYPES[result['type']])
+
+                if result['type'].startswith("unk_in_"):
+                    # Sonar didn't know what it was.
+
+                    new_type = fix_unk_types(result['type'], GDNS)
+                    if new_type.startswith("unk_in"):
+                        # Marinus doesn't know what it is either.
+                        lookup_int = get_int_for_unk_type(result['type'])
+                    else:
+                        # Marinus was able to translate it.
+                        lookup_int = GDNS.DNS_TYPES[new_type]
+                else:
+                    # Normal type
+                    lookup_int = GDNS.DNS_TYPES[result['type']]
+
+                dns_result = GDNS.fetch_DNS_records(result['fqdn'], lookup_int)
                 if dns_result != []:
                     for dns_entry in dns_result:
                         if is_tracked_zone(dns_entry['fqdn'], zones):

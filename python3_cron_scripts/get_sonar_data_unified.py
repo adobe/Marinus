@@ -25,7 +25,7 @@ from datetime import datetime
 
 import requests
 
-from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager
+from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager, GoogleDNS
 from libs3.ZoneManager import ZoneManager
 
 
@@ -100,6 +100,20 @@ def update_dns(dns_file, zones, dns_mgr):
             timestamp = data['timestamp']
             if zone != "" and value != "":
                 print ("Domain matches! " + domain + " Zone: " + zone)
+
+                if dtype.startswith("unk_in_"):
+                    # Sonar didn't recognize the response
+                    type_num = int(dtype[7:])
+                    g_dns = GoogleDNS.GoogleDNS()
+                    for key, value in g_dns.DNS_TYPES.items():
+                        if value == type_num:
+                            dtype = key
+                            break
+
+                if dtype.startswith("unk_in_"):
+                    # Marinus didn't recognize it either.
+                    print("WARNING: Unknown type: " + dtype)
+
                 insert_json = {}
                 insert_json['fqdn'] = domain
                 insert_json['zone'] = zone

@@ -24,13 +24,14 @@ from requests.packages.urllib3.util.retry import Retry
 
 class GoogleDNS(object):
 
-    DNS_TYPES = {"a": 1, "ns": 2, "cname": 5, "soa": 6, "ptr": 12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33, "naptr": 35, "ds": 43, "rrsig": 46, "dnskey": 48, "any": 255}
+    DNS_TYPES = {"a": 1, "ns": 2, "cname": 5, "soa": 6, "ptr": 12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33, "naptr": 35, "ds": 43, "rrsig": 46, "dnskey": 48, "spf": 99, "any": 255}
 
     @staticmethod
     def fetch_DNS_records(host, dns_type=None):
             """
             Use Google DNS over HTTPS to lookup host
-            DNS Type mappings: "a":1, "ns":2, "cname":5, "soa":6, "ptr":12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33, "naptr": 35, "ds": 43, "rrsig": 46, "dnskey": 48, "any": 255
+            DNS Type mappings: "a":1, "ns":2, "cname":5, "soa":6, "ptr":12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33,
+                               "naptr": 35, "ds": 43, "rrsig": 46, "dnskey": 48, "spf": 99, "any": 255
             It should be noted, that a DNS query with a specified dns_type will return only the immediate answer.
             However, a request without a dns_type will be recursive for queries such as cname records.
             Therefore, you would get a result array such as:
