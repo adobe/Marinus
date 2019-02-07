@@ -19,6 +19,8 @@ The OWASP Amass tool can be found at: https://github.com/OWASP/Amass/
 
 The config.ini should be used to specify the amass run options for your organization.
 Please refer to: https://github.com/OWASP/Amass/blob/master/examples/amass_config.ini
+
+Amass output files will be stored in "./amass_files" unless otherwise specified.
 """
 import argparse
 import json
@@ -43,10 +45,10 @@ def is_tracked_zone(cname, zones):
 
 def record_finding(dns_manager, finding):
     """
-    Record the relevant entry in the database.
+    Record a relevant line in the database.
     """
     new_record = {}
-    new_record['zone'] = finding['domain'] 
+    new_record['zone'] = finding['domain']
     new_record['type'] = finding['type']
 
     if new_record['type'] == 'a' or new_record['type'] == 'aaaa':
@@ -64,26 +66,35 @@ def record_finding(dns_manager, finding):
     new_record['created'] = datetime.now()
     new_record['status'] = 'unknown'
     dns_manager.insert_record(new_record, "amass:" + finding['source'])
-    
+
+
+def check_save_location(save_location):
+    """
+    Check to see if the directory exists.
+    If the directory does not exist, it will automatically create it.
+    """
+    if not os.path.exists(save_location):
+        os.makedirs(save_location)
+
 
 def main():
-    """
-    Begin main...
-    """
 
     mongo_connector = MongoConnector.MongoConnector()
 
     now = datetime.now()
     print("Starting: " + str(now))
 
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_owasp_amass')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, 'owasp_amass')
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
     dns_manager = DNSManager.DNSManager(mongo_connector)
 
+    output_dir = "./amass_files/"
+
     parser = argparse.ArgumentParser(description='Run the OWASP Amass tool and store the results in the database.')
     parser.add_argument('--config_file', required=False, help='An optional Amass config file. Otherwise, defaults will be used.')
     parser.add_argument('--amass_path', required=True, help='The path to the amass binary')
+    parser.add_argument('--output_dir', default=output_dir, help="The path where to save Amass files.")
     parser.add_argument('--sleep', type=int, default=5, help='Sleep time in seconds between amass runs so as not to overuse service limits.')
     args = parser.parse_args()
 
@@ -94,6 +105,13 @@ def main():
     if 'config_file' in args and not os.path.isfile(args.config_file):
         print("ERROR: Incorrect config_file location")
         exit(1)
+
+    if 'output_dir' in args:
+        output_dir = args.output_dir
+        if not output_dir.endswith("/"):
+            output_dir = output_dir + "/"
+
+    check_save_location(output_dir)
 
     jobs_manager.record_job_start()
 
@@ -114,7 +132,7 @@ def main():
         command_line.append("-src")
         command_line.append("-ip")
         command_line.append("-do")
-        command_line.append(zone + "-do.json")
+        command_line.append(output_dir + zone + "-do.json")
 
         try:
             subprocess.check_call(command_line)
@@ -124,8 +142,8 @@ def main():
             print("ERROR: Amass run exited with a non-zero status: " + str(e))
 
 
-        if os.path.isfile("./" + zone + "-do.json"):
-            output = open("./" + zone + "-do.json", "r")
+        if os.path.isfile(output_dir + zone + "-do.json"):
+            output = open(output_dir + zone + "-do.json", "r")
             json_data = []
             for line in output:
                 try:
@@ -141,7 +159,8 @@ def main():
                 elif is_tracked_zone(finding['domain'], zones):
                     record_finding(dns_manager, finding)
                 else:
-                    print("Skipping: " + finding['domain'] + " type: " + finding['type'])
+                    # print("Skipping: " + finding['domain'] + " type: " + finding['type'])
+                    pass
 
     jobs_manager.record_job_complete()
 
