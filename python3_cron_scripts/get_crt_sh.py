@@ -110,7 +110,30 @@ def get_list_of_existing_certificates(ct_collection):
     return existing_ids
 
 
-def add_new_certificate_values(new_ids, ct_collection, save_location=None):
+def get_cert_zones(cert, zones):
+    """
+    Find the relevant certificate zones
+    """
+    cert_zones = []
+
+    if 'subject_common_names' in cert:
+        for cn in cert['subject_common_names']:
+            for zone in zones:
+                if cn == zone or cn.endswith("." + zone):
+                    if zone not in cert_zones:
+                        cert_zones.append(zone)
+
+    if 'subject_dns_names' in cert:
+        for cn in cert['subject_dns_names']:
+            for zone in zones:
+                if cn == zone or cn.endswith("." + zone):
+                    if zone not in cert_zones:
+                        cert_zones.append(zone)
+
+    return cert_zones
+
+
+def add_new_certificate_values(new_ids, ct_collection, zones, save_location=None):
     """
     Add new certificate values to the database.
     """
@@ -141,14 +164,16 @@ def add_new_certificate_values(new_ids, ct_collection, save_location=None):
                 print("ERROR: Could not parse certificate for: " + str(min_cert_id) + ". Skipping for now.")
                 continue
 
+            cert_zones = get_cert_zones(cert, zones)
             print("Adding crt.sh id: " + str(min_cert_id) + " SHA256: " + cert['fingerprint_sha256'])
 
             if ct_collection.find({"fingerprint_sha256": cert['fingerprint_sha256']}).count() != 0:
-                # The certificate exists in the database but does not have crt_sh id
-                ct_collection.update_one({"fingerprint_sha256": cert['fingerprint_sha256']}, {"$set": {"crt_sh_min_id": min_cert_id}, "$addToSet": {'sources': 'crt_sh'}})
+                # The certificate exists in the database but does not have crt_sh id and/or zones
+                ct_collection.update_one({"fingerprint_sha256": cert['fingerprint_sha256']}, {"$set": {"crt_sh_min_id": min_cert_id, "zones": cert_zones}, "$addToSet": {'sources': 'crt_sh'}})
             else:
                 # Add the new certificate
                 cert['crt_sh_min_id'] = min_cert_id
+                cert['zones'] = cert_zones
                 ct_collection.insert_one(cert)
 
 
@@ -195,7 +220,7 @@ def main():
         # This could be done with backoff but we don't want to be overly aggressive.
         json_result = make_https_request("https://crt.sh/?q=%25." + zone + "&output=json")
         if json_result is None:
-            time.sleep(3)
+            time.sleep(30)
             json_result = make_https_request("https://crt.sh/?q=%25." + zone + "&output=json")
             if json_result is None:
                 print("Can't reach crt.sh. Exiting for now")
@@ -216,9 +241,9 @@ def main():
         add_new_domain_names(new_names, zones, mongo_connector)
 
     if args.download_methods == "dbAndSave":
-        add_new_certificate_values(new_ids, ct_collection, save_location)
+        add_new_certificate_values(new_ids, ct_collection, zones, save_location)
     elif args.download_methods == "dbOnly":
-        add_new_certificate_values(new_ids, ct_collection, None)
+        add_new_certificate_values(new_ids, ct_collection, zones, None)
 
     # Set isExpired for any entries that have recently expired.
     ct_collection.update({"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
@@ -232,3 +257,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

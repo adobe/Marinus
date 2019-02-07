@@ -38,6 +38,7 @@ const certTransparencySchema = new Schema({
     raw: String,
     full_certificate: String,
     sources: [],
+    zones: [],
     fingerprint_sha1: String,
     fingerprint_sha256: String,
     scts: [{version: Number,
@@ -70,21 +71,11 @@ module.exports = {
         }]).exec();
     },
     getCertTransZonePromise: function(zone, count) {
-        let escZone = zone.replace('.', '\\.');
-        let reZone = new RegExp('^.*\.' + escZone + '$');
         let promise;
         if (count) {
-            promise = certTransModel.find().or([{
-                'subject_common_names': reZone,
-            }, {
-                'subject_dns_names': reZone,
-            }]).countDocuments().exec();
+            promise = certTransModel.find({'zones': zone}).countDocuments().exec();
         } else {
-            promise = certTransModel.find().or([{
-                'subject_common_names': reZone,
-            }, {
-                'subject_dns_names': reZone,
-            }]).exec();
+            promise = certTransModel.find({'zones': zone}).exec();
         }
         return promise;
     },

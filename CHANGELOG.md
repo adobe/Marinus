@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## February 7, 2019
+* Modified get_original_ct_logs, get_crt_sh, and download_facebook_certs scripts to start recording the zones associated with the certificate. This will make it easier to search the ct_certs collection for root domains.
+
+
 ## February 6, 2019
 * Added support to import data from the OWASP Amass tool. Amass is similar to Marinus and supports a few more sources than what Marinus currently supports. Rather than reproduce the Amass functionality, Marinus supports importing the results from the Amass tool. For more information, see: https://github.com/OWASP/Amass/
 * In order to decrease the chance of script failures due to database connection issues, support was added to handle pymongo AutoReconnect exceptions for the find queries in a few selected libraries. As Marinus progresses, this will expand to a more complete implementation.

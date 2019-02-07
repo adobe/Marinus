@@ -137,6 +137,8 @@ def main():
 
             if ct_collection.find({'fingerprint_sha256': cert['fingerprint_sha256']}).count() == 0:
                 ct_collection.insert(cert)
+            else:
+                ct_collection.update({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$addToSet": {'zones': zone}})
 
     jobs_manager.record_job_complete()
 
@@ -146,3 +148,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

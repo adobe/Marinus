@@ -177,33 +177,40 @@ def get_cert_from_extra_data(extra_data):
     return cert
 
 
-def check_relevancy(cert, ssl_orgs, zones):
+def check_org_relevancy(cert, ssl_orgs):
     """
     Check to see if the certificate is relevant to our organization.
-    This could be updated to check for IP addresses in the future.
     """
-
     if 'subject_organization_name' in cert:
         for org in cert['subject_organization_name']:
             if org in ssl_orgs:
                 return True
 
+
+def check_zone_relevancy(cert, zones):
+    """
+    Find the related zones within the certificate
+    """
+    cert_zones = []
+
     if 'subject_common_names' in cert:
         for cn in cert['subject_common_names']:
             for zone in zones:
                 if cn == zone or cn.endswith("." + zone):
-                    return True
+                    if zone not in cert_zones:
+                        cert_zones.append(zone)
 
     if 'subject_dns_names' in cert:
         for cn in cert['subject_dns_names']:
             for zone in zones:
                 if cn == zone or cn.endswith("." + zone):
-                    return True
+                    if zone not in cert_zones:
+                        cert_zones.append(zone)
 
-    return False
+    return cert_zones
 
 
-def insert_certificate(cert, source, ct_collection):
+def insert_certificate(cert, source, ct_collection, cert_zones):
     """
     Insert or update the record in the database as needed.
     """
@@ -211,7 +218,7 @@ def insert_certificate(cert, source, ct_collection):
     if ct_collection.find({'fingerprint_sha256': cert['fingerprint_sha256']}).count() == 0:
         ct_collection.insert(cert)
     else:
-        ct_collection.update({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {source + "_id": cert[source + "_id"], 'ct_log_type': cert['ct_log_type']}, "$addToSet": {"sources": source}})
+        ct_collection.update({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {source + "_id": cert[source + "_id"], 'ct_log_type': cert['ct_log_type'], 'zones': cert_zones}, "$addToSet": {"sources": source}})
 
 
 def write_file(cert, save_location, save_type, source):
@@ -339,10 +346,13 @@ def main():
             else:
                 cert['ct_log_type'] = "CERTIFICATE"
 
-            if check_relevancy(cert, ssl_orgs, zones):
+            cert_zones = check_zone_relevancy(cert, zones)
+
+            if check_org_relevancy(cert, ssl_orgs) or cert_zones != []:
                 cert[source + "_id"] = current_index
+                cert['zones'] = cert_zones
                 print("Adding " + source + " id: " + str(current_index) + " SHA256: " + cert['fingerprint_sha256'])
-                insert_certificate(cert, source, ct_collection)
+                insert_certificate(cert, source, ct_collection, cert_zones)
 
                 if download_method == 'dbAndSave':
                     write_file(cert, save_location, save_type, source)
@@ -361,3 +371,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
