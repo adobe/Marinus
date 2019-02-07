@@ -77,6 +77,51 @@ def fix_unk_types(dtype, g_dns):
     return dtype
 
 
+def get_lookup_int(result, GDNS):
+    """
+    Get the DNS Type integer for the Google DNS query
+    """
+    if result['type'].startswith("unk_in_"):
+        # Sonar didn't know what it was.
+
+        new_type = fix_unk_types(result['type'], GDNS)
+        if new_type.startswith("unk_in"):
+            # Marinus doesn't know what it is either.
+            lookup_int = get_int_for_unk_type(result['type'])
+        else:
+            # Marinus was able to translate it.
+            lookup_int = GDNS.DNS_TYPES[new_type]
+    else:
+        # Normal type
+        lookup_int = GDNS.DNS_TYPES[result['type']]
+
+    return lookup_int
+
+
+def insert_current_results(dns_result, dns_manager, zones, result, source):
+    """
+    Insert results so that their entries are current
+    """
+    for dns_entry in dns_result:
+        if is_tracked_zone(dns_entry['fqdn'], zones):
+            new_entry={}
+            new_entry['updated'] = datetime.now()
+            new_entry['zone'] = result['zone']
+            new_entry['fqdn'] = dns_entry['fqdn']
+            new_entry['created'] = result['created']
+            new_entry['value'] = dns_entry['value']
+            new_entry['type'] = dns_entry['type']
+            new_entry['status'] = 'confirmed'
+
+            if 'sonar_timestamp' in result:
+                new_entry['sonar_timestamp'] = result['sonar_timestamp']
+
+            if source.endswith("_saved"):
+                dns_manager.insert_record(new_entry, source)
+            else:
+                dns_manager.insert_record(new_entry, source + "_saved")
+
+
 def main():
     """
     Begin Main...
@@ -101,6 +146,8 @@ def main():
                {"name": "mx_saved", "diff": -2},
                {"name": "common_crawl", "diff": -4},
                {"name": "common_crawl_saved", "diff": -4}]
+
+    amass_diff = -2
 
     now = datetime.now()
     print ("Starting: " + str(now))
@@ -137,42 +184,38 @@ def main():
             if result['fqdn'] != last_domain:
                 last_domain = result['fqdn']
 
-                if result['type'].startswith("unk_in_"):
-                    # Sonar didn't know what it was.
-
-                    new_type = fix_unk_types(result['type'], GDNS)
-                    if new_type.startswith("unk_in"):
-                        # Marinus doesn't know what it is either.
-                        lookup_int = get_int_for_unk_type(result['type'])
-                    else:
-                        # Marinus was able to translate it.
-                        lookup_int = GDNS.DNS_TYPES[new_type]
-                else:
-                    # Normal type
-                    lookup_int = GDNS.DNS_TYPES[result['type']]
-
+                lookup_int = get_lookup_int(result, GDNS)
                 dns_result = GDNS.fetch_DNS_records(result['fqdn'], lookup_int)
+
                 if dns_result != []:
-                    for dns_entry in dns_result:
-                        if is_tracked_zone(dns_entry['fqdn'], zones):
-                            new_entry={}
-                            new_entry['updated'] = datetime.now()
-                            new_entry['zone'] = result['zone']
-                            new_entry['fqdn'] = dns_entry['fqdn']
-                            new_entry['created'] = result['created']
-                            new_entry['value'] = dns_entry['value']
-                            new_entry['type'] = dns_entry['type']
-                            new_entry['status'] = 'confirmed'
-
-                            if 'sonar_timestamp' in result:
-                                new_entry['sonar_timestamp'] = result['sonar_timestamp']
-
-                            if source.endswith("_saved"):
-                                dns_manager.insert_record(new_entry, source)
-                            else:
-                                dns_manager.insert_record(new_entry, source + "_saved")
+                    insert_current_results(dns_result, dns_manager, zones, result, source)
 
         dns_manager.remove_all_by_source_and_date(source, entry['diff'])
+
+    # Process amass entries
+    temp_sources = mongo_connector.perform_distinct(all_dns_collection, 'sources.source')
+    amass_sources = []
+    for entry in temp_sources:
+        if entry.startswith("amass:"):
+            amass_sources.append(entry)
+
+    for source in amass_sources:
+        removal_date = monthdelta(datetime.now(), amass_diff)
+        print("Removing " + source + " as of: " + str(removal_date))
+
+        last_domain = ""
+        results = mongo_connector.perform_find(all_dns_collection, {'sources': {"$size": 1}, 'sources.source': source, 'sources.updated': {"$lt": removal_date}})
+        for result in results:
+            if result['fqdn'] != last_domain:
+                last_domain = result['fqdn']
+
+                lookup_int = get_lookup_int(result, GDNS)
+                dns_result = GDNS.fetch_DNS_records(result['fqdn'], lookup_int)
+
+                if dns_result != []:
+                    insert_current_results(dns_result, dns_manager, zones, result, source)
+
+        dns_manager.remove_all_by_source_and_date(source, amass_diff)
 
     # Record status
     jobs_manager.record_job_complete()
@@ -183,3 +226,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
