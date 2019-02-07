@@ -21,6 +21,8 @@ The config.ini should be used to specify the amass run options for your organiza
 Please refer to: https://github.com/OWASP/Amass/blob/master/examples/amass_config.ini
 
 Amass output files will be stored in "./amass_files" unless otherwise specified.
+
+This script does not support "amass.netdomains" or "amass.viz" at this time.
 """
 import argparse
 import json
