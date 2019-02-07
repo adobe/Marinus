@@ -21,7 +21,6 @@ var divRefTable = {"sonar_dns": "Sonar DNS",
                    "infoblox-a": "Infoblox A",
                    "infoblox-host": "Infoblox Host",
                    "UltraDNS": "UltraDNS",
-                   "skms": "SKMS",
                    "common_crawl": "Common Crawl",
                    "censys": "Censys"};
 
