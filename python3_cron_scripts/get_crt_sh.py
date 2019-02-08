@@ -162,8 +162,8 @@ def add_new_certificate_values(new_ids, ct_collection, zones, save_location=None
             c_file = make_https_request("https://crt.sh/?d=" + str(min_cert_id), True)
 
             if c_file is None:
-                print("ERROR: Failed communicating with crt.sh. Giving up for now.")
-                exit(1)
+                print("ERROR: Failed communicating with crt.sh. Skipping cert_id: " + str(min_cert_id))
+                continue
 
             if save_location is not None:
                 open(save_location + str(min_cert_id) + ".crt", "wb").write(c_file)
@@ -229,8 +229,8 @@ def main():
         # This could be done with backoff but we don't want to be overly aggressive.
         json_result = make_https_request("https://crt.sh/?q=%25." + zone + "&output=json")
         if json_result is None:
-            print("Can't reach crt.sh. Exiting for now")
-            exit(0)
+            print("Can't find result for: " + zone)
+            json_result = "{}"
 
         json_data = json.loads(json_result)
 
