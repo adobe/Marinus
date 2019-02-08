@@ -207,10 +207,11 @@ def main():
     jobs_manager.record_job_start()
 
     save_location = "/mnt/workspace/crt_sh"
+    download_method = 'dbAndSave'
 
     parser = argparse.ArgumentParser(description='Download DNS and/or certificate information from crt.sh.')
     parser.add_argument('--fetch_dns_records', action='store_true', help='Indicates whether to add DNS entries to the database')
-    parser.add_argument('--download_methods', choices=['dbAndSave', 'dbOnly'], help='Indicates whether to download the raw files or just record in the database.')
+    parser.add_argument('--download_methods', choices=['dbAndSave', 'dbOnly'], default=download_method, help='Indicates whether to download the raw files or just record in the database.')
     parser.add_argument('--cert_save_location', required=False, default=save_location, help='Indicates where to save the certificates on disk when choosing dbAndSave')
     args = parser.parse_args()
 
