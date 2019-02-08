@@ -28,9 +28,29 @@ import requests
 import time
 from datetime import datetime
 from pprint import pprint
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 from libs3 import MongoConnector, DNSManager, GoogleDNS, X509Parser, JobsManager
 from libs3.ZoneManager import ZoneManager
+
+def requests_retry_session(
+    retries=5,
+    backoff_factor=7,
+    status_forcelist=[408, 500, 502, 503, 504],
+    session=None,
+):
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('https://', adapter)
+    return session
 
 
 def make_https_request(url, download=False):
@@ -38,18 +58,11 @@ def make_https_request(url, download=False):
     Utility function for making HTTPS requests.
     """
     try:
-        req = requests.get(url)
-        req.raise_for_status()
-    except requests.exceptions.ConnectionError:
-        print("Connection Error while fetching the cert list")
-        return None
-    except requests.exceptions.HTTPError:
-        print("HTTP Error while fetching the cert list")
-        return None
-    except requests.exceptions.RequestException as err:
-        print("Request exception while fetching the cert list")
-        print(str(err))
-        return None
+        req = requests_retry_session().get(url)
+    except Exception as ex:
+        print("Connection died after 5 tries")
+        print(str(ex))
+        exit(1)
 
     if req.status_code != 200:
         return None
@@ -143,18 +156,14 @@ def add_new_certificate_values(new_ids, ct_collection, zones, save_location=None
 
     for min_cert_id in new_ids:
         if min_cert_id not in existing_ids:
+            # Pace out certificate requests against their service
+            time.sleep(2)
+
             c_file = make_https_request("https://crt.sh/?d=" + str(min_cert_id), True)
 
             if c_file is None:
-                # An Error occured. Wait a few seconds and try again.
-                time.sleep(3)
-                print("WARNING: Could not connect to crt.sh")
-                c_file = make_https_request("https://crt.sh/?d=" + str(min_cert_id), True)
-
-                if c_file is None:
-                    # Don't want to be too aggressive against their service. Give up for now.
-                    print("ERROR: Failed twice communicating with crt.sh. Giving up for now.")
-                    exit(1)
+                print("ERROR: Failed communicating with crt.sh. Giving up for now.")
+                exit(1)
 
             if save_location is not None:
                 open(save_location + str(min_cert_id) + ".crt", "wb").write(c_file)
@@ -220,11 +229,8 @@ def main():
         # This could be done with backoff but we don't want to be overly aggressive.
         json_result = make_https_request("https://crt.sh/?q=%25." + zone + "&output=json")
         if json_result is None:
-            time.sleep(30)
-            json_result = make_https_request("https://crt.sh/?q=%25." + zone + "&output=json")
-            if json_result is None:
-                print("Can't reach crt.sh. Exiting for now")
-                exit(0)
+            print("Can't reach crt.sh. Exiting for now")
+            exit(0)
 
         json_data = json.loads(json_result)
 
