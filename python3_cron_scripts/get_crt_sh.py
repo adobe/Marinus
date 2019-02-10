@@ -244,13 +244,13 @@ def main():
             if "*" not in entry["name_value"] and entry["name_value"] not in new_names:
                 new_names.append(entry["name_value"])
 
-    if args.fetch_dns_records:
-        add_new_domain_names(new_names, zones, mongo_connector)
+        if args.fetch_dns_records:
+            add_new_domain_names(new_names, zones, mongo_connector)
 
-    if args.download_methods == "dbAndSave":
-        add_new_certificate_values(new_ids, ct_collection, zones, save_location)
-    elif args.download_methods == "dbOnly":
-        add_new_certificate_values(new_ids, ct_collection, zones, None)
+        if args.download_methods == "dbAndSave":
+            add_new_certificate_values(new_ids, ct_collection, zones, save_location)
+        elif args.download_methods == "dbOnly":
+            add_new_certificate_values(new_ids, ct_collection, zones, None)
 
     # Set isExpired for any entries that have recently expired.
     ct_collection.update({"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
