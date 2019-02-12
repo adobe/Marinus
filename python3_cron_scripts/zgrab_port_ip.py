@@ -347,7 +347,7 @@ def insert_result(entry, port, ip_context, all_zones, results_collection):
         entry['data']['smtps']['timestamp'] = new_date
 
         if 'tls' in entry['data']['smtps']:
-            cert_zones = check_in_zone(entry['data']['smtps']['tls']['response'], all_zones)
+            cert_zones = check_in_zone(entry['data']['smtps']['tls'], all_zones)
             for zone in cert_zones:
                 if zone not in zones:
                     zones.append(zone)
