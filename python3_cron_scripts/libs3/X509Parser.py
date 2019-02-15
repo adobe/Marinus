@@ -491,6 +491,11 @@ class X509Parser(object):
             print("WARNING: Could not parse subject for certificate")
             return None
 
+        # This is for legacy compliance where the field was originally called
+        # subject_common_names (plural)
+        swap = cert_object.pop("subject_common_name", [])
+        cert_object["subject_common_names"] = swap
+
         self.__get_dn_values(cert_object, cert.issuer, "issuer")
         self.__check_self_signed(cert_object, cert)
         self.__get_signature_algorithm(cert_object, cert.signature_algorithm_oid)
