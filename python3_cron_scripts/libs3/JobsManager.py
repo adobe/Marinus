@@ -13,7 +13,6 @@
 
 from datetime import datetime
 
-from libs3 import MongoConnector
 
 class JobsManager(object):
     """
@@ -31,7 +30,7 @@ class JobsManager(object):
     COMPLETE = "COMPLETE"
 
     # Debug
-    DEBUG = False
+    _DEBUG = False
 
     # JobsCollection
     _jobs_collection = None
@@ -44,7 +43,7 @@ class JobsManager(object):
 
 
     def __init__(self, mongo_connector, job_name, debug=False):
-        self.debug = debug
+        self._DEBUG = debug
         self._mongo_connector = mongo_connector
         self._jobs_collection = mongo_connector.get_jobs_connection()
         self._job_name = job_name
