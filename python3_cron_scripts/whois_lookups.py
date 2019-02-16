@@ -82,8 +82,8 @@ def correct_name_servers(result, zone):
         return(new_list)
     elif result['name_servers'] == "No nameserver":
         return([])
-    elif result['name_servers'].contains("."):
-        if result['name_servers'].contains(" "):
+    elif "." in result['name_servers']:
+        if " " in result['name_servers']:
             new_list = []
             temp = result['name_servers'].split()
             new_list.append(temp[0])
