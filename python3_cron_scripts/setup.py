@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -165,6 +165,7 @@ def create_config_collection(mongo_collection):
     new_config["DNS_Admins"] = []
     new_config["SSL_Orgs"] = []
     new_config["Whois_Orgs"] = []
+    new_config["Whois_Name_Servers"] = []
     now = datetime.now()
     new_config["updated"] = now
 
@@ -212,6 +213,19 @@ def add_whois_org(mongo_connector, org):
 
     print("Adding Whois Org: " + org)
     config_collection.update({}, {"$addToSet": {"Whois_Orgs": org}, "$set": {"updated": now}})
+
+
+def add_whois_name_server(mongo_connector, name_server):
+    """
+    International Whois Servers no longer show the names of the registering organization.
+    This provides the opportunity to match based on the name server instead.
+    This is saved in the config collection.
+    """
+    config_collection = mongo_connector.get_config_connection()
+    now = datetime.now()
+
+    print("Adding Whois Name Server: " + name_server.lower())
+    config_collection.update({}, {"$addToSet": {"Whois_Name_Servers": name_server.lower()}, "$set": {"updated": now}})
 
 
 def create_zone(zone):
@@ -318,6 +332,7 @@ def main():
     parser.add_argument("--add_IPv6_network", metavar="IPv6_CIDR", help="Add an IPv6 CIDR zone to Marinus", action="store", type=str)
     parser.add_argument("--add_tls_org", metavar="TLS_ORGANIZATION_VALUE", help="Add a TLS organization to the Marinus config", action="store", type=str)
     parser.add_argument("--add_whois_org", metavar="WHOIS_ORGANIZATION_VALUE", help="Add a Whois organization to the Marinus config", action="store", type=str)
+    parser.add_argument("--add_whois_name_server", metavar="WHOIS_NAME_SERVER_VALUE", help="Add a Whois name server to the Marinus config", action="store", type=str)
     parser.add_argument("--add_dns_admin", metavar="DNS_ADMIN_EMAIL", help="Add a DNS administrator to the Marinus config", action="store", type=str)
     parser.add_argument("--add_user", help="Add a SSO userid to Marinus", action="store_true")
     parser.add_argument("--add_user_to_group", help="Assign a user to a group", action="store_true")
@@ -362,6 +377,8 @@ def main():
         add_tls_org(mongo_connector, args.add_tls_org)
     elif args.add_whois_org is not None:
         add_whois_org(mongo_connector, args.add_whois_org)
+    elif args.add_whois_name_server is not None:
+        add_whois_name_server(mongo_connector, args.add_whois_name_server)
     elif args.add_dns_admin is not None:
         add_dns_admin(mongo_connector, args.add_dns_admin)
     elif args.add_new_job is not None:

@@ -112,17 +112,42 @@ def main():
     # This will only work for some whois lookups since Python Whois doesn't get
     # a valid org for all lookups and some have privacy enabled.
     config_collection = mongo_connector.get_config_connection()
-    result = config_collection.find({}, {'Whois_Orgs': 1})
+    result = config_collection.find({}, {'Whois_Orgs': 1, 'Whois_Name_Servers': 1})
     orgs = result[0]['Whois_Orgs']
+    name_servers = []
+    if 'Whois_Name_Servers' in result[0]:
+       name_servers = result[0]['Whois_Name_Servers']
+
+    print(str(name_servers))
 
     for zone in possibly_renewed:
         # We need to be careful of automatically marking something renewed
         # since it could have been registered by someone else.
         if whois_collection.find({'zone': zone, 'org': {"$in": orgs}}).count() == 1:
-            print("ATTENTION: " + zone + "has been renewed")
+            print("ATTENTION: " + zone + " has been renewed based on org")
             zone_manager.set_status(zone, ZoneManager.UNCONFIRMED, "mark_expired.py")
         else:
-            print("WARNING: " + zone + " has been renewed by an unknown entity")
+            result = whois_collection.find({'zone': zone}, {'name_servers': 1, "_id": 0})
+            found = 0
+            if result is not None and 'name_servers' in result[0] and result[0]['name_servers'] is not None:
+                for entry in result[0]['name_servers']:
+                    if entry.lower() in name_servers:
+                        print("ATTENTION: " + zone + " has been renewed based on name servers")
+                        zone_manager.set_status(zone, ZoneManager.UNCONFIRMED, "mark_expired.py")
+                        found = 1
+                        break
+            if found == 0:
+                result = whois_collection.find({'zone': zone}, {'name_server_groups': 1, "_id": 0})
+                if result is not None and 'name_server_groups' in result[0] and result[0]['name_server_groups'] is not None:
+                    for entry in result[0]['name_server_groups']:
+                        if entry.lower() in name_servers:
+                            print("ATTENTION: " + zone + " has been renewed based on name server_groups")
+                            zone_manager.set_status(zone, ZoneManager.UNCONFIRMED, "mark_expired.py")
+                            found = 1
+                            break
+            if found == 0:
+                print("WARNING: " + zone + " has been renewed by an unknown entity")
+
 
 
     # Record status

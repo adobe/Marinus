@@ -2,7 +2,8 @@
 
 ## February 19, 2019
 * The original ZGrab utility has been deprecated by the project owners. Therefore, Marinus has been updated to support the new ZGrab 2.0 version. The schemas between the two versions are not compatible and support for the new schemas has been added. Marinus will now support both versions but it defaults to version 2.0. The version can be specified in the env.js file on the web server. New command line parameters will inform the relevant Python scripts.
-* There have also been several important bug fixes to the new certificate code.
+* Many WHOIS records now redact the owner details for privacy. This makes it difficult to determine the owner of a domain name based on the organizational value. To address part of this problem, support has been added to validate that the name server values within the WHOIS record belong to your organization. The setup.py script can be used to add the DNS addresses for your organization's name servers. These values can then be used by the mark_expired script to ensure that your organization still controls the domain.
+* There have been important bug fixes added to the new certificate code and whois_lookups code.
 
 
 ## February 7, 2019

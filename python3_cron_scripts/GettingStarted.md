@@ -81,9 +81,13 @@ This will initialize the database and a few collections. You can verify this by 
 
 ./setup.py  --add_dns_admin "admin@example.org"
 
-(Optional) Similarly, Marinus can search the database of whois information based on the organization that registered the domain. This is riskier since many organizations have similar names. Therefore, be sure to double check the results that you obtain. To add an organization for whois searches, run the following command:
+(Optional) Similarly, Marinus can search the database of WHOIS information based on the organization that registered the domain. This is riskier since many organizations have similar names. Therefore, be sure to double check the results that you obtain. This information is also used by the mark_expired script to determine if a domain has been transferred to a third-party. To add an organization for whois searches, run the following command:
 
 ./setup.py --add_whois_org "Acme, Inc."
+
+(Optional) Many WHOIS records no longer show the contact information for a domain name which makes it difficult to determine ownership. One indirect way to confirm ownership of the domain is to examine the registered name servers within the WHOIS record. The mark_expired script can try to match the name server values to your organization to confirm that you still control the domain even if the ownership information has been redacted within the WHOIS record. NOTE: All name server values are converted to lowercase prior to comparison. Therefore, it is only necessary to provide lowercase versions of the DNS server names. To add name servers that relate to your WHOIS records, run the following command:
+
+./setup.py --add_whois_name_server "dns1.example.org"
 
 (Optional) When Marinus is searching either the certificate transparency logs or Censys data for relevant IP records, Marinus can check whether the TLS certificate is associated with the organization by checking the "O=" value in the distinguished name. Setting these values is strongly encouraged if you plan to use the certificate transparency scripts. To inform Marinus regarding your TLS certificate orgs, use the following command:
 
