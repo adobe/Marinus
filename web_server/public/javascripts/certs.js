@@ -204,7 +204,9 @@ function display_expired_certs(results, year) {
      if (certSource === "censys") {
         end = results[0]['p443']['https']['tls']['certificate']['parsed']['validity']['end'];
      } else {
-        end = results[0]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end'];
+        let tls_log = get_tls_log(results, 0);
+
+        end = tls_log['server_certificates']['certificate']['parsed']['validity']['end'];
      }
 
     var today = new Date();
@@ -237,13 +239,16 @@ function display_expired_certs(results, year) {
             } else {
                 displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
             }
+
+            let tls_log = get_tls_log(results, i);
+
             try {
-                cns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                cns = tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'];
             } catch (error) {
                 cns = [];
             }
             try {
-                dns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                dns = tls_log['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
             } catch (error) {
                 dns = [];
             }
@@ -271,8 +276,10 @@ function display_expired_certs(results, year) {
                 displayHTML += create_table_entry("");
             }
         } else {
-            displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end']);
-            if (results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['signature']['self_signed']) {
+            let tls_log = get_tls_log(results, i);
+
+            displayHTML += create_table_entry(tls_log['server_certificates']['certificate']['parsed']['validity']['end']);
+            if (tls_log['server_certificates']['certificate']['parsed']['signature']['self_signed']) {
                 displayHTML += create_table_entry(create_check_mark());
             } else {
                 displayHTML += create_table_entry("");
@@ -348,13 +355,14 @@ function display_expired_certs_2k(results) {
             } else {
                 displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
             }
+            let tls_log = get_tls_log(results, i);
             try {
-                cns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                cns = tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'];
             } catch (error) {
                 cns = [];
             }
             try {
-                dns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                dns = tls_log['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
             } catch (error) {
                 dns = "";
             }
@@ -378,11 +386,12 @@ function display_expired_certs_2k(results) {
         if (certSource === "censys") {
             displayHTML += create_table_entry(results[i]['p443']['https']['tls']['certificate']['parsed']['validity']['end']);
         } else {
-            displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end']);
+            let tls_log = get_tls_log(results, i);
+            displayHTML += create_table_entry(tls_log['server_certificates']['certificate']['parsed']['validity']['end']);
         }
 
         if ((certSource === "censys" && results[i]['p443']['https']['tls']['certificate']['parsed']['signature']['self_signed'])
-            || (certSource === "zgrab" && results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['signature']['self_signed'])) {
+            || (certSource === "zgrab" && get_tls_log(results, i)['server_certificates']['certificate']['parsed']['signature']['self_signed'])) {
             displayHTML += create_table_entry(create_check_mark());
         } else {
             displayHTML += create_table_entry("");
@@ -432,13 +441,14 @@ function display_algorithm_certs(results) {
             } else {
                 displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
             }
+            let tls_log = get_tls_log(results, i);
             try {
-                cns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                cns = tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'];
             } catch (error) {
                 cns = [];
             }
             try {
-                dns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                dns = tls_log['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
             } catch (error) {
                 dns = [];
             }
@@ -464,9 +474,10 @@ function display_algorithm_certs(results) {
             displayHTML += create_table_entry(results[i]['p443']['https']['tls']['certificate']['parsed']['validity']['end']);
             displayHTML += create_table_entry(create_anchor("/reports/display_cert?type=censys_sha1&sha1=" + results[i]['p443']['https']['tls']['certificate']['parsed']['fingerprint_sha1'],  results[i]['p443']['https']['tls']['certificate']['parsed']['fingerprint_sha1'], "_blank"));
         } else {
-            displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['signature']['signature_algorithm']['name']);
-            displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end']);
-            displayHTML += create_table_entry(create_anchor("/reports/display_cert?type=zgrab_sha1&sha1=" + results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha1'], results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha1'], "_blank"));
+            let tls_log = get_tls_log(results, i);
+            displayHTML += create_table_entry(tls_log['server_certificates']['certificate']['parsed']['signature']['signature_algorithm']['name']);
+            displayHTML += create_table_entry(tls_log['server_certificates']['certificate']['parsed']['validity']['end']);
+            displayHTML += create_table_entry(create_anchor("/reports/display_cert?type=zgrab_sha1&sha1=" + tls_log['server_certificates']['certificate']['parsed']['fingerprint_sha1'], tls_log['server_certificates']['certificate']['parsed']['fingerprint_sha1'], "_blank"));
         }
         displayHTML += end_table_row();
     }
@@ -496,7 +507,8 @@ function display_certificate(results, req_type) {
         let cert_string = JSON.stringify(results[0]['p443']['https']['tls']['certificate']['parsed'],null,2);
         displayHTML += '<div class="coral-Well"><pre>' + cert_string + "</pre></div><br/>";
     } else {
-        let cert_string = JSON.stringify(results[0]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed'],null,2);
+        let tls_log = get_tls_log(results, i);
+        let cert_string = JSON.stringify(tls_log['server_certificates']['certificate']['parsed'],null,2);
         displayHTML += '<div class="coral-Well"><pre>' + cert_string + "</pre></div><br/>";
     }
 
@@ -640,14 +652,16 @@ function display_scan_cas(results) {
              results[result]['p443']['https']['tls']['certificate']['parsed']['fingerprint_sha1'] + '" target="_blank">' +
               results[result]['ip'].toString() + '-' + results[result]['p443']['https']['tls']['certificate']['parsed']['subject']['common_name'][0] + '</a>';
         } else {
+            let tls_log = get_tls_log(results, result);
+
             if (results[result]['ip'] === "<nil>") {
                 displayHTML += '<a is="coral-anchorlist-item" icon="lockOn" href="/reports/display_cert?type=zgrab_sha1&sha1=' +
-                results[result]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha1'] +
-                '" target="_blank">' + results[result]['domain'].toString() + '-' + results[result]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'][0] + '</a>';
+                tls_log['server_certificates']['certificate']['parsed']['fingerprint_sha1'] +
+                '" target="_blank">' + results[result]['domain'].toString() + '-' + tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'][0] + '</a>';
             } else {
                 displayHTML += '<a is="coral-anchorlist-item" icon="lockOn" href="/reports/display_cert?type=zgrab_sha1&sha1=' +
-                results[result]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha1'] +
-                 '" target="_blank">' + results[result]['ip'].toString() + '-' + results[result]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'][0] + '</a>';
+                tls_log['server_certificates']['certificate']['parsed']['fingerprint_sha1'] +
+                 '" target="_blank">' + results[result]['ip'].toString() + '-' + tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'][0] + '</a>';
             }
         }
     }

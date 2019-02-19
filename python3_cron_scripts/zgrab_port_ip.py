@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -11,19 +11,28 @@
 # governing permissions and limitations under the License.
 
 """
-This script will use zgrab for port scans of selected ports.
+This script will use ZGrab or ZGrab 2.0 for port scans of the specified ports.
 It is different than the zgrab_http scripts in that it is a more basic look at the connection.
 For instance, it does not follow HTTP redirects and it does not support domains as input.
-It will just do a basic connection to an IP and port.
 
 With regards to sleep and batch size, the sleep is how long it will wait between batches.
 Therefore, if the batch size is 50 and the sleep time is 10, then it will sleep for 10 seconds, process 50 hosts
 from the queue, sleep 10 seconds, test another 50 hosts, etc.  The sleep time does not refer to how long it sleeps
 between individual host connections.
 
-Please note that this script assumes that a "json_p{#}" directory exists for the port that you are scanning.
+The original ZGrab has been deprecated and replaced with ZGrab 2.0. This script will support using either version.
+However, the version that you use in the Python scripts should match the version that you have specified in the
+web server configuration. The schemas between ZGrab and ZGrab 2.0 are not compatible.
+
+You can specify the location of ZGrab using the command line. The script assumes that paths with "zgrab2"
+in them indicates that you're running ZGrab 2.0. Otherwise, it will assume that you are running the original
+ZGrab.
+
+Please note that this script assumes that a "./json_p{#}" directory exists for the port that you are scanning.
+If it does not exist, then this script will create it.
 
 https://github.com/zmap/zgrab
+https://github.com/zmap/zgrab2
 """
 
 import argparse
@@ -50,6 +59,13 @@ global_queue_lock = threading.Lock()
 global_work_queue = queue.Queue()
 global_queue_size = 50
 global_sleep_time = 0
+global_zgrab_path = "./zgrab/src/github.com/zmap/zgrab2/zgrab2"
+global_port_names = {"22": "ssh",
+                     "25": "smtp",
+                     "80": "http",
+                     "443": "tls",
+                     "465": "smtp"}
+
 
 
 def is_running(process):
@@ -301,9 +317,15 @@ def insert_result(entry, port, ip_context, all_zones, results_collection):
     """
     Insert the matched domain into the collection of positive results.
     """
-    temp_date = entry["timestamp"]
-    new_date = parse(temp_date)
-    entry["timestamp"] = new_date
+    if 'zgrab2' in global_zgrab_path:
+        temp_date = entry['data'][global_port_names[port]]['timestamp']
+        new_date = parse(temp_date)
+        entry["timestamp"] = new_date
+        entry['data'][global_port_names[port]]['timestamp'] = new_date
+    else:
+        temp_date = entry["timestamp"]
+        new_date = parse(temp_date)
+        entry["timestamp"] = new_date
 
     # Returns all entries in ip_context that contain the given IP
     matches = check_ip_context(entry['ip'], ip_context)
@@ -323,34 +345,56 @@ def insert_result(entry, port, ip_context, all_zones, results_collection):
         # Make the timestamp an actual date instead of a string
         entry['data']['tls']['timestamp'] = new_date
 
-        cert_zones = check_in_zone(entry['data']['tls'], all_zones)
+        if 'zgrab2' in global_zgrab_path:
+            cert_zones = check_in_zone(entry['data']['tls']['result']['handshake_log'], all_zones)
+        else:
+            cert_zones = check_in_zone(entry['data']['tls'], all_zones)
         for zone in cert_zones:
             if zone not in zones:
                 zones.append(zone)
     elif port == "22":
-        entry['data']['xssh']['timestamp'] = new_date
+        if 'zgrab2' in global_zgrab_path:
+            entry['data']['ssh']['timestamp'] = new_date
+        else:
+            entry['data']['xssh']['timestamp'] = new_date
     elif port == "25":
-        temp = entry['data']
-        entry['data'] = {}
-        entry['data']['smtp'] = temp
-        entry['data']['smtp']['timestamp'] = new_date
+        if 'zgrab2' in global_zgrab_path:
+            if 'tls' in entry['data']['smtp']['result']:
+                cert_zones = check_in_zone(entry['data']['smtp']['result']['tls']['handshake_log'], all_zones)
+                for zone in cert_zones:
+                    if zone not in zones:
+                        zones.append(zone)
+        else:
+            temp = entry['data']
+            entry['data'] = {}
+            entry['data']['smtp'] = temp
+            entry['data']['smtp']['timestamp'] = new_date
 
-        if 'tls' in entry['data']['smtp']:
-            cert_zones = check_in_zone(entry['data']['smtp']['tls']['response'], all_zones)
-            for zone in cert_zones:
-                if zone not in zones:
-                    zones.append(zone)
+            if 'tls' in entry['data']['smtp']:
+                cert_zones = check_in_zone(entry['data']['smtp']['tls']['response'], all_zones)
+                for zone in cert_zones:
+                    if zone not in zones:
+                        zones.append(zone)
     elif port == "465":
-        temp = entry['data']
-        entry['data'] = {}
+        temp = entry['data'].pop('smtp')
         entry['data']['smtps'] = temp
-        entry['data']['smtps']['timestamp'] = new_date
 
-        if 'tls' in entry['data']['smtps']:
-            cert_zones = check_in_zone(entry['data']['smtps']['tls'], all_zones)
-            for zone in cert_zones:
-                if zone not in zones:
-                    zones.append(zone)
+        if 'zgrab2' in global_zgrab_path:
+            if 'tls' in entry['data']['smtps']['result']:
+                cert_zones = check_in_zone(entry['data']['smtps']['result']['tls']['handshake_log'], all_zones)
+                for zone in cert_zones:
+                    if zone not in zones:
+                        zones.append(zone)
+        else:
+            temp = entry['data']
+            entry['data'] = {}
+            entry['data']['smtps'] = temp
+            entry['data']['smtps']['timestamp'] = new_date
+            if 'tls' in entry['data']['smtps']:
+                cert_zones = check_in_zone(entry['data']['smtps']['tls'], all_zones)
+                for zone in cert_zones:
+                    if zone not in zones:
+                        zones.append(zone)
 
     entry['zones'] = zones
     entry['domains'] = domains
@@ -362,7 +406,10 @@ def insert_result(entry, port, ip_context, all_zones, results_collection):
     elif port == "443":
         results_collection.update({"ip": entry['ip']}, {"$set": {"data.tls": entry['data']['tls'], 'timestamp': entry['timestamp']}})
     elif port == "22":
-        results_collection.update({"ip": entry['ip']}, {"$set": {"data.xssh": entry['data']['xssh'], 'timestamp': entry['timestamp']}})
+        if 'zgrab2' in global_zgrab_path:
+            results_collection.update({"ip": entry['ip']}, {"$set": {"data.ssh": entry['data']['ssh'], 'timestamp': entry['timestamp']}})
+        else:
+            results_collection.update({"ip": entry['ip']}, {"$set": {"data.xssh": entry['data']['xssh'], 'timestamp': entry['timestamp']}})
     elif port == "25":
         results_collection.update({"ip": entry['ip']}, {"$set": {"data.smtp": entry['data']['smtp'], 'timestamp': entry['timestamp']}})
     elif port == "465":
@@ -381,11 +428,22 @@ def run_port_22_command(target_list, tnum):
         targets = targets + ip + "\\n"
     targets = targets[:-2]
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["./zgrab/bin/zgrab", "--port=22", "--xssh", "--xssh-verbose", "-banners", "--timeout=30", "--output-file=./json_p22/p22-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p1.stdout.close()
-    output, _ = p2.communicate()
-    json_output = json.loads(output.decode("utf-8"))
-    return json_output
+    if 'zgrab2' in global_zgrab_path:
+        p2 = subprocess.Popen([global_zgrab_path, "ssh", "--port=22", "--verbose", "--timeout=30", "--output-file=./json_p22/p22-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        parts = _.decode("utf-8").split("\n")
+        for entry in parts:
+            if entry.startswith("{"):
+                json_output = json.loads(entry)
+                return json_output
+        return json.loads("{}")
+    else:
+        p2 = subprocess.Popen([global_zgrab_path, "--port=22", "--xssh", "--xssh-verbose", "-banners", "--timeout=30", "--output-file=./json_p22/p22-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        json_output = json.loads(output.decode("utf-8"))
+        return json_output
 
 
 def run_port_25_command(target_list, tnum):
@@ -400,11 +458,22 @@ def run_port_25_command(target_list, tnum):
         targets = targets + ip + "\\n"
     targets = targets[:-2]
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["./zgrab/bin/zgrab", "--port=25", "--smtp", "--starttls", "--banners", "--timeout=30", "--output-file=./json_p25/p25-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p1.stdout.close()
-    output, _ = p2.communicate()
-    json_output = json.loads(output.decode("utf-8"))
-    return json_output
+    if 'zgrab2' in global_zgrab_path:
+        p2 = subprocess.Popen([global_zgrab_path, "smtp", "--port=25", "--starttls",  "--timeout=30", "--output-file=./json_p25/p25-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        parts = _.decode("utf-8").split("\n")
+        for entry in parts:
+            if entry.startswith("{"):
+                json_output = json.loads(entry)
+                return json_output
+        return json.loads("{}")
+    else:
+        p2 = subprocess.Popen([global_zgrab_path, "--port=25", "--smtp", "--starttls", "--banners", "--timeout=30", "--output-file=./json_p25/p25-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        json_output = json.loads(output.decode("utf-8"))
+        return json_output
 
 
 def run_port_25_no_tls_command(target_list, tnum):
@@ -419,11 +488,22 @@ def run_port_25_no_tls_command(target_list, tnum):
         targets = targets + ip + "\\n"
     targets = targets[:-2]
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["./zgrab/bin/zgrab", "--port=25", "--smtp", "--banners", "--timeout=30", "--output-file=./json_p25/p25-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p1.stdout.close()
-    output, _ = p2.communicate()
-    json_output = json.loads(output.decode("utf-8"))
-    return json_output
+    if 'zgrab2' in global_zgrab_path:
+        p2 = subprocess.Popen([global_zgrab_path, "smtp", "--port=25", "--timeout=30", "--output-file=./json_p25/p25-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        parts = _.decode("utf-8").split("\n")
+        for entry in parts:
+            if entry.startswith("{"):
+                json_output = json.loads(entry)
+                return json_output
+        return json.loads("{}")
+    else:
+        p2 = subprocess.Popen([global_zgrab_path, "--port=25", "--smtp", "--banners", "--timeout=30", "--output-file=./json_p25/p25-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        json_output = json.loads(output.decode("utf-8"))
+        return json_output
 
 
 def run_port_443_command(target_list, tnum):
@@ -439,11 +519,22 @@ def run_port_443_command(target_list, tnum):
         targets = targets + ip + "\\n"
     targets = targets[:-2]
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["./zgrab/bin/zgrab", "--port=443", "--tls", "--chrome-ciphers", "--timeout=30", "--output-file=./json_p443/p443-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p1.stdout.close()
-    output, _ = p2.communicate()
-    json_output = json.loads(output.decode("utf-8"))
-    return json_output
+    if 'zgrab2' in global_zgrab_path:
+        p2 = subprocess.Popen([global_zgrab_path, "tls", "--port=443", "--timeout=30", "--output-file=./json_p443/p443-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        parts = _.decode("utf-8").split("\n")
+        for entry in parts:
+            if entry.startswith("{"):
+                json_output = json.loads(entry)
+                return json_output
+        return json.loads("{}")
+    else:
+        p2 = subprocess.Popen([global_zgrab_path, "--port=443", "--tls", "--chrome-ciphers", "--timeout=30", "--output-file=./json_p443/p443-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        json_output = json.loads(output.decode("utf-8"))
+        return json_output
 
 
 def run_port_465_command(target_list, tnum):
@@ -458,11 +549,22 @@ def run_port_465_command(target_list, tnum):
         targets = targets + ip + "\\n"
     targets = targets[:-2]
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["./zgrab/bin/zgrab", "--port=465", "--smtp", "--tls", "--banners", "--timeout=30", "--output-file=./json_p465/p465-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p1.stdout.close()
-    output, _ = p2.communicate()
-    json_output = json.loads(output.decode("utf-8"))
-    return json_output
+    if 'zgrab2' in global_zgrab_path:
+        p2 = subprocess.Popen([global_zgrab_path, "smtp", "--port=465", "--smtps", "--timeout=30", "--output-file=./json_p465/p465-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        parts = _.decode("utf-8").split("\n")
+        for entry in parts:
+            if entry.startswith("{"):
+                json_output = json.loads(entry)
+                return json_output
+        return json.loads("{}")
+    else:
+        p2 = subprocess.Popen([global_zgrab_path, "--port=465", "--smtp", "--tls", "--banners", "--timeout=30", "--output-file=./json_p465/p465-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        json_output = json.loads(output.decode("utf-8"))
+        return json_output
 
 
 def process_thread(ips, port, run_command, zones_struct, zgrab_collection, tnum):
@@ -470,17 +572,24 @@ def process_thread(ips, port, run_command, zones_struct, zgrab_collection, tnum)
     Runs zgrab and stores the result if necessary
     """
     json_output = run_command(ips, tnum)
-    if json_output['success_count'] > 0:
+
+    if ('success_count' in json_output and json_output['success_count'] > 0) or \
+        ('statuses' in json_output and json_output['statuses'][global_port_names[port]]['successes'] > 0):
         result_file = open("./json_p" + port + "/p" + port + "-" + str(tnum) + ".json", "r")
         results=[]
         for result in result_file:
             results.append(json.loads(result))
         result_file.close()
         for result in results:
-            if "error" in result:
-                if port == "25" and "error_component" in result and result['error_component'] == "starttls":
-                    print("Adding " + str(result['ip']) + " to retest list")
-                    global_retest_list.append(result['ip'])
+            if ('zgrab2' in global_zgrab_path and "error" in result['data'][global_port_names[port]]) or \
+                'error' in result:
+                if port == "25":
+                    if ('zgrab2' in global_zgrab_path and 'result' in result['data']['smtp'] and 'starttls' in result['data']['smtp']['result']) or \
+                         "error_component" in result and result['error_component'] == "starttls":
+                        print("Adding " + str(result['ip']) + " to retest list")
+                        global_retest_list.append(result['ip'])
+                    else:
+                        print("Failed " + port + ": " + str(result['ip']))
                 else:
                     print("Failed " + port + ": " + str(result['ip']))
             else:
@@ -541,11 +650,21 @@ class ZgrabThread (threading.Thread):
         print ("Exiting Thread-" + str(self.thread_id))
 
 
+def check_save_location(save_location):
+    """
+    Check to see if the directory exists.
+    If the directory does not exist, it will automatically create it.
+    """
+    if not os.path.exists(save_location):
+        os.makedirs(save_location)
+
+
 def main():
     global global_exit_flag
     global global_retest_list
     global global_sleep_time
     global global_queue_size
+    global global_zgrab_path
 
     global_retest_list = []
 
@@ -556,6 +675,7 @@ def main():
     parser.add_argument('-s',  default=0, type=int, metavar="sleepTime", help='Sleep time in order to spread out the batches')
     parser.add_argument('--qs',  default=0, type=int, metavar="queueSize", help='How many hosts to scan in a batch')
     parser.add_argument('--zones_only', action="store_true", help='Scan only IPs from IP zones.')
+    parser.add_argument('--zgrab_path', default=global_zgrab_path, metavar='zgrabVersion', help='The version of ZGrab to use')
     args = parser.parse_args()
 
     if args.p == None:
@@ -615,6 +735,10 @@ def main():
     elif args.p == "465":
         run_command = run_port_465_command
 
+    check_save_location("./json_p" + args.p)
+
+    global_zgrab_path = args.zgrab_path
+
     threads = []
 
     print ("Creating " + str(args.t) + " threads")
@@ -656,9 +780,14 @@ def main():
         for result in other_results:
             zgrab_collection.update_one({"_id": ObjectId(result['_id'])}, {"$unset": {'data.tls': ""}})
     elif args.p == "22":
-        other_results = zgrab_collection.find({'data.xssh': {"$exists": True}, 'data.xssh.timestamp': {"$lt": now}})
-        for result in other_results:
-            zgrab_collection.update_one({"_id": ObjectId(result['_id'])}, {"$unset": {'data.xssh': ""}})
+        if 'zgrab2' in global_zgrab_path:
+            other_results = zgrab_collection.find({'data.ssh': {"$exists": True}, 'data.ssh.timestamp': {"$lt": now}})
+            for result in other_results:
+                zgrab_collection.update_one({"_id": ObjectId(result['_id'])}, {"$unset": {'data.ssh': ""}})
+        else:
+            other_results = zgrab_collection.find({'data.xssh': {"$exists": True}, 'data.xssh.timestamp': {"$lt": now}})
+            for result in other_results:
+                zgrab_collection.update_one({"_id": ObjectId(result['_id'])}, {"$unset": {'data.xssh': ""}})
     elif args.p == "25":
         other_results = zgrab_collection.find({'data.smtp': {"$exists": True}, 'data.smtp.timestamp': {"$lt": now}})
         for result in other_results:

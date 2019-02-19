@@ -189,6 +189,15 @@ function reformatResponse(results){
  */
 
 module.exports = function(envConfig) {
+
+    // Zgrab 2.0 support
+    if (envConfig.hasOwnProperty("zgrabVersion") && envConfig.zgrabVersion == 2) {
+        const zgrab443 = require('../config/models/zgrab2_443_data');
+        const zgrab80 = require('../config/models/zgrab2_80_data');
+        const zgrabPort = require('../config/models/zgrab2_port');
+    }
+
+
    /**
      * @swagger
      *

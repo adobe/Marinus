@@ -631,8 +631,8 @@ var zgrab443Schema = new Schema(
  'aws': Boolean,
  'azure': Boolean,
  'timestamp': Date,
- 'zones': []}
-, {collection: 'zgrab_443_data'});
+ 'zones': [],
+}, {collection: 'zgrab_443_data'});
 
 var zgrab443Model = mongoose.model('zgrab443Model', zgrab443Schema);
 

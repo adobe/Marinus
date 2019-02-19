@@ -57,6 +57,30 @@ function qs(key) {
     return match && decodeURIComponent(match[1].replace(/\+/g, " "));
 }
 
+
+/**
+ * ZGrab 2.0 and ZGrab have different schemas.
+ * This is a convenience function to handle both conditions.
+ */
+function get_tls_log(results, index) {
+    let tls_log;
+
+    try {
+        if (results[index]['data']['http'].hasOwnProperty('result')) {
+            // ZGrab 2.0
+            tls_log = results[index]['data']['http']['result']['response']['request'['tls_log']['handshake_log']];
+        } else {
+            // ZGrab
+            tls_log = results[index]['data']['http']['response']['request']['tls_handshake'];
+        }
+    } catch(error) {
+        tls_log = {};
+    }
+
+    return tls_log;
+}
+
+
 /**
  * Networking requests
  */

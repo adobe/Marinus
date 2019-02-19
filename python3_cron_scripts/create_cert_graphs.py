@@ -104,12 +104,16 @@ def add_censys_certificates(censys_collection, zone, current_certs):
     return current_certs
 
 
-def get_scan_count(zgrab_collection, sha256_hash):
+def get_scan_count(zgrab_collection, sha256_hash, version):
     """
     Get the count of matching certificates for the provided hash
     """
-    result_count = zgrab_collection.find({"$or": [{'data.http.response.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash},
-                                                  {'data.http.response.redirect_response_chain.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash}]}).count()
+    if version == 1:
+        result_count = zgrab_collection.find({"$or": [{'data.http.response.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash},
+                                                      {'data.http.response.redirect_response_chain.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash}]}).count()
+    else:
+        result_count = zgrab_collection.find({"$or": [{'data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash},
+                                                      {'data.http.result.redirect_response_chain.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash}]}).count()
     return result_count
 
 
@@ -150,16 +154,17 @@ def add_terminal_zgrab_certificates(zgrab_collection, zone, current_certs):
 
             item['dns_entries'] = dns_list
             item['sources'] = ['zgrab_443_scan']
-            item['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'])
+            item['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'], 1)
             current_certs.append(item)
         else:
             # The certificate is already stored so there is nothing more to add.
             if 'zgrab_443_scan' not in current_certs[i]['sources']:
                 current_certs[i]['sources'].append('zgrab_443_scan')
             if 'zgrab_count' not in current_certs[i]:
-                current_certs[i]['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'])
+                current_certs[i]['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'], 1)
 
     return current_certs
+
 
 def add_initial_zgrab_certificates(zgrab_collection, zone, current_certs):
     """
@@ -196,16 +201,113 @@ def add_initial_zgrab_certificates(zgrab_collection, zone, current_certs):
 
             item['dns_entries'] = dns_list
             item['sources'] = ['zgrab_443_scan']
-            item['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'])
+            item['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'], 1)
             current_certs.append(item)
         else:
             # The certificate is already stored so there is nothing more to add.
             if 'zgrab_443_scan' not in current_certs[i]['sources']:
                 current_certs[i]['sources'].append('zgrab_443_scan')
             if 'zgrab_count' not in current_certs[i]:
-                current_certs[i]['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'])
+                current_certs[i]['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'], 1)
 
     return current_certs
+
+
+def add_terminal_zgrab2_certificates(zgrab_collection, zone, current_certs):
+    """
+    Get the list of current certificates from zgrab scans for the specified zones.
+    Append any new entries to the provided array of current_certs.
+    This currently does not check
+    """
+
+    results = zgrab_collection.find({"$or":[{'data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name': {"$regex": r'^(.+\.)*' + zone + '$'}},
+        {'data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': {"$regex": r'^(.+\.)*' + zone + '$'}}]},
+        {"data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name": 1,
+         "data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names": 1,
+         "data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha256": 1})
+
+    for result in results:
+        i = next((index for (index, item) in enumerate(current_certs)\
+                       if item["id"] == result['data']['http']['result']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['fingerprint_sha256']), None)
+        if i is None:
+            item = {'id': result['data']['http']['result']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['fingerprint_sha256']}
+            dns_list = []
+            try:
+                for dns_name in result['data']['http']['result']['response']['request']['tls_log']['handshake_log']['server_certificates']["certificate"]["parsed"]["subject"]["common_name"]:
+                    if dns_name not in dns_list:
+                        dns_list.append(dns_name)
+            except KeyError:
+                pass
+
+            # Not all certificates contain alternative names.
+            try:
+                for dns_name in result['data']['http']['result']['response']['request']['tls_log']['handshake_log']['server_certificates']["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
+                    if dns_name not in dns_list:
+                        dns_list.append(dns_name)
+            except KeyError:
+                # "ALT Name key not found."
+                pass
+
+            item['dns_entries'] = dns_list
+            item['sources'] = ['zgrab_443_scan']
+            item['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['result']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['fingerprint_sha256'], 2)
+            current_certs.append(item)
+        else:
+            # The certificate is already stored so there is nothing more to add.
+            if 'zgrab_443_scan' not in current_certs[i]['sources']:
+                current_certs[i]['sources'].append('zgrab_443_scan')
+            if 'zgrab_count' not in current_certs[i]:
+                current_certs[i]['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['result']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['fingerprint_sha256'], 2)
+
+    return current_certs
+
+
+def add_initial_zgrab2_certificates(zgrab_collection, zone, current_certs):
+    """
+    Get the list of current certificates from zgrab scans for the specified zones.
+    Append any new entries to the provided array of current_certs.
+    This currently does not check
+    """
+
+    results = zgrab_collection.find({"$or":[{'data.http.result.redirect_response_chain.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name': {"$regex": r'^(.+\.)*' + zone + '$'}},
+        {'data.http.result.redirect_response_chain.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': {"$regex": r'^(.+\.)*' + zone + '$'}}]},
+        {"data.http.result.redirect_response_chain": 1})
+
+    for result in results:
+        i = next((index for (index, item) in enumerate(current_certs)\
+                       if item["id"] == result['data']['http']['result']['redirect_response_chain'][0]['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['fingerprint_sha256']), None)
+        if i is None:
+            item = {'id': result['data']['http']['result']['redirect_response_chain'][0]['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['fingerprint_sha256']}
+            dns_list = []
+            try:
+                for dns_name in result['data']['http']['result']['redirect_response_chain'][0]['request']['tls_log']['handshake_log']['server_certificates']["certificate"]["parsed"]["subject"]["common_name"]:
+                    if dns_name not in dns_list:
+                        dns_list.append(dns_name)
+            except KeyError:
+                pass
+
+            # Not all certificates contain alternative names.
+            try:
+                for dns_name in result['data']['http']['result']['redirect_response_chain'][0]['request']['tls_log']['handshake_log']['server_certificates']["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
+                    if dns_name not in dns_list:
+                        dns_list.append(dns_name)
+            except KeyError:
+                # "ALT Name key not found."
+                pass
+
+            item['dns_entries'] = dns_list
+            item['sources'] = ['zgrab_443_scan']
+            item['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['result']['redirect_response_chain'][0]['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['fingerprint_sha256'], 2)
+            current_certs.append(item)
+        else:
+            # The certificate is already stored so there is nothing more to add.
+            if 'zgrab_443_scan' not in current_certs[i]['sources']:
+                current_certs[i]['sources'].append('zgrab_443_scan')
+            if 'zgrab_count' not in current_certs[i]:
+                current_certs[i]['zgrab_count'] = get_scan_count(zgrab_collection, result['data']['http']['result']['redirect_response_chain'][0]['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['fingerprint_sha256'], 2)
+
+    return current_certs
+
 
 def create_nodes(graph, mongo_connector, zone, all_certs):
     """
@@ -260,6 +362,7 @@ def main():
     parser.add_argument('--check_censys', action='store_true', default=False, required=False, help='Whether to check the Censys collection in the database')
     parser.add_argument('--check_443_scans', action='store_true', default=False, required=False, help='Whether to check the zgrab collection in the database')
     parser.add_argument('--check_ct_scans', action='store_true', default=False, required=False, help='Whether to check the CT collection in the database')
+    parser.add_argument('--zgrab_version', default=2, type=int, choices=[1, 2], metavar="version", help='The version of ZGrab used to collect data')
     args = parser.parse_args()
 
     if args.check_censys is True:
@@ -279,9 +382,12 @@ def main():
         if args.check_censys:
             certs_list = add_censys_certificates(censys_collection, zone, certs_list)
         if args.check_443_scans:
-            certs_list = add_terminal_zgrab_certificates(zgrab_collection, zone, certs_list)
-            certs_list = add_initial_zgrab_certificates(zgrab_collection, zone, certs_list)
-
+            if args.zgrab_version == 1:
+                certs_list = add_terminal_zgrab_certificates(zgrab_collection, zone, certs_list)
+                certs_list = add_initial_zgrab_certificates(zgrab_collection, zone, certs_list)
+            else:
+                certs_list = add_terminal_zgrab2_certificates(zgrab_collection, zone, certs_list)
+                certs_list = add_initial_zgrab2_certificates(zgrab_collection, zone, certs_list)
 
 
         graph = create_nodes(graph, mongo_connector, zone, certs_list)
@@ -305,3 +411,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

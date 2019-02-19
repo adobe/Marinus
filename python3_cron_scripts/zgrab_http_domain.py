@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -11,13 +11,23 @@
 # governing permissions and limitations under the License.
 
 """
-This script leverages the zgrab tool to record responses to HTTP requests to domains.
-It is a complement to the zgrab_http_ip tool which records responses to HTTP requests to ips.
+This script leverages the ZGrab or ZGrab 2.0 tool to record responses of HTTP requests made to domains.
+It is a complement to the zgrab_http_ip tool which records responses of HTTP requests made to IPs.
 This script attempts HTTP connections over port 80 and HTTPS connections over port 443.
 
-Please note that this script assumes that a "json_p{#}" directory exists for the port that you are scanning.
+This script was originally based on the "ZGrab" project which has been deprecated and replaced
+with "ZGrab 2.0". When building ZGrab 2.0, you may also need to install: "go get gopkg.in/mgo.v2/bson"
+in addition to "go get github.com/zmap/zgrab2."
+
+Please note that this script assumes that a "./json_p{#}" directory exists for the port that you are scanning.
+If it does not exist, then this script will create the directory.
+
+You can specify the location of ZGrab using the command line. The script assumes that paths with "zgrab2"
+in them indicates that you're running ZGrab 2.0. Otherwise, it will assume that you are running the original
+ZGrab.
 
 https://github.com/zmap/zgrab
+https://github.com/zmap/zgrab2
 """
 
 import subprocess
@@ -40,6 +50,7 @@ from libs3.ZoneManager import ZoneManager
 global_exit_flag = 0
 global_queue_lock = threading.Lock()
 global_work_queue = queue.Queue()
+global_zgrab_path = "./zgrab/src/github.com/zmap/zgrab2/zgrab2"
 
 
 def is_running(process):
@@ -88,9 +99,16 @@ def insert_result(entry, results_collection):
     """
     Insert the matched domain into the collection of positive results.
     """
-    temp_date = entry["timestamp"]
-    new_date = parse(temp_date)
-    entry["timestamp"] = new_date
+    if 'zgrab2' in global_zgrab_path:
+        temp_date = entry['data']['http']['timestamp']
+        new_date = parse(temp_date)
+        entry["timestamp"] = new_date
+        entry['data']['http']['timestamp'] = new_date
+        entry['ip'] = "<nil>"
+    else:
+        temp_date = entry["timestamp"]
+        new_date = parse(temp_date)
+        entry["timestamp"] = new_date
 
     results_collection.update({"domain": entry['domain']}, entry, upsert=True)
 
@@ -105,11 +123,22 @@ def run_port_80_command(target_list, tnum):
     targets = targets[:-2]
 
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["./zgrab/bin/zgrab", "--port=80", "--http=/", "--http-max-redirects=10", "--lookup-domain", "--timeout=30", "--output-file=./json_p80/p80-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p1.stdout.close()
-    output, _ = p2.communicate()
-    json_output = json.loads(output.decode("utf-8"))
-    return json_output
+    if 'zgrab2' in global_zgrab_path:
+        p2 = subprocess.Popen([global_zgrab_path, "http", "--port=80", "--max-redirects=10", "--timeout=30", "--output-file=./json_p80/p80-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        parts = _.decode("utf-8").split("\n")
+        for entry in parts:
+            if entry.startswith("{"):
+                json_output = json.loads(entry)
+                return json_output
+        return json.loads("{}")
+    else:
+        p2 = subprocess.Popen([global_zgrab_path, "--port=80", "--http=/", "--http-max-redirects=10", "--lookup-domain", "--timeout=30", "--output-file=./json_p80/p80-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        json_output = json.loads(output.decode("utf-8"))
+        return json_output
 
 
 def run_port_443_command(target_list, tnum):
@@ -122,11 +151,22 @@ def run_port_443_command(target_list, tnum):
     targets = targets[:-2]
 
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["./zgrab/bin/zgrab", "--port=443", "--tls", "--chrome-ciphers", "--http=/", "--http-max-redirects=10", "--lookup-domain", "--timeout=30", "--output-file=./json_p443/p443-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p1.stdout.close()
-    output, _ = p2.communicate()
-    json_output = json.loads(output.decode("utf-8"))
-    return json_output
+    if 'zgrab2' in global_zgrab_path:
+        p2 = subprocess.Popen([global_zgrab_path, "http", "--port=443", "--use-https", "--max-redirects=10", "--timeout=30", "--output-file=./json_p443/p443-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        parts = _.decode("utf-8").split("\n")
+        for entry in parts:
+            if entry.startswith("{"):
+                json_output = json.loads(entry)
+                return json_output
+        return json.loads("{}")
+    else:
+        p2 = subprocess.Popen([global_zgrab_path, "--port=443", "--tls", "--chrome-ciphers", "--http=/", "--http-max-redirects=10", "--lookup-domain", "--timeout=30", "--output-file=./json_p443/p443-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        output, _ = p2.communicate()
+        json_output = json.loads(output.decode("utf-8"))
+        return json_output
 
 
 def process_thread(domains, port, run_command, zone, zgrab_collection, tnum):
@@ -134,14 +174,16 @@ def process_thread(domains, port, run_command, zone, zgrab_collection, tnum):
     Runs zgrab and stores the result if necessary
     """
     json_output = run_command(domains, tnum)
-    if json_output['failure_count'] == 0:
+    if ('success_count' in json_output and json_output['success_count'] > 0) or \
+        ('statuses' in json_output and json_output['statuses']['http']['successes'] > 0):
         result_file = open("./json_p" + port + "/p" + port + "-" + str(tnum) + ".json", "r")
         results=[]
         for result in result_file:
             results.append(json.loads(result))
         result_file.close()
         for result in results:
-            if "error" in result:
+            if ('zgrab2' in global_zgrab_path and "error" in result['data']['http']) or \
+                'error' in result:
                 print("Failed " + port + ": " + str(result['domain']))
             else:
                 result['zones'] = [zone]
@@ -197,12 +239,23 @@ class ZgrabThread (threading.Thread):
         print ("Exiting Thread-" + str(self.thread_id))
 
 
+def check_save_location(save_location):
+    """
+    Check to see if the directory exists.
+    If the directory does not exist, it will automatically create it.
+    """
+    if not os.path.exists(save_location):
+        os.makedirs(save_location)
+
+
 def main():
     global global_exit_flag
+    global global_zgrab_path
 
     parser = argparse.ArgumentParser(description='Launch zgrab against domains using port 80 or 443.')
     parser.add_argument('-p',  choices=['443', '80'], metavar="port", help='The web port: 80 or 443')
     parser.add_argument('-t',  default=5, type=int, metavar="threadCount", help='The number of threads')
+    parser.add_argument('--zgrab_path', default=global_zgrab_path, metavar='zgrabVersion', help='The version of ZGrab to use')
     args = parser.parse_args()
 
     if args.p == None:
@@ -231,6 +284,10 @@ def main():
     else:
         zgrab_collection = rm_connector.get_zgrab_80_data_connection()
         run_command = run_port_80_command
+
+    check_save_location("./json_p" + args.p)
+
+    global_zgrab_path = args.zgrab_path
 
     zones = ZoneManager.get_distinct_zones(rm_connector)
 

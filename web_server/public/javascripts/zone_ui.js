@@ -318,14 +318,19 @@ function display_response(results, source) {
             } else {
                 displayHTML += create_table_entry(create_anchor("/domain?search=" + results[i]['domain'], results[i]['domain']));
             }
+
             if (source == "scan_certs") {
-                let sha256 = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['fingerprint_sha256'];
+                let tls_log = get_tls_log(results,i);
+
+                let sha256 = tls_log['server_certificates']['certificate']['parsed']['fingerprint_sha256'];
                 displayHTML += create_table_entry(create_anchor("/reports/display_cert?type=zgrab_sha256&sha256=" + sha256, sha256, "_blank"));
-                displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name']);
-                displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['organization']);
+                displayHTML += create_table_entry(tls_log['server_certificates']['certificate']['parsed']['subject']['common_name']);
+                displayHTML += create_table_entry(tls_log['server_certificates']['certificate']['parsed']['subject']['organization']);
             } else {
-                displayHTML += create_table_entry(results[i]['data']['http'][0]['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name']);
-                displayHTML += create_table_entry(results[i]['data']['http'][0]['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['organization']);
+                let tls_log = get_tls_log(results, i);
+
+                displayHTML += create_table_entry(tls_log['server_certificates']['certificate']['parsed']['subject']['common_name']);
+                displayHTML += create_table_entry(tls_log['server_certificates']['certificate']['parsed']['subject']['organization']);
             }
         } else if (source === "vt_domains") {
             let data = "";

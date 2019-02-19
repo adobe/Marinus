@@ -17,6 +17,7 @@ The script will then use Google HTTPS over DNS to get their DNS records and stor
 This script assumes that the censys and certificate transparency scripts have completed.
 """
 
+import argparse
 import json
 import time
 from datetime import datetime
@@ -115,7 +116,7 @@ def extract_censys_certificate_names(dns_names, mongo_connector):
 
 def extract_zgrab_certificate_names(dns_names, mongo_connector):
     """
-    Extract the domain names from certificates found in the zgrab_port records.
+    Extract the domain names from certificates found in the ZGrab port records.
     """
     zgrab_port_collection = mongo_connector.get_zgrab_port_data_connection()
 
@@ -139,6 +140,31 @@ def extract_zgrab_certificate_names(dns_names, mongo_connector):
             print("Zgrab: DNS Name key not found.")
 
 
+def extract_zgrab2_certificate_names(dns_names, mongo_connector):
+    """
+    Extract the domain names from certificates found in the ZGrab 2.0 port records.
+    """
+    zgrab_port_collection = mongo_connector.get_zgrab_port_data_connection()
+
+    res = zgrab_port_collection.find({"$or":[{'data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name': {"$exists": True}},
+        {'data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': {"$exists": True}}]},
+        {"data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name":1,
+         "data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names":1})
+
+
+    for ssl_res in res:
+        try:
+            for dns_name in ssl_res["data"]["tls"]['result']['handshake_log']["server_certificates"]["certificate"]["parsed"]["subject"]["common_name"]:
+                add_to_list(dns_name, dns_names)
+        except KeyError:
+            print("ZGrab2: Common Name key not found.")
+
+        try:
+            for dns_name in ssl_res["data"]["tls"]['result']['handshake_log']["server_certificates"]["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
+                add_to_list(dns_name, dns_names)
+        except KeyError:
+            print("ZGrab2: DNS Name key not found.")
+
 def main():
     """
     Begin Main...
@@ -153,6 +179,10 @@ def main():
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'extract_ssl_domains')
     jobs_manager.record_job_start()
 
+    parser = argparse.ArgumentParser(description='Search TLS certificates for additional DNS names')
+    parser.add_argument('--zgrab_version', default=2, type=int, choices=[1, 2], metavar="version", help='The version of ZGrab used to collect data')
+    args = parser.parse_args()
+
     dns_names = []
     round_two = []
 
@@ -161,7 +191,10 @@ def main():
     # Collect the list of domains from the SSL Certificates
     extract_ct_certificate_names(dns_names, mongo_connector)
     # extract_censys_certificate_names(dns_names, mongo_connector)
-    extract_zgrab_certificate_names(dns_names, mongo_connector)
+    if args.zgrab_version == 1:
+        extract_zgrab_certificate_names(dns_names, mongo_connector)
+    else:
+        extract_zgrab2_certificate_names(dns_names, mongo_connector)
 
     input_list = []
 
@@ -246,3 +279,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -17,7 +17,7 @@ var mongoose = require('mongoose'),
 
 // Zgrab Port Schema
 // - The core is based on a variety.js dump of data collected in the database.
-// - In theory it should match: https://github.com/zmap/zgrab/blob/master/zgrab_schema.py.
+// - In theory, it should roughly match: https://github.com/zmap/zgrab/blob/master/zgrab_schema.py.
 var zgrabPortSchema = new Schema(
 {'_id': 'ObjectId',
  'aws': 'Boolean',
@@ -582,8 +582,8 @@ var zgrabPortSchema = new Schema(
  'ip': 'String',
  'timestamp': 'Date',
  'tracked': 'Boolean',
- 'zones': []}
-, {collection: 'zgrab_port_data'});
+ 'zones': [],
+}, {collection: 'zgrab_port_data'});
 
 var zgrabPortModel = mongoose.model('zgrabPortModel', zgrabPortSchema);
 

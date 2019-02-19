@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## February 19, 2019
+* The original ZGrab utility has been deprecated by the project owners. Therefore, Marinus has been updated to support the new ZGrab 2.0 version. The schemas between the two versions are not compatible and support for the new schemas has been added. Marinus will now support both versions but it defaults to version 2.0. The version can be specified in the env.js file on the web server. New command line parameters will inform the relevant Python scripts.
+* There have also been several important bug fixes to the new certificate code.
+
+
 ## February 7, 2019
 * Modified the get_original_ct_logs, get_crt_sh, and download_facebook_certs scripts to start recording the zones associated with the certificate. This will make it easier to search the ct_certs collection for root domains.
 

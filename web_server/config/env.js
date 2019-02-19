@@ -56,6 +56,7 @@ module.exports = {
         },
         internalDomain: 'INTERNAL_DOMAIN_NAME',
         api_key_length: 32,
+        zgrabVersion: 2,
     },
     production: {
         version: '1.0.1',
@@ -77,5 +78,6 @@ module.exports = {
         splunk_token: 'SPLUNK_PROD_TOKEN',
         new_relic_enabled: true,
         mongodbSSLCA: '',
+        zgrabVersion: 2,
     }
 }
