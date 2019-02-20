@@ -21,15 +21,28 @@ class JobsManager(object):
     """
 
     # Job states
+    ##################
+
+    # Never been run
     NOT_RUN = "NOT_RUN"
 
+    # In progress
     RUNNING = "RUNNING"
 
+    # Ready for next phase
+    READY = "READY"
+
+    # An error has occurred
     ERROR = "ERROR"
 
+    # The job is complete
     COMPLETE = "COMPLETE"
 
-    # Debug
+
+    # Settings
+    ###################
+
+    # Print debug output
     _DEBUG = False
 
     # JobsCollection

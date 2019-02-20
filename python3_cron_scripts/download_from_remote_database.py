@@ -126,27 +126,21 @@ def main():
 
     remote_jobs_collection = rm_connector.get_jobs_connection()
 
-###
-# Skipping Censys for now...
-###
-#
-#    # Check the status of the Censys job on the remote database
-#    status = remote_jobs_collection.find_one({'job_name': 'censys'})
-#    if status['status'] != "COMPLETE":
-#        print("Censys scans status is not COMPLETE")
-#    else:
-#        # Get connections to the relevant collections.
-#        censys_collection = mongo_connector.get_zgrab_443_data_connection()
-#        remote_censys_collection = rm_connector.get_zgrab_443_data_connection()
-#
-#        download_censys_scan_info(censys_collection, remote_censys_collection)
-#
-#        # Tell the remote database that is safe to start processing the next Censys file
-#        remote_jobs_collection.update_one({'job_name': 'censys'},
-#                                          {'$currentDate': {"updated" : True},
-#                                           "$set": {'status': 'READY'}})
+    # Check the status of the Censys job on the remote database
+    status = remote_jobs_collection.find_one({'job_name': 'censys'})
+    if status is not None and 'status' in status and status['status'] != jobs_manager.COMPLETE:
+        print("Censys scans status is not COMPLETE")
+    elif status is not None and 'status' in status and status['status'] == jobs_manager.COMPLETE:
+        # Get connections to the relevant collections.
+        censys_collection = mongo_connector.get_zgrab_443_data_connection()
+        remote_censys_collection = rm_connector.get_zgrab_443_data_connection()
 
+        download_censys_scan_info(censys_collection, remote_censys_collection)
 
+        # Tell the remote database that is safe to start processing the next Censys file
+        remote_jobs_collection.update_one({'job_name': 'censys'},
+                                          {'$currentDate': {"updated" : True},
+                                           "$set": {'status': jobs_manager.READY}})
 
     # Get connections to the relevant HTTPS collections.
     zgrab_443_data_collection = mongo_connector.get_zgrab_443_data_connection()
@@ -168,11 +162,11 @@ def main():
 
     # Download latest whois information
     status = remote_jobs_collection.find_one({'job_name': 'whois_lookups'})
-    if status['status'] == "COMPLETE":
+    if status['status'] == jobs_manager.COMPLETE:
         whois_collection = mongo_connector.get_whois_connection()
         remote_whois_collection = rm_connector.get_whois_connection()
         download_whois_data(whois_collection, remote_whois_collection)
-        remote_jobs_collection.update({'job_name': 'whois'}, {'$set': {'status': 'READY'}})
+        remote_jobs_collection.update({'job_name': 'whois'}, {'$set': {'status': jobs_manager.READY}})
 
 
     # Update the local jobs database to done
