@@ -44,7 +44,8 @@ from libs3.ZoneManager import ZoneManager
 # CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2017-18-nov-dec-jan/host/cc-main-2017-18-nov-dec-jan-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2018-feb-mar-apr/host/cc-main-2018-feb-mar-apr-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2018-may-jun-jul/host/cc-main-2018-may-jun-jul-host-vertices.paths.gz"
-CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2018-aug-sep-oct/host/cc-main-2018-aug-sep-oct-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2018-aug-sep-oct/host/cc-main-2018-aug-sep-oct-host-vertices.paths.gz"
+CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2018-19-nov-dec-jan/host/cc-main-2018-19-nov-dec-jan-host-vertices.paths.gz"
 
 
 def download_file(url):
@@ -186,8 +187,10 @@ def main():
     parser.add_argument('--url', metavar="URL", help='The URL for the latest vertices file')
     args = parser.parse_args()
 
+    CURRENT_FILE = CURRENT_FILE_LIST
+
     if args.url != None:
-        CURRENT_FILE_LIST = args.url
+        CURRENT_FILE = args.url
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -211,7 +214,7 @@ def main():
         first_letter = zone[0]
         grouped_zones[first_letter].append(zone)
 
-    compressed_download_list = download_file(CURRENT_FILE_LIST)
+    compressed_download_list = download_file(CURRENT_FILE)
     subprocess.check_call(["gunzip", "-f", compressed_download_list])
 
     download_list = compressed_download_list.split(".")[:-1]
