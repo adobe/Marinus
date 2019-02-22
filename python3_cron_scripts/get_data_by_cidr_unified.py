@@ -13,12 +13,13 @@
 """
 This script pulls records from Sonar files provided by the Rapid7 Open Data project.
 This script searches the records using the CIDRs related to the tracked organization.
+It will store the Sonar files in a './files' directory
 """
 
 import argparse
 import ipaddress
 import json
-import os.path
+import os
 import subprocess
 import sys
 import time
@@ -276,6 +277,15 @@ def download_remote_files(s, file_reference, data_dir, jobs_manager):
     return unzipped_dns
 
 
+def check_save_location():
+    """
+    Check to see if the directory exists.
+    If the directory does not exist, it will automatically create it.
+    """
+    if not os.path.exists(global_data_dir):
+        os.makedirs(global_data_dir)
+
+
 def main():
     """
     Begin Main...
@@ -300,6 +310,8 @@ def main():
     parser = argparse.ArgumentParser(description='Parse Sonar files based on domain zones.')
     parser.add_argument('--sonar_file_type', required=True, help='Specify "dns" or "rdns"')
     args = parser.parse_args()
+
+    check_save_location()
 
     # A session is necessary for the multi-step log-in process
     s = requests.Session()
