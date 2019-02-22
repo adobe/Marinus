@@ -35,9 +35,6 @@ mongo_connector = MongoConnector.MongoConnector()
 global_dns_manager = DNSManager.DNSManager(mongo_connector)
 
 
-global_data_dir = "./files/"
-
-
 def is_running(process):
     """
     Is the provided process name is currently running?
@@ -219,13 +216,13 @@ def download_remote_files(s, file_reference, data_dir, jobs_manager):
     return unzipped_dns
 
 
-def check_save_location():
+def check_save_location(location):
     """
     Check to see if the directory exists.
     If the directory does not exist, it will automatically create it.
     """
-    if not os.path.exists(global_data_dir):
-        os.makedirs(global_data_dir)
+    if not os.path.exists(location):
+        os.makedirs(location)
 
 
 def main():
@@ -244,11 +241,13 @@ def main():
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
+    save_directory = "./files/"
+
     parser = argparse.ArgumentParser(description='Parse Sonar files based on domain zones.')
     parser.add_argument('--sonar_file_type', required=True, help='Specify "dns-any", "dns-a", or "rdns"')
     args = parser.parse_args()
 
-    check_save_location()
+    check_save_location(save_directory)
 
     # A session is necessary for the multi-step log-in process
     s = requests.Session()
@@ -267,7 +266,7 @@ def main():
                 jobs_manager.record_job_error()
                 exit(0)
 
-            unzipped_rdns = download_remote_files(s, html_parser.rdns_url, global_data_dir, jobs_manager)
+            unzipped_rdns = download_remote_files(s, html_parser.rdns_url, save_directory, jobs_manager)
             update_rdns(unzipped_rdns, zones, mongo_connector)
         except Exception as ex:
             now = datetime.now()
@@ -287,7 +286,7 @@ def main():
         try:
             html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
             if html_parser.any_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.any_url, global_data_dir, jobs_manager)
+                unzipped_dns = download_remote_files(s, html_parser.any_url, save_directory, jobs_manager)
                 update_dns(unzipped_dns, zones, global_dns_manager)
         except Exception as ex:
             now = datetime.now()
@@ -307,10 +306,10 @@ def main():
         try:
             html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
             if html_parser.a_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.a_url, global_data_dir, jobs_manager)
+                unzipped_dns = download_remote_files(s, html_parser.a_url, save_directory, jobs_manager)
                 update_dns(unzipped_dns, zones, global_dns_manager)
             if html_parser.aaaa_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.aaaa_url, global_data_dir, jobs_manager)
+                unzipped_dns = download_remote_files(s, html_parser.aaaa_url, save_directory, jobs_manager)
                 update_dns(unzipped_dns, zones, global_dns_manager)
         except Exception as ex:
             now = datetime.now()

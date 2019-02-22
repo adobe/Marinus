@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -22,6 +22,7 @@ https://developers.facebook.com/docs/certificate-transparency-api
 
 import argparse
 import json
+import os
 import time
 from datetime import datetime
 
@@ -89,6 +90,15 @@ def fetch_domain(fbc, access_token, zone):
     return cert_results
 
 
+def check_save_location(location):
+    """
+    Check to see if the directory exists.
+    If the directory does not exist, it will automatically create it.
+    """
+    if not os.path.exists(location):
+        os.makedirs(location)
+
+
 def main():
     """
     Begin Main...
@@ -115,6 +125,9 @@ def main():
     parser.add_argument('--fetch_cert_records', choices=['dbAndSave', 'dbOnly'], default="dbAndSave", help='Indicates whether to download the raw files or just record in the database')
     parser.add_argument('--cert_save_location', required=False, default=file_path, help='Indicates where to save the certificates on disk when choosing dbAndSave')
     args = parser.parse_args()
+
+
+    check_save_location(args.cert_save_location)
 
     for zone in zones:
         time.sleep(15)
