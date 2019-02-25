@@ -15,9 +15,9 @@
 const express = require('express');
 const router = express.Router();
 
-const zgrab443 = require('../config/models/zgrab_443_data');
-const zgrab80 = require('../config/models/zgrab_80_data');
-const zgrabPort = require('../config/models/zgrab_port');
+var zgrab443 = require('../config/models/zgrab_443_data');
+var zgrab80 = require('../config/models/zgrab_80_data');
+var zgrabPort = require('../config/models/zgrab_port');
 
 function reformatResponse(results){
     let new_response = [];
@@ -192,9 +192,9 @@ module.exports = function(envConfig) {
 
     // Zgrab 2.0 support
     if (envConfig.hasOwnProperty("zgrabVersion") && envConfig.zgrabVersion == 2) {
-        const zgrab443 = require('../config/models/zgrab2_443_data');
-        const zgrab80 = require('../config/models/zgrab2_80_data');
-        const zgrabPort = require('../config/models/zgrab2_port');
+        zgrab443 = require('../config/models/zgrab2_443_data');
+        zgrab80 = require('../config/models/zgrab2_80_data');
+        zgrabPort = require('../config/models/zgrab2_port');
     }
 
 
