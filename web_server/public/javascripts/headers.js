@@ -30,7 +30,6 @@ function custom_check() {
 }
 
 function build_page() {
-    let zgrab_http_headers = [];
     if (CustomScriptSourcesEnabled) {
         zgrab_http_headers = Object.assign({}, zgrab_http_headers, custom_http_headers_map);
     }
