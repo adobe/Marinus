@@ -44,7 +44,7 @@ class X509Parser(object):
 
     This class supports both DER and PEM certificate formats.
 
-    Certificates can be provided as a file location 
+    Certificates can be provided as a file location
     """
 
     DEBUG = False
@@ -464,8 +464,17 @@ class X509Parser(object):
         cert_object = {}
         cert_object['fingerprint_sha1'] = binascii.hexlify(cert.fingerprint(hashes.SHA1())).decode("utf-8")
         cert_object['fingerprint_sha256'] = binascii.hexlify(cert.fingerprint(hashes.SHA256())).decode("utf-8")
-        cert_object['not_before'] = cert.not_valid_before
-        cert_object['not_after'] = cert.not_valid_after
+
+        try:
+            cert_object['not_before'] = cert.not_valid_before
+        except ValueError:
+            print("WARNING: Invalid not_before date")
+
+        try:
+            cert_object['not_after'] = cert.not_valid_after
+        except ValueError:
+            print ("WARNING: Invalid not_after date")
+            return None
 
         # MongoDB can only handle up to 8 byte ints which some serial numbers exceed.
         # Convert to hex instead which matches OpenSSL -text
@@ -475,7 +484,11 @@ class X509Parser(object):
         cert_object['serial_number'] = ":".join([hex_serial_number[start:start+2] for start in range(0, len(hex_serial_number), 2)])
 
         cert_object['raw'] = self.__get_raw_version(cert)
-        cert_object['isExpired'] = openssl_cert.has_expired()
+        try:
+            cert_object['isExpired'] = openssl_cert.has_expired()
+        except RuntimeError:
+            print("WARNING: Could not determine if the certificate is expired")
+
 
         try:
             cert_object['full_certificate'] = crypto.dump_certificate(crypto.FILETYPE_TEXT, openssl_cert).decode("utf-8")
@@ -511,6 +524,10 @@ class X509Parser(object):
         except x509.DuplicateExtension:
             # Python cryptography will error out if it finds a duplicate extension
             print("WARNING: Could not parse the extension due to Duplicate Extensions")
+            return None
+        except AssertionError:
+            # Python cryptography thinks that the certificate is not well formed.
+            print("WARNING: Python cryptography threw an Assertion Error")
             return None
 
         return(cert_object)
@@ -551,7 +568,7 @@ class X509Parser(object):
             except:
                 print("ERROR: Could not parse certificate as a PEM or DER File")
                 return None
-        
+
         cert_object = self.__create_mongodb_structure(cert, openssl_cert)
         if cert_object is None:
             return None
@@ -580,7 +597,7 @@ class X509Parser(object):
         """
         Parse the provided base64 encoded string or DER encoded bytes.
         For PEM files, the parser assumes that the header and footer exists.
-        If you have the PEM base64 without headers, addHeaders will add them for you. 
+        If you have the PEM base64 without headers, addHeaders will add them for you.
         Returns None if there is an error.
         """
         if addHeaders:
@@ -593,3 +610,4 @@ class X509Parser(object):
 
         cert_object = self.__parse(data, certSource)
         return cert_object
+
