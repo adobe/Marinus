@@ -120,7 +120,7 @@ module.exports = {
             }
         }
     },
-    getsshIPListPromise: function(count, limit, page) {
+    getXSSHIPListPromise: function(count, limit, page) {
         if (count) {
             return z2PortSchema.zgrab2PortModel.find({}).exists('data.ssh').countDocuments().exec();
         } else {
