@@ -307,7 +307,7 @@ def main():
 
     save_directory = "./files/"
 
-    parser = argparse.ArgumentParser(description='Parse Sonar files based on domain zones.')
+    parser = argparse.ArgumentParser(description='Parse Sonar files based on CIDRs.')
     parser.add_argument('--sonar_file_type', required=True, help='Specify "dns" or "rdns"')
     args = parser.parse_args()
 
