@@ -177,7 +177,7 @@ class InfobloxExtattrManager(object):
         :return:
         """
         return requests.get((self.__get_record_type_url()),
-                            auth=HTTPBasicAuth(self.IH.IBLOX_UNAME, self.IH.IBLOX_PASSWD), verify='/etc/ssl/certs/ca-certificates.crt')
+                            auth=HTTPBasicAuth(self.IH.IBLOX_UNAME, self.IH.IBLOX_PASSWD), verify='/etc/ssl/certs/ca-bundle.crt')
 
     def __infoblox_paginated_request(self):
         """
