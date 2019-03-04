@@ -12,7 +12,7 @@
 
 """
 A traditional remote cloud environment was created because some of the data sets are
-too large to process within the corporate network.
+so large that they required a cloud with TBs of data storage.
 
 The scripts in the remote cloud environnment needed a local copy of the Marinus database
 so that they knew what to look for in the data.
@@ -23,12 +23,15 @@ It does not create a full replica because that is unnecessary.
 This script is only necessary if a remote MongoDB is deployed.
 """
 
+import argparse
+import sys
+
 from datetime import datetime
 
 from libs3 import MongoConnector, RemoteMongoConnector, JobsManager
 
 
-def update_zones(mongo_connector, rm_connector):
+def update_zones(mongo_connector, rm_connector, update_zone_list):
     """
     Copy all the currently known FLDs to the remote database.
     """
@@ -39,10 +42,14 @@ def update_zones(mongo_connector, rm_connector):
     zones = zones_collection.find({}, {"_id": 0})
     zone_list = []
 
-    remote_zones_collection.remove({})
-    for zone in zones:
-        remote_zones_collection.insert(zone)
-        zone_list.append(zone['zone'])
+    if update_zone_list:
+        remote_zones_collection.remove({})
+        for zone in zones:
+                remote_zones_collection.insert(zone)
+                zone_list.append(zone['zone'])
+    else:
+        for zone in zones:
+                zone_list.append(zone['zone'])
 
     return (zone_list)
 
@@ -117,7 +124,7 @@ def update_all_dns(mongo_connector, rm_connector, zone_list):
     remote_all_dns_collection = rm_connector.get_all_dns_connection()
 
     for zone in zone_list:
-        all_dns = all_dns_collection.find({'zone': zone}, {"_id": 0})
+        all_dns = all_dns_collection.find({'zone': zone}, {"_id": 0}).batch_size(50)
 
         remote_all_dns_collection.remove({'zone': zone})
         for ip_addr in all_dns:
@@ -131,18 +138,42 @@ def main():
     now = datetime.now()
     print("Starting: " + str(now))
 
+    parser = argparse.ArgumentParser(description='Send specific collections to the remote MongoDB. If no arguments are provided, then all data is mirrored.')
+    parser.add_argument('--send_zones', action="store_true", required=False, help='Send IP zones')
+    parser.add_argument('--send_ip_zones', action="store_true", required=False, help='Send IP zones')
+    parser.add_argument('--send_third_party_zones', action="store_true", required=False, help='Send AWS, Azure, etc.')
+    parser.add_argument('--send_config', action="store_true", required=False, help='Send configs')
+    parser.add_argument('--send_dns_records', action="store_true", required=False, help='Send DNS records')
+    args = parser.parse_args()
+
+    send_all = False
+    if len(sys.argv) == 1:
+        send_all = True
+
     mongo_connector = MongoConnector.MongoConnector()
     remote_mongo_connector = RemoteMongoConnector.RemoteMongoConnector()
 
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'send_remote_server')
     jobs_manager.record_job_start()
 
-    zone_list = update_zones(mongo_connector, remote_mongo_connector)
-    update_ip_zones(mongo_connector, remote_mongo_connector)
-    update_aws_cidrs(mongo_connector, remote_mongo_connector)
-    update_azure_cidrs(mongo_connector, remote_mongo_connector)
-    update_config(mongo_connector, remote_mongo_connector)
-    update_all_dns(mongo_connector, remote_mongo_connector, zone_list)
+
+    if send_all or args.send_zones:
+        zone_list = update_zones(mongo_connector, remote_mongo_connector, True)
+    else:
+        zone_list = update_zones(mongo_connector, remote_mongo_connector, False)
+
+    if send_all or args.send_ip_zones:
+        update_ip_zones(mongo_connector, remote_mongo_connector)
+
+    if send_all or args.send_third_party_zones:
+        update_aws_cidrs(mongo_connector, remote_mongo_connector)
+        update_azure_cidrs(mongo_connector, remote_mongo_connector)
+
+    if send_all or args.send_config:
+        update_config(mongo_connector, remote_mongo_connector)
+
+    if send_all or args.send_dns_records:
+        update_all_dns(mongo_connector, remote_mongo_connector, zone_list)
 
     # Record status
     jobs_manager.record_job_complete()
