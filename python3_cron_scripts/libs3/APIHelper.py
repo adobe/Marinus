@@ -19,7 +19,7 @@ class APIHelper(object):
 
     INCORRECT_RESPONSE_JSON_ALLOWED = 20
 
-    def handle_api_error(self, err, job_manager):
+    def handle_api_error(self, err, job_name):
         """
         Exits the script execution post setting the status in database.
         :param err: Exception causing script exit.
@@ -27,7 +27,8 @@ class APIHelper(object):
         """
         print(err)
         print('Exiting script execution.')
-        job_manager.record_job_error()
+        jobs_manager = JobsManager.JobsManager(self.MC, job_name)
+        jobs_manager.record_job_error()
         exit(1)
 
     @staticmethod
