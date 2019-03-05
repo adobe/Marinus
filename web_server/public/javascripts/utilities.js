@@ -68,7 +68,7 @@ function get_tls_log(results, index) {
     try {
         if (results[index]['data']['http'].hasOwnProperty('result')) {
             // ZGrab 2.0
-            tls_log = results[index]['data']['http']['result']['response']['request'['tls_log']['handshake_log']];
+            tls_log = results[index]['data']['http']['result']['response']['request']['tls_log']['handshake_log'];
         } else {
             // ZGrab
             tls_log = results[index]['data']['http']['response']['request']['tls_handshake'];
