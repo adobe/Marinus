@@ -206,9 +206,11 @@ function display_expired_certs(results, year) {
      if (certSource === "censys") {
         end = results[0]['p443']['https']['tls']['certificate']['parsed']['validity']['end'];
      } else {
-        let tls_log = get_tls_log(results, 0);
-
-        end = tls_log['server_certificates']['certificate']['parsed']['validity']['end'];
+         if (results[0]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+            end = results[0]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'];
+         } else {
+            end = results[0]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end'];
+        }
      }
 
     var today = new Date();
@@ -278,10 +280,19 @@ function display_expired_certs(results, year) {
                 displayHTML += create_table_entry("");
             }
         } else {
-            let tls_log = get_tls_log(results, i);
+            let zgrab_self_signed = false;
+            let end;
 
-            displayHTML += create_table_entry(tls_log['server_certificates']['certificate']['parsed']['validity']['end']);
-            if (tls_log['server_certificates']['certificate']['parsed']['signature']['self_signed']) {
+            if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                zgrab_self_signed = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
+                end = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'];
+            } else {
+                zgrab_self_signed = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
+                end = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end'];
+            }
+
+            displayHTML += create_table_entry(end);
+            if (zgrab_self_signed) {
                 displayHTML += create_table_entry(create_check_mark());
             } else {
                 displayHTML += create_table_entry("");
@@ -347,6 +358,7 @@ function display_expired_certs_2k(results) {
     for (var i=0; i < results.length; i++) {
         displayHTML += create_table_row();
         let cns,dns;
+        let tls_log;
         if (certSource === "censys") {
             displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
             cns = results[i]['p443']['https']['tls']['certificate']['parsed']['subject']['common_name'];
@@ -357,7 +369,7 @@ function display_expired_certs_2k(results) {
             } else {
                 displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
             }
-            let tls_log = get_tls_log(results, i);
+            tls_log = get_tls_log(results, i);
             try {
                 cns = tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'];
             } catch (error) {
@@ -388,12 +400,24 @@ function display_expired_certs_2k(results) {
         if (certSource === "censys") {
             displayHTML += create_table_entry(results[i]['p443']['https']['tls']['certificate']['parsed']['validity']['end']);
         } else {
-            let tls_log = get_tls_log(results, i);
-            displayHTML += create_table_entry(tls_log['server_certificates']['certificate']['parsed']['validity']['end']);
+            if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end']);
+            } else {
+                displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end']);
+            }
+        }
+
+        let zgrab_self_signed = false;
+        if (certSource == "zgrab") {
+            if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                zgrab_self_signed = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
+            } else {
+                zgrab_self_signed = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
+            }
         }
 
         if ((certSource === "censys" && results[i]['p443']['https']['tls']['certificate']['parsed']['signature']['self_signed'])
-            || (certSource === "zgrab" && get_tls_log(results, i)['server_certificates']['certificate']['parsed']['signature']['self_signed'])) {
+            || (certSource === "zgrab" && zgrab_self_signed)) {
             displayHTML += create_table_entry(create_check_mark());
         } else {
             displayHTML += create_table_entry("");

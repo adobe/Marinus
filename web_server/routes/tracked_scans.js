@@ -20,6 +20,9 @@ var zgrab80 = require('../config/models/zgrab_80_data');
 var zgrabPort = require('../config/models/zgrab_port');
 
 function reformatResponse(results){
+    /**
+     * Handles recursive searches where a MongoDB project command was necessary
+     */
     let new_response = [];
 
     for (let i = 0; i < results.length; i++) {
@@ -169,22 +172,29 @@ function reformatResponse(results){
  *             http:
  *               type: object
  *               properties:
- *                 response:
- *                   type: object
- *                   properties:
- *                     request:
- *                       type: object
- *                       properties:
- *                         tls_handshake:
- *                           type: object
- *                           properties:
- *                             server_certificates:
- *                               type: object
- *                               properties:
- *                                 certificate:
- *                                   type: object
- *                                 validation:
- *                                   type: object
+ *                  result:
+ *                    type: object
+ *                    properties:
+ *                        response:
+ *                          type: object
+ *                          properties:
+ *                            request:
+ *                              type: object
+ *                              properties:
+ *                                tls_log:
+ *                                  type: object
+ *                                  properties:
+ *                                    handshake_log:
+ *                                      type: object
+ *                                      properties:
+ *                                        server_certificates:
+ *                                          type: object
+ *                                          properties:
+ *                                            certificate:
+ *                                              type: object
+ *                                              properties:
+ *                                                validation:
+ *                                                type: object
  *
  */
 
@@ -2550,7 +2560,7 @@ module.exports = function(envConfig) {
                 return;
             }
 
-            let promise = zgrab443.getSSLByValidityYearPromise(req.query.year);
+            let promise = zgrab443.getSSLByValidityYearPromise(req.query.year, recursive);
 
             promise.then(function(data) {
                 if (!data || data.length === 0) {
@@ -2565,10 +2575,20 @@ module.exports = function(envConfig) {
                 let results = [];
                 let today = new Date();
                 let thisYear = today.getFullYear().toString();
-                let test = data[0]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end'].startsWith(thisYear);
+                let test;
+                if (data[0]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                    test = data[0]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'].startsWith(thisYear);
+                } else {
+                    test = data[0]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end'].startsWith(thisYear);
+                }
                 for (let i=0; i<data.length; i++) {
                     if (test) {
-                        let tempDate = new Date(data[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end']);
+                        let tempDate;
+                        if (data[0]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                            tempDate = new Date(data[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end']);
+                        } else {
+                            tempDate = new Date(data[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end']);
+                        }
                         if (tempDate < today) {
                             results.push(data[i]);
                         }

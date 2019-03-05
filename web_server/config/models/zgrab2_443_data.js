@@ -120,8 +120,8 @@ module.exports = {
                 'ip': 1,
                 'data.http':
                     {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                {"$match": {'$or': [{'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': commonName},
-                            {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': commonName}]}}
+                {"$match": {'$or': [{'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name': commonName},
+                            {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': commonName}]}}
                 ]
                 ).exec();
         }
@@ -156,10 +156,10 @@ module.exports = {
                     'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
                     {"$match": {'$or': [{'zones': zone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': zone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': zone},
+                                {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name': reZone},
+                                {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
+                                {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name': zone},
+                                {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': zone},
                             ]}},
                     {"$count": "count"}
                     ]
@@ -172,10 +172,10 @@ module.exports = {
                     'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
                     {"$match": {'$or': [{'zones': zone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': zone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': zone},
+                                {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name': reZone},
+                                {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
+                                {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name': zone},
+                                {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': zone},
                             ]}}
                     ]
                 ).exec();
@@ -196,7 +196,7 @@ module.exports = {
                 'ip': 1,
                 'data.http':
                     {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.validity.end': isBefore2010}}]
+                {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.validity.end': isBefore2010}}]
                 ).exec();
         }
         return (promise);
@@ -214,7 +214,7 @@ module.exports = {
                  'ip': 1,
                 'data.http':
                     {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.validity.end': thisDecade}}]
+                {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.validity.end': thisDecade}}]
                 ).exec();
         }
         return (promise);
@@ -231,7 +231,7 @@ module.exports = {
                  'ip': 1,
                 'data.http':
                     {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.organization': org}},
+                {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.organization': org}},
                 {"$count": "count"}]
                 ).exec();
         }
@@ -259,7 +259,7 @@ module.exports = {
                     'ip': 1,
                     'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm}},
+                    {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm}},
                     {"$count": "count"}]
                     ).exec();
             } else {
@@ -268,7 +268,7 @@ module.exports = {
                     'ip': 1,
                     'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm}},
+                    {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm}},
                     {"$project":
                     {'domain': 1,
                      'ip': 1,
@@ -277,8 +277,8 @@ module.exports = {
                      {"$project":
                      {'domain': 1,
                      'ip': 1,
-                     'data.http.response.request.tls_handshake.server_certificates.certificate': "$temp.request.tls_handshake.server_certificates.certificate",
-                     'data.http.response.request.tls_handshake.server_certificates.validation': "$temp.request.tls_handshake.server_certificates.validation"
+                     'data.http.response.request.tls_log.handshake_log.server_certificates.certificate': "$temp.request.tls_log.handshake_log.server_certificates.certificate",
+                     'data.http.response.request.tls_log.handshake_log.server_certificates.validation': "$temp.request.tls_log.handshake_log.server_certificates.validation"
                      }},
                     ]).skip(limit * (page - 1)).limit(limit).exec();
             }
@@ -310,15 +310,15 @@ module.exports = {
                     'zones': 1,
                     'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm,
-                                "$or": [{'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
+                    {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm,
+                                "$or": [{'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name': reZone},
+                                {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
                              {'zones': zone}]}},
                     {"$project":
                         {'domain': 1,
                             'ip': 1,
                             'zones': 1,
-                            'data.http.0.request.tls_handshake.server_certificates.certificate': 1,
+                            'data.http.0.request.tls_log.handshake_log.server_certificates.certificate': 1,
                     }},
                     {"$count": "count"}]
                 ).exec();
@@ -329,14 +329,14 @@ module.exports = {
                     'zones': 1,
                     'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm,
-                                "$or": [{'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
+                    {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm,
+                                "$or": [{'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name': reZone},
+                                {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
                              {'zones': zone}]}},
                     {"$project":
                         {'domain': 1,
                             'ip': 1,
-                            'data.http.request.tls_handshake.server_certificates.certificate': 1,
+                            'data.http.request.tls_log.handshake_log.server_certificates.certificate': 1,
                     }}]
                 ).skip(limit * (page - 1)).limit(limit).exec();
             }
@@ -366,7 +366,7 @@ module.exports = {
                     'ip': 1,
                     'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha1': fingerprint}},
+                    {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha1': fingerprint}},
                     {"$count": "count"}]
                     ).exec();
             } else {
@@ -375,7 +375,7 @@ module.exports = {
                     'ip': 1,
                     'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha1': fingerprint}}]
+                    {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha1': fingerprint}}]
                     ).exec();
             }
         }
@@ -400,7 +400,7 @@ module.exports = {
                     'ip': 1,
                     'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': fingerprint}},
+                    {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha256': fingerprint}},
                     {"$count": "count"}]
                     ).exec();
             } else {
@@ -409,7 +409,7 @@ module.exports = {
                     'ip': 1,
                     'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': fingerprint}}]
+                    {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha256': fingerprint}}]
                     ).exec();
             }
         }
@@ -420,7 +420,7 @@ module.exports = {
         if (recursive === true) {
             promise = z2_443_schema.zgrab2_443_model.aggregate([
             {"$project":
-              {'chain': {"$arrayElemAt": ['$data.http.result.response.request.tls_handshake.server_certificates.chain',0]}}},
+              {'chain': {"$arrayElemAt": ['$data.http.result.response.request.tls_log.handshake_log.server_certificates.chain',0]}}},
             {"$project":
               {'common_name': {"$arrayElemAt": ['$chain.parsed.issuer.common_name',0]}}},
             {"$group": {"_id": {'ca': '$common_name'}, "result": {'$push': '$common_name'}}},
@@ -433,7 +433,7 @@ module.exports = {
             {"$project":
               {'response': {"$arrayElemAt": ['$data.http',0]}}},
             {"$project":
-              {'chain': {"$arrayElemAt": ['$response.request.tls_handshake.server_certificates.chain',0]}}},
+              {'chain': {"$arrayElemAt": ['$response.request.tls_log.handshake_log.server_certificates.chain',0]}}},
             {"$project":
               {'common_name': {"$arrayElemAt": ['$chain.parsed.issuer.common_name',0]}}},
             {"$group": {"_id": {'ca': '$common_name'}, "result": {'$push': '$common_name'}}},
@@ -467,7 +467,7 @@ module.exports = {
                 promise = z2_443_schema.zgrab2_443_model.aggregate([{"$project":
                     {'data.http':
                         {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.chain.0.parsed.issuer.common_name': caIssuer}},
+                    {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.chain.0.parsed.issuer.common_name': caIssuer}},
                     {"$count": "count"}]
                     ).exec();
             } else {
@@ -478,7 +478,7 @@ module.exports = {
                              'ip': 1,
                              'data.http':
                                 {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                        {"$match": {'data.http.0.request.tls_handshake.server_certificates.chain.0.parsed.issuer.common_name': caIssuer}},
+                        {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.chain.0.parsed.issuer.common_name': caIssuer}},
                         {"$skip": (limit * (page - 1))},
                         {"$limit": limit}]
                         ).exec();
@@ -488,7 +488,7 @@ module.exports = {
                         'ip': 1,
                         'data.http':
                             {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
-                        {"$match": {'data.http.0.request.tls_handshake.server_certificates.chain.0.parsed.issuer.common_name': caIssuer}}]
+                        {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.chain.0.parsed.issuer.common_name': caIssuer}}]
                         ).exec();
                 }
             }
