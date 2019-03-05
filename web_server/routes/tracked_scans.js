@@ -2590,6 +2590,8 @@ module.exports = function(envConfig) {
      * tags:
      *   - name: Port 443 scans - Fetch certificates for the internal domain
      *     description: Fetch the full records for the associated internal domain
+     *   - name: Port 443 scans - Count certificates for the internal domain
+     *     description: Count the number of records for the associated internal domain
      *
      * /api/v1.0/zgrab/443/corp_certs:
      *   get:
@@ -2625,18 +2627,60 @@ module.exports = function(envConfig) {
      *         description: Server error.
      *         schema:
      *           $ref: '#/definitions/ServerError'
+     *
+     * /api/v1.0/zgrab/443/corp_certs?count=1:
+     *   get:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: Count the records for the internal domain specified in the config file.
+     *     tags: [Port 443 scans - Count certificates for the internal domain]
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: count
+     *         type: string
+     *         required: true
+     *         description: Set to 1 in order to retrieve the count of matching records
+     *         in: query
+     *     responses:
+     *       200:
+     *         description: Returns the number of relevant scans.
+     *         schema:
+     *           $ref: '#/definitions/CountResponse'
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       404:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/ResultsNotFound'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
      */
     router.route('/zgrab/443/corp_certs')
         // get info on corporate certs
         .get(function(req, res) {
-            let promise = zgrabPort.getSSLByCorpNamePromise(envConfig.internalDomain);
+            let count = false;
+            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                count = true
+            }
+
+            let promise = zgrabPort.getSSLByCorpNamePromise(envConfig.internalDomain, count);
 
             promise.then(function(data) {
                 if (!data) {
                     res.status(404).json({'message': 'Records not found'});
                     return;
                 }
-                res.status(200).json(data);
+                if (count) {
+                    res.status(200).json({'count': data});
+                } else {
+                    res.status(200).json(data);
+                }
                 return;
             });
         });

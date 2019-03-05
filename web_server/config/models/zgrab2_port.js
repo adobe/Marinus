@@ -163,12 +163,19 @@ module.exports = {
         return z2PortSchema.zgrab2PortModel.find({'data.tls.result.handshake_log.server_certificates.certificate.parsed.validity.end': thisDecade},
                 {'domain': 1, 'ip': 1, 'data.tls': 1}).exec();
     },
-    getSSLByCorpNamePromise: function(internalDomain) {
+    getSSLByCorpNamePromise: function(internalDomain, count) {
         let reCorp = new RegExp('^.*\.' + internalDomain);
-        return z2PortSchema.zgrab2PortModel.find({
-            '$or': [{'data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name': reCorp},
-                    {'data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reCorp}],
-        }, {'ip': 1, 'data.tls': 1}).exec();
+        if (count) {
+            return z2PortSchema.zgrab2PortModel.find({
+                '$or': [{'data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name': reCorp},
+                        {'data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reCorp}],
+            }, {'ip': 1, 'data.tls': 1}).countDocuments().exec();
+        } else {
+            return z2PortSchema.zgrab2PortModel.find({
+                '$or': [{'data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name': reCorp},
+                        {'data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reCorp}],
+            }, {'ip': 1, 'data.tls': 1}).exec();
+        }
     },
     getFullCountPromise: function() {
         return z2PortSchema.zgrab2PortModel.countDocuments({}).exec();
