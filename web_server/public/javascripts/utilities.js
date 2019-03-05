@@ -60,7 +60,7 @@ function qs(key) {
 
 /**
  * ZGrab 2.0 and ZGrab have different schemas.
- * This is a convenience function to handle both conditions.
+ * This is a convenience function to handle both conditions for full scans.
  */
 function get_tls_log(results, index) {
     let tls_log;
@@ -72,6 +72,28 @@ function get_tls_log(results, index) {
         } else {
             // ZGrab
             tls_log = results[index]['data']['http']['response']['request']['tls_handshake'];
+        }
+    } catch(error) {
+        tls_log = {};
+    }
+
+    return tls_log;
+}
+
+/**
+ * ZGrab 2.0 and ZGrab have different schemas.
+ * This is a convenience function to handle both conditions for HTTPS port scans.
+ */
+function get_port_tls_log(results, index) {
+    let tls_log;
+
+    try {
+        if (results[index]['data']['tls'].hasOwnProperty('result')) {
+            // ZGrab 2.0
+            tls_log = results[index]['data']['tls']['result']['handshake_log'];
+        } else {
+            // ZGrab
+            tls_log = rresults[index]['data']['tls']['tls_handshake'];
         }
     } catch(error) {
         tls_log = {};

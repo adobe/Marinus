@@ -129,13 +129,15 @@ function display_corp_certs(results) {
         displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
 
         let cns, dns;
+        let tls_log;
 
         if (certSource === "censys") {
             cns = results[i]['p443']['https']['tls']['certificate']['parsed']['subject']['common_name'];
             dns = results[i]['p443']['https']['tls']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
         } else {
-            cns = results[i]['data']['tls']['server_certificates']['certificate']['parsed']['subject']['common_name'];
-            dns = results[i]['data']['tls']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+            tls_log = get_port_tls_log(results, i);
+            cns = tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'];
+            dns = tls_log['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
         }
         displayHTML += '<td class="coral-Table-cell td-word-wrap">';
         var j = 0;
@@ -152,7 +154,7 @@ function display_corp_certs(results) {
         if (certSource === "censys") {
             self_signed = results[i]['p443']['https']['tls']['certificate']['parsed']['signature']['self_signed'];
         } else {
-            self_signed = results[i]['data']['tls']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
+            self_signed = tls_log['server_certificates']['certificate']['parsed']['signature']['self_signed'];
         }
         if (self_signed) {
             displayHTML += create_table_entry(create_check_mark());
@@ -164,7 +166,7 @@ function display_corp_certs(results) {
         if (certSource === "censys") {
             valid = results[i]['p443']['https']['tls']['certificate']['parsed']['signature']['valid'];
         } else {
-            valid = results[i]['data']['tls']['server_certificates']['certificate']['parsed']['signature']['valid'];
+            valid = tls_log['server_certificates']['certificate']['parsed']['signature']['valid'];
         }
         if (valid) {
             displayHTML += create_table_entry(create_check_mark());
