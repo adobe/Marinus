@@ -344,3 +344,7 @@ class MongoConnector(object):
     def get_zone_connection(self):
         """ Returns a connection to the zone collection in MongoDB """
         return self.m_connection.zones
+
+    def get_splunk_connection(self):
+        """ Returns a connection to the splunk collection in MongoDB """
+        return self.m_connection.splunk

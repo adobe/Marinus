@@ -89,6 +89,9 @@ These scripts will take the data is available and create d3.js data models that 
 ## remove_expired_entries and remove_fixed_dead_dns_records
 Marinus is not intended to be a historical record of your database. The remove_expired_entries script will remove any entries that haven't been updated within two months. Prior to expiring the records, Marinus will use Google HTTPS-over-DNS to validate whether the record still exists. If the record stills exists but is no longer monitored by the third-party, then Marinus will save the record under its name. This script can be run daily. Marinus also tracks "dead DNS" records which are records that point to non-existent resources. This script will remove a host from the dead DNS list when it is corrected.
 
+## get_splunk_data.py
+This script is unique in that it is just a template for fetching data from Splunk. For organizations that use Splunk, Splunk can be a large source of internal inforamtion that could potentially be correlated with Marinus data. However, it is not possible to write a general purpose Splunk script since each organization would have its own logging format and indexes. Therefore, this script is a template that shows how to use Splunk libraries in Marinus to fetch data. It is up to the user to fill in the rest of the code for handling the data and storing it in the Splunk collection and/or via the DNSManager class. 
+
 ## libs3
 The libs3 directory contains Python 3 classes for interacting with the databases and third-party services. The MongoConnector library is necessary for any script that talks to the main database (which is most of them). Many of the other libraries are necessary for specific connections as specified by their name.
 
