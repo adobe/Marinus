@@ -1525,7 +1525,7 @@ module.exports = function(envConfig) {
     router.route('/censys/corp_certs')
         // get info on corporate certs
         .get(function(req, res) {
-            let promise = censys.getSSLByCorpNamePromise(envConfig.interalDomain);
+            let promise = censys.getSSLByCorpNamePromise(envConfig.internalDomain);
 
             promise.then(function(data) {
                 if (!data) {
