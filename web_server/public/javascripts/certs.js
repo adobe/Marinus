@@ -129,17 +129,20 @@ function display_corp_certs(results) {
         displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
 
         let cns, dns;
-        let tls_log;
+
+        // Not necessary for Censys but it will fail gracefully
+        let tls_log = get_port_tls_log(results, i);
 
         if (certSource === "censys") {
             cns = results[i]['p443']['https']['tls']['certificate']['parsed']['subject']['common_name'];
             dns = results[i]['p443']['https']['tls']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
         } else {
-            tls_log = get_port_tls_log(results, i);
             cns = tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'];
             dns = tls_log['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
         }
+
         displayHTML += '<td class="coral-Table-cell td-word-wrap">';
+
         var j = 0;
         for (j=0; j < cns.length; j++) {
             displayHTML += cns[j] + ", ";
@@ -244,15 +247,21 @@ function display_expired_certs(results, year) {
                 displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
             }
 
-            let tls_log = get_tls_log(results, i);
-
             try {
-                cns = tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                    cns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                } else {
+                    cns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                }
             } catch (error) {
                 cns = [];
             }
             try {
-                dns = tls_log['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                    dns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                } else {
+                    dns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                }
             } catch (error) {
                 dns = [];
             }
@@ -369,14 +378,22 @@ function display_expired_certs_2k(results) {
             } else {
                 displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
             }
-            tls_log = get_tls_log(results, i);
+
             try {
-                cns = tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                    cns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                } else {
+                    cns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                }
             } catch (error) {
                 cns = [];
             }
             try {
-                dns = tls_log['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                    dns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                } else {
+                    dns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                }
             } catch (error) {
                 dns = "";
             }
