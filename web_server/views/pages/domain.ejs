@@ -10,10 +10,15 @@
 
 <% include ../partials/header %>
 
-<form class="coral-Form coral-Form--vertical">
-    <section class="coral-Form-fieldset">
-      <label id="ipLabel" class="coral-Form-fieldlabel">Please enter a fully qualified domain name.</label>
-      <coral-search value="" name="domainSearch" labelledby="domainLabel" id="search_input"></coral-search>
+<form id="search_form">
+    <section>
+      <label id="domainLabel">Please enter a fully qualified domain name:</label>
+      <div class="input-group col-3">
+        <div class="input-group-prepend">
+          <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+        </div>
+        <input class="form-control" value="" name="search" id="search_input" type="text"></input>
+      </div>
     </section>
 </form>
 <br/>
@@ -35,7 +40,7 @@
         <div id="scanTitleRow" class="tableRow"></div>
         <div id="scanDataRow" class="tableRow"></div>
     </div>
-    <div id="scanOutput" class="coral-Well"></div>
+    <div id="scanOutput" class="bg-light"></div>
 </div>
 
 <div id="censysInformation"></div>

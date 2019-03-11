@@ -17,7 +17,7 @@ window.addEventListener("load", custom_check);
 var lastCensysResult;
 
 function build_page() {
-    document.getElementById("search_input").addEventListener("coral-search:submit",queries);
+    document.getElementById("search_form").addEventListener("submit", queries);
     var searchVal = qs("search");
     if (searchVal) {
         document.getElementById("search_input").value = searchVal;
@@ -47,7 +47,7 @@ function whois_lookup() {
     dynamic_whois(document.getElementById("search_input").value.trim().toLowerCase(), "dynamic_whois");
 }
 
-function queries() {
+function queries(event) {
     clearErrorHandler();
     lastCensysResult = [];
 
@@ -80,7 +80,7 @@ function queries() {
         // Whois Information
         if (DynamicWhoisEnabled) {
             clear_divs(["dynamic_whois"]);
-            document.getElementById("dynamic_whois").style.display = "coral-Well";
+            document.getElementById("dynamic_whois").style.display = "bg-light";
             document.getElementById("dynamic_whois").appendChild(create_button('Perform lookup', 'whoisLookup'));
             document.getElementById("whoisLookup").addEventListener("click", whois_lookup);
         }
@@ -119,7 +119,7 @@ function queries() {
         // Whois information
         if (DynamicWhoisEnabled) {
             clear_divs(["dynamic_whois"]);
-            document.getElementById("dynamic_whois").style.display = "coral-Well";
+            document.getElementById("dynamic_whois").style.display = "bg-light";
             document.getElementById("dynamic_whois").appendChild(create_button('Perform lookup', 'whoisLookup'));
             document.getElementById("whoisLookup").addEventListener("click", whois_lookup);
         }
@@ -141,7 +141,7 @@ function queries() {
         // Whois information
         if (DynamicWhoisEnabled) {
             clear_divs(["dynamic_whois"]);
-            document.getElementById("dynamic_whois").style.display = "coral-Well";
+            document.getElementById("dynamic_whois").style.display = "bg-light";
             document.getElementById("dynamic_whois").appendChild(create_button('Perform lookup', 'whoisLookup'));
             document.getElementById("whoisLookup").addEventListener("click", whois_lookup);
         }
@@ -150,6 +150,10 @@ function queries() {
         }
     }
 
+    if (event) {
+        event.preventDefault();
+    }
+    return false;
 }
 
 function display_nslookup(results) {
@@ -184,12 +188,12 @@ function do_nslookup(target) {
 function allDNSResult(results) {
     var displayHTML = create_h3("DNS Records");
     if (results.length === 0) {
-        document.getElementById("dnsRecords").innerHTML = displayHTML + "<br><b>No DNS Records Found</b><br/><br/>";
+        document.getElementById("dnsRecords").innerHTML = displayHTML + "<b>No DNS Records Found</b><br/><br/>";
          return;
     }
-    displayHTML += create_new_table("apiTable");
-    displayHTML += create_table_head(["Type", "Value", "Domain", "Zone", "Sources"], "apiTableHead");
-    displayHTML += create_table_body("apiTableBody");
+    displayHTML += create_new_table();
+    displayHTML += create_table_head(["Type", "Value", "Domain", "Zone", "Sources"]);
+    displayHTML += create_table_body();
 
     for (let i=0; i < results.length; i++) {
         displayHTML += create_table_row();
@@ -230,12 +234,12 @@ function search_all_dns(type,value) {
 function sonarRDNSResult(results) {
     var displayHTML = create_h3("Reverse DNS Records");
     if (results.length === 0) {
-        document.getElementById("reverseDnsRecords").innerHTML = displayHTML + "<br><b>No RDNS Records Found</b><br/><br/>";
+        document.getElementById("reverseDnsRecords").innerHTML = displayHTML + "<b>No RDNS Records Found</b><br/><br/>";
          return;
      }
-     displayHTML += create_new_table("apiTable");
-     displayHTML += create_table_head(["IP", "Domain", "Zone", "Status"], "apiTableHead");
-     displayHTML += create_table_body("apiTableBody");
+     displayHTML += create_new_table();
+     displayHTML += create_table_head(["IP", "Domain", "Zone", "Status"]);
+     displayHTML += create_table_body();
 
     for (let i=0; i < results.length; i++) {
         displayHTML += create_table_row();
@@ -406,9 +410,9 @@ function host_owner_detail_renderer(owner_details, div_id) {
  */
 function ip_owner_detail_renderer(owner_details, div_id) {
     var displayHTML = create_h3("Infoblox Owner Information");
-    displayHTML += create_new_table("apiTable");
-    displayHTML += create_table_head(["Domain", "Owners"], "apiTableHead");
-    displayHTML += create_table_body("apiTableBody");
+    displayHTML += create_new_table();
+    displayHTML += create_table_head(["Domain", "Owners"]);
+    displayHTML += create_table_body();
 
     for (let i=0; i < owner_details.length; i++) {
         displayHTML += create_table_row();
@@ -444,9 +448,9 @@ function ctResults(results) {
     }
 
     var displayHTML = create_h3("Certificate Transparency Logs");
-    displayHTML += create_new_table("apiTable");
-    displayHTML += create_table_head(["Common Name", "Organization"], "apiTableHead");
-    displayHTML += create_table_body("apiTableBody");
+    displayHTML += create_new_table();
+    displayHTML += create_table_head(["Common Name", "Organization"]);
+    displayHTML += create_table_body();
 
     for (let i=0; i < results.length; i++) {
         displayHTML += create_table_row();
@@ -478,19 +482,19 @@ function update_censys_preview(ev) {
     if (ev == null || ev.detail == null) {
         return;
     }
-    var id = ev.detail.activeItem.id;
+    ev.preventDefault();
+    var id = ev.currentTarget.id;
     var parts = id.split(/:/);
-    var result = lastCensysResult[parts[1]][parts[0]];
+    var index = parts[1].split(/_/);
+    var result = lastCensysResult[index[0]][parts[0]];
     var temp = JSON.stringify(result);
     var parsed = temp.replace(/\</g,"&lt;");
     parsed = parsed.replace(/\>/g,"&gt;");
     parsed = parsed.replace(/\{/g,"<br>{");
-    document.getElementById("censysPreview:" + parts[1]).style.maxWidth = "none";
-    document.getElementById("censysPreview:" + parts[1]).style.whiteSpace = "normal";
-    document.getElementById("censysPreview:" + parts[1]).style.wordBreak = "break-word";
 
-    var cpc = document.getElementById("censysPreviewContent:" + parts[1]);
-    cpc.innerHTML = '<div id="cp_well" class="coral-Well">' + parsed + '</pre></div>';
+
+    var cpc = document.getElementById("censysOutput");
+    cpc.innerHTML = '<div id="cp_well" class="bg-light"><pre>' + parsed + '</pre></div>';
 }
 
 function censysResult(results) {
@@ -506,55 +510,61 @@ function censysResult(results) {
         'p443':'https',
         'p465':'smtps',
         'p502':'modbus',
+        'p8080':'http',
         'p993':'imaps',
         'p995':'pop3s',
         'p47808':'bacnet',
         'p7547':'cwmp'
     };
-    var staticList = ["location","ip","autonomous_system","createdAt","tags","zones"];
+    var staticList = ["location","ip","autonomous_system","createdAt","tags","zones", "domains", "ipint", "aws", "azure", "ports"];
     if (results.length === 0) {
          return;
      }
 
     var htmlOut = "";
-    var censysTag = document.getElementById("scanInformation");
-    document.getElementById("scanInformation").style.display = "block";
+    var censysTag = document.getElementById("censysInformation");
+    document.getElementById("censysInformation").style.display = "block";
+
+    htmlOut += '\
+    <div class="table">\
+      <div class="tableRow">\
+        <div class="tableCell">';
+    htmlOut += create_new_list();
 
     for (var i=0; i< results.length; i++) {
-        htmlOut += '\
-<coral-columnview class="guide-columnview-example" id="censysCol:' + i.toString() + '">\
-  <coral-columnview-column>\
-    <coral-columnview-column-content>';
+
         if (!(results[i].hasOwnProperty("tags")) || results[i]["tags"].length === 0) {
             for (let val in results[i]) {
                 if (val !== "_id") {
-                    htmlOut  += '<coral-columnview-item variant="drilldown" icon="file" id="' + val + ':' + i.toString() + '">' + val + '</coral-columnview-item>';
+                    htmlOut += create_list_entry(val + ':' + i.toString(), val, "#");
                 }
             }
         } else {
             for (let val in results[i]) {
                 if (staticList.indexOf(val) != -1) {
-                    htmlOut  += '<coral-columnview-item variant="drilldown" icon="file" id="' + val + ':' + i.toString() + '">' + val + '</coral-columnview-item>';
-                } else if ((val.startsWith("p")) && (results[i]["tags"].indexOf(portList[val]) !== -1)) {
-                    htmlOut  += '<coral-columnview-item variant="drilldown" icon="file" id="' + val + ':' + i.toString() + '">' + val + ' (' + portList[val] + ')' + '</coral-columnview-item>';
-                } else if (val.startsWith("p")) {
-                    htmlOut  += '<coral-columnview-item variant="drilldown" id="' + val + ':' + i.toString() + '">' + val + ' (' + portList[val] + ')' + '</coral-columnview-item>';
+                    htmlOut += create_list_entry(val + ':' + i.toString(), val, "#");
+                } else if ((val.startsWith("p")) && val !== "ports" && (results[i]["tags"].indexOf(portList[val]) !== -1)) {
+                    htmlOut +=  create_list_entry(val + ':' + i.toString(), '<img src="/stylesheets/octicons/svg/file.svg" alt="data"></img>&nbsp;' + val + ' (' + portList[val] + ')', "#");
+                } else if (val.startsWith("p") && val !== "ports") {
+                    htmlOut += create_list_entry(val + ':' + i.toString(), val + ' (' + portList[val] + ')', "#");
                 }
             }
         }
-        htmlOut += '</coral-columnview-column-content>\
-  </coral-columnview-column>\
-  <coral-columnview-preview id="censysPreview:' + i + '">\
-    <coral-columnview-preview-content id="censysPreviewContent:' + i.toString() + '">\
-     </coral-columnview-preview-content>\
-  </coral-columnview-preview>\
-</coral-columnview><br/>';
     }
+    htmlOut += end_list();
+    htmlOut += '</div>';
+    htmlOut += '<div class="tableCell bg-light" id="censysOutput"></div>';
+    htmlOut += '</div></div><br/>';
+
 
     censysTag.innerHTML = htmlOut;
     lastCensysResult = results;
     for (let i= 0; i < results.length; i++) {
-        document.getElementById("censysCol:" + i.toString()).on("coral-columnview:activeitemchange", update_censys_preview);
+        for (let val in results[i]) {
+            if (val !== "_id") {
+                document.getElementById(val + ":" + i.toString() + "_link").addEventListener("click", update_censys_preview);
+            }
+        }
     }
 }
 

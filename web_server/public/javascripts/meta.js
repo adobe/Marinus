@@ -43,7 +43,7 @@ function build_page() {
     var path = window.location.pathname;
     if (path === "/meta/zone_list") {
         fetch_zone_list(null);
-        document.getElementById("zone_input").addEventListener("coral-search:submit",fetch_zone_pattern);
+        document.getElementById("zone_search").addEventListener("submit", fetch_zone_pattern);
     } else if (path === "/meta/port_list") {
         portSource = qs("portSource");
         if (ScanDataSources.includes("censys") && portSource === "censys") {
@@ -72,15 +72,15 @@ function build_page() {
 
 function createWhoisSearchBox() {
     let whoisHTML = '<h3>Whois</h3>\n';
-    whoisHTML += '<label id="zoneLabel" class="coral-Form-fieldlabel">Please enter a zone.</label>\n';
-    whoisHTML += '<coral-search value="" name="zoneSearch" labelledby="zoneLabel" id="search_input"></coral-search>\n';
-    whoisHTML += '<div id="dynamic_whois" class="coral-Well"></div>\n';
+    whoisHTML += '<form id="whois_search"><label id="zoneLabel" for="whois_input">Please enter a zone.</label>\n';
+    whoisHTML += '<input type="text" value="" name="whoisSearch" id="whois_input"></input></form>\n';
+    whoisHTML += '<div id="dynamic_whois" class="bg-light"></div>\n';
     document.getElementById("dynamicWhoisSection").innerHTML = whoisHTML;
-    document.getElementById("search_input").addEventListener("coral-search:submit", whois_lookup);
+    document.getElementById("whois_search").addEventListener("submit", whois_lookup);
 }
 
 function display_zone_list(results) {
-    var display_list = '<coral-anchorlist id="0">';
+    var display_list = '<div class="list-group" id="0">';
     var current_alpha_index = 0;
     var alphabet = ['0','1','2','3','4','5','6','7','8','9','\\','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
     var false_positives = [];
@@ -136,10 +136,11 @@ function display_zone_list(results) {
     document.getElementById('zoneCount').innerHTML = "Zones identified: " + results.length.toString();
 }
 
-function fetch_zone_pattern() {
+function fetch_zone_pattern(event) {
    clearErrorHandler();
    var zone = document.getElementById("zone_input").value;
    fetch_zone_list(zone);
+   event.preventDefault();
    return (false);
 }
 
@@ -157,9 +158,9 @@ function fetch_zone_list(txtSearch) {
 }
 
 function create_table(results, type) {
-    var displayHTML = create_new_table("apiTable");
-    displayHTML += create_table_head(["Zone", "Source", "Status", "Notes"], "apiTableHead");
-    displayHTML += create_table_body("apiTableBody");
+    var displayHTML = create_new_table();
+    displayHTML += create_table_head(["Zone", "Source", "Status", "Notes"]);
+    displayHTML += create_table_body();
 
     for (let i=0; i < results.length; i++) {
         displayHTML += create_table_row();
@@ -235,7 +236,7 @@ function update_aws_ip(result_data, ip) {
     }
     knownNotes.innerHTML += dynHTML;
 
-    knownResult.icon = "check";
+    knownResult.src = '/stylesheets/octicons/svg/check.svg';
 }
 
 
@@ -264,7 +265,7 @@ function update_azure_ip(result_data, ip) {
     }
     knownNotes.innerHTML = dynHTML;
 
-    knownResult.icon = "check";
+    knownResult.src = '/stylesheets/octicons/svg/check.svg';
 }
 
 
@@ -278,7 +279,7 @@ function check_azure_ip(ip) {
 function update_known_ip(results, ip) {
     var knownResult = document.getElementById(ip + "-tracked-mark");
     if (results['result'] === true) {
-        knownResult.icon = "check";
+        knownResult.src = '/stylesheets/octicons/svg/check.svg';
         var knownNotes = document.getElementById(ip + "-notes");
         var dynHTML = results['zone'];
         if (results['notes'] && results['notes'].length > 0) {
@@ -316,11 +317,11 @@ function displayIPList(json_results) {
         var cell4 = row.insertCell(3);
         var cell5 = row.insertCell(4);
         cell1.innerHTML = create_anchor("/ip?search=" + json_results[i]['ip'], json_results[i]['ip']);
-        cell2.innerHTML = "<coral-icon id='" + json_results[i]['ip'] +  "-tracked-mark' icon='close' size='M'></coral-icon><br/>";
+        cell2.innerHTML = "<img id='" + json_results[i]['ip'] +  "-tracked-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
         cell2.style = "text-align:center";
-        cell3.innerHTML = "<coral-icon id='" + json_results[i]['ip'] +  "-aws-mark' icon='close' size='M'></coral-icon><br/>";
+        cell3.innerHTML = "<img id='" + json_results[i]['ip'] +  "-aws-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
         cell3.style = "text-align:center";
-        cell4.innerHTML = "<coral-icon id='" + json_results[i]['ip'] +  "-azure-mark' icon='close' size='M'></coral-icon><br/>";
+        cell4.innerHTML = "<img id='" + json_results[i]['ip'] +  "-azure-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
         cell4.style = "text-align:center";
         cell5.innerHTML = "<span id='" + json_results[i]['ip'] +  "-notes'></span><br/>";
 
@@ -671,6 +672,8 @@ function initialize_tpd_list() {
 }
 
 
-function whois_lookup() {
-    dynamic_whois(document.getElementById("search_input").value, "dynamic_whois");
+function whois_lookup(event) {
+    dynamic_whois(document.getElementById("whois_input").value, "dynamic_whois");
+    event.preventDefault();
+    return false;
 }

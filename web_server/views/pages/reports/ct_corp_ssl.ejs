@@ -13,14 +13,13 @@
 <h3>Certificate Transparency Database</h3>
 <b>The corporate certificates currently recorded in the CT database.</b><br/>
 <br/>
-<div class="table">
-    <div class="tableRow">
-       <div class="tableCell tdMiddle">Exclude expired certificates: </div><div class="tableCell"><coral-switch id="excludeExpired"></coral-switch></div>
-    </div>
+<div class="form-check form-check-inline">
+    <input type="checkbox" id="excludeExpired" class="form-check-input form-control-lg"></input>
+    <label for="excludeExpired" class="form-check-label">Exclude expired certificates:</label>
 </div>
 <br/>
 
-<div id="ct_corp_certs"><coral-wait></coral-wait></div><br>
+<div id="ct_corp_certs"><img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation" alt="timer"/></div><br>
     
 <% include ../../partials/footer %>
 

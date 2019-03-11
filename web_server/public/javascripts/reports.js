@@ -106,6 +106,7 @@ function displayVtList(jsonResults, id) {
         resultHTML += create_h3(jsonResults[i]['zone']);
         resultHTML += create_new_table();
         resultHTML += create_table_head(["Date", "Positives", "Scanners", "Sample/URL"]);
+        resultHTML += create_table_body();
         var did = "detected_" + id;
         if (id !== "urls") {
             did += "_samples";
@@ -135,6 +136,7 @@ function displayVtList(jsonResults, id) {
             resultHTML += create_h3(jsonResults[i]['zone']);
             resultHTML += create_new_table();
             resultHTML += create_table_head(["ID"]);
+            resultHTML += create_table_body();
             for (let j=0; j< jsonResults[i]['pcaps'].length; j++) {
                 resultHTML += create_table_row();
                 resultHTML += create_table_entry(jsonResults[i]['pcaps'][j]);

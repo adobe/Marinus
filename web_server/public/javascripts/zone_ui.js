@@ -35,7 +35,7 @@ function start_page() {
     }
 
     var zone = qs("search");
-    document.getElementById("search_input").addEventListener("coral-search:submit", search_click);
+    document.getElementById("search_form").addEventListener("submit", search_click);
 
     if (zone) {
         document.getElementById("search_input").value = zone;
@@ -49,7 +49,7 @@ function start_page() {
     }
 }
 
-function search_click () {
+function search_click (event) {
     document.getElementById("htTitleRow").innerHTML = "";
     document.getElementById("htDataRow").innerHTML = "";
     document.getElementById("dnsTitleRow").innerHTML = "";
@@ -68,6 +68,8 @@ function search_click () {
     document.getElementById("scanDataRow").innerHTML = "";
     document.getElementById("output").innerHTML = "";
     initialize_data(document.getElementById("search_input").value.trim().toLowerCase());
+    event.preventDefault();
+    return false;
 }
 
 function initialize_data(zone) {
@@ -266,7 +268,7 @@ function display_response(results, source) {
     } else if (source === "vt_domains") {
         displayHTML += create_table_head(["Domain"]);
     } else if (source === "vt_ips") {
-        displayHTML += create_table_head(["IP - Last Resolved"]);
+        displayHTML += create_table_head(["IP", "Last Resolved"]);
     } else if (source === "vt_meta") {
         displayHTML += create_table_head(["VirusTotal Metadata"]);
     } else if (source === "whois_db") {
@@ -349,10 +351,17 @@ function display_response(results, source) {
             let data = ""
             if (results[i]['resolutions']) {
                 for (let j=0; j < results[i]['resolutions'].length; j++) {
-                    data += create_anchor("/ip?search=" +  results[i]['resolutions'][j]['ip_address'], results[i]['resolutions'][j]['ip_address']) + " - " + results[i]['resolutions'][j]['last_resolved'] + '<br/>';
+                    if (j != 0) {
+                        data += create_table_row();
+                    }
+                    data += create_table_entry(create_anchor("/ip?search=" +  results[i]['resolutions'][j]['ip_address'], results[i]['resolutions'][j]['ip_address']));
+                    data += create_table_entry(results[i]['resolutions'][j]['last_resolved']);
+                    if (j != results[i]['resolutions'].length - 1) {
+                        data += end_table_row();
+                    }
                 }
             }
-            displayHTML += create_table_entry(data);
+            displayHTML += data;
         } else if (source === "vt_meta") {
             let data = "Alexa category: " + results[i]["Alexa category"] + "<br/>";
             data += "Alexa rank: " + results[i]["Alexa rank"] + "<br/>";

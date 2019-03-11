@@ -112,9 +112,10 @@ module.exports = function(app, envConfig){
     // Tell Express to serve static objects from the /public/ dir in /
     app.use('/', express.static(path.join(envConfig.rootPath, 'public')));
 
-    app.use('/javascripts/coralui', express.static(path.join(envConfig.rootPath, 'node_modules/@coralui/coralui/build/js')));
-    app.use('/stylesheets/coralui', express.static(path.join(envConfig.rootPath, 'node_modules/@coralui/coralui/build/css')));
-    app.use('/stylesheets/resources', express.static(path.join(envConfig.rootPath, 'node_modules/@coralui/coralui/build/resources')));
+    app.use('/javascripts/jquery', express.static(path.join(envConfig.rootPath, 'node_modules/jquery/dist/')));
+    app.use('/javascripts/bootstrap', express.static(path.join(envConfig.rootPath, 'node_modules/bootstrap/dist/js/')));
+    app.use('/stylesheets/bootstrap', express.static(path.join(envConfig.rootPath, 'node_modules/bootstrap/dist/css/')));
+    app.use('/stylesheets/octicons', express.static(path.join(envConfig.rootPath, 'node_modules/octicons/build/')));
     app.use('/javascripts/d3', express.static(path.join(envConfig.rootPath, 'node_modules/d3/dist')));
     app.use('/javascripts/d3-scale', express.static(path.join(envConfig.rootPath, 'node_modules/d3-scale-chromatic/dist')));
     app.use('/javascripts/URI.min.js', express.static(path.join(envConfig.rootPath, 'node_modules/urijs/src/URI.min.js')));

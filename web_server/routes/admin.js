@@ -473,7 +473,7 @@ module.exports = function(envConfig) {
                             });
                         });
                     } else {
-                        res.status(500).json({
+                        res.status(400).json({
                             message: 'User ' + htmlEscape(userInDB.userid) + ' already exists!',
                         });
                     }

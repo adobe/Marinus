@@ -10,32 +10,39 @@
 
 <% include ../partials/header %>
 
-  <form class="coral-Form coral-Form--vertical">
-    <section class="coral-Form-fieldset">
-      <label id="certLabel" class="coral-Form-fieldlabel">Please enter a SHA1 or SHA256 hash.</label>
-      <coral-search value="" name="certSearch" labelledby="certLabel" id="search_input"></coral-search>
+  <form id="search_form">
+    <section>
+      <label id="certLabel" for="search_input">Please enter a SHA1 or SHA256 hash.</label>
+      <div class="input-group col-6">
+          <div class="input-group-prepend">
+            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="check"></div>
+          </div>
+      <input type="text" name="search" class="form-control" id="search_input"></input>
     </section>
   </form>
+
+<br/>
+<br/>
 
 <div class="divTable">
   <div class="tableRow">
     <div id="rangeCounts" class="tableCell">
-        <table class="coral-Table apiTable" id="certCountTable">
-            <thead class="coral-Table-head apiTableHead">
-                <tr class="coral-Table-row">
-                    <th class="coral-Table-headerCell">Type</th>
-                    <th class="coral-Table-headerCell">Count</th>
+        <table class="table" id="certCountTable">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Count</th>
                 </tr>
             </thead>
-            <tbody class="coral-Table-body apiTableBody" id="certListBody">
-                <tr class="coral-Table-row">
-                    <td class="coral-Table-cell">Certificiate Transparency Records</td>
-                    <td class="coral-Table-cell" id="certTransparency"></td>
+            <tbody id="certListBody">
+                <tr>
+                    <td>Certificiate Transparency Records</td>
+                    <td id="certTransparency"></td>
                 </tr>
             </tbody>
         </table>
     </div>
-    <div id="certDetails" class="coral-Well tableCell">
+    <div id="certDetails" class="tableCell">
     </div>
   </div>
 </div>

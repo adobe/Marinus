@@ -10,12 +10,20 @@
 
 <% include ../../partials/header %>
 
-<form class="coral-Form coral-Form--vertical">
-  <section class="coral-Form-fieldset">
-    <label id="zoneLabel" class="coral-Form-fieldlabel">Enter a pattern to search.</label>
-    <coral-search value="" name="zoneSearch" labelledby="zoneLabel" id="zone_input"></coral-search>
+<form id="zone_search">
+  <section>
+    <label id="zoneLabel" for="zone_input">Enter a pattern to search.</label>
+    <div class="input-group col-6">
+      <div class="input-group-prepend">
+        <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="check"></div>
+      </div>
+      <input type="text" value="" name="zoneSearch" id="zone_input"></input>
+    </div>
   </section>
 </form>
+
+<br/>
+<br/>
 
 <div id="alphaJumps">
     <a href="#0">0</a>
@@ -61,12 +69,15 @@
     <a href="#expired">Expired</a>
     <a href="#false_positives">False Positives</a>
 </div>
+
 <br/>
+<br/>
+
 <div id="zoneCount">Zones identified: </div>
 <br/>
-    
+
 <div id="zoneList"></div>
-    
+
 <% include ../../partials/footer %>
 
 </body>

@@ -35,19 +35,16 @@ function get_lists(reqType) {
 
 function displayMetaResults(results, reqType) {
     var htmlOut = "";
-    htmlOut += '\
-<coral-columnview class="guide-columnview-example" id="' + reqType + 'Col">\
-  <coral-columnview-column>\
-    <coral-columnview-column-content>';
+    htmlOut += '<div class="list-group" id="' + reqType + 'Col">';
     for (var i=0; i< results.length; i++) {
-        htmlOut  += '<coral-columnview-item variant="drilldown" icon="file" id="' + reqType + 'Tbl:' + results[i]['_id'] + '">' + results[i]['_id'] + ' (' + results[i]['count'].toString() + ')' + '</coral-columnview-item>';
+        htmlOut  += ' <a href="#" class="list-group-item list-group-item-action" id="' + reqType + 'Tbl:' + results[i]['_id'] + '">' + results[i]['_id'] + ' (' + results[i]['count'].toString() + ')' + '</a>';
     }
-    htmlOut += '</coral-columnview-column-content>\
-  </coral-columnview-column>\
-</coral-columnview><br/>';
+    htmlOut += '</div><br/>';
     var mxTable = document.getElementById(reqType + "Table");
     mxTable.innerHTML = htmlOut;
-    document.getElementById(reqType + "Col").on("coral-columnview:activeitemchange", update_div_preview);
+    for (var i=0; i< results.length; i++) {
+        document.getElementById(reqType + 'Tbl:' + results[i]['_id']).addEventListener("click", update_div_preview);
+    }
 }
 
 function update_preview(obj, reqSource) {
@@ -80,7 +77,7 @@ function update_div_preview(ev) {
     if (ev == null || ev.detail == null) {
         return false;
     }
-    var id = ev.detail.activeItem.id;
+    var id = ev.currentTarget.id;
     var parts = id.split(/:/);
     var zone = parts[1];
 
@@ -94,4 +91,7 @@ function update_div_preview(ev) {
     }
 
     make_get_request(url, update_preview, parts[0]);
+
+    ev.preventDefault();
+    return false;
 }

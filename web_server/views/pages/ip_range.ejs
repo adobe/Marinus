@@ -10,10 +10,16 @@
 
 <% include ../partials/header %>
     
-<form class="coral-Form coral-Form--vertical">
-  <section class="coral-Form-fieldset">
-    <label id="rangeLabel" class="coral-Form-fieldlabel">Please enter a CIDR.</label>
-    <coral-search value="" name="rangeSearch" labelledby="rangeLabel" id="search_input"></coral-search>
+<form id="search_form">
+  <section>
+    <label for="search_input">Please enter a CIDR.</label>
+    <div class="input-group col-3">
+        <div class="input-group-prepend">
+          <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+        </div>
+
+      <input class="form-control" type="text" value="" name="search" id="search_input"></input>
+    </div>
   </section>
 </form>
 
@@ -22,18 +28,18 @@
 <div class="divTable">
   <div class="tableRow">
     <div id="rangeCounts" class="tableCell">
-        <table class="coral-Table apiTable" id="ipRangeTable">
-            <thead class="coral-Table-head apiTableHead">
-                <tr class="coral-Table-row">
-                    <th class="coral-Table-headerCell">Type</th>
-                    <th class="coral-Table-headerCell">Count</th>
+        <table class="table" id="ipRangeTable">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Count</th>
                 </tr>
             </thead>
-            <tbody class="coral-Table-body apiTableBody" id="ipRangeBody">
+            <tbody id="ipRangeBody">
             </tbody>
         </table>
     </div>
-    <div id="rangeInfo" class="coral-Well">
+    <div id="rangeInfo" class="tableCell">
     </div>
   </div>
 </div>

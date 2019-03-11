@@ -45,9 +45,9 @@ function buildPage() {
         document.getElementById("addIPZone").addEventListener("click", add_zone);
         document.getElementById("addIPv6Zone").addEventListener("click", add_zone);
         document.getElementById("addZone").addEventListener("click", add_zone);
-        document.getElementById("ipv6_search_input").addEventListener("coral-search:submit", find_zones);
-        document.getElementById("zone_search_input").addEventListener("coral-search:submit", find_zones);
-        document.getElementById("cidr_search_input").addEventListener("coral-search:submit", find_zones);
+        document.getElementById("modify_ipv6").addEventListener("submit", find_zones);
+        document.getElementById("modify_domain").addEventListener("submit", find_zones);
+        document.getElementById("modify_cidr").addEventListener("submit", find_zones);
         document.getElementById("updateZoneStatus").addEventListener("click", patch_zone);
         document.getElementById("updateZoneNotes").addEventListener("click", patch_zone);
         document.getElementById("updateCIDRStatus").addEventListener("click", patch_zone);
@@ -82,8 +82,9 @@ function confirm_patch_update(results,requestId) {
     }
 }
 
-function patch_zone() {
+function patch_zone(ev) {
     var requestId = this.id;
+    ev.preventDefault();
     var query = "";
     var url = "";
     if (requestId.includes("updateZoneStatus")) {
@@ -141,7 +142,7 @@ function confirm_user_update(results,requestID) {
     }
 }
 
-function add_user() {
+function add_user(ev) {
     var requestId = this.id;
     var query = "";
     var url = "";
@@ -173,7 +174,10 @@ function add_user() {
 		  return false;
 		}
         confirm_user_update(myObj, requestId);
-	  } else if (xhr.status === 500) {
+      } else if (xhr.readyState === 4 && xhr.status === 400) {
+          var error = JSON.parse(xhr.responseText)
+          document.getElementById('errorMessage').innerHTML = error['message'];
+	  } else if (xhr.readyState === 4 && xhr.status === 500) {
 		document.getElementById('errorMessage').innerHTML = xhr.responseText;
 	  }
 	};
@@ -184,23 +188,28 @@ function add_user() {
 	   xhr.open("POST",url);
     }
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-	xhr.send(query);
+    xhr.send(query);
+    ev.preventDefault();
 	return false;
 }
 
-function find_zones() {
+function find_zones(ev) {
     var requestId = this.id;
-    var zone = document.getElementById(requestId).value;
+    ev.preventDefault();
     if (requestId.includes("cidr")){
+        let zone = document.getElementById("cidr_search_input").value;
         get_request(admin_api_map["get_ip_zones"] + encodeURIComponent(zone), display_ip_zone);
         last_cidr = encodeURIComponent(zone);
     } else if (requestId.includes("ipv6")){
+        let zone = document.getElementById("ipv6_search_input").value;
         get_request(admin_api_map["get_ipv6_zones"] + encodeURIComponent(zone), display_ipv6_zone);
         last_ipv6 = encodeURIComponent(zone);
     } else {
+        let zone = document.getElementById("zone_search_input").value;
         get_request(admin_api_map["get_zones"] + zone.toLowerCase(), display_zone);
         last_zone = zone;
     }
+    return false;
 }
 
 function confirm_zone_update(results,id) {
@@ -383,7 +392,11 @@ function display_group_table(results) {
         displayHTML += create_table_entry(members);
         displayHTML += end_table_row()
 
-        groupSel.items.add({"value": results[i]['name'], content: {textContent: results[i]['name']}});
+        var option = document.createElement("option");
+        option.text = results[i]['name'];
+        option.value = results[i]['name'];
+
+        groupSel.add(option);
     }
 
     displayHTML += end_table() + "<br/>";

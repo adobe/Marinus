@@ -48,6 +48,8 @@ function build_page() {
         }
         let updateButton = document.getElementById("updateZone");
         updateButton.addEventListener("click", updateFilter);
+        let updateForm = document.getElementById("zoneFilter");
+        updateForm.addEventListener("submit", updateFilter);
     } else if (path === "/meta/header_details") {
         let header = qs("header");
         let value = qs("value");
@@ -59,17 +61,21 @@ function build_page() {
 function addHeaderSelectItem(result, args) {
     let name = args[0];
     let selected = args[1];
-    let headSelect = document.getElementById("headerSelect");
-    for (let header in zgrab_http_headers) {
+    var headSelect = document.getElementById("headerSelect");
+    for (var header in zgrab_http_headers) {
         if (header === name) {
+            let opt = document.createElement('option');
+            opt.appendChild( document.createTextNode(header + " - " + result["count"]) );
+            opt.value = header;
+
             if (name === selected) {
-                headSelect.items.add({"value": header, "content": {"textContent": header + " - " + result["count"]},"selected": true});
-            } else {
-                headSelect.items.add({"value": header, "content": {"textContent": header + " - " + result["count"]}});
+                opt.selected = true;
             }
+            headSelect.appendChild(opt);
         }
     }
 }
+
 
 function buildReportsSelect(header, zone, selected) {
     let url;
@@ -169,7 +175,7 @@ function updateFilter(ev) {
 
     //Rebuild select menu with new values
     let selectDiv = document.getElementById("selectDiv");
-    selectDiv.innerHTML = '<coral-select id="headerSelect" name="headerSelect" placeholder="Choose a header"></coral-select>';
+    selectDiv.innerHTML = '<select class="custom-select" id="headerSelect" name="headerSelect" placeholder="Choose a header"></select>';
     for (let name in zgrab_http_headers) {
         buildReportsSelect(name, zone, header);
     }
@@ -177,6 +183,9 @@ function updateFilter(ev) {
     //Reassign event listener to new select element
     let headSelect = document.getElementById("headerSelect");
     headSelect.addEventListener("change", headerLookupSelection);
+
+    ev.preventDefault();
+    return false;
 
 }
 

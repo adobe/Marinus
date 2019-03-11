@@ -15,19 +15,25 @@
 window.addEventListener("load", buildPage);
 
 function buildPage() {
-    document.getElementById("zone_input").addEventListener("coral-search:submit", doZoneLookup);
-    document.getElementById("fqdn_input").addEventListener("coral-search:submit", doFQDNLookup);
-    document.getElementById("ip_input").addEventListener("coral-search:submit", doIPLookup);
+    document.getElementById("zone_search").addEventListener("submit", doZoneLookup);
+    document.getElementById("fqdn_search").addEventListener("submit", doFQDNLookup);
+    document.getElementById("ip_search").addEventListener("submit", doIPLookup);
 }
 
-function doZoneLookup() {
+function doZoneLookup(event) {
+    event.preventDefault();
     window.document.location = "/zone?search=" + document.getElementById("zone_input").value;
+    return false;
 }
 
-function doFQDNLookup() {
+function doFQDNLookup(event) {
+    event.preventDefault();
     window.document.location = "/domain?search=" + document.getElementById("fqdn_input").value;
+    return false;
 }
 
-function doIPLookup() {
+function doIPLookup(event) {
+    event.preventDefault();
     window.document.location = "/ip?search=" + document.getElementById("ip_input").value;
+    return false;
 }

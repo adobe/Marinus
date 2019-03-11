@@ -18,29 +18,25 @@ var lastCensysResult;
 function buildPage() {
     if (ScanDataSources.includes("censys")) {
         let mainTable = document.getElementById("certCountTable");
+        mainTable.className = "table";
         let censysRow = mainTable.insertRow();
-        censysRow.className = "coral-Table-row";
         let cell1 = censysRow.insertCell(0);
-        cell1.className = "coral-Table-cell";
         cell1.innerHTML = "Censys Records";
         let cell2 = censysRow.insertCell(1);
-        cell2.className = "coral-Table-cell";
         cell2.id = "censysRecords";
         cell2.innerHTML = "";
     }
     if (ScanDataSources.includes("zgrab")) {
         let mainTable = document.getElementById("certCountTable");
+        mainTable.className = "table";
         let censysRow = mainTable.insertRow();
-        censysRow.className = "coral-Table-row";
         let cell1 = censysRow.insertCell(0);
-        cell1.className = "coral-Table-cell";
         cell1.innerHTML = "ZScan Records";
         let cell2 = censysRow.insertCell(1);
-        cell2.className = "coral-Table-cell";
         cell2.id = "zscanRecords";
         cell2.innerHTML = "";
     }
-    document.getElementById("search_input").addEventListener("coral-search:submit",queries);
+    document.getElementById("search_form").addEventListener("submit", queries);
     var searchVal = qs("search");
     if (searchVal) {
         document.getElementById("search_input").value = searchVal;
@@ -99,7 +95,7 @@ function displayZscan(results) {
 
 function displayCT(results) {
     var displayHTML = create_anchor("/api/v1.0/ct/download/" + results['_id'], "Click to download the DER file") + "<br/";
-    displayHTML += '<div class="coral-Well"><pre>' + results['full_certificate'] + "</pre></div><br/>";
+    displayHTML += '<div class="bg-light"><pre>' + results['full_certificate'] + "</pre></div><br/>";
     document.getElementById("certDetails").innerHTML = "<h3>Certificate</h3>" + displayHTML;
 }
 
@@ -139,7 +135,7 @@ function get_counts(url, divRef) {
     make_get_request(url, displayCountData, divRef, "", {"count": 0});
 }
 
-function queries() {
+function queries(event) {
     var sha_hash = document.getElementById("search_input").value.trim().toLowerCase();
 
     if (sha_hash.length === 40) {
@@ -159,4 +155,9 @@ function queries() {
             get_counts("/api/v1.0/zgrab/443/certs?count=1&fingerprint_sha256=" + sha_hash, "zscanRecords");
         }
     }
+
+    if (event) {
+        event.preventDefault();
+    }
+    return false;
 }

@@ -171,7 +171,7 @@ function clearErrorHandler() {
 }
 
 function create_h3(visible_text) {
-    return("<h3>" + visible_text + "</h3>");
+    return("<h4>" + visible_text + "</h4>");
 }
 
 function create_new_div(id, divClass = "") {
@@ -190,7 +190,7 @@ function create_new_div_section(column_name, visible_text) {
 }
 
 function create_new_list(list_id) {
-    return ('<coral-anchorlist id="' + list_id + '">');
+    return ('<div class="list-group">');
 }
 
 function create_list_entry(row_name, visible_text, href, include_count = false, icon_name='chevronRight', target_location = "") {
@@ -198,8 +198,15 @@ function create_list_entry(row_name, visible_text, href, include_count = false, 
     if (target_location !== "") {
         target_code = ' target="' + target_location + '" ';
     }
-    let output_text = '<a is="coral-anchorlist-item" id="' + row_name + '_link" icon="' + icon_name + '" href="' + href + '"' + target_code + '>';
-    output_text = output_text + visible_text;
+
+    let output_image = "";
+    if (icon_name === "chevronRight") {
+        output_image = '<img src="/stylesheets/octicons/svg/chevron-right.svg" alt="entry"/>&nbsp;';
+    } else if (icon_name === "lockOn") {
+        output_image = '<img src="/stylesheets/octicons/svg/lock.svg" alt="lock"/>&nbsp;';
+    }
+    let output_text = '<a class="list-group-item list-group-item-action" id="' + row_name + '_link" href="' + href + '"' + target_code + '>';
+    output_text = output_text + output_image + visible_text;
     if (include_count) {
         output_text = output_text + '<span id="' + row_name + '_count"></span>';
     }
@@ -208,7 +215,7 @@ function create_list_entry(row_name, visible_text, href, include_count = false, 
 }
 
 function end_list() {
-    return('</coral-anchorlist>');
+    return('</div>');
 }
 
 function end_div() {
@@ -231,7 +238,7 @@ function create_anchor(url, text, target = "", id = "") {
 }
 
 function create_new_table (class_string = "") {
-    let output_text = '<table class="coral-Table';
+    let output_text = '<table class="table';
     if (class_string !== "") {
         output_text += ' ' + class_string;
     }
@@ -240,39 +247,38 @@ function create_new_table (class_string = "") {
 }
 
 function create_table_head(names, class_string = "") {
-    let output_text = '<thead class="coral-Table-head';
+    let output_text = '<thead';
     if (class_string !== "") {
-        output_text += ' ' + class_string;
+        output_text += ' class=' + class_string + '"';
     }
-    output_text += '">';
-    output_text += '<tr class="coral-Table-row">';
+    output_text += '>';
+    output_text += '<tr>';
     for (let entry in names) {
-        output_text += '<th class="coral-Table-headerCell">' + names[entry] + '</th>';
+        output_text += '<th>' + names[entry] + '</th>';
     }
     output_text += '</tr></thead>';
     return(output_text);
 }
 
 function create_table_body (class_string = "") {
-    let output_text = '<tbody class="coral-Table-body';
+    let output_text = '<tbody';
     if (class_string !== "") {
-        output_text += ' ' + class_string + '"';
+        output_text += ' class="' + class_string + '"';
     }
     output_text += '>';
     return (output_text);
 }
 
 function create_table_row() {
-    return('<tr class="coral-Table-row">');
+    return('<tr>');
 }
 
 function create_table_entry(value, id="", tdClass="") {
-    let output_text = '<td class="coral-Table-cell';
+    let output_text = '<td';
     if (tdClass !== "") {
-        output_text += ' ' + tdClass + '"';
-    } else {
-        output_text += '"';
+        output_text += ' class="' + tdClass + '"';
     }
+
     if (id !== "") {
         output_text += ' id="' + id + '"';
     }
@@ -289,21 +295,21 @@ function end_table() {
 }
 
 function create_check_mark() {
-    return('<coral-icon icon="check" size="M"></coral-icon>');
+    return('<img src="/stylesheets/octicons/svg/check.svg" alt="check"/>');
 }
 
 function create_button(visible_text, button_id, button_type="icon", size = "S", icon = "search") {
 
     let settings = {"label": {"innerHTML": visible_text}};
 
-    if (button_type === "icon") {
-        settings["icon"] = icon;
-        settings["iconSize"] = size;
+    if (button_type === "icon" && icon === "search") {
+        visible_text = visible_text +  '&nbsp;<img src="/stylesheets/octicons/svg/search.svg" alt="search"/>';
     }
-    var newButton = new Coral.Button().set(settings);
-    newButton.set("id", button_id);
-    newButton.set("size", "L");
-    newButton.set("variant", "primary");
+
+    var newButton = document.createElement("button");
+    newButton.className = "btn btn-primary btn-lg";
+    newButton.innerHTML = visible_text;
+    newButton.id = button_id;
 
     return(newButton);
 }
@@ -334,18 +340,25 @@ function kill_paging_form(formName) {
 }
 
 function add_paging_html(formName, display_function) {
-    let html = '<span class="alignRight">';
-    html += '<form id="pagingForm-' + formName + '" class="coral-Form coral-Form--aligned u-columnLarge">';
-    html += '<section class="coral-Form-fieldset">';
-    html += '<div class="coral-Form-fieldwrapper">';
-    html += '<label class="coral-Form-fieldlabel" id="label-aligned-0">Results per page</label>';
-    html += '<coral-numberinput style="width:50px;" value="' + LIMIT.toString() + '" step="100" name="pageLimit-' + formName + '" id="pageLimit-' + formName + '" min="100" max="1000" labelledby="label-aligned-0"></coral-numberinput>';
-    html += '<coral-buttongroup name="button-group">';
-    html += '<button is="coral-button" icon="chevronLeft" iconsize="S" variant="secondary" id="prevPage-' + formName + '">Prev</button>';
-    html += '<button is="coral-button" icon="chevronRight" iconsize="S" variant="secondary" id="nextPage-' + formName + '">Next</button>';
-    html += '</coral-buttongroup>';
-    html += '</div></section></form>';
-    html += '</span>';
+    let html = '<div>';
+    html += '<form id="pagingForm-' + formName + '">';
+    html += '<nav aria-label="Page navigation">';
+    html += '<ul class="pagination">';
+    html += '<li class="page-item"><label for="pageLimit-' + formName + '" id="label-aligned-0">Results per page:&nbsp;</label></li>';
+    html += '<li class="page-item"><input type="number" style="width:100px;" value="' + LIMIT.toString() + '" step="100" name="pageLimit-' + formName + '" id="pageLimit-' + formName + '" min="100" max="1000"></input>&nbsp;</li>';
+    html += '<li class="page-item">';
+    html += '<a class="page-link" href="#" aria-label="Previous" id="prevPage-' + formName + '">';
+    html += '<span aria-hidden="true">&laquo;</span>';
+    html += '<span class="sr-only">Previous</span>';
+    html += '</a></li>';
+    html += '<li class="page-item">';
+    html += '<a class="page-link" href="#" aria-label="Next" id="nextPage-' + formName + '">';
+    html += '<span aria-hidden="true">&raquo;</span>';
+    html += '<span class="sr-only">Next</span>';
+    html += '</a></li></ul></nav>';
+    html += '</form>';
+    html += '</div>';
+
 
     PAGING_FUNCTIONS[formName] = display_function;
 

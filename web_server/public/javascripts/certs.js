@@ -34,7 +34,7 @@ function buildPage() {
 
     if (path === "/reports/ct_corp_ssl") {
         document.getElementById("excludeExpired").addEventListener("change", reload_corp_certs);
-        fetch_ct_corp_certs();
+        fetch_ct_corp_certs(toggleState);
     } else if (path === "/reports/scan_corp_certs") {
         fetch_corp_certs();
     } else if (path === "/reports/scan_expired_ssl") {
@@ -66,7 +66,7 @@ function display_ct_corp_certs(results) {
 
         var cns = results[i]['subject_common_names'];
         var dns = results[i]['subject_dns_names'];
-        displayHTML += '<td class="coral-Table-cell td-word-wrap">';
+        displayHTML += '<td class="td-word-wrap">';
         var j = 0;
         for (j=0; j < cns.length; j++) {
             displayHTML += cns[j] + ", ";
@@ -99,6 +99,7 @@ function display_ct_corp_certs(results) {
 
 function reload_corp_certs(ev) {
     toggleState = !toggleState;
+    document.getElementById("ct_corp_certs").innerHTML = '<img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation" alt="timer"/>';
     fetch_ct_corp_certs(toggleState);
 }
 
@@ -141,7 +142,7 @@ function display_corp_certs(results) {
             dns = tls_log['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
         }
 
-        displayHTML += '<td class="coral-Table-cell td-word-wrap">';
+        displayHTML += '<td class="td-word-wrap">';
 
         var j = 0;
         for (j=0; j < cns.length; j++) {
@@ -266,7 +267,7 @@ function display_expired_certs(results, year) {
                 dns = [];
             }
         }
-        displayHTML += '<td class="coral-Table-cell td-word-wrap">';
+        displayHTML += '<td class="td-word-wrap">';
 
         if (cns === undefined) {cns = [];}
         if (dns === undefined) {dns = [];}
@@ -399,7 +400,7 @@ function display_expired_certs_2k(results) {
             }
         }
 
-        displayHTML += '<td class="coral-Table-cell td-word-wrap">';
+        displayHTML += '<td class="td-word-wrap">';
 
         if (cns === undefined) {cns = [];}
         if (dns === undefined) {dns = [];}
@@ -497,7 +498,7 @@ function display_algorithm_certs(results) {
             }
         }
 
-        displayHTML += '<td class="coral-Table-cell td-word-wrap">';
+        displayHTML += '<td class="td-word-wrap">';
         var j = 0;
 
         if (cns === undefined) {cns = [];}
@@ -545,14 +546,21 @@ function display_certificate(results, req_type) {
     var displayHTML = "";
     if (req_type === "ct_id" || req_type === "ct_sha1" || req_type === "ct_sha256") {
         displayHTML = '<a href="/api/v1.0/ct/download/' + results['_id'] + '">Click to download the DER file</a><br/>';
-        displayHTML += '<div class="coral-Well"><pre>' + results['full_certificate'] + "</pre></div><br/>";
+        displayHTML += '<div class="bg-light"><pre>' + results['full_certificate'] + "</pre></div><br/>";
     } else if (req_type === "censys_sha1" || req_type === "censys_sha256") {
         let cert_string = JSON.stringify(results[0]['p443']['https']['tls']['certificate']['parsed'],null,2);
-        displayHTML += '<div class="coral-Well"><pre>' + cert_string + "</pre></div><br/>";
+        displayHTML += '<div class="bg-light"><pre>' + cert_string + "</pre></div><br/>";
     } else {
-        let tls_log = get_tls_log(results, i);
+        let tls_log;
+        if (results[0]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+            // ZGrab 2.0
+            tls_log = results[0]['data']['http']['response']['request']['tls_log']['handshake_log'];
+        } else {
+            // ZGrab
+            tls_log = results[0]['data']['http']['response']['request']['tls_handshake'];
+        }
         let cert_string = JSON.stringify(tls_log['server_certificates']['certificate']['parsed'],null,2);
-        displayHTML += '<div class="coral-Well"><pre>' + cert_string + "</pre></div><br/>";
+        displayHTML += '<div class="bg-light"><pre>' + cert_string + "</pre></div><br/>";
     }
 
     document.getElementById("cert_info").innerHTML = displayHTML;
@@ -679,30 +687,35 @@ function fetch_issuer_list() {
 
 function display_scan_cas(results) {
     if (results.length >= LIMIT || PAGE > 1) {
-        document.getElementById("tableTitle").innerHTML = current_ca_name + "<br/>" + add_paging_html("certs", display_scan_cas);
+        document.getElementById("tableTitle").innerHTML = "<b>" + current_ca_name + "</b><br/>" + add_paging_html("certs", display_scan_cas);
         document.getElementById("prevPage-certs").addEventListener("click", cert_page_back);
         document.getElementById("nextPage-certs").addEventListener("click", cert_page_forward);
         document.getElementById("pageLimit-certs").addEventListener("change", function(){update_limit("certs")});
     } else {
-        document.getElementById("tableTitle").innerHTML = current_ca_name;
+        document.getElementById("tableTitle").innerHTML = "<b>" + current_ca_name + "</b>";
     }
 
     let displayHTML = create_new_list("CASList");
 
     for (let result in results) {
         if (certSource === "censys") {
-            displayHTML += '<a is="coral-anchorlist-item" icon="lockOn" href="/reports/display_cert?type=censys_sha1&sha1=' +
+            displayHTML += '<a class="list-group-item list-group-item-action" href="/reports/display_cert?type=censys_sha1&sha1=' +
              results[result]['p443']['https']['tls']['certificate']['parsed']['fingerprint_sha1'] + '" target="_blank">' +
               results[result]['ip'].toString() + '-' + results[result]['p443']['https']['tls']['certificate']['parsed']['subject']['common_name'][0] + '</a>';
         } else {
-            let tls_log = get_tls_log(results, result);
+            let tls_log;
+            if ('tls_log' in results[result]['data']['http']['response']['request']) {
+                tls_log =results[result]['data']['http']['response']['request']['tls_log']['handshake_log'];
+            } else {
+                tls_log =results[result]['data']['http']['response']['request']['tls_handshake'];
+            }
 
             if (results[result]['ip'] === "<nil>") {
-                displayHTML += '<a is="coral-anchorlist-item" icon="lockOn" href="/reports/display_cert?type=zgrab_sha1&sha1=' +
+                displayHTML += '<a class="list-group-item list-group-item-action" href="/reports/display_cert?type=zgrab_sha1&sha1=' +
                 tls_log['server_certificates']['certificate']['parsed']['fingerprint_sha1'] +
                 '" target="_blank">' + results[result]['domain'].toString() + '-' + tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'][0] + '</a>';
             } else {
-                displayHTML += '<a is="coral-anchorlist-item" icon="lockOn" href="/reports/display_cert?type=zgrab_sha1&sha1=' +
+                displayHTML += '<aclass="list-group-item list-group-item-action" href="/reports/display_cert?type=zgrab_sha1&sha1=' +
                 tls_log['server_certificates']['certificate']['parsed']['fingerprint_sha1'] +
                  '" target="_blank">' + results[result]['ip'].toString() + '-' + tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'][0] + '</a>';
             }
@@ -714,7 +727,7 @@ function display_scan_cas(results) {
     document.getElementById("report_details").innerHTML = displayHTML;
 }
 
-function cert_page_back() {
+function cert_page_back(event) {
     var url;
     if (certSource === "censys") {
         url = "/api/v1.0/censys/cert_ca/" + current_ca_name;
@@ -722,10 +735,11 @@ function cert_page_back() {
         url = api_map["zgrab_root"] + "443/cert_ca/" + current_ca_name;
     }
     let query = "";
+    event.preventDefault();
     page_back(url, query, "certs");
 }
 
-function cert_page_forward() {
+function cert_page_forward(event) {
     var url;
     if (certSource === "censys") {
         url = "/api/v1.0/censys/cert_ca/" + current_ca_name;
@@ -733,6 +747,7 @@ function cert_page_forward() {
         url = api_map["zgrab_root"] + "443/cert_ca/" + current_ca_name;
     }
     let query = "";
+    event.preventDefault();
     page_forward(url, query, "certs");
 }
 

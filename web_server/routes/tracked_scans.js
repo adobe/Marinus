@@ -353,7 +353,7 @@ module.exports = function(envConfig) {
             promise.then(function(data) {
                 if (count && (port === "22" || port === "25" || port === "465")) {
                     res.status(200).json({'count': data.length});
-                } else if (count && port === "443" && req.query.use_port_data !== "1") {
+                } else if (count && port === "443" && req.query.use_port_data === "1") {
                     res.status(200).json({'count': data.length});
                 } else if (count) {
                     res.status(200).json({'count': data});

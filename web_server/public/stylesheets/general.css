@@ -100,3 +100,11 @@ table.resultsTable {
 .boldElem {
     font-weight: bold;
 }
+
+.rotateAnimation {
+    animation:spin 4s linear infinite;
+    height: 48px;
+}
+
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+

@@ -40,7 +40,7 @@ function add_table_row(displayName, cellID) {
 }
 
 function buildPage() {
-    document.getElementById("search_input").addEventListener("coral-search:submit",queries);
+    document.getElementById("search_form").addEventListener("submit", queries);
 
     if (ScanDataSources.includes("censys")) {
         useCensys = true;
@@ -53,11 +53,11 @@ function buildPage() {
     }
 
     if (DynamicWhoisEnabled) {
-        let whois_header = document.createElement('h3');
+        let whois_header = document.createElement('h4');
         whois_header.innerHTML = "Dynamic Whois";
         let whois_div = document.createElement('div');
         whois_div.id = "dynamic_whois";
-        whois_div.style = "coral-Well";
+        whois_div.style = "bg-light";
         whois_div.appendChild(create_button("Perform lookup", "whoisLookup"));
         document.getElementById("dynamic_whois_section").appendChild(whois_div);
         document.getElementById("whoisLookup").addEventListener("click",whois_lookup);
@@ -86,7 +86,7 @@ function displayCensys(result_text) {
 
     displayHTML += end_table();
 
-    document.getElementById("rangeInfo").innerHTML = "<h3>Censys Records</h3>" + displayHTML;
+    document.getElementById("rangeInfo").innerHTML = "<h4>Censys Records</h4>" + displayHTML;
 }
 
 function displaySRDNS(results) {
@@ -109,7 +109,7 @@ function displaySRDNS(results) {
 
     displayHTML += end_table();
 
-    document.getElementById("rangeInfo").innerHTML = "<h3>RDNS Results</h3>" + displayHTML;
+    document.getElementById("rangeInfo").innerHTML = "<h4>RDNS Results</h4>" + displayHTML;
 }
 
 function displayDNS(results) {
@@ -138,7 +138,7 @@ function displayDNS(results) {
 
     displayHTML += end_table();
 
-    document.getElementById("rangeInfo").innerHTML = "<h3>DNS Results</h3>" + displayHTML;
+    document.getElementById("rangeInfo").innerHTML = "<h4>DNS Results</h4>" + displayHTML;
 }
 
 function get_details() {
@@ -181,16 +181,19 @@ function displayCountData(results, divRef) {
     }
 }
 
-function queries() {
+function queries(event) {
     var range = document.getElementById("search_input").value;
     var ipv4 = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$/;
+ 
     if (!(range.match(ipv4))) {
         errorHandler("Invalid Range: " + range);
         return;
     }
+
     if (useCensys) {
         get_counts("/api/v1.0/censys/ips?count=1&range=" + range,"censys");
     }
+
     for (let entry in divRefTable) {
         if (entry === "sonar_rdns") {
             make_get_request("/api/v1.0/sonar/rdns?count=1&range=" + range, displayCountData, "sonar_rdns");
@@ -198,4 +201,9 @@ function queries() {
             make_get_request("/api/v1.0/dns?count=1&source=" + entry + "&range=" + range, displayCountData, entry);
         }
     }
+
+    if (event) {
+        event.preventDefault();
+    }
+    return false;
 }
