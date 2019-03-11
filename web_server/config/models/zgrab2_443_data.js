@@ -462,7 +462,7 @@ module.exports = {
                     }).exec();
                 }
             }
-         } else {
+        } else {
             if (count === true) {
                 promise = z2_443_schema.zgrab2_443_model.aggregate([{"$project":
                     {'data.http':
