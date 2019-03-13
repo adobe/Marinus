@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## March 11, 2019
+* The WebUI has been simplified to be completely based on Boostrap, jQuery, and Octicons.
+
+
 ## March 7, 2019
 * Splunk libraries and a script template have been added. Some organizations store useful information in Splunk that could be correlated with Marinus. Unfortunately, the way that the data is stored and indexed would vary between organizations. As a compromise, Marinus provides libraries for accessing Splunk. However, unlike other Marinus code, the get_splunk_data.py script would need code contributed by the user in order to be run. The file is only a template containing sample code for using the Splunk libraries.
 * The API for fetching internal domain references within TLS certificates has been updated to allow for retrieving the count.
