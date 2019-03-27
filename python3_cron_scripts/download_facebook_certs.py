@@ -126,8 +126,11 @@ def main():
     parser.add_argument('--cert_save_location', required=False, default=file_path, help='Indicates where to save the certificates on disk when choosing dbAndSave')
     args = parser.parse_args()
 
-
     check_save_location(args.cert_save_location)
+
+    save_location = args.cert_save_location
+    if not save_location.endswith("/"):
+        save_location = save_location + "/"
 
     for zone in zones:
         time.sleep(15)
@@ -141,7 +144,7 @@ def main():
 
         for result in results:
             if args.fetch_cert_records == "dbAndSave":
-                cert_f = open(args.cert_save_location + "/" + zone + "_" + result['id'] + ".pem", "w")
+                cert_f = open(save_location + zone + "_" + result['id'] + ".pem", "w")
                 cert_f.write(result['certificate_pem'])
                 cert_f.close()
 
