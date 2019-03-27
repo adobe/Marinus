@@ -141,7 +141,7 @@ def main():
 
         for result in results:
             if args.fetch_cert_records == "dbAndSave":
-                cert_f = open(args.cert_save_location + zone + "_" + result['id'] + ".pem", "w")
+                cert_f = open(args.cert_save_location + "/" + zone + "_" + result['id'] + ".pem", "w")
                 cert_f.write(result['certificate_pem'])
                 cert_f.close()
 
