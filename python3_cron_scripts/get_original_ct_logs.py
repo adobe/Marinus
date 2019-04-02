@@ -237,10 +237,14 @@ def write_file(cert, save_location, save_type, source):
 
     if save_type == "PEM":
         new_file = crypto.dump_certificate(crypto.FILETYPE_PEM, c_file)
-        open(save_location + "ct_" + source + "/" + str(cert[source + "_id"]) + ".pem", "wb").write(new_file)
+        fh = open(save_location + "ct_" + source + "/" + str(cert[source + "_id"]) + ".pem", "wb")
+        fh.write(new_file)
+        fh.close()
     else:
         new_file = crypto.dump_certificate(crypto.FILETYPE_ASN1, c_file)
-        open(save_location + "ct_" + source + "/" + str(cert[source + "_id"]) + ".der", "wb").write(new_file)
+        fh = open(save_location + "ct_" + source + "/" + str(cert[source + "_id"]) + ".der", "wb")
+        fh.write(new_file)
+        fh.close()
 
 
 def check_save_location(save_location, source):
