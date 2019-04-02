@@ -114,6 +114,17 @@ def download_whois_data(whois_collection, remote_whois_collection):
     whois_collection.remove({'updated': {"$lte": scrub_date}})
 
 
+def download_jobs_status(jobs_collection, remote_jobs_collection):
+    """
+    Download the latest whois information.
+    """
+    print("Beginning Jobs status download")
+    jobs_results = remote_jobs_collection.find({}, {"_id": 0})
+
+    for result in jobs_results:
+        jobs_collection.update({'job_name': result['job_name']}, result, upsert=True)
+
+
 def main():
     """
     Begin Main...
@@ -168,6 +179,9 @@ def main():
         download_whois_data(whois_collection, remote_whois_collection)
         remote_jobs_collection.update({'job_name': 'whois'}, {'$set': {'status': jobs_manager.READY}})
 
+
+    # Download the status of the remote jobs
+    download_jobs_status(jobs_manager._jobs_collection, remote_jobs_collection)
 
     # Update the local jobs database to done
     jobs_manager.record_job_complete()
