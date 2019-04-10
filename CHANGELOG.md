@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## April 10, 2019
+* As a parallel to the all_dns collection, an all_ips collection has been created. This collection centralizes all IPv4 and IPv6 information into a single collection. The data is de-duplicated and references to local resources are not recorded. This collection can be particularly useful if you obtaining data from internal resources and/or have a large number of IP addresses that do not have a corresponding DNS record. In this case, the code assumes that internal data comes from a Splunk resource but the code could be easily customized to whatever is relevant for your organization.
+* Marinus now collects Google Cloud Compute public IP ranges.
+
+
 ## March 11, 2019
 * The WebUI has been simplified to be completely based on Boostrap, jQuery, and Octicons.
 

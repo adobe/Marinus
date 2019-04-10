@@ -40,9 +40,8 @@ import os
 import random
 from dateutil.parser import parse
 from datetime import datetime, timedelta
-from netaddr import IPAddress, IPNetwork
 
-from libs3 import RemoteMongoConnector, JobsManager
+from libs3 import RemoteMongoConnector, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -64,21 +63,7 @@ def is_running(process):
     return False
 
 
-def check_in_cidr(ip_addr, cidrs):
-    """
-    Is the provided IP in one of the provided CIDRs?
-    """
-    try:
-        local_ip = IPAddress(ip_addr)
-        for network in cidrs:
-            if local_ip in network:
-                return True
-    except:
-        return False
-    return False
-
-
-def get_domains(all_dns_collection, zone):
+def get_domains(all_dns_collection, ip_manager, zone):
     """
     Get the list of domains based on zones
     """
@@ -87,8 +72,7 @@ def get_domains(all_dns_collection, zone):
     domains = []
     for result in zone_results:
         if result['fqdn'] not in domains \
-            and not check_in_cidr(result['value'], [IPNetwork("10.0.0.0/8"), IPNetwork("172.16.0.0/12"), IPNetwork("192.168.0.0/16"), IPNetwork("127.0.0.0/8")]) \
-                and result['value'] is not "255.255.255.255":
+            and not ip_manager.is_local_ip(result['value']):
                     domains.append(result['fqdn'])
 
     random.shuffle(domains)
@@ -290,11 +274,12 @@ def main():
     global_zgrab_path = args.zgrab_path
 
     zones = ZoneManager.get_distinct_zones(rm_connector)
+    ip_manager = IPManager.IPManager(rm_connector)
 
     for zone in zones:
         global_exit_flag = 0
 
-        domains = get_domains(all_dns_collection, zone)
+        domains = get_domains(all_dns_collection, ip_manager, zone)
 
         if len(domains) == 0:
             continue

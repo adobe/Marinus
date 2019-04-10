@@ -26,7 +26,7 @@ The "{source}_saved" indicates the original source while also indicating that Ma
 
 from datetime import datetime
 
-from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
+from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
 
 def is_tracked_zone(cname, zones):
@@ -156,6 +156,8 @@ def main():
     all_dns_collection = mongo_connector.get_all_dns_connection()
     dns_manager = DNSManager.DNSManager(mongo_connector)
     GDNS = GoogleDNS.GoogleDNS()
+    ip_manager = IPManager.IPManager(mongo_connector)
+
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'remove_expired_entries')
     jobs_manager.record_job_start()
 
@@ -169,6 +171,8 @@ def main():
     # Remove the old records
     srdns_collection = mongo_connector.get_sonar_reverse_dns_connection()
     srdns_collection.remove({'updated': {"$lt": d_minus_2m}})
+
+    ip_manager.delete_records_by_date(d_minus_2m)
 
     # Before completely removing old entries, make an attempt to see if they are still valid.
     # Occasionally, a host name will still be valid but, for whatever reason, is no longer tracked by a source.
@@ -226,4 +230,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -31,8 +31,8 @@ def create_collections(m_connection):
     MongoDB won't create a collection until data is inserted.
     Therefore, this function just warns if the setup has been run before.
     """
-    collections = ["akamai_ips", "all_dns", "aws_ips", "censys", "cert_graphs", "cidr_graphs", "config", "ct_certs", "dead_dns",
-                   "get_route53", "graphs_data", "graphs_docs", "graphs_links", "groups", "iblox_a_records", "iblox_aaaa_records",
+    collections = ["akamai_ips", "all_dns", "all_ips", "aws_ips", "censys", "cert_graphs", "cidr_graphs", "config", "ct_certs", "dead_dns",
+                   "get_route53", "gcp_ips", "graphs_data", "graphs_docs", "graphs_links", "groups", "iblox_a_records", "iblox_aaaa_records",
                    "iblox_cname_records", "iblox_host_records", "iblox_mx_records", "iblox_extattr_records", "iblox_txt_records",
                    "ip_zones", "ipv6_zones", "jobs", "sessions", "sonar_rdns", "tpd_graphs", "tpds", "users", "virustotal",
                    "whois", "zgrab_443_data", "zgrab_80_data", "zgrab_port_data", "zones"]

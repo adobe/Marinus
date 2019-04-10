@@ -18,6 +18,8 @@ Having it centralized, means that the included and excluded status' can be manag
 from pymongo import MongoClient
 from datetime import datetime
 
+from tld import get_fld
+
 
 class ZoneManager(object):
 
@@ -144,6 +146,18 @@ class ZoneManager(object):
                 zones.append(zone)
 
         return zones
+
+
+    @staticmethod
+    def get_root_domain(value, zone=None):
+        """
+        Get the root domain (FLD) for the provided value
+        """
+        res = get_fld(value, fix_protocol=True, fail_silently=True)
+        if res is None:
+            return zone
+
+        return res
 
 
     def get_zone(self, zone):

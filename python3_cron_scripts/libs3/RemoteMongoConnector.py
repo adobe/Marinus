@@ -218,6 +218,10 @@ class RemoteMongoConnector(object):
         """ Returns a connection to the ip_zones collection in MongoDB """
         return self.m_connection.ip_zones
 
+    def get_ipv6_zone_connection(self):
+        """ Returns a connection to the ipv6_zones collection in MongoDB """
+        return self.m_connection.ipv6_zones
+
     def get_config_connection(self):
         """ Returns a connection to the config collection in MongoDB """
         return self.m_connection.config
@@ -238,9 +242,17 @@ class RemoteMongoConnector(object):
         """ Returns a connection to the common_crawl collection in MongoDB """
         return self.m_connection.common_crawl
 
+    def get_gcp_ips_connection(self):
+        """ Returns a connection to the dead_dns collection in MongoDB """
+        return self.m_connection.gcp_ips
+
     def get_all_dns_connection(self):
         """ Returns a connection to the all_dns collection in MongoDB """
         return self.m_connection.all_dns
+
+    def get_all_ips_connection(self):
+        """ Returns a connection to the all_ips collection in MongoDB """
+        return self.m_connection.all_ips
 
     def get_whois_connection(self):
         """ Returns a connection to the whois collection in MongoDB """
@@ -269,3 +281,7 @@ class RemoteMongoConnector(object):
     def get_zgrab_port_data_connection(self):
         """ Returns a connection to the zgrab_port collection in MongoDB """
         return self.m_connection.zgrab_port_data
+
+    def get_akamai_ips_connection(self):
+        """ Returns a connection to the akamai_ips collection in MongoDB """
+        return self.m_connection.akamai_ips

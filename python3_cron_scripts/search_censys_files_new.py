@@ -31,9 +31,7 @@ import subprocess
 import sys
 from datetime import datetime
 
-from netaddr import IPAddress, IPNetwork
-
-from libs3 import RemoteMongoConnector
+from libs3 import RemoteMongoConnector, IPManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -50,56 +48,6 @@ def is_running(process):
         if re.search(process, str(proc)):
             return True
     return False
-
-
-def get_aws_ips(RMC, aws_ips):
-    """
-    Get the list of AWS CIDRs.
-    """
-    aws_ips_collection = RMC.get_aws_ips_connection()
-
-    results = aws_ips_collection.find({})
-    for result in results[0]['prefixes']:
-        aws_ips.append(IPNetwork(result['ip_prefix']))
-
-
-def get_azure_ips(RMC, azure_ips):
-    """
-    Get the list of Azure CIDRs.
-    """
-    azure_ips_collection = RMC.get_azure_ips_connection()
-
-    results = azure_ips_collection.find({})
-    for result in results[0]['prefixes']:
-        azure_ips.append(IPNetwork(result['ip_prefix']))
-
-
-def check_in_cidr(ip_addr, cidrs):
-    """
-    Is the provided IP in one of the provided CIDRs?
-    """
-    try:
-        local_ip = IPAddress(ip_addr)
-        for network in cidrs:
-            if local_ip in network:
-                return True
-    except:
-        return False
-    return False
-
-
-def is_aws_ip(ip_addr, aws_ips):
-    """
-    Is the provided IP within one of the AWS CIDRs?
-    """
-    return check_in_cidr(ip_addr, aws_ips)
-
-
-def is_azure_ip(ip_addr, azure_ips):
-    """
-    Is the provided IP within one of the Azure CIDRs?
-    """
-    return check_in_cidr(ip_addr, azure_ips)
 
 
 def check_in_org(entry, orgs):
@@ -211,6 +159,8 @@ def main():
     # Make the relevant database connections
     RMC = RemoteMongoConnector.RemoteMongoConnector()
 
+    ip_manager = IPManager.IPManager(RMC)
+
     # Verify that the get_files script has a recent file in need of parsing.
     jobs_collection = RMC.get_jobs_connection()
 
@@ -228,28 +178,6 @@ def main():
     zones = ZoneManager.get_distinct_zones(RMC)
 
     print("Zones: " + str(len(zones)))
-
-    # Collect the list of AWS CIDRs
-    aws_ips = []
-    get_aws_ips(RMC, aws_ips)
-
-    print("AWS IPs: " + str(len(aws_ips)))
-
-    # Collect the list of Azure CIDRs
-    azure_ips = []
-    get_azure_ips(RMC, azure_ips)
-
-    print("Azure IPs: " + str(len(azure_ips)))
-
-    # Collect the list of known CIDRs
-    ip_zones_collection = RMC.get_ipzone_connection()
-
-    results = ip_zones_collection.find({'status': {"$ne": "false_positive"}})
-    cidrs = []
-    for entry in results:
-        cidrs.append(IPNetwork(entry['zone']))
-
-    print("CIDRs: " + str(len(cidrs)))
 
     # Get the current configuration information for Marinus.
     config_collection = RMC.get_config_connection()
@@ -284,13 +212,15 @@ def main():
 
                     """
                     Does the SSL certificate match a known organization?
-                    Is the IP address in a known CIDR?
+                    Is the IP address in a known CIDR or Splunk?
                     """
                     if check_in_org(entry, orgs) or \
-                       check_in_cidr(entry['ip'], cidrs):
+                      ip_manager.is_tracked_ip(entry['ip']) or \
+                        ip_manager.find_splunk_data(entry['ip'], "AWS") is not None or \
+                          ip_manager.find_splunk_data(entry['ip'], "AZURE") is not None:
                             entry['zones'] = check_in_zone(entry, zones)
-                            entry['aws'] = is_aws_ip(entry['ip'], aws_ips)
-                            entry['azure'] = is_azure_ip(entry['ip'], azure_ips)
+                            entry['aws'] = ip_manager.is_aws_ip(entry['ip'])
+                            entry['azure'] = ip_manager.is_azure_ip(entry['ip'])
                             (domains, zones) = lookup_domain(entry, zones, all_dns_collection)
                             if len(domains) > 0:
                                 entry['domains'] = domains
@@ -304,8 +234,8 @@ def main():
                     #     matched_zones = check_in_zone(entry, zones)
                     #     if matched_zones != []:
                     #         entry['zones'] = matched_zones
-                    #         entry['aws'] = is_aws_ip(entry['ip'], aws_ips)
-                    #         entry['azure'] = is_azure_ip(entry['ip'], azure_ips)
+                    #         entry['aws'] = ip_manager.is_aws_ip(entry['ip'])
+                    #         entry['azure'] = ip_manager.is_azure_ip(entry['ip'])
                     #         insert_result(entry, results_collection)
                 except ValueError as err:
                     print("Value Error!")

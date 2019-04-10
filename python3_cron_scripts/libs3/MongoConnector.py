@@ -108,7 +108,7 @@ class MongoConnector(object):
         self._init_mongo_connection(config)
 
 
-    def perform_find(self, collection, query, filter=None):
+    def perform_find(self, collection, query, filter=None, batch_size=None):
         """
         This will perform a find with a retry for dropped connections
         """
@@ -117,9 +117,15 @@ class MongoConnector(object):
         while not success:
             try:
                 if filter is not None:
-                    result = collection.find(query, filter)
+                    if batch_size is not None:
+                        result = collection.find(query, filter).batch_size(batch_size)
+                    else:
+                        result = collection.find(query, filter)
                 else:
-                    result = collection.find(query)
+                    if batch_size is not None:
+                        result = collection.find(query).batch_size(batch_size)
+                    else:
+                        result = collection.find(query)
                 success = True
             except AutoReconnect:
                 if num_tries < 5:
@@ -213,6 +219,10 @@ class MongoConnector(object):
         """ Returns a connection to the all_dns collection in MongoDB """
         return self.m_connection.all_dns
 
+    def get_all_ips_connection(self):
+        """ Returns a connection to the all_dns collection in MongoDB """
+        return self.m_connection.all_ips
+
     def get_aws_ips_connection(self):
         """ Returns a connection to the aws_ips collection in MongoDB """
         return self.m_connection.aws_ips
@@ -244,6 +254,10 @@ class MongoConnector(object):
     def get_dead_dns_connection(self):
         """ Returns a connection to the dead_dns collection in MongoDB """
         return self.m_connection.dead_dns
+
+    def get_gcp_ips_connection(self):
+        """ Returns a connection to the dead_dns collection in MongoDB """
+        return self.m_connection.gcp_ips
 
     def get_graphs_connection(self):
         """ Returns a connection to the graphs collection in MongoDB """

@@ -30,12 +30,10 @@ import time
 from datetime import datetime, timedelta
 
 import networkx as nx
-from netaddr import IPAddress, IPNetwork
 from networkx.readwrite import json_graph
 
-from libs3 import DNSManager, MongoConnector, JobsManager
+from libs3 import DNSManager, MongoConnector, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
-
 
 
 # Constant for dealing with Mongo not allowing "." in key names
@@ -50,108 +48,6 @@ def add_to_list(str_to_add, groups):
     if str_to_add.replace(".", REPLACE_CHAR) not in groups:
         groups.append(str_to_add.replace(".", REPLACE_CHAR))
     return groups.index(str_to_add.replace(".", REPLACE_CHAR))
-
-
-def check_in_cidr(ip_addr, cidrs):
-    """
-    This will check whether the given IP is within any of the provided CIDR ranges.
-    """
-    try:
-        local_ip = IPAddress(ip_addr)
-        for network in cidrs:
-            if local_ip in network:
-                return True
-    except:
-        return False
-    return False
-
-
-def get_aws_ips(mongo_connector):
-    """
-    Extract the list of AWS Networks from the Mongo database.
-    They are stored within the aws_ips global.
-    """
-    aws_ips = []
-    aws_collection = mongo_connector.get_aws_ips_connection()
-
-    results = aws_collection.find({})
-    for result in results[0]['prefixes']:
-        aws_ips.append(IPNetwork(result['ip_prefix']))
-
-    return aws_ips
-
-
-def get_azure_ips(mongo_connector):
-    """
-    Extract the list of Azure Networks from the Mongo database.
-    They are stored within the aws_ips global.
-    """
-    azure_ips = []
-    azure_collection = mongo_connector.get_azure_ips_connection()
-
-    results = azure_collection.find({})
-    for result in results[0]['prefixes']:
-        azure_ips.append(IPNetwork(result['ip_prefix']))
-
-    return azure_ips
-
-
-def get_akamai_ips(mongo_connector):
-    """
-    Extract the list of Akamai Networks from the Mongo database.
-    They are stored within the aws_ips global.
-    """
-    akamai_ips = []
-    akamai_collection = mongo_connector.get_akamai_ips_connection()
-
-    results = akamai_collection.find({})
-    for result in results[0]['ranges']:
-        akamai_ips.append(IPNetwork(result['cidr']))
-
-    return akamai_ips
-
-
-def get_tracked_ips(mongo_connector):
-    """
-    Extract the list of tracked CIDR Networks from the Mongo database.
-    They are stored within the adope_ips global.
-    """
-    tracked_ips = []
-    ipzone_collection = mongo_connector.get_ipzone_connection()
-
-    results = ipzone_collection.find({'status': {"$ne": "false_positive"}})
-    for result in results:
-        tracked_ips.append(IPNetwork(result['zone']))
-
-    return tracked_ips
-
-
-def is_aws_ip(ip_addr, aws_ips):
-    """
-    Is the provided IP within an AWS CIDR?
-    """
-    return check_in_cidr(ip_addr, aws_ips)
-
-
-def is_azure_ip(ip_addr, azure_ips):
-    """
-    Is the provided IP within an Azure CIDR?
-    """
-    return check_in_cidr(ip_addr, azure_ips)
-
-
-def is_akamai_ip(ip_addr, akamai_ips):
-    """
-    Is the provided IP within an Akamai CIDR?
-    """
-    return check_in_cidr(ip_addr, akamai_ips)
-
-
-def is_tracked_ip(ip_addr, tracked_ips):
-    """
-    Is the provided IP within a tracked CIDR?
-    """
-    return check_in_cidr(ip_addr, tracked_ips)
 
 
 def create_list_of_cidrs(groups, mongo_connector, dns_manager):
@@ -189,42 +85,32 @@ def create_network_data_sets(groups, mongo_connector):
     group_data['akamai_count'] = 0
     group_data['azure_count'] = 0
 
-    # Get the AWS CIDRs
-    aws_ips = get_aws_ips(mongo_connector)
-
-    # Get the Azure CIDRs
-    azure_ips = get_azure_ips(mongo_connector)
-
-    # Get the Akamai CIDRS
-    akamai_ips = get_akamai_ips(mongo_connector)
-
-    # Get the tracked CIDRS
-    tracked_ips = get_tracked_ips(mongo_connector)
+    ip_manager = IPManager.IPManager(mongo_connector)
 
     for group in groups:
         cidr = group.replace(REPLACE_CHAR, ".")
         fake_ip = cidr + ".1"
         group_data[group] = {}
         group_data[group]['class_c'] = cidr
-        if is_aws_ip(fake_ip, aws_ips):
+        if ip_manager.is_aws_ip(fake_ip):
             group_data[group]['aws'] = True
             group_data['aws_count'] = group_data['aws_count'] + 1
         else:
             group_data[group]['aws'] = False
 
-        if is_azure_ip(fake_ip, azure_ips):
+        if ip_manager.is_azure_ip(fake_ip):
             group_data[group]['azure'] = True
             group_data['azure_count'] = group_data['azure_count'] + 1
         else:
             group_data[group]['azure'] = False
 
-        if is_akamai_ip(fake_ip, akamai_ips):
+        if ip_manager.is_akamai_ip(fake_ip):
             group_data['akamai_count'] = group_data['akamai_count'] + 1
             group_data[group]['akamai'] = True
         else:
             group_data[group]['akamai'] = False
 
-        if is_tracked_ip(fake_ip, tracked_ips):
+        if ip_manager.is_tracked_ip(fake_ip):
             group_data[group]['tracked'] = True
             group_data['tracked_count'] = group_data['tracked_count'] + 1
         else:

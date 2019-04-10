@@ -11,7 +11,7 @@
 # governing permissions and limitations under the License.
 
 """
-This script will use the ZGrab utility to make HTTP and HTTPS connections to IP addresses.
+This script will use the ZGrab 2.0 utility to make HTTP and HTTPS connections to IP addresses.
 This script is different than zgrab_port because it supports HTTP-specific features such as following redirects.
 It will log the full HTTP response along including both the headers and the web page that is returned.
 
@@ -40,9 +40,8 @@ import random
 import argparse
 from dateutil.parser import parse
 from datetime import datetime, timedelta
-from netaddr import IPNetwork, IPAddress
 
-from libs3 import RemoteMongoConnector, JobsManager
+from libs3 import RemoteMongoConnector, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -63,84 +62,7 @@ def is_running(process):
     return False
 
 
-def get_aws_ips(rm_connector):
-    """
-    Get the list of AWS CIDRs.
-    """
-    aws_ips = []
-    aws_ips_collection = rm_connector.get_aws_ips_connection()
-
-    results = aws_ips_collection.find({})
-    for result in results[0]['prefixes']:
-        aws_ips.append(IPNetwork(result['ip_prefix']))
-
-    return aws_ips
-
-
-def get_azure_ips(rm_connector):
-    """
-    Get the list of AWS CIDRs.
-    """
-    azure_ips = []
-    azure_ips_collection = rm_connector.get_azure_ips_connection()
-
-    results = azure_ips_collection.find({})
-    for result in results[0]['prefixes']:
-        azure_ips.append(IPNetwork(result['ip_prefix']))
-
-    return azure_ips
-
-
-def check_in_cidr(ip_addr, cidrs):
-    """
-    Is the provided IP in one of the provided CIDRs?
-    """
-    try:
-        local_ip = IPAddress(ip_addr)
-        for network in cidrs:
-            if local_ip in network:
-                return True
-    except:
-        return False
-    return False
-
-
-def is_aws_ip(ip_addr, aws_ips):
-    """
-    Is the provided IP within one of the AWS CIDRs?
-    """
-    return check_in_cidr(ip_addr, aws_ips)
-
-
-def is_azure_ip(ip_addr, azure_ips):
-    """
-    Is the provided IP within one of the AWS CIDRs?
-    """
-    return check_in_cidr(ip_addr, azure_ips)
-
-
-def is_tracked_ip(ip_addr, tracked_ips):
-    """
-    Is the provided IP within one of the tracked CIDRs?
-    """
-    return check_in_cidr(ip_addr, tracked_ips)
-
-
-def get_ip_zones(rm_connector):
-    """
-    Get the list of IP Zones
-    """
-    ip_zones_collection = rm_connector.get_ipzone_connection()
-    ipz_results = ip_zones_collection.find({'status': {"$ne": 'false_positive'}})
-
-    ip_zones = []
-    for ipz in ipz_results:
-        ip_zones.append(IPNetwork(ipz['zone']))
-
-    return ip_zones
-
-
-def get_ips(ip_zones, all_dns_collection):
+def get_ips(ip_manager, all_dns_collection):
     """
     Get the list of IPs
     """
@@ -149,16 +71,17 @@ def get_ips(ip_zones, all_dns_collection):
 
     domain_results = all_dns_collection.find({'type': 'a'})
     for result in domain_results:
-        if not check_in_cidr(result['value'], [IPNetwork("10.0.0.0/8"), IPNetwork("172.16.0.0/12"), IPNetwork("192.168.0.0/16"), IPNetwork("127.0.0.0/8")]) and result['value'] is not "255.255.255.255":
+        if not ip_manager.is_local_ip(result['value']):
             ips.add(result['value'])
             ip_context.append({'ip': result['value'], 'domain': result['fqdn'], 'source':'all_dns', 'zone': result['zone']})
 
 
-    for ipz in ip_zones:
-        for ip in ipz:
-            if ip != ipz.network and ip != ipz.broadcast:
-                ips.add(str(ip))
-                # ip_context.append({'ip': str(ip), 'source': 'ip_zone'})
+    for ipz in ip_manager.Tracked_CIDRs:
+        if ipz.version == 4:
+            for ip in ipz:
+                if ip != ipz.network and ip != ipz.broadcast:
+                    ips.add(str(ip))
+                    # ip_context.append({'ip': str(ip), 'source': 'ip_zone'})
 
 
     # Don't want to look like a network scan
@@ -341,9 +264,9 @@ def process_thread(ips, port, run_command, zones_struct, zgrab_collection, tnum)
                 'error' in result:
                 print("Failed " + port + ": " + str(result['ip']))
             else:
-                result['aws'] = is_aws_ip(result['ip'], zones_struct['aws_ips'])
-                result['azure'] = is_azure_ip(result['ip'], zones_struct['azure_ips'])
-                result['tracked'] = is_tracked_ip(result['ip'], zones_struct['ip_zones'])
+                result['aws'] = zones_struct['ip_manager'].is_aws_ip(result['ip'])
+                result['azure'] = zones_struct['ip_manager'].is_azure_ip(result['ip'])
+                result['tracked'] = zones_struct['ip_manager'].is_tracked_ip(result['ip'])
                 insert_result(result, port, zones_struct['ip_context'], zones_struct['zones'], zgrab_collection)
                 print("Inserted " + port + ": " + result['ip'])
     else:
@@ -432,21 +355,18 @@ def main():
 
     rm_connector = RemoteMongoConnector.RemoteMongoConnector()
     all_dns_collection = rm_connector.get_all_dns_connection()
+    ip_manager = IPManager.IPManager(rm_connector, True)
+
     jobs_manager = JobsManager.JobsManager(rm_connector, "zgrab_http_ip-" + args.p)
     jobs_manager.record_job_start()
 
     zones_struct = {}
     zones_struct['zones'] = ZoneManager.get_distinct_zones(rm_connector)
 
-    zones_struct['ip_zones'] = get_ip_zones(rm_connector)
+    # Not pretty but cleaner than previous method
+    zones_struct['ip_manager'] = ip_manager
 
-    # Collect the list of AWS CIDRs
-    zones_struct['aws_ips'] = get_aws_ips(rm_connector)
-
-    # Collect the list of Azure CIDRs
-    zones_struct['azure_ips'] = get_azure_ips(rm_connector)
-
-    (ips, ip_context) = get_ips(zones_struct['ip_zones'], all_dns_collection)
+    (ips, ip_context) = get_ips(ip_manager, all_dns_collection)
     print("Got IPs: " + str(len(ips)))
     zones_struct['ip_context'] = ip_context
 

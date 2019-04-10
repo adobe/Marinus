@@ -190,6 +190,9 @@ module.exports = function(app, envConfig, passport) {
     const ibloxRouter = require('../routes/iblox')(envConfig);
     app.use('/api/v1.0/', ibloxRouter);
 
+    const ipRouter = require('../routes/ip')(envConfig);
+    app.use('/api/v1.0/', ipRouter);
+
     const sonarRouter = require('../routes/sonar')(envConfig);
     app.use('/api/v1.0/', sonarRouter);
 

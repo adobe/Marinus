@@ -15,7 +15,7 @@ This module manages consolidating DNS records from various sources.
 """
 
 from datetime import datetime
-from libs3 import MongoConnector
+from libs3 import MongoConnector, IPManager
 from bson.objectid import ObjectId
 
 
@@ -95,6 +95,10 @@ class DNSManager(object):
                                                {'$push': {'sources': entry}})
                 self.all_dns_collection.update({'_id': ObjectId(check['_id'])},
                                                {"$set": {'updated': datetime.now()}})
+
+        if result['type'] == 'a' or result['type'] == 'aaaa':
+            ip_manager = IPManager.IPManager(self.mongo_connector)
+            ip_manager.insert_record(result['value'])
 
 
     def find_multiple(self, criteria, source):

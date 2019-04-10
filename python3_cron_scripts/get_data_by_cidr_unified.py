@@ -26,14 +26,8 @@ import time
 from datetime import datetime
 
 import requests
-from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager, GoogleDNS
+from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager, GoogleDNS, IPManager
 from libs3.ZoneManager import ZoneManager
-from netaddr import IPAddress, IPNetwork
-
-mongo_connection = MongoConnector.MongoConnector()
-global_dns_manager = DNSManager.DNSManager(mongo_connection)
-
-rdns_collection = mongo_connection.get_sonar_reverse_dns_connection()
 
 
 def is_running(process):
@@ -62,49 +56,7 @@ def download_file(s, url, data_dir):
     return local_filename
 
 
-def check_in_cidr(ip_addr, cidrs):
-    """
-    Check if the provided IP exists in the given CIDR
-    """
-    try:
-        local_ip = IPAddress(ip_addr)
-        for network in cidrs:
-            if local_ip in network:
-                return True
-    except:
-        return False
-    return False
-
-
-def get_cidrs(mongo_connection):
-    """
-    Get the list of CIDRs from the Marinus database
-    """
-    cidr_collection = mongo_connection.get_ipzone_connection()
-
-    results = cidr_collection.find({'status': {"$ne": "false_positive"}})
-    cidrs = []
-    for result in results:
-        cidrs.append(IPNetwork(result['zone']))
-
-    return cidrs
-
-
-def get_ipv6_cidrs(mongo_connection):
-    """
-    Get the list of IPv6 CIDRs from the Marinus database
-    """
-    cidr_collection = mongo_connection.get_ipv6_zone_connection()
-
-    results = cidr_collection.find({'status': {"$ne": "false_positive"}})
-    cidrs = []
-    for result in results:
-        cidrs.append(IPNetwork(result['zone']))
-
-    return cidrs
-
-
-def get_sonar_rdns_ips():
+def get_sonar_rdns_ips(rdns_collection):
     """
     Get the list of Sonar RDNS IPs from the Marinus database
     """
@@ -115,12 +67,12 @@ def get_sonar_rdns_ips():
     return ips
 
 
-def get_sonar_dns_ips():
+def get_sonar_dns_ips(dns_manager):
     """
     Get the list of Sonar IP records from the Marinus database
     """
     ips = []
-    results = global_dns_manager.find_multiple({"type": "a"}, "sonar_dns")
+    results = dns_manager.find_multiple({"type": "a"}, "sonar_dns")
     for result in results:
         ips.append(result['value'])
     return ips
@@ -139,7 +91,7 @@ def find_zone(domain, zones):
     return ""
 
 
-def update_dns(dns_file, cidrs, zones):
+def update_dns(dns_file, dns_manager, ip_manager, zones):
     """
     Search DNS file and insert relevant records into the database.
     """
@@ -167,7 +119,7 @@ def update_dns(dns_file, cidrs, zones):
                 value = ""
             timestamp = data['timestamp']
 
-            if dtype == "a" and value != "" and domain != "" and check_in_cidr(value, cidrs):
+            if dtype == "a" and value != "" and domain != "" and ip_manager.is_tracked_ip(value):
                 print("Matched DNS " + value)
                 zone = find_zone(domain, zones)
                 insert_json = {}
@@ -178,10 +130,10 @@ def update_dns(dns_file, cidrs, zones):
                 insert_json['value'] = value
                 insert_json['sonar_timestamp'] = int(timestamp)
                 insert_json['created'] = datetime.now()
-                global_dns_manager.insert_record(insert_json, "sonar_dns")
+                dns_manager.insert_record(insert_json, "sonar_dns")
 
 
-def check_for_ptr_record(ipaddr, g_dns, zones):
+def check_for_ptr_record(ipaddr, dns_manager, g_dns, zones):
     """
     For an identified Sonar RDNS record, confirm that there
     is a related PTR record for the IP address. If confirmed,
@@ -200,10 +152,10 @@ def check_for_ptr_record(ipaddr, g_dns, zones):
         new_record['zone'] = rdns_zone
         new_record['created'] = datetime.now()
         new_record['status'] = 'unknown'
-        global_dns_manager.insert_record(new_record, "sonar_rdns")
+        dns_manager.insert_record(new_record, "sonar_rdns")
 
 
-def update_rdns(rdns_file, cidrs, zones):
+def update_rdns(rdns_file, rdns_collection, dns_manager, ip_manager, zones):
     """
     Search RDNS file and insert relevant records into the database.
     """
@@ -229,7 +181,7 @@ def update_rdns(rdns_file, cidrs, zones):
 
             timestamp = data['timestamp']
 
-            if domain != None and ip_addr != None and check_in_cidr(ip_addr, cidrs):
+            if domain != None and ip_addr != None and ip_manager.is_tracked_ip(ip_addr):
                 print("Matched RDNS " + ip_addr)
                 zone = find_zone(domain, zones)
                 result = rdns_collection.find({'ip': ip_addr}).count()
@@ -249,7 +201,7 @@ def update_rdns(rdns_file, cidrs, zones):
                                             '$currentDate': {"updated" : True}})
 
 
-                check_for_ptr_record(ip_addr, g_dns, zones)
+                check_for_ptr_record(ip_addr, dns_manager, g_dns, zones)
 
 
 def download_remote_files(s, file_reference, data_dir, jobs_manager):
@@ -298,10 +250,11 @@ def main():
 
     r7 = Rapid7.Rapid7()
 
-    cidrs = get_cidrs(mongo_connection)
-    print ("IPv4 CIDR length: " + str(len(cidrs)))
-    cidrs = cidrs + get_ipv6_cidrs(mongo_connection)
-    print ("IPv4 + IPv6 CIDR length: " + str(len(cidrs)))
+    mongo_connection = MongoConnector.MongoConnector()
+    dns_manager = DNSManager.DNSManager(mongo_connection)
+    ip_manager = IPManager.IPManager(mongo_connection)
+    rdns_collection = mongo_connection.get_sonar_reverse_dns_connection()
+
     zones = ZoneManager.get_distinct_zones(mongo_connection)
     print ("Zone length: " + str(len(zones)))
 
@@ -329,7 +282,7 @@ def main():
                 exit(0)
 
             unzipped_rdns = download_remote_files(s, html_parser.rdns_url, save_directory, jobs_manager)
-            update_rdns(unzipped_rdns, cidrs, zones)
+            update_rdns(unzipped_rdns, rdns_collection, dns_manager, ip_manager, zones)
         except Exception as ex:
             now = datetime.now()
             print ("Unknown error occured at: " + str(now))
@@ -349,13 +302,13 @@ def main():
             html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
             if html_parser.any_url != "":
                 unzipped_dns = download_remote_files(s, html_parser.any_url, save_directory, jobs_manager)
-                update_dns(unzipped_dns, cidrs, zones)
+                update_dns(unzipped_dns, dns_manager, ip_manager, zones)
             if html_parser.a_url != "":
                 unzipped_dns = download_remote_files(s, html_parser.a_url, save_directory, jobs_manager)
-                update_dns(unzipped_dns, cidrs, zones)
+                update_dns(unzipped_dns, dns_manager, ip_manager, zones)
             if html_parser.aaaa_url != "":
                 unzipped_dns = download_remote_files(s, html_parser.aaaa_url, save_directory, jobs_manager)
-                update_dns(unzipped_dns, cidrs, zones)
+                update_dns(unzipped_dns, dns_manager, ip_manager, zones)
         except Exception as ex:
             now = datetime.now()
             print ("Unknown error occured at: " + str(now))

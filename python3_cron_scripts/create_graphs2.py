@@ -28,18 +28,12 @@ import time
 from datetime import datetime, timedelta
 
 import networkx as nx
-from netaddr import IPAddress, IPNetwork
 from networkx.readwrite import json_graph
 from tld import get_fld
 
-from libs3 import DNSManager, MongoConnector, JobsManager
+from libs3 import DNSManager, MongoConnector, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
 
-
-# Global constants
-AWS_IPS = []
-AKAMAI_IPS = []
-AZURE_IPS = []
 
 # Constant for dealing with Mongo not allowing "." in key names
 REPLACE_CHAR = "!"
@@ -55,79 +49,11 @@ def add_to_list(str_to_add, groups):
     return groups.index(str_to_add.replace(".", REPLACE_CHAR))
 
 
-def check_in_cidr(ip_addr, cidrs):
-    """
-    This will check whether the given IP is within any of the provided CIDR ranges.
-    """
-    try:
-        local_ip = IPAddress(ip_addr)
-        for network in cidrs:
-            if local_ip in network:
-                return True
-    except:
-        return False
-    return False
-
-
-def get_aws_ips(mongo_connector):
-    """
-    Extract the list of AWS Networks from the Mongo database.
-    They are stored within the AWS_IPS global.
-    """
-    aws_collection = mongo_connector.get_aws_ips_connection()
-    results = aws_collection.find({})
-    for result in results[0]['prefixes']:
-        AWS_IPS.append(IPNetwork(result['ip_prefix']))
-
-
-def get_azure_ips(mongo_connector):
-    """
-    Extract the list of Azure Networks from the Mongo database.
-    They are stored within the AZURE_IPS global.
-    """
-    azure_collection = mongo_connector.get_azure_ips_connection()
-    results = azure_collection.find({})
-    for result in results[0]['prefixes']:
-        AZURE_IPS.append(IPNetwork(result['ip_prefix']))
-
-
-def get_akamai_ips(mongo_connector):
-    """
-    Extract the list of Akamai Networks from the Mongo database.
-    They are stored within the AKAMAI_IPS global.
-    """
-    akamai_collection = mongo_connector.get_akamai_ips_connection()
-    results = akamai_collection.find({})
-    for result in results[0]['ranges']:
-        AKAMAI_IPS.append(IPNetwork(result['cidr']))
-
-
 def is_aws_domain(domain):
     """
     Is the provided domain within the amazonaws.com zone?
     """
     return domain.endswith(".amazonaws.com")
-
-
-def is_aws_ip(ip_addr):
-    """
-    Is the provided IP within an Amazon CIDR?
-    """
-    return check_in_cidr(ip_addr, AWS_IPS)
-
-
-def is_azure_ip(ip_addr):
-    """
-    Is the provided IP within an Azure CIDR?
-    """
-    return check_in_cidr(ip_addr, AZURE_IPS)
-
-
-def is_akamai_ip(ip_addr):
-    """
-    Is the provided IP within an Akamai CIDR?
-    """
-    return check_in_cidr(ip_addr, AKAMAI_IPS)
 
 
 def is_akamai_domain(domain):
@@ -148,7 +74,7 @@ def get_fld_from_value(value, zone):
     return res
 
 
-def find_all_dns_by_zone(graph, zone, groups, dns_manager):
+def find_all_dns_by_zone(graph, zone, groups, dns_manager, ip_manager):
     """
     Collect all the All DNS records for the provided zone and add them to NetworkX graph
     """
@@ -159,12 +85,13 @@ def find_all_dns_by_zone(graph, zone, groups, dns_manager):
         if result['type'] == "a":
             temp = result['value'].split(".")
             ip_group = ".".join(temp[:-1])
-            if is_aws_ip(result['value']):
+            if ip_manager.is_aws_ip(result['value']):
                 ip_group = "aws"
-            elif is_akamai_ip(result['value']):
+            elif ip_manager.is_akamai_ip(result['value']):
                 ip_group = "akamai"
-            elif is_azure_ip(result['value']):
+            elif ip_manager.is_azure_ip(result['value']):
                 ip_group = "azure"
+
             ip_g_index = add_to_list(ip_group, groups)
             if str(result['fqdn']) != zone:
                 graph.add_node(result['fqdn'].replace("." + zone, ""),
@@ -185,7 +112,9 @@ def find_all_dns_by_zone(graph, zone, groups, dns_manager):
                 dns_group = "akamai.net"
             elif result['value'].endswith(zone) is False:
                 dns_group = get_fld_from_value(result['value'], zone)
+
             cname_g_index = add_to_list(dns_group, groups)
+
             if result['fqdn'] != zone:
                 graph.add_node(result['fqdn'].replace("." + zone, ""),
                                data_type="domain", type=zone_g_index, depends=[zone],
@@ -201,7 +130,7 @@ def find_all_dns_by_zone(graph, zone, groups, dns_manager):
                            result['value'].replace("." + zone, ""), value=1)
 
 
-def find_srdns_by_zone(graph, zone, groups, mongo_connector):
+def find_srdns_by_zone(graph, zone, groups, mongo_connector, ip_manager):
     """
     Collect all the Sonar Reverse DNS records for the provided zone and add them to NetworkX graph
     """
@@ -217,13 +146,15 @@ def find_srdns_by_zone(graph, zone, groups, mongo_connector):
             graph.add_node(result['fqdn'], data_type="tld", type=zone_g_index, depends=[],
                            dependedOnBy=[result['ip']], docs="")
         temp = result['ip'].split(".")
+
         ip_group = ".".join(temp[:-1])
-        if is_aws_ip(result['ip']):
+        if ip_manager.is_aws_ip(result['ip']):
             ip_group = "aws"
-        elif is_akamai_ip(result['ip']):
+        elif ip_manager.is_akamai_ip(result['ip']):
             ip_group = "akamai"
-        elif is_azure_ip(result['ip']):
+        elif ip_manager.is_azure_ip(result['ip']):
             ip_group = "azure"
+
         ip_g_index = add_to_list(ip_group, groups)
         graph.add_node(result['ip'], data_type="ip", type=ip_g_index,
                        depends=[result['fqdn'].replace("." + zone, "")], dependedOnBy=[], docs="")
@@ -314,14 +245,12 @@ def main():
     graphs_data_collection = mongo_connector.get_graphs_data_connection()
     graphs_links_collection = mongo_connector.get_graphs_links_connection()
     graphs_docs_collection = mongo_connector.get_graphs_docs_connection()
+    ip_manager = IPManager.IPManager(mongo_connector)
+
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'create_graphs2')
     jobs_manager.record_job_start()
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
-
-    get_aws_ips(mongo_connector)
-    get_akamai_ips(mongo_connector)
-    get_azure_ips(mongo_connector)
 
     for zone in zones:
         groups = []
@@ -329,8 +258,8 @@ def main():
         add_to_list(zone, groups)
         graph.add_node(zone, data_type="tld", type=0, depends=[],
                        dependedOnBy=[], docs="<h1>Parent</h1>")
-        find_all_dns_by_zone(graph, zone, groups, dns_manager)
-        find_srdns_by_zone(graph, zone, groups, mongo_connector)
+        find_all_dns_by_zone(graph, zone, groups, dns_manager, ip_manager)
+        find_srdns_by_zone(graph, zone, groups, mongo_connector, ip_manager)
 
         data = json_graph.node_link_data(graph)
 

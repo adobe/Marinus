@@ -68,6 +68,15 @@ def update_ip_zones(mongo_connector, rm_connector):
     for zone in ipzones:
         remote_ipzones_collection.insert(zone)
 
+    ipv6_zones_collection = mongo_connector.get_ipv6_zone_connection()
+    remote_ipv6_zones_collection = rm_connector.get_ipv6_zone_connection()
+
+    ipv6_zones = ipv6_zones_collection.find({}, {"_id": 0})
+
+    remote_ipv6_zones_collection.remove({})
+    for zone in ipv6_zones:
+        remote_ipv6_zones_collection.insert(zone)
+
 
 def update_config(mongo_connector, rm_connector):
     """
@@ -112,6 +121,36 @@ def update_azure_cidrs(mongo_connector, rm_connector):
     remote_azure_ips_collection.remove({})
     for ip_addr in azure_ips:
         remote_azure_ips_collection.insert(ip_addr)
+
+
+def update_akamai_cidrs(mongo_connector, rm_connector):
+    """
+    Copy the list of Akamai CIDRs to the remote database
+    """
+    print("Starting Akamai IPs..")
+    akamai_ips_collection = mongo_connector.get_akamai_ips_connection()
+    remote_akamai_ips_collection = rm_connector.get_akamai_ips_connection()
+
+    akamai_ips = akamai_ips_collection.find({}, {"_id": 0})
+
+    remote_akamai_ips_collection.remove({})
+    for ip_addr in akamai_ips:
+        remote_akamai_ips_collection.insert(ip_addr)
+
+
+def update_gcp_cidrs(mongo_connector, rm_connector):
+    """
+    Copy the list of GCP CIDRs to the remote database
+    """
+    print("Starting GCP IPs..")
+    gcp_ips_collection = mongo_connector.get_gcp_ips_connection()
+    remote_gcp_ips_collection = rm_connector.get_gcp_ips_connection()
+
+    gcp_ips = gcp_ips_collection.find({}, {"_id": 0})
+
+    remote_gcp_ips_collection.remove({})
+    for ip_addr in gcp_ips:
+        remote_gcp_ips_collection.insert(ip_addr)
 
 
 def update_all_dns(mongo_connector, rm_connector, zone_list):
@@ -168,6 +207,8 @@ def main():
     if send_all or args.send_third_party_zones:
         update_aws_cidrs(mongo_connector, remote_mongo_connector)
         update_azure_cidrs(mongo_connector, remote_mongo_connector)
+        update_akamai_cidrs(mongo_connector, remote_mongo_connector)
+        update_gcp_cidrs(mongo_connector, remote_mongo_connector)
 
     if send_all or args.send_config:
         update_config(mongo_connector, remote_mongo_connector)
