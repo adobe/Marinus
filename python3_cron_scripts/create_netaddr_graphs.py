@@ -116,6 +116,12 @@ def create_network_data_sets(groups, mongo_connector):
         else:
             group_data[group]['tracked'] = False
 
+        if ip_manager.is_gcp_ip(fake_ip):
+            group_data[group]['gcp'] = True
+            group_data['gcp_count'] = group_data['gcp_count'] + 1
+        else:
+            group_data[group]['gcp'] = False
+
     return group_data
 
 

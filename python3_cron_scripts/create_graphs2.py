@@ -91,6 +91,8 @@ def find_all_dns_by_zone(graph, zone, groups, dns_manager, ip_manager):
                 ip_group = "akamai"
             elif ip_manager.is_azure_ip(result['value']):
                 ip_group = "azure"
+            elif ip_manager.is_gcp_ip(result['value']):
+                ip_group = "gcp"
 
             ip_g_index = add_to_list(ip_group, groups)
             if str(result['fqdn']) != zone:
@@ -154,6 +156,8 @@ def find_srdns_by_zone(graph, zone, groups, mongo_connector, ip_manager):
             ip_group = "akamai"
         elif ip_manager.is_azure_ip(result['ip']):
             ip_group = "azure"
+        elif ip_manager.is_gcp_ip(result['ip']):
+            ip_group = "gcp"
 
         ip_g_index = add_to_list(ip_group, groups)
         graph.add_node(result['ip'], data_type="ip", type=ip_g_index,

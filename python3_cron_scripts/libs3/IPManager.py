@@ -587,3 +587,4 @@ class IPManager(object):
 
         for result in results:
             self.all_ips_collection.remove({"ip": result['ip']})
+
