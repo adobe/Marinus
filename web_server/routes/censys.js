@@ -518,10 +518,12 @@ module.exports = function(envConfig) {
                 res.status(400).json({'message': 'A port must be provided.'});
                 return;
             }
+
             let ip = null;
             if (req.query.hasOwnProperty('ip')) {
                 ip = req.query.ip;
             }
+
             let qtype = '';
             if (req.query.hasOwnProperty('type')) {
                 qtype = req.query.type;
@@ -532,11 +534,17 @@ module.exports = function(envConfig) {
                 limit = req.query.limit;
             }
 
-            let port = 0;
-            if (req.query.hasOwnProperty('port')) {
-                port = req.query.port;
+            let page = 1;
+            if (req.query.hasOwnProperty('page')) {
+                page = parseInt(req.query.page);
+                if (isNaN(page)) {
+                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    return;
+                }
+                if (page < 1) {
+                    page = 1;
+                }
             }
-
 
 
             let promise;
@@ -545,7 +553,7 @@ module.exports = function(envConfig) {
             } else if (qtype === 'port_only') {
                 promise = censys.getPortRecordsByPortPromise(req.query.port, ip);
             } else if (qtype === 'ip_only') {
-                promise = censys.getIPListByPortPromise(req.query.port, limit, port);
+                promise = censys.getIPListByPortPromise(req.query.port, limit, page);
             } else {
                 promise = censys.getFullRecordsByPortPromise(req.query.port, ip);
             }
