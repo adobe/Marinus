@@ -111,8 +111,19 @@ class SplunkQueryManager(object):
             except HTTPError as http_error:
                 print("Second HTTP Error! " + str(http_error))
                 exit(1)
-
+        except SocketError as socket_error:
+            if socket_error.errno != errno.ECONNRESET:
+                raise
+            else:
+                print("First Socket Timeout Error: " + str(socket_error))
+                time.sleep(10)
+                try:
+                    blocksearch_results = self._JOB.results(**kwargs_paginate)
+                except SocketError as socket_error:
+                    print("Second Socket Timeout Error! " + str(socket_error))
+                    exit(1)
 
         self._OFFSET = self._OFFSET + self._COUNT
 
         return results.ResultsReader(blocksearch_results)
+
