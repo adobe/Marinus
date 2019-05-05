@@ -507,6 +507,7 @@ def process_thread(ips, port, run_command, zones_struct, zgrab_collection, tnum)
             else:
                 result['aws'] = zones_struct['ip_manager'].is_aws_ip(result['ip'])
                 result['azure'] = zones_struct['ip_manager'].is_azure_ip(result['ip'])
+                result['gcp'] = zones_struct['ip_manager'].is_gcp_ip(result['ip'])
                 result['tracked'] = zones_struct['ip_manager'].is_tracked_ip(result['ip'])
                 insert_result(result, port, zones_struct['ip_context'], zones_struct['zones'], zgrab_collection)
                 print("Inserted " + port + ": " + result['ip'])
