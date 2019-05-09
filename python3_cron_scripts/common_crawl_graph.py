@@ -45,7 +45,8 @@ from libs3.ZoneManager import ZoneManager
 # CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2018-feb-mar-apr/host/cc-main-2018-feb-mar-apr-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2018-may-jun-jul/host/cc-main-2018-may-jun-jul-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2018-aug-sep-oct/host/cc-main-2018-aug-sep-oct-host-vertices.paths.gz"
-CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2018-19-nov-dec-jan/host/cc-main-2018-19-nov-dec-jan-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2018-19-nov-dec-jan/host/cc-main-2018-19-nov-dec-jan-host-vertices.paths.gz"
+CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2019-feb-mar-apr/host/cc-main-2019-feb-mar-apr-host-vertices.paths.gz"
 
 
 def download_file(url):
