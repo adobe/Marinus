@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## June 13, 2019
+* Added the ability to upload collection information to a Splunk index. Some organizations may want to correlate information from Marinus with other data in their Splunk logs. In addition, some organizations may to take advantage of Splunk dashboards for dynamic charting of Marinus information. The new script will upload HTTP headers collected from Zgrab scans. However, the script can be altered to upload whatever data is relevant to your organization. The script uploads the data to an HEC using the "_json" format.
+
+
 ## April 10, 2019
 * As a parallel to the all_dns collection, an all_ips collection has been created. This collection centralizes all IPv4 and IPv6 information into a single collection. The data is de-duplicated and references to local resources are not recorded. This collection can be particularly useful if you obtaining data from internal resources and/or have a large number of IP addresses that do not have a corresponding DNS record. In this case, the code assumes that internal data comes from a Splunk resource but the code could be easily customized to whatever is relevant for your organization.
 * Marinus now collects Google Cloud Compute public IP ranges.
