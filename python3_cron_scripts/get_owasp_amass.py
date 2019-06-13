@@ -29,6 +29,7 @@ import json
 import os.path
 import subprocess
 import time
+
 from datetime import datetime
 
 from libs3 import DNSManager, JobsManager, MongoConnector
@@ -93,12 +94,12 @@ def main():
 
     output_dir = "./amass_files/"
 
-    parser = argparse.ArgumentParser(description='Run the OWASP Amass tool and store the results in the database.')
-    parser.add_argument('--config_file', required=False, help='An optional Amass config file. Otherwise, defaults will be used.')
-    parser.add_argument('--amass_path', required=True, help='The path to the amass binary')
-    parser.add_argument('--output_dir', default=output_dir, help="The path where to save Amass files.")
-    parser.add_argument('--sleep', type=int, default=5, help='Sleep time in seconds between amass runs so as not to overuse service limits.')
-    args = parser.parse_args()
+    arg_parser = argparse.ArgumentParser(description='Run the OWASP Amass tool and store the results in the database.')
+    arg_parser.add_argument('--config_file', required=False, help='An optional Amass config file. Otherwise, defaults will be used.')
+    arg_parser.add_argument('--amass_path', required=True, help='The path to the amass binary')
+    arg_parser.add_argument('--output_dir', default=output_dir, help="The path where to save Amass files.")
+    arg_parser.add_argument('--sleep', type=int, default=5, help='Sleep time in seconds between amass runs so as not to overuse service limits.')
+    args = arg_parser.parse_args()
 
     if not os.path.isfile(args.amass_path):
         print("ERROR: Incorrect amass_path argument provided")
