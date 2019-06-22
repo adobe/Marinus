@@ -21,6 +21,8 @@ The Python 2.x and Python 3.x scripts are responsible for talking to various thi
 
 The cron scripts are not usable when they are first checked out of git. The *connector.config* file must be filled in with the relevent credentials. Most importantly, the scripts will need a MongoDB 3.x instance to store the collected data. Running the scripts is the first step in getting Marinus operational since nothing else can be done without data.
 
+It is not necessary to run all of the Python scripts in order for Marinus to be usable. The majority of the scripts are optional and you can choose which scripts are relevant based on the type of environment you have in your organization.
+
 Please see the README.md and GettingStarted.md files in the python3_cron_scripts folder for more details.
 
 ## The web server
