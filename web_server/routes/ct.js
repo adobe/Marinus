@@ -1098,7 +1098,7 @@ module.exports = function(envConfig) {
      *   - name: CT - Corporate certificate count
      *     description: Counts the number corporate certificates from the certificate transparency logs.
      *
-     * /api/v1.0/ct/corp_certs:
+     * /api/v1.0/ct/corp_count:
      *   get:
      *   # Operation-specific security:
      *     security:
