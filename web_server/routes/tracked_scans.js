@@ -1212,6 +1212,7 @@ module.exports = function(envConfig) {
                 res.status(400).json({'message': 'A zone must be provided.'});
                 return;
             }
+            let zone = req.params.zone;
 
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
