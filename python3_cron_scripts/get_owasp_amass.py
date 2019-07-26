@@ -98,6 +98,7 @@ def main():
     arg_parser.add_argument('--config_file', required=False, help='An optional Amass config file. Otherwise, defaults will be used.')
     arg_parser.add_argument('--amass_path', required=True, help='The path to the amass binary')
     arg_parser.add_argument('--output_dir', default=output_dir, help="The path where to save Amass files.")
+    arg_parser.add_argument('--amass_version', type=int, default=3, help='The version of OWASP Amass being used.')
     arg_parser.add_argument('--sleep', type=int, default=5, help='Sleep time in seconds between amass runs so as not to overuse service limits.')
     args = arg_parser.parse_args()
 
@@ -125,6 +126,9 @@ def main():
         command_line = []
 
         command_line.append(args.amass_path)
+
+        if int(args.amass_version) >= 3:
+            command_line.append("enum")
 
         if args.config_file:
             command_line.append("-config")

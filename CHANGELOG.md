@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## July 26, 2019
+* Added support for OWASP Amass version 3.
+
 ## June 13, 2019
 * Added the ability to upload collection information to a Splunk index. Some organizations may want to correlate information from Marinus with other data in their Splunk logs. In addition, some organizations may to take advantage of Splunk dashboards for dynamic charting of Marinus information. The new script will upload HTTP headers collected from Zgrab scans. However, the script can be altered to upload whatever data is relevant to your organization. The script uploads the data to an HEC using the "_json" format.
 
