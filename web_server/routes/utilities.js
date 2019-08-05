@@ -90,17 +90,22 @@ module.exports = function(envConfig) {
         let ipv4 = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
         let ipv6 = /^[0-9a-zA-z\:]+$/;
         if (domain.match(ipv4) || domain.match(ipv6)) {
-          dns.reverse(domain, function(err, hostnames) {
-            if (err && err.code === dns.NOTFOUND) {
-                res.status(404).json({'Error': htmlEscape(err)});
-                return;
-            } else if (err) {
-                res.status(500).json({'Error': htmlEscape(err)});
-                return;
-            }
-            res.status(200).json({'domains': hostnames});
+          try {
+            dns.reverse(domain, function(err, hostnames) {
+              if (err && err.code === dns.NOTFOUND) {
+                  res.status(404).json({'Error': htmlEscape(err)});
+                  return;
+              } else if (err) {
+                  res.status(500).json({'Error': htmlEscape(err)});
+                  return;
+              }
+              res.status(200).json({'domains': hostnames});
+              return;
+            }.bind(res));
+          } catch (err) {
+            res.status(500).json({'Error': htmlEscape(err.message)});
             return;
-          }.bind(res));
+          }
         } else {
           dns.lookup(domain, {all: true}, function(err, addresses) {
             if (err) {
@@ -116,3 +121,4 @@ module.exports = function(envConfig) {
 
   return (router);
 };
+
