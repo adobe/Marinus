@@ -318,7 +318,7 @@ module.exports = function(envConfig) {
     .get(function(req, res) {
        let promise;
        if (req.query.hasOwnProperty('zone')) {
-          promise = whoisDB.getRecordByZonePromise(req.query.zone);
+            promise = whoisDB.getRecordByZonePromise(req.query.zone);
        } else if (req.query.hasOwnProperty('name_server')) {
            let ns = req.query.name_server;
            if (ns === 'null') {
@@ -406,18 +406,18 @@ module.exports = function(envConfig) {
        } else if (req.query.hasOwnProperty('count')) {
            promise = whoisDB.getWhoisRecordCount();
            promise.then(function(data) {
-            if (data === null) {
-                res.status(404).json({'message': 'Count failed.'});
-                return;
-            }
+                if (data === null) {
+                    res.status(404).json({'message': 'Count failed.'});
+                    return;
+                }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                 res.status(200).json({'count': data});
-            } else {
-                 res.status(200).json(data);
-            }
-            return;
-        });
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    res.status(200).json({'count': data});
+                } else {
+                    res.status(200).json(data);
+                }
+                return;
+           });
        } else {
            res.status(400).json({'message': 'A zone, count, email, dnssec, distinct, distinct_groups, or name_server value must be provided.'});
            return;
@@ -439,3 +439,4 @@ module.exports = function(envConfig) {
 
   return (router);
 };
+
