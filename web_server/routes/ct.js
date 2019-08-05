@@ -506,6 +506,8 @@ module.exports = function(envConfig) {
      * tags:
      *   - name: CT - Fingerprint search
      *     description: Check whether the provided zone SHA1 or SHA256 hash matches any saved certificate transparency logs.
+     *   - name: CT - Fingerprint search count
+     *     description: Count when the provided zone SHA1 or SHA256 hash matches any saved certificate transparency logs.
      *
      * /api/v1.0/ct/fingerprint/{fingerprint}:
      *   get:
@@ -546,7 +548,7 @@ module.exports = function(envConfig) {
      *     security:
      *       - APIKeyHeader: []
      *     description: Counts CT certificates based on their zone (e.g. "example.org", "example.com", etc.).
-     *     tags: [CT - Fingerprint search]
+     *     tags: [CT - Fingerprint search count]
      *     produces:
      *       - application/json
      *     parameters:
