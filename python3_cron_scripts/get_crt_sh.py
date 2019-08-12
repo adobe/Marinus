@@ -26,6 +26,7 @@ import json
 import os
 import requests
 import time
+
 from datetime import datetime
 from pprint import pprint
 from requests.adapters import HTTPAdapter
@@ -178,7 +179,7 @@ def add_new_certificate_values(new_ids, ct_collection, zones, save_location=None
 
             if ct_collection.find({"fingerprint_sha256": cert['fingerprint_sha256']}).count() != 0:
                 # The certificate exists in the database but does not have crt_sh id and/or zones
-                ct_collection.update_one({"fingerprint_sha256": cert['fingerprint_sha256']}, {"$set": {"crt_sh_min_id": min_cert_id, "zones": cert_zones}, "$addToSet": {'sources': 'crt_sh'}})
+                ct_collection.update_one({"fingerprint_sha256": cert['fingerprint_sha256']}, {"$set": {"crt_sh_min_id": min_cert_id, "zones": cert_zones, 'marinus_updated': datetime.now()}, "$addToSet": {'sources': 'crt_sh'}})
             else:
                 # Add the new certificate
                 cert['crt_sh_min_id'] = min_cert_id

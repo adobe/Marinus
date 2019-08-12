@@ -218,7 +218,7 @@ def insert_certificate(cert, source, ct_collection, cert_zones):
     if ct_collection.find({'fingerprint_sha256': cert['fingerprint_sha256']}).count() == 0:
         ct_collection.insert(cert)
     else:
-        ct_collection.update({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {source + "_id": cert[source + "_id"], 'ct_log_type': cert['ct_log_type'], 'zones': cert_zones}, "$addToSet": {"sources": source}})
+        ct_collection.update({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {source + "_id": cert[source + "_id"], 'ct_log_type': cert['ct_log_type'], 'zones': cert_zones, 'marinus_updated': datetime.now()}, "$addToSet": {"sources": source}})
 
 
 def write_file(cert, save_location, save_type, source):

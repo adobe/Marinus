@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2019 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -15,6 +15,13 @@
 const express = require('express');
 const router = express.Router();
 const ct = require('../config/models/cert_transparency');
+
+
+function isValidDate(d_string) {
+    // Currently assumes Unix timestamp
+    let d = parseInt(d_string);
+    return !isNaN(d);
+}
 
 /**
  * @swagger
@@ -70,6 +77,14 @@ const ct = require('../config/models/cert_transparency');
  *         type: string
  *         example: '2016-11-14T23:59:59.000Z'
  *         description: The certificate start date
+ *       marinus_createdate:
+ *         type: string
+ *         example: '2016-11-14T23:59:59.000Z'
+ *         description: The date Marinus recorded the certificate
+ *       marinus_updated:
+ *         type: string
+ *         example: '2016-11-14T23:59:59.000Z'
+ *         description: The date Marinus last updated the certificate
  *       signature_algorithm:
  *         type: string
  *         example: RSA-SHA256
@@ -619,6 +634,226 @@ module.exports = function(envConfig) {
 
            return;
        });
+  });
+
+
+      /**
+     * @swagger
+     *
+     * security:
+     *   - APIKeyHeader: []
+     *
+     * tags:
+     *   - name: CT - Marinus date search
+     *     description: Check for certificates based on when they were recorded or updated within Marinus.
+     *   - name: CT - Marinus date search count
+     *     description: Count certificates based on when they were recorded or updated within Marinus.
+     *
+     * /api/v1.0/ct/marinus_dates:
+     *   get:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: Check for certificates based on when they were recorded within Marinus. The Marinus creation date and/or update date is not the same as the certificate creation date.
+     *     tags: [CT - Marinus date search]
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: search_type
+     *         type: string
+     *         required: true
+     *         description: Only "gt", "lt", and "range" is allowed
+     *         in: query
+     *         enum: ["gt", "lt", "range"]
+     *       - name: marinus_date
+     *         type: string
+     *         example: '1564970118000'
+     *         required: true
+     *         description: This is the default date for 'lt' and 'gt' searches. It is a Unix timestamp with milliseconds. It is used for the 'gt' value in a range check.
+     *         in: query
+     *       - name: end_date
+     *         type: string
+     *         example: '1564970118000'
+     *         description: The 'lt' value in a range search. It is a Unix timestamp with milliseconds.
+     *         required: false
+     *         in: query
+     *       - name: date_type
+     *         type: string
+     *         required: false
+     *         description: Only "created", and "updated" are allowed. The default is "created."
+     *         in: query
+     *         enum: ["created", "updated"]
+     *     responses:
+     *       200:
+     *         description: Returns a JSON array object with the matched certificates.
+     *         schema:
+     *           $ref: '#/definitions/CT-LogResponse'
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       404:
+     *         description: No matching records found.
+     *         schema:
+     *           $ref: '#/definitions/ResultsNotFound'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
+     *
+     * /api/v1.0/ct/marinus_dates?count=1:
+     *   get:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: Count certificates based on when they were recorded or updated within Marinus. The Marinus creation date and/or update date is not the same as the certificate creation date.
+     *     tags: [CT - Marinus date search count]
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: search_type
+     *         type: string
+     *         required: true
+     *         description: Only "gt", "lt", and "range" is allowed
+     *         in: query
+     *         enum: ["gt", "lt", "range"]
+     *       - name: date_type
+     *         type: string
+     *         required: false
+     *         description: Only "created", and "updated" are allowed. The default is "created."
+     *         in: query
+     *         enum: ["created", "updated"]
+     *       - name: marinus_date
+     *         type: string
+     *         example: '1564970118000'
+     *         required: true
+     *         description: This is the default date for 'lt' and 'gt' searches. It is a Unix timestamp with milliseconds. It is used for the 'gt' value in a range check.
+     *         in: query
+     *       - name: end_date
+     *         type: string
+     *         example: '1564970118000'
+     *         description: The 'lt' value in a range search. It is a Unix timestamp with milliseconds.
+     *         required: false
+     *         in: query
+     *       - name: count
+     *         type: integer
+     *         required: true
+     *         description: Set to 1 to count the number of matching results
+     *         in: query
+     *     responses:
+     *       200:
+     *         description: Returns a JSON object with the number of matched certificates.
+     *         schema:
+     *           $ref: '#/definitions/CountResponse'
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       404:
+     *         description: No matching records found.
+     *         schema:
+     *           $ref: '#/definitions/ResultsNotFound'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
+     */
+    router.route('/ct/marinus_dates')
+    .get(function(req, res) {
+        if (!(req.query.hasOwnProperty('search_type'))) {
+            res.status(400).json({
+                'message': 'A search type must be provided.',
+                });
+            return;
+        }
+
+        let search_type = req.query.search_type;
+
+        if (search_type !== "gt" && search_type !== "lt" && search_type !== "range") {
+            res.status(400).json({
+                'message': 'An invalid search type was be provided.',
+            });
+            return;
+        }
+
+        if (!(req.query.hasOwnProperty('marinus_date'))) {
+            res.status(400).json({
+                'message': 'A Marinus date must be provided.',
+             });
+            return;
+        }
+
+        if (isValidDate(req.query.marinus_date) === false) {
+            res.status(400).json({
+                'message': 'A Marinus date must be in a Unix timestamp format.',
+             });
+            return;
+        }
+
+        let timestamp = parseInt(req.query.marinus_date);
+
+        var date_type = "created";
+        if (req.query.hasOwnProperty('date_type') && req.query.count === "updated") {
+            date_type = "updated";
+        }
+
+        var count = false;
+        if (req.query.hasOwnProperty('count') && req.query.count === "1") {
+            count = true;
+        }
+
+        let promise;
+        if (search_type === "gt") {
+            if (date_type == "created") {
+                promise = ct.getCTCertByGTMarinusUpdated(timestamp, count);
+            } else {
+                promise = ct.getCTCertByGTMarinusCreate(timestamp, count);
+            }
+        } else if (search_type === "lt") {
+            if (date_type == "created") {
+                promise = ct.getCTCertByLTMarinusUpdated(timestamp, count);
+            } else {
+                promise = ct.getCTCertByLTMarinusCreate(timestamp, count);
+            }
+        } else {
+            if (!(req.query.hasOwnProperty('end_date'))) {
+                res.status(400).json({
+                    'message': 'An end_date must be provided for range searches.',
+                 });
+                return;
+            }
+
+            if (isValidDate(req.query.end_date) === false) {
+                res.status(400).json({
+                    'message': 'The end date must be in a JavaScript Date supported format.',
+                 });
+                return;
+            }
+
+            let end_timestamp = parseInt(req.query.end_date);
+
+            if (date_type == "created") {
+                promise = ct.getCTCertByMarinusCreateRange(timestamp, end_timestamp, count);
+            } else {
+                promise = ct.getCTCertByMarinusUpdateRange(timestamp, end_timestamp, count);
+            }
+        }
+
+        promise.then(function(data) {
+            if (data === null) {
+                res.status(404).json({'message': 'Records not found'});
+                return;
+            }
+
+            if (count) {
+                res.status(200).json({'count': data});
+                return;
+            } else {
+                res.status(200).json(data);
+            }
+
+            return;
+        });
   });
 
     /**

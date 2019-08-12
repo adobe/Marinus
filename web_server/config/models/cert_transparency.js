@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2019 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -25,6 +25,8 @@ const certTransparencySchema = new Schema({
     key_usages: [],
     not_after: Date,
     not_before: Date,
+    marinus_createdate: Date,
+    marinus_updated: Date,
     signature_algorithm: String,
     subject_common_names: [],
     subject_dns_names: [],
@@ -222,6 +224,84 @@ module.exports = {
         } else {
           promise = certTransModel.findOne({
             'fingerprint_sha256': fingerprintSha256,
+          }).exec();
+        }
+        return promise;
+    },
+    getCTCertByGTMarinusCreate: function(marinus_createdate, count) {
+        let promise;
+        if (count === true) {
+          promise = certTransModel.countDocuments({
+            'marinus_createdate': {"$gt": new Date(marinus_createdate)},
+          }).exec();
+        } else {
+          promise = certTransModel.find({
+            'marinus_createdate': {"$gt": new Date(marinus_createdate)},
+          }).exec();
+        }
+        return promise;
+    },
+    getCTCertByLTMarinusCreate: function(marinus_createdate, count) {
+        let promise;
+        if (count === true) {
+          promise = certTransModel.countDocuments({
+            'marinus_createdate': {"$lt": new Date(marinus_createdate)},
+          }).exec();
+        } else {
+          promise = certTransModel.find({
+            'marinus_createdate': {"$lt": new Date(marinus_createdate)},
+          }).exec();
+        }
+        return promise;
+    },
+    getCTCertByMarinusCreateRange: function(start_date, end_date, count) {
+        let promise;
+        if (count === true) {
+          promise = certTransModel.countDocuments({
+            'marinus_createdate': {"$gt": new Date(start_date), "$lt": new Date(end_date)},
+          }).exec();
+        } else {
+          promise = certTransModel.find({
+            'marinus_createdate': {"$gt": new Date(start_date), "$lt": new Date(end_date)},
+          }).exec();
+        }
+        return promise;
+    },
+    getCTCertByGTMarinusUpdated: function(marinus_updated, count) {
+        let promise;
+        if (count === true) {
+          promise = certTransModel.countDocuments({
+            'marinus_updated': {"$gt": new Date(marinus_updated)},
+          }).exec();
+        } else {
+          promise = certTransModel.find({
+            'marinus_updated': {"$gt": new Date(marinus_updated)},
+          }).exec();
+        }
+        return promise;
+    },
+    getCTCertByLTMarinusUpdated: function(marinus_updated, count) {
+        let promise;
+        if (count === true) {
+          promise = certTransModel.countDocuments({
+            'marinus_updated': {"$lt": new Date(marinus_updated)},
+          }).exec();
+        } else {
+          promise = certTransModel.find({
+            'marinus_updated': {"$lt": new Date(marinus_updated)},
+          }).exec();
+        }
+        return promise;
+    },
+    getCTCertByMarinusUpdateRange: function(start_date, end_date, count) {
+        let promise;
+        if (count === true) {
+          promise = certTransModel.countDocuments({
+            'marinus_updated': {"$gt": new Date(start_date), "$lt": new Date(end_date)},
+          }).exec();
+        } else {
+          promise = certTransModel.find({
+            'marinus_updated': {"$gt": new Date(start_date), "$lt": new Date(end_date)},
           }).exec();
         }
         return promise;

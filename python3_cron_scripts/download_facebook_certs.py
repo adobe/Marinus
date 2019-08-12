@@ -155,7 +155,7 @@ def main():
                 ct_collection.insert(cert)
             else:
                 if ct_collection.find({'fingerprint_sha256': cert['fingerprint_sha256'], 'facebook_id': result['id'], 'zones': zone}).count() == 0:
-                    ct_collection.update({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {'facebook_id': result['id']}, "$addToSet": {'zones': zone}})
+                    ct_collection.update({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {'marinus_updated': datetime.now(), 'facebook_id': result['id']}, "$addToSet": {'zones': zone}})
 
     jobs_manager.record_job_complete()
 

@@ -576,6 +576,9 @@ class X509Parser(object):
         cert_object['sources'] = []
         cert_object['sources'].append(certSource)
 
+        cert_object['marinus_createdate'] = datetime.now()
+        cert_object['marinus_updated'] = datetime.now()
+
         return cert_object
 
 
