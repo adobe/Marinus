@@ -276,6 +276,31 @@ function check_azure_ip(ip) {
     make_get_request(url+query, update_azure_ip, ip);
 }
 
+function update_gcp_ip(result_data, ip) {
+    var knownResult = document.getElementById(ip + "-gcp-mark");
+
+    if (result_data === undefined || result_data.length === 0 || result_data['result'] === false) {
+        return;
+    }
+
+    var knownNotes = document.getElementById(ip + "-notes");
+    var dynHTML = "";
+    if (result_data['record']) {
+        dynHTML += "Prefix: " + result_data['record']['ip_prefix'].toString() + " ";
+    }
+    knownNotes.innerHTML += dynHTML;
+
+    knownResult.src = '/stylesheets/octicons/svg/check.svg';
+}
+
+
+function check_gcp_ip(ip) {
+    var url = "/api/v1.0/gcp/ip_check";
+    var query = "?ip=" + ip;
+
+    make_get_request(url+query, update_gcp_ip, ip);
+}
+
 function update_known_ip(results, ip) {
     var knownResult = document.getElementById(ip + "-tracked-mark");
     if (results['result'] === true) {
@@ -316,6 +341,7 @@ function displayIPList(json_results) {
         var cell3 = row.insertCell(2);
         var cell4 = row.insertCell(3);
         var cell5 = row.insertCell(4);
+        var cell6 = row.insertCell(5);
         cell1.innerHTML = create_anchor("/ip?search=" + json_results[i]['ip'], json_results[i]['ip']);
         cell2.innerHTML = "<img id='" + json_results[i]['ip'] +  "-tracked-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
         cell2.style = "text-align:center";
@@ -323,7 +349,9 @@ function displayIPList(json_results) {
         cell3.style = "text-align:center";
         cell4.innerHTML = "<img id='" + json_results[i]['ip'] +  "-azure-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
         cell4.style = "text-align:center";
-        cell5.innerHTML = "<span id='" + json_results[i]['ip'] +  "-notes'></span><br/>";
+        cell5.innerHTML = "<img id='" + json_results[i]['ip'] +  "-gcp-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
+        cell5.style = "text-align:center";
+        cell6.innerHTML = "<span id='" + json_results[i]['ip'] +  "-notes'></span><br/>";
 
         if (json_results[i]['aws'] === true) {
             check_aws_ip(json_results[i]['ip']);
@@ -331,6 +359,8 @@ function displayIPList(json_results) {
             check_azure_ip(json_results[i]['ip']);
         } else if (json_results[i]['tracked'] === true) {
             check_known_ip(json_results[i]['ip']);
+        } else if (json_results[i]['gcp'] === true) {
+            check_gcp_ip(json_results[i]['ip']);
         }
     }
     old_tbody.parentNode.replaceChild(new_tbody, old_tbody)

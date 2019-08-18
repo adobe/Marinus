@@ -21,6 +21,7 @@ const escapeStringRegexp = require('escape-string-regexp');
 const awsIPs = require('../config/models/aws_ips');
 const akamaiIPs = require('../config/models/akamai_ips');
 const azureiIPs = require('../config/models/azure_ips');
+const gcpIPs = require('../config/models/gcp_ips');
 const custom_errors = require('../config/error');
 
 module.exports = function(envConfig) {
@@ -52,7 +53,7 @@ module.exports = function(envConfig) {
      *   # Operation-specific security:
      *     security:
      *       - APIKeyHeader: []
-     *     description: Determines whether an IPv4 address belongs to AWS.
+     *     description: Determines whether an IPv4 address belongs to AWS in general. This does not check whether the IP is assigned to your organization within AWS.
      *     tags: [AWS - IP check]
      *     produces:
      *       - application/json
@@ -399,7 +400,7 @@ module.exports = function(envConfig) {
      *   # Operation-specific security:
      *     security:
      *       - APIKeyHeader: []
-     *     description: Determines whether an IPv4 address belongs to Azure.
+     *     description: Determines whether an IPv4 address belongs to Azure. It does not check whether the IP is assigned to your organization within Azure.
      *     tags: [Azure - IP check]
      *     produces:
      *       - application/json
@@ -462,6 +463,192 @@ module.exports = function(envConfig) {
                return;
             });
         });
+
+
+    /**
+     * @swagger
+     *
+     * security:
+     *   - APIKeyHeader: []
+     *
+     * tags:
+     *   - name: GCP - IP check
+     *     description: Check whether the provided IPv4 address is known to belong in GCP.
+     *
+     * definitions:
+     *   GCPIPv4CheckResponse:
+     *     type: object
+     *     properties:
+     *       status:
+     *         type: boolean
+     *         example: true
+     *         description: A boolean indicating whether the IP belongs to GCP
+     *       record:
+     *         type: string
+     *         example: 1.2.3.0/24
+     *         description: The matching GCP CIDR range.
+     *
+     * /api/v1.0/gcp/ip_check:
+     *   get:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: Determines whether an IPv4 address belongs to GCP in general. This does not check whether the IP is assigned to your organization within GCP.
+     *     tags: [GCP - IP check]
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: ip
+     *         type: string
+     *         required: true
+     *         description: The IPv4 address to check.
+     *         in: query
+     *     responses:
+     *       200:
+     *         description: Returns an object with status and the matching GCP IPv4 CIDR.
+     *         type: object
+     *         schema:
+     *           $ref: '#/definitions/GCPIPv4CheckResponse'
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
+     */
+    router.route('/gcp/ip_check')
+        .get(function(req, res) {
+            if (!(req.query.hasOwnProperty('ip'))) {
+                res.status(400).json({
+                    'message': 'An IP must be provided',
+                });
+                return;
+            }
+
+            let promise = gcpIPs.getGCPIpZonesPromise();
+            promise.then(function(results) {
+               if (!results) {
+                   res.status(500).json({
+                       'message': 'Error fetching GCP information!',
+                    });
+                   return;
+               }
+               let matcher;
+               for (let i =0; i < results[0]['prefixes'].length; i++) {
+                   /**
+                    * This is inefficient since you could add all the prefixes
+                    * to a single CIDRMatcher, and then check once.
+                    * However, then you would not know which record was matched.
+                    */
+                   matcher = new CIDRMatcher();
+                   matcher.addNetworkClass(results[0]['prefixes'][i]['ip_prefix']);
+                   if (matcher.contains(req.query.ip)) {
+                       res.status(200).json({
+                            'result': true,
+                            'record': results[0]['prefixes'][i],
+                        });
+                       return;
+                   }
+               }
+
+               res.status(200).json({'result': false});
+               return;
+            });
+        });
+
+    /**
+     * @swagger
+     *
+     * security:
+     *   - APIKeyHeader: []
+     *
+     * tags:
+     *   - name: GCP - IPv6 check
+     *     description: Check whether the provided IPv6 address is known to belong in GCP.
+     *
+     * definitions:
+     *   GCPIPv6CheckResponse:
+     *     type: object
+     *     properties:
+     *       status:
+     *         type: boolean
+     *         example: true
+     *         description: A boolean indicating whether the IPv6 belongs to GCP
+     *       record:
+     *         type: string
+     *         example: 2a05:d07c:2000::/40
+     *         description: The matching AWS CIDR range.
+     *
+     * /api/v1.0/gcp/ipv6_check:
+     *   get:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: Determines whether an IPv6 address belongs to GCP.
+     *     tags: [GCP - IPv6 check]
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: ip
+     *         type: string
+     *         required: true
+     *         description: The IPv6 address to check.
+     *         in: query
+     *     responses:
+     *       200:
+     *         description: Returns an object with status and matching IPv6 CIDR.
+     *         type: object
+     *         schema:
+     *           $ref: '#/definitions/GCPIPv6CheckResponse'
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
+     */
+    router.route('/gcp/ipv6_check')
+        .get(function(req, res) {
+            if (!(req.query.hasOwnProperty('ip'))) {
+                res.status(400).json({
+                    'message': 'An IPv6 IP must be provided',
+                });
+                return;
+            }
+
+            let promise = gcpIPs.getGCPIpv6ZonesPromise();
+            promise.then(function(results) {
+               if (!results) {
+                   res.status(500).json({
+                       'message': 'Error fetching GCP information!',
+                    });
+                   return;
+                }
+
+               for (let i =0; i < results[0]['ipv6_prefixes'].length; i++) {
+                   /**
+                    * This is inefficient since you could add all the prefixes
+                    * to a single rangecheck call.
+                    * However, then you would not know which record was matched.
+                    */
+                   if (rangeCheck.inRange(req.query.ip, results[0]['ipv6_prefixes'][i]['ipv6_prefix'])) {
+                       res.status(200).json({
+                            'result': true,
+                            'record': results[0]['ipv6_prefixes'][i],
+                        });
+                       return;
+                   }
+               }
+
+               res.status(200).json({'result': false});
+               return;
+            });
+        });
+
 
     return (router);
 };

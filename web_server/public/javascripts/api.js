@@ -97,6 +97,7 @@ function queries(event) {
         aws_check('ip', value);
         azure_check(value);
         akamai_check('ip', value);
+        gcp_check('ip', value);
         tracked_ip_range_check('ip', value);
         // DNS Records
         search_all_dns('ip',value);
@@ -135,6 +136,7 @@ function queries(event) {
         // Check Location
         aws_check('ipv6', value);
         akamai_check('ipv6', value);
+        gcp_check('ipv6', value);
         tracked_ip_range_check('ipv6', value);
         // DNS Records
         search_all_dns('ipv6',value);
@@ -330,6 +332,32 @@ function akamai_check(type, ip) {
     var query = "?ip=" + ip;
 
     make_get_request(url+query, akamai_check_result, null, "akamaiResult");
+}
+
+function gcp_check_result(results, type) {
+    if (results['result'] === true) {
+        var gcpResult = document.getElementById("hostingLocation");
+
+        let displayHTML = create_h3("GCP Information");
+        if (type === 'ipv6') {
+            displayHTML += "CIDR: " + results['record']['ipv6_prefix'];
+        } else {
+            displayHTML += "CIDR: " + results['record']['ip_prefix'];
+        }
+        gcpResult.innerHTML += displayHTML + "<br/><br/>"
+    }
+}
+
+function gcp_check(type, ip) {
+    var url;
+    if (type === "ipv6") {
+        url = "/api/v1.0/gcp/ipv6_check";
+    } else {
+        url = "/api/v1.0/gcp/ip_check";
+    }
+    var query = "?ip=" + ip;
+
+    make_get_request(url+query, gcp_check_result, type, "gcpResult");
 }
 
 function tracked_range_result(results) {
