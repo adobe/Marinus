@@ -57,6 +57,7 @@ function search_click (event) {
     document.getElementById("dnsSection").style.display = "none";
     document.getElementById("ownTitleRow").innerHTML = "";
     document.getElementById("ownDataRow").innerHTML = "";
+    document.getElementById("ownMiscRow").innerHTML = "";
     document.getElementById("ownSection").style.display = "none";
     document.getElementById("secTitleRow").innerHTML = "";
     document.getElementById("secDataRow").innerHTML = "";
