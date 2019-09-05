@@ -67,6 +67,12 @@ def main():
                 results['Dr Web category'] = results.pop("Dr.Web category")
 
             vt_collection.delete_one({"zone": zone})
+
+            if 'last_https_certificate' in results:
+               if 'extensions' in results['last_https_certificate']:
+                  if '1.3.6.1.4.1.11129.2.4.2' in results['last_https_certificate']['extensions']:
+                     results['last_https_certificate']['extensions']['sct_list'] = results['last_https_certificate']['extensions'].pop('1.3.6.1.4.1.11129.2.4.2')
+
             vt_collection.insert(results)
 
         # This sleep command is so that we don't exceed the daily limit on the free API
