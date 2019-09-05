@@ -84,6 +84,7 @@ def create_network_data_sets(groups, mongo_connector):
     group_data['tracked_count'] = 0
     group_data['akamai_count'] = 0
     group_data['azure_count'] = 0
+    group_data['gcp_count'] = 0
 
     ip_manager = IPManager.IPManager(mongo_connector)
 
