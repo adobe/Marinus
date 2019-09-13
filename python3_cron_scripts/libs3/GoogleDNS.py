@@ -17,6 +17,7 @@ https://developers.google.com/speed/public-dns/docs/dns-over-https
 """
 
 import json
+import logging
 import requests
 
 from requests.adapters import HTTPAdapter
@@ -37,7 +38,7 @@ class GoogleDNS(object):
             Therefore, you would get a result array such as:
             [{"fqdn": "cdn.example.org", "type": "cname", "value": "example.amazonaws.com"}, {"fqdn": "example.amazonaws.com", "type": "1", "value": "1.2.3.4"}]
 
-            :param host: The host 
+            :param host: The host
             :param dns_type: Either a string (e.g. "AAAA") or the corresponding number for that type.
             :return: An array of results containing the "fqdn", type", and "value" parameters or [] if nothing matched
             """
@@ -67,26 +68,28 @@ class GoogleDNS(object):
             if dns_type is not None:
                 url = url + "&type=" + str(dns_type)
 
+            logger = logging.getLogger(__name__)
+
             try:
                 req = _requests_retry_session().get(url)
             except Exception as ex:
-                print ("Requests attempt failed!")
-                print (str(ex))
+                logger.error("Google DNS request attempts failed!")
+                logger.error(str(ex))
                 return []
 
             if req.status_code != 200:
-                print ("Error looking up: " + host)
+                logger.error("Error looking up: " + host)
                 return []
 
             nslookup_results = json.loads(req.text)
 
             if nslookup_results['Status'] != 0:
-                print ("Status error looking up: " + host)
+                logger.error("Status error looking up: " + host)
                 return []
 
             if "Answer" not in nslookup_results:
-                print ("Could not find Answer in DNS result for " + host)
-                # print (req.text)
+                logger.warning("Could not find Answer in DNS result for " + host)
+                # logger.debug (req.text)
                 return []
 
             results = []
@@ -118,6 +121,6 @@ class GoogleDNS(object):
                 elif answer['type'] == 46:
                     results.append({'fqdn': answer['name'][:-1], 'type': 'rrsig', 'value': answer['data']})
                 else:
-                    print ("Unrecognized type: " + str(answer['type']))
+                    logger.warning("Unrecognized type: " + str(answer['type']))
 
             return results

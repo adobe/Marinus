@@ -10,6 +10,7 @@
 # OF ANY KIND, either express or implied. See the License for the specific language
 # governing permissions and limitations under the License.
 
+import logging
 
 from datetime import datetime
 
@@ -43,7 +44,7 @@ class JobsManager(object):
     ###################
 
     # Print debug output
-    _DEBUG = False
+    _logger = None
 
     # JobsCollection
     _jobs_collection = None
@@ -55,8 +56,18 @@ class JobsManager(object):
     _job_name = ""
 
 
-    def __init__(self, mongo_connector, job_name, debug=False):
-        self._DEBUG = debug
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
+
+    def __init__(self, mongo_connector, job_name, log_level = None):
+        self._logger = self._log()
+        if log_level is not None:
+            self._logger.setLevel(log_level)
+
         self._mongo_connector = mongo_connector
         self._jobs_collection = mongo_connector.get_jobs_connection()
         self._job_name = job_name

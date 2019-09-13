@@ -15,6 +15,7 @@ This module manages the connection to the primary, authoritative MongoDB.
 """
 
 import configparser
+import logging
 import time
 from pymongo import MongoClient
 from pymongo.errors import AutoReconnect
@@ -27,11 +28,18 @@ class MongoConnector(object):
 
     mongo_config_file = 'connector.config'
     m_connection = None
-    debug = False
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
 
 
     @staticmethod
-    def _get_config_setting(config, section, key, type='str'):
+    def _get_config_setting(logger, config, section, key, type='str'):
         """
         Retrieves the key value from inside the section the connector.config file.
 
@@ -50,20 +58,20 @@ class MongoConnector(object):
             else:
                 result = config.get(section, key)
         except configparser.NoSectionError:
-            print('Warning: ' + section + ' does not exist in config file')
+            logger.warning('Warning: ' + section + ' does not exist in config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.NoOptionError:
-            print('Warning: ' + key + ' does not exist in the config file')
+            logger.warning('Warning: ' + key + ' does not exist in the config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.Error as err:
-            print('Warning: Unexpected error with config file')
-            print(str(err))
+            logger.warning('Warning: Unexpected error with config file')
+            logger.warning(str(err))
             if type == 'boolean':
                 return 0
             else:
@@ -74,12 +82,12 @@ class MongoConnector(object):
 
     def _init_mongo_connection(self, config):
         """ Obtains all the parameters from the config file """
-        protocol = self._get_config_setting(config, "MongoDB", "mongo.protocol")
-        endpoint = self._get_config_setting(config, "MongoDB", "mongo.host")
-        path = self._get_config_setting(config, "MongoDB", "mongo.path")
-        username = self._get_config_setting(config, "MongoDB", "mongo.username")
-        password = self._get_config_setting(config, "MongoDB", "mongo.password")
-        cacert = self._get_config_setting(config, "MongoDB", "mongo.ca_cert")
+        protocol = self._get_config_setting(self._logger, config, "MongoDB", "mongo.protocol")
+        endpoint = self._get_config_setting(self._logger, config, "MongoDB", "mongo.host")
+        path = self._get_config_setting(self._logger, config, "MongoDB", "mongo.path")
+        username = self._get_config_setting(self._logger, config, "MongoDB", "mongo.username")
+        password = self._get_config_setting(self._logger, config, "MongoDB", "mongo.password")
+        cacert = self._get_config_setting(self._logger, config, "MongoDB", "mongo.ca_cert")
 
         if username != "" and password != "":
             connection_string = protocol + username + ":" + password + "@" + endpoint + path
@@ -94,15 +102,18 @@ class MongoConnector(object):
         self.m_connection = client[path[1:]]
 
 
-    def __init__(self, config_file="", debug=False):
+    def __init__(self, config_file="", log_level=None):
         if config_file != "":
             self.mongo_config_file = config_file
-        self.debug = debug
+
+        self._logger = self._log()
+        if log_level is not None:
+            self._logger.setLevel(log_level)
 
         config = configparser.ConfigParser()
         list = config.read(self.mongo_config_file)
         if len(list) == 0:
-            print('Error: Could not find the config file')
+            self._logger.error('Error: Could not find the config file')
             exit(0)
 
         self._init_mongo_connection(config)
@@ -129,11 +140,11 @@ class MongoConnector(object):
                 success = True
             except AutoReconnect:
                 if num_tries < 5:
-                    print("Warning: Failed to connect to the database. Retrying.")
+                    self._logger.warning("Warning: Failed to connect to the database. Retrying.")
                     time.sleep(5)
                     num_tries = num_tries + 1
                 else:
-                    print("ERROR: Exceeded the max number of connection attempts to MongoDB!")
+                    self._logger.error("ERROR: Exceeded the max number of connection attempts to MongoDB!")
                     exit(1)
 
         return result
@@ -154,11 +165,11 @@ class MongoConnector(object):
                 success = True
             except AutoReconnect:
                 if num_tries < 5:
-                    print("Warning: Failed to connect to the database. Retrying.")
+                    self._logger.warning("Warning: Failed to connect to the database. Retrying.")
                     time.sleep(5)
                     num_tries = num_tries + 1
                 else:
-                    print("ERROR: Exceeded the max number of connection attempts to MongoDB!")
+                    self._logger.error("ERROR: Exceeded the max number of connection attempts to MongoDB!")
                     exit(1)
 
         return result
@@ -176,11 +187,11 @@ class MongoConnector(object):
                 success = True
             except AutoReconnect:
                 if num_tries < 5:
-                    print("Warning: Failed to connect to the database. Retrying.")
+                    self._logger.warning("Warning: Failed to connect to the database. Retrying.")
                     time.sleep(5)
                     num_tries = num_tries + 1
                 else:
-                    print("ERROR: Exceeded the max number of connection attempts to MongoDB!")
+                    self._logger.error("ERROR: Exceeded the max number of connection attempts to MongoDB!")
                     exit(1)
 
         return result
@@ -201,11 +212,11 @@ class MongoConnector(object):
                 success = True
             except AutoReconnect:
                 if num_tries < 5:
-                    print("Warning: Failed to connect to the database. Retrying.")
+                    self._logger.warning("Warning: Failed to connect to the database. Retrying.")
                     time.sleep(5)
                     num_tries = num_tries + 1
                 else:
-                    print("ERROR: Exceeded the max number of connection attempts to MongoDB!")
+                    self._logger.error("ERROR: Exceeded the max number of connection attempts to MongoDB!")
                     exit(1)
 
         return result

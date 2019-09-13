@@ -14,6 +14,8 @@
 This module manages consolidating DNS records from various sources.
 """
 
+import logging
+
 from datetime import datetime
 from libs3 import MongoConnector, IPManager
 from bson.objectid import ObjectId
@@ -33,9 +35,18 @@ class DNSManager(object):
 
     all_dns_collection = None
     mongo_connector = None
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
 
 
     def __init__(self, mongo_connector):
+        self._logger = self._log()
         self.mongo_connector = mongo_connector
         self.all_dns_collection = mongo_connector.get_all_dns_connection()
 

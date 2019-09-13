@@ -15,14 +15,24 @@ This module is intended to initialize the connection to the UltraDNS services.
 """
 
 import configparser
+import logging
 from sys import exit
 
 
 class UltraDNSConnector(object):
     ultra_config_file = 'connector.config'
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
 
     @staticmethod
-    def _get_config_setting(config, section, key, type='str'):
+    def _get_config_setting(logger, config, section, key, type='str'):
         """
         Retrieves the key value from inside the section the connector.config file.
 
@@ -41,20 +51,20 @@ class UltraDNSConnector(object):
             else:
                 result = config.get(section, key)
         except configparser.NoSectionError:
-            print ('Warning: ' + section + ' does not exist in config file')
+            logger.warning ('Warning: ' + section + ' does not exist in config file')
             if type == 'boolean':
                 return 0
             else:
                 return ''
         except configparser.NoOptionError:
-            print ('Warning: ' + key + ' does not exist in the config file')
+            logger.warning ('Warning: ' + key + ' does not exist in the config file')
             if type == 'boolean':
                 return 0
             else:
                 return ''
         except configparser.Error as err:
-            print ('Warning: Unexpected error with config file')
-            print (str(err))
+            logger.warning ('Warning: Unexpected error with config file')
+            logger.warning (str(err))
             if type == 'boolean':
                 return 0
             else:
@@ -63,19 +73,22 @@ class UltraDNSConnector(object):
         return result
 
     def _init_ultra_connection(self, config):
-        self.USERNAME = self._get_config_setting(config, 'UltraDNS', 'ultra.username')
-        self.PASSWORD = self._get_config_setting(config, 'UltraDNS', 'ultra.password')
-        self.LOGIN = self._get_config_setting(config, 'UltraDNS', 'ultra.login_url')
-        self.ZONES = self._get_config_setting(config, 'UltraDNS', 'ultra.zones_listing')
-        self.ZONEINFO = self._get_config_setting(config, 'UltraDNS', 'ultra.zones_dns')
+        self.USERNAME = self._get_config_setting(self._logger, config, 'UltraDNS', 'ultra.username')
+        self.PASSWORD = self._get_config_setting(self._logger, config, 'UltraDNS', 'ultra.password')
+        self.LOGIN = self._get_config_setting(self._logger, config, 'UltraDNS', 'ultra.login_url')
+        self.ZONES = self._get_config_setting(self._logger, config, 'UltraDNS', 'ultra.zones_listing')
+        self.ZONEINFO = self._get_config_setting(self._logger, config, 'UltraDNS', 'ultra.zones_dns')
 
-    def __init__(self, debug=False):
-        self.debug = debug
+
+    def __init__(self, log_level=None):
+        self._logger = self._log()
+        if log_level is not None:
+            self._logger.setLevel(log_level)
 
         config = configparser.ConfigParser()
         config_file = config.read(self.ultra_config_file)
         if len(config_file) == 0:
-            print ('Error: Could not find the config file')
+            self._logger.error('Error: Could not find the config file')
             exit(0)
 
         self._init_ultra_connection(config)

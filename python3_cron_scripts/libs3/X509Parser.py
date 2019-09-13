@@ -31,6 +31,7 @@ from OpenSSL import crypto
 
 import binascii
 import base64
+import logging
 import struct
 import sys
 from datetime import datetime
@@ -47,7 +48,7 @@ class X509Parser(object):
     Certificates can be provided as a file location
     """
 
-    DEBUG = False
+    _logger = None
 
     ## Constants for CT parsing
     SCT_VERSION_V1 = 0
@@ -182,8 +183,17 @@ class X509Parser(object):
                 }
 
 
-    def __init__(self, debug=False):
-        self.DEBUG = debug
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
+
+    def __init__(self, log_level = None):
+        self._logger = self._log()
+        if log_level is not None:
+            self._logger.setLevel(log_level)
 
 
     def __find_ct_log_url_by_id(self, logid):
@@ -231,7 +241,7 @@ class X509Parser(object):
                     cert_object['signature_algorithm'] = p.replace("WITH_", "")
                     return
 
-        print("WARNING: Unrecognined Signature Alogrithm: " + str(sig_oid))
+        self._logger.warning("WARNING: Unrecognined Signature Alogrithm: " + str(sig_oid))
         cert_object['signature_algorithm'] = ''
 
 
@@ -249,8 +259,7 @@ class X509Parser(object):
             for ip in new_ips:
                 cert_object['subject_ip_addresses'].append(str(ip))
         except ExtensionNotFound:
-            if self.DEBUG:
-                print("No alternative names")
+            self._logger.debug("No alternative names")
 
 
     def __get_key_usages(self, cert_object, extensions):
@@ -281,8 +290,7 @@ class X509Parser(object):
             if usages.crl_sign:
                 cert_object['key_usages'].append('crl_sign')
         except ExtensionNotFound:
-            if self.DEBUG:
-                print("No key usages")
+            self._logger.debug("No key usages")
 
 
     def __get_extended_key_usages(self, cert_object, extensions):
@@ -298,8 +306,7 @@ class X509Parser(object):
                 else:
                     cert_object['extended_key_usages'].append(usage.dotted_string)
         except ExtensionNotFound:
-            if self.DEBUG:
-                print("No extended key usage")
+            self._logger.debug("No extended key usage")
 
 
     def __get_basic_constraints(self, cert_object, extensions):
@@ -311,8 +318,7 @@ class X509Parser(object):
             cert_object['basic_constraint_ca'] = constraints.value.ca
             cert_object['basic_constraint_path_length'] = constraints.value.path_length
         except ExtensionNotFound:
-            if self.DEBUG:
-                print("No basic constraints")
+            self._logger.debug("No basic constraints")
 
 
     def __SCT_get_signature_nid(self, version, hash_alg, sig_alg):
@@ -362,7 +368,7 @@ class X509Parser(object):
         elif header[1] ^ 0x80 == 2:
             _, data = self.__splitBytes(header_data, 2)
         else:
-            print("Unexpected SCTS header length")
+            self._logger.error("Unexpected SCTS header length")
             raise ValueError("Unexpected SCTS header length")
         scts = []
 
@@ -370,7 +376,7 @@ class X509Parser(object):
         packed_len, data = self.__splitBytes(data, 2)
         total_len = struct.unpack("!H", packed_len)[0]
         if len(data) != total_len:
-            print("SCT ERROR: data length: " + str(len(data)) + " Total length: " + str(total_len))
+            self._logger.error("SCT ERROR: data length: " + str(len(data)) + " Total length: " + str(total_len))
             raise ValueError("Malformed length of SCT list")
 
         bytes_read = 0
@@ -468,12 +474,12 @@ class X509Parser(object):
         try:
             cert_object['not_before'] = cert.not_valid_before
         except ValueError:
-            print("WARNING: Invalid not_before date")
+            self._logger.warning("WARNING: Invalid not_before date")
 
         try:
             cert_object['not_after'] = cert.not_valid_after
         except ValueError:
-            print ("WARNING: Invalid not_after date")
+            self._logger.warning ("WARNING: Invalid not_after date")
             return None
 
         # MongoDB can only handle up to 8 byte ints which some serial numbers exceed.
@@ -487,13 +493,13 @@ class X509Parser(object):
         try:
             cert_object['isExpired'] = openssl_cert.has_expired()
         except RuntimeError:
-            print("WARNING: Could not determine if the certificate is expired")
+            self._logger.warning("WARNING: Could not determine if the certificate is expired")
 
 
         try:
             cert_object['full_certificate'] = crypto.dump_certificate(crypto.FILETYPE_TEXT, openssl_cert).decode("utf-8")
         except UnicodeDecodeError:
-            print("WARNING: Couldn't decode text as UTF-8 for: " + cert_object['fingerprint_sha256'])
+            self._logger.warning("WARNING: Couldn't decode text as UTF-8 for: " + cert_object['fingerprint_sha256'])
             cert_object['full_certificate'] = ''
 
         try:
@@ -501,7 +507,7 @@ class X509Parser(object):
         except ValueError:
             # The X509 parser struggles with some certificate's subject
             # Without a subject, we can't do much with the cert
-            print("WARNING: Could not parse subject for certificate")
+            self._logger.warning("WARNING: Could not parse subject for certificate")
             return None
 
         # This is for legacy compliance where the field was originally called
@@ -519,15 +525,15 @@ class X509Parser(object):
             # The X509 parser struggles with some certificates
             # Python cryptography will throw an error if the path_length is not None when ca is False
             # There could also be an issue with parsing SCTS entries
-            print("WARNING: Could not parse extensions for certificate due to ValueError.")
+            self._logger.warning("WARNING: Could not parse extensions for certificate due to ValueError.")
             return None
         except x509.DuplicateExtension:
             # Python cryptography will error out if it finds a duplicate extension
-            print("WARNING: Could not parse the extension due to Duplicate Extensions")
+            self._logger.warning("WARNING: Could not parse the extension due to Duplicate Extensions")
             return None
         except AssertionError:
             # Python cryptography thinks that the certificate is not well formed.
-            print("WARNING: Python cryptography threw an Assertion Error")
+            self._logger.warning("WARNING: Python cryptography threw an Assertion Error")
             return None
 
         return(cert_object)
@@ -542,9 +548,9 @@ class X509Parser(object):
             with open(filename, 'rb') as f:
                 bytes = f.read()
         except OSError as err:
-            print("OS error': {0}".format(err))
+            self._logger.error("OS error': {0}".format(err))
         except:
-            print("Unexpected error: ", sys.exc_info()[0])
+            self._logger.error("Unexpected error: " +  str(sys.exc_info()[0]))
 
         return bytes
 
@@ -559,14 +565,13 @@ class X509Parser(object):
             cert = x509.load_pem_x509_certificate(data, default_backend())
             openssl_cert = crypto.load_certificate(crypto.FILETYPE_PEM, data)
         except:
-            if self.DEBUG:
-                print("WARNING: Could not parse certificate as a PEM file")
+            self._logger.debug("WARNING: Could not parse certificate as a PEM file")
 
             try:
                 cert = x509.load_der_x509_certificate(data, default_backend())
                 openssl_cert = crypto.load_certificate(crypto.FILETYPE_ASN1, data)
             except:
-                print("ERROR: Could not parse certificate as a PEM or DER File")
+                self._logger.error("ERROR: Could not parse certificate as a PEM or DER File")
                 return None
 
         cert_object = self.__create_mongodb_structure(cert, openssl_cert)
@@ -589,7 +594,7 @@ class X509Parser(object):
         """
         data = self.__open_file(file_name)
         if data == None:
-           print("ERROR Could not parse: " + file_name)
+           self._logger.error("ERROR Could not parse: " + file_name)
            return None
 
         cert_object = self.__parse(data, certSource)
@@ -613,4 +618,3 @@ class X509Parser(object):
 
         cert_object = self.__parse(data, certSource)
         return cert_object
-

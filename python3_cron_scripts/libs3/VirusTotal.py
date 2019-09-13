@@ -16,6 +16,7 @@ This module is for interacting with the VirusTotal service.
 
 import configparser
 import json
+import logging
 import requests
 
 class VirusTotal(object):
@@ -29,10 +30,18 @@ class VirusTotal(object):
     PUBLIC_APIKEY = None
     APIKEY = None
     URL = None
-    debug = False
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
 
     @staticmethod
-    def _get_config_setting(config, section, key, type='str'):
+    def _get_config_setting(logger, config, section, key, type='str'):
         """
         Retrieves the key value from inside the section the connector.config file.
 
@@ -51,20 +60,20 @@ class VirusTotal(object):
             else:
                 result = config.get(section, key)
         except configparser.NoSectionError:
-            print ('Warning: ' + section + ' does not exist in config file')
+            logging.warning ('Warning: ' + section + ' does not exist in config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.NoOptionError:
-            print ('Warning: ' + key + ' does not exist in the config file')
+            logging.warning ('Warning: ' + key + ' does not exist in the config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.Error as err:
-            print ('Warning: Unexpected error with config file')
-            print (str(err))
+            logger.warning ('Warning: Unexpected error with config file')
+            logger.warning (str(err))
             if type == 'boolean':
                 return 0
             else:
@@ -73,25 +82,28 @@ class VirusTotal(object):
         return result
 
 
-    def _init_vt(self, config, debug):
-        self.URL = self._get_config_setting(config, "VirusTotal", "virustotal.url")
-        self.PRIVATE_APIKEY = self._get_config_setting(config, "VirusTotal", "virustotal.apikey")
-        self.PUBLIC_APIKEY = self._get_config_setting(config, "VirusTotal",
+    def _init_vt(self, config):
+        self.URL = self._get_config_setting(self._logger, config, "VirusTotal", "virustotal.url")
+        self.PRIVATE_APIKEY = self._get_config_setting(self._logger, config, "VirusTotal", "virustotal.apikey")
+        self.PUBLIC_APIKEY = self._get_config_setting(self._logger, config, "VirusTotal",
                                                       "virustotal.public_apikey")
 
 
-    def __init__(self, config_file="", key="public", debug=False):
+    def __init__(self, config_file="", key="public", log_level=None):
         if config_file != "":
             self.virustotal_config_file = config_file
-        self.debug = debug
+
+        self._logger = self._log()
+        if log_level is not None:
+            self._logger.setLevel(log_level)
 
         config = configparser.ConfigParser()
         list = config.read(self.virustotal_config_file)
         if len(list) == 0:
-            print ('Error: Could not find the config file')
+            self._logger.error ('Error: Could not find the config file')
             exit(0)
 
-        self._init_vt(config, debug)
+        self._init_vt(config)
 
         if key == "private":
             self.APIKEY = self.PRIVATE_APIKEY
@@ -109,7 +121,7 @@ class VirusTotal(object):
         req = requests.get((self.URL + "domain/report" +
                             "?apikey=" + self.APIKEY + "&domain=" + domain))
         if req.status_code != 200:
-            print ("Error: " + str(req.status_code))
+            self._logger.error ("Error: " + str(req.status_code))
             return None
         try:
             res = json.loads(req.text)

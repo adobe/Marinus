@@ -16,7 +16,11 @@ This module allows scripts to perform paginated queries against a Splunk server.
 
 import configparser
 import json
+import logging
 import time
+
+from socket import error as SocketError
+import errno
 
 import splunklib.client as client
 import splunklib.results as results
@@ -42,12 +46,24 @@ class SplunkQueryManager(object):
     # A pointer to the last job executed
     _JOB = None
 
+    # The logger
+    _logger = None
 
-    def __init__(self, debug=False):
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
+
+    def __init__(self, log_level = None):
         """
         Initialize the query manager
         """
-        self.debug = debug
+        self._logger = self._log()
+        if log_level is not None:
+            self._logger.setLevel(log_level)
 
         if self._CLIENT == None:
             splunk_connector = SplunkConnector.SplunkConnector()
@@ -104,26 +120,25 @@ class SplunkQueryManager(object):
         try:
             blocksearch_results = self._JOB.results(**kwargs_paginate)
         except HTTPError as http_error:
-            print("First HTTP Error: " + str(http_error))
+            self._logger.warning("First HTTP Error: " + str(http_error))
             time.sleep(10)
             try:
                 blocksearch_results = self._JOB.results(**kwargs_paginate)
             except HTTPError as http_error:
-                print("Second HTTP Error! " + str(http_error))
+                self._logger.error("Second HTTP Error! " + str(http_error))
                 exit(1)
         except SocketError as socket_error:
             if socket_error.errno != errno.ECONNRESET:
                 raise
             else:
-                print("First Socket Timeout Error: " + str(socket_error))
-                time.sleep(10)
+                self._logger.warning("First Socket Timeout Error: " + str(socket_error))
+                time.sleep(15)
                 try:
                     blocksearch_results = self._JOB.results(**kwargs_paginate)
                 except SocketError as socket_error:
-                    print("Second Socket Timeout Error! " + str(socket_error))
+                    self._logger.error("Second Socket Timeout Error! " + str(socket_error))
                     exit(1)
 
         self._OFFSET = self._OFFSET + self._COUNT
 
         return results.ResultsReader(blocksearch_results)
-

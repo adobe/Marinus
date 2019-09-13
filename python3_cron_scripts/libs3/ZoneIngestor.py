@@ -18,6 +18,8 @@ It expects 3 inputs:
 -- parent: Default value set to None
 """
 
+import logging
+
 from libs3 import MongoConnector
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -28,6 +30,8 @@ class ZoneIngestor(object):
     # Connect to the database
     MC = MongoConnector.MongoConnector()
     zone_collection = MC.get_zone_connection()
+
+    _logger = logging.getLogger(__name__)
 
     def __check_parent_zone(self, zone):
         """
@@ -248,7 +252,7 @@ class ZoneIngestor(object):
             parent_record = self.zone_collection.find({'zone': parent})
             if parent_record:
                 if parent_record.count() > 1:
-                    print('Error: Too many records for the parent zone:{parent}.'.format(parent=parent))
+                    self._logger.error('Error: Too many records for the parent zone:{parent}.'.format(parent=parent))
                     return False
                 self.__add_sub_zone(zone, source, parent_record[0])
             else:
@@ -298,12 +302,12 @@ class ZoneIngestor(object):
         """
 
         if cursor.count() > 1:
-            print('Error: The zone:{zone} is present in multiple records. Rectify.'.format(zone=zone))
+            self._logger.error('Error: The zone:{zone} is present in multiple records. Rectify.'.format(zone=zone))
             return
 
         record = cursor[0]
         # if record['status'] == 'false_positive':
-        #     print('False positive encountered in collection for zone:{zone}. No action required.'.format(zone=zone))
+        #     self._logger.error('False positive encountered in collection for zone:{zone}. No action required.'.format(zone=zone))
         #     return
 
         if record['zone'] == zone:
@@ -312,7 +316,7 @@ class ZoneIngestor(object):
             else:
                 # Return in case the zone is present with another source since sub-zones cannot have two sources.
                 if len(record['reporting_sources']) > 1 or not (record['reporting_sources'][0]['source'] == source):
-                    print('Error: The zone:{zone} has multiple sources'.format(zone=zone))
+                    self._logger.error('Error: The zone:{zone} has multiple sources'.format(zone=zone))
                     return
 
                 self.__add_new_zone(zone, source, parent)
@@ -323,14 +327,14 @@ class ZoneIngestor(object):
                 if sub_zone['sub_zone'] == zone:
                     record_zone = sub_zone
             # if record_zone['status'] == 'false_positive':
-            #     print('False positive encountered in collection for zone:{zone}. No action required.'.format(zone=zone))
+            #     self._logger.error('False positive encountered in collection for zone:{zone}. No action required.'.format(zone=zone))
             #     return
             if parent and (not record['zone'] == parent):
-                print('Error: The zone:{zone} pre-exists as a sub-zone of another parent zone apart from parent:{parent}.'.
+                self._logger.error('Error: The zone:{zone} pre-exists as a sub-zone of another parent zone apart from parent:{parent}.'.
                       format(zone=zone, parent=parent))
                 return
             if not record_zone['source'] == source:
-                print('Error: The zone:{zone} pre-exists as a sub-zone from another source:{source}.'.
+                self._logger.error('Error: The zone:{zone} pre-exists as a sub-zone from another source:{source}.'.
                       format(zone=zone, source=source))
                 return
 
@@ -344,12 +348,12 @@ class ZoneIngestor(object):
         :param parent: Parent zone of the zone being ingested if any. Default value is None
         """
         if not zone:
-            print('Error: Provide zone value.')
+            self._logger.error('Error: Provide zone value.')
             return
 
         # Reject any zone which does not contain a TLD.
         if '.' not in zone:
-            print('Error: Invalid zone entry : ' + zone)
+            self._logger.error('Error: Invalid zone entry : ' + zone)
             return
 
         cursor = self.zone_collection.find({'$or': [

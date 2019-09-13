@@ -16,6 +16,7 @@ This module manages interactions with the PassiveTotal service.
 
 import configparser
 import json
+import logging
 import time
 
 import requests
@@ -31,10 +32,18 @@ class PassiveTotal(object):
     KEY = None
     TOKEN = None
     URL = None
-    debug = False
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
 
     @staticmethod
-    def _get_config_setting(config, section, key, type='str'):
+    def _get_config_setting(logger, config, section, key, type='str'):
         """
         Retrieves the key value from inside the section the connector.config file.
 
@@ -53,20 +62,20 @@ class PassiveTotal(object):
             else:
                 result = config.get(section, key)
         except configparser.NoSectionError:
-            print('Warning: ' + section + ' does not exist in config file')
+            logger.warning('Warning: ' + section + ' does not exist in config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.NoOptionError:
-            print('Warning: ' + key + ' does not exist in the config file')
+            logger.warning('Warning: ' + key + ' does not exist in the config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.Error as err:
-            print('Warning: Unexpected error with config file')
-            print(str(err))
+            logger.warning('Warning: Unexpected error with config file')
+            logger.warning(str(err))
             if type == 'boolean':
                 return 0
             else:
@@ -74,23 +83,30 @@ class PassiveTotal(object):
 
         return result
 
-    def _init_passivetotal(self, config):
-        self.URL = self._get_config_setting(config, "PassiveTotal", "pt.url")
-        self.KEY = self._get_config_setting(config, "PassiveTotal", "pt.key")
-        self.TOKEN = self._get_config_setting(config, "PassiveTotal", "pt.token")
 
-    def __init__(self, config_file="", debug=False):
+    def _init_passivetotal(self, config):
+        self.URL = self._get_config_setting(self._logger, config, "PassiveTotal", "pt.url")
+        self.KEY = self._get_config_setting(self._logger, config, "PassiveTotal", "pt.key")
+        self.TOKEN = self._get_config_setting(self._logger, config, "PassiveTotal", "pt.token")
+
+
+    def __init__(self, config_file="", log_level=None):
         if config_file != "":
             self.pt_config_file = config_file
-        self.debug = debug
+
+        self._logger = self._log()
+
+        if log_level is not None:
+            self._logger.setLevel(log_level)
 
         config = configparser.ConfigParser()
         list = config.read(self.pt_config_file)
         if len(list) == 0:
-            print('Error: Could not find the config file')
+            self._logger.error('Error: Could not find the config file')
             exit(0)
 
         self._init_passivetotal(config)
+
 
     def get_whois(self, email):
         """
@@ -102,15 +118,15 @@ class PassiveTotal(object):
                            auth=HTTPBasicAuth(self.TOKEN, self.KEY))
 
         if req.status_code != 200:
-            print(req.status_code)
-            print(req.text)
+            self._logger.warning(req.status_code)
+            self._logger.warning(req.text)
             time.sleep(5)
             req = requests.get(self.URL + "whois/search?field=email&query=" +email,
                                auth=HTTPBasicAuth(self.TOKEN, self.KEY))
             if req.status_code != 200:
-                print("Second attempt failed.")
-                print(req.status_code)
-                print(req.text)
+                self._logger.error("Second email lookup attempt failed.")
+                self._logger.error(req.status_code)
+                self._logger.error(req.text)
                 return None
 
         try:
@@ -119,6 +135,7 @@ class PassiveTotal(object):
             return None
 
         return res
+
 
     def get_organization(self, organization):
         """
@@ -130,15 +147,15 @@ class PassiveTotal(object):
                            auth=HTTPBasicAuth(self.TOKEN, self.KEY))
 
         if req.status_code != 200:
-            print(req.status_code)
-            print(req.text)
+            self._logger.warning(req.status_code)
+            self._logger.warning(req.text)
             time.sleep(5)
             req = requests.get(self.URL + "whois/search?field=organization&query=" + organization,
                                auth=HTTPBasicAuth(self.TOKEN, self.KEY))
             if req.status_code != 200:
-                print("Second attempt failed.")
-                print(req.status_code)
-                print(req.text)
+                self._logger.error("Second org lookup attempt failed.")
+                self._logger.error(req.status_code)
+                self._logger.error(req.text)
                 return None
 
         try:

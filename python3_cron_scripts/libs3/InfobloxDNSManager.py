@@ -21,6 +21,7 @@ The valid record_type_iden values are 'zone_auth', 'record:cname', 'record:host'
 from datetime import datetime
 
 import backoff
+import logging
 import requests
 from requests.auth import HTTPBasicAuth
 
@@ -49,6 +50,15 @@ class InfobloxDNSManager(object):
         'cname': 'canonical',
         'aaaa': 'ipv6addr',
     }
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
 
     def __get_record_type_url(self):
         """
@@ -140,7 +150,7 @@ class InfobloxDNSManager(object):
             response_result = response_data['result']
         except (ValueError, AttributeError) as err:
             if self.incorrect_response_json_allowed > 0:
-                print('Unable to parse response JSON for zone ' + self.zone_queried)
+                self._logger.warning('Unable to parse response JSON for zone ' + self.zone_queried)
                 self.incorrect_response_json_allowed -= 1
             else:
                 self.APIH.handle_api_error(
@@ -156,6 +166,7 @@ class InfobloxDNSManager(object):
 
             if "next_page_id" in response_data:
                 self.next_page_id = response_data['next_page_id']
+
 
     @backoff.on_exception(backoff.expo,
                           requests.exceptions.ConnectionError,
@@ -188,6 +199,7 @@ class InfobloxDNSManager(object):
             self.next_page_id = None
             self.__infoblox_response_handler(response)
 
+
     def get_infoblox_dns(self):
         """
         Extracts the zones from the zone collection to query Infoblox. The API calls continue to be made
@@ -204,7 +216,9 @@ class InfobloxDNSManager(object):
                 self.__infoblox_paginated_request()
             self.IH.clean_collection(self.previous_records, self.iblox_collection)
 
+
     def __init__(self, record_type):
         self.record_type = record_type
         self.iblox_collection = self.MC.__getattribute__(self.IH.IBLOX_COLLECTIONS[self.record_type])()
         self.incorrect_response_json_allowed = self.APIH.INCORRECT_RESPONSE_JSON_ALLOWED
+        self._logger = self._log()

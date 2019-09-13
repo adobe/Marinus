@@ -24,6 +24,8 @@ The script exits when request exceptions are encountered.
 
 from datetime import datetime
 
+import logging
+
 import requests
 from requests.auth import HTTPBasicAuth
 
@@ -42,6 +44,15 @@ class InfobloxExtattrManager(object):
     zone_queried = None
     record_type = None
     next_page_id = None
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
 
     def __get_record_type_url(self):
         """
@@ -141,7 +152,7 @@ class InfobloxExtattrManager(object):
             response_result = response_data['result']
         except (ValueError, AttributeError) as err:
             if self.incorrect_response_json_allowed > 0:
-                print('Unable to parse response JSON for zone ' + self.zone_queried)
+                self._logger.warning('Unable to parse response JSON for zone ' + self.zone_queried)
                 self.incorrect_response_json_allowed -= 1
             else:
                 self.APIH.handle_api_error(
@@ -212,6 +223,8 @@ class InfobloxExtattrManager(object):
                 self.__infoblox_paginated_request()
             self.IH.clean_collection(self.previous_records, self.iblox_extattr_collection)
 
+
     def __init__(self, record_type):
         self.record_type = record_type
         self.incorrect_response_json_allowed = self.APIH.INCORRECT_RESPONSE_JSON_ALLOWED
+        self._logger = self._log()

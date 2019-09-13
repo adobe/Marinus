@@ -10,10 +10,14 @@
 # OF ANY KIND, either express or implied. See the License for the specific language
 # governing permissions and limitations under the License.
 
+import logging
+
 from libs3 import MongoConnector, JobsManager
 
 
 class APIHelper(object):
+
+    _logger = logging.getLogger(__name__)
 
     MC = MongoConnector.MongoConnector()
 
@@ -25,12 +29,11 @@ class APIHelper(object):
         :param err: Exception causing script exit.
         :param job_manager: The JobManager for the exiting script.
         """
-        print(err)
-        print('Exiting script execution.')
+        self._logger.error(err)
+        self._logger.error('Exiting script execution.')
         jobs_manager = JobsManager.JobsManager(self.MC, job_name)
         jobs_manager.record_job_error()
         exit(1)
 
-    @staticmethod
-    def connection_error_retry(details):
-        print('Connection Error encountered. Retrying in {wait:0.1f} seconds'.format(**details))
+    def connection_error_retry(self, details):
+        self._logger.error('Connection Error encountered. Retrying in {wait:0.1f} seconds'.format(**details))

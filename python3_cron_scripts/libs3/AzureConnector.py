@@ -18,6 +18,7 @@ https://docs.microsoft.com/en-us/python/azure/python-sdk-azure-authenticate?view
 
 import configparser
 import json
+import logging
 import requests
 
 from azure.mgmt.dns import DnsManagementClient
@@ -35,9 +36,18 @@ class AzureConnector(object):
     KEY = None
     CLIENT_ID = None
     FILE_PATH = None
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
 
     @staticmethod
-    def _get_config_setting(config, section, key, type='str'):
+    def _get_config_setting(logger, config, section, key, type='str'):
         """
         Retrieves the key value from inside the section the connector.config file.
 
@@ -56,20 +66,20 @@ class AzureConnector(object):
             else:
                 result = config.get(section, key)
         except configparser.NoSectionError:
-            print('Warning: ' + section + ' does not exist in config file')
+            logger.warning('Warning: ' + section + ' does not exist in config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.NoOptionError:
-            print('Warning: ' + key + ' does not exist in the config file')
+            logger.warning('Warning: ' + key + ' does not exist in the config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.Error as err:
-            print('Warning: Unexpected error with config file')
-            print(str(err))
+            logger.warning('Warning: Unexpected error with config file')
+            logger.warning(str(err))
             if type == 'boolean':
                 return 0
             else:
@@ -79,23 +89,26 @@ class AzureConnector(object):
 
 
     def _init_azure(self, config):
-        self.TENANT_ID = self._get_config_setting(config, "Azure", "az.tenant_id")
-        self.CLIENT_ID = self._get_config_setting(config, "Azure", "az.client_id")
-        self.KEY = self._get_config_setting(config, "Azure", "az.sp_password")
-        self.SUBSCRIPTION_ID = self._get_config_setting(config, "Azure", "az.subscription_id")
-        self.FILE_PATH = self._get_config_setting(config, "Azure", "az.file_path")
+        self.TENANT_ID = self._get_config_setting(self._logger, config, "Azure", "az.tenant_id")
+        self.CLIENT_ID = self._get_config_setting(self._logger, config, "Azure", "az.client_id")
+        self.KEY = self._get_config_setting(self._logger, config, "Azure", "az.sp_password")
+        self.SUBSCRIPTION_ID = self._get_config_setting(self._logger, config, "Azure", "az.subscription_id")
+        self.FILE_PATH = self._get_config_setting(self._logger, config, "Azure", "az.file_path")
 
 
 
-    def __init__(self, config_file="", debug=False):
+    def __init__(self, config_file="", log_level = None):
         if config_file != "":
             self.azure_config_file = config_file
-        self.debug = debug
+
+        self._logger = self._log()
+        if log_level is not None:
+            self._logger.setLevel(log_level)
 
         config = configparser.ConfigParser()
         list = config.read(self.azure_config_file)
         if len(list) == 0:
-            print('Error: Could not find the config file')
+            self._logger.error('Error: Could not find the config file')
             exit(0)
 
         self._init_azure(config)

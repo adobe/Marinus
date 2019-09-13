@@ -19,6 +19,7 @@ grant_type=refresh_token
 """
 
 import backoff
+import logging
 import requests
 
 from libs3 import APIHelper, MongoConnector, UltraDNSConnector, JobsManager
@@ -42,6 +43,16 @@ class UltraDNSHelper(object):
     ULTRACONNECT = UltraDNSConnector.UltraDNSConnector()
 
     zones_collection = MC.get_zone_connection()
+
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
 
     @backoff.on_exception(backoff.expo,
                           requests.exceptions.ConnectionError,
@@ -121,6 +132,8 @@ class UltraDNSHelper(object):
             self.offset = 0
 
     def __init__(self, invoking_job):
+        self._logger = self._log()
+
         self.incorrect_response_json_allowed = self.APIH.INCORRECT_RESPONSE_JSON_ALLOWED
         # invoking_job is the job accessing the helper.
         self.jobs_manager = JobsManager.JobsManager(self.MC, invoking_job)

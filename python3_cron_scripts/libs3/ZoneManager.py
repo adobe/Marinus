@@ -15,6 +15,8 @@ This class mostly exists because almost every script needs to do a get_distinct_
 Having it centralized, means that the included and excluded status' can be managed in one place.
 """
 
+import logging
+
 from pymongo import MongoClient
 from datetime import datetime
 
@@ -42,11 +44,22 @@ class ZoneManager(object):
     # The zone collection
     zone_collection = None
 
+    # The logger
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
 
     def __init__(self, mongo_connector):
         """
         Initialize the MongoDB Connector
         """
+        self._logger = self._log()
         self.mongo_connector = mongo_connector
         self.zone_collection = mongo_connector.get_zone_connection()
 
@@ -54,7 +67,7 @@ class ZoneManager(object):
     def _check_valid_status(self, status):
         if status != ZoneManager.EXPIRED and status != ZoneManager.FALSE_POSITIVE and \
            status != ZoneManager.CONFIRMED and status!= ZoneManager.UNCONFIRMED:
-           print("ERROR: Bad status value")
+           self._logger.error("ERROR: Bad status value")
            return False
 
         return True
@@ -194,16 +207,16 @@ class ZoneManager(object):
         Set a zone to expired.
         """
         if self.zone_collection.find({'zone': zone}).count() == 0:
-            print("ERROR: Invalid zone!")
+            self._logger.error("ERROR: Invalid zone!")
             return
 
         if status != ZoneManager.EXPIRED and status != ZoneManager.FALSE_POSITIVE and \
            status != ZoneManager.CONFIRMED and status!= ZoneManager.UNCONFIRMED:
-           print("ERROR: Bad status value!")
+           self._logger.error("ERROR: Bad status value!")
            return
 
         if caller is None or caller == "":
-            print("ERROR: Please provide a caller value!")
+            self._logger.error("ERROR: Please provide a caller value!")
             return
 
         now = datetime.now()
@@ -218,4 +231,3 @@ class ZoneManager(object):
         """
 
         self.zone_collection.update({"zone": zone}, {"$addToSet": {"notes": note}})
-

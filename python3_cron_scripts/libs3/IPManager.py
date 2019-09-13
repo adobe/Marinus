@@ -18,6 +18,8 @@ NOTE: The find_splunk_data function within this script does not do anything. It 
 for any custom integrations that you may want to make within your network.
 """
 
+import logging
+
 from datetime import datetime
 from netaddr import IPAddress, IPNetwork
 
@@ -55,6 +57,16 @@ class IPManager(object):
 
     _ZONES = None
 
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
+
+
     def __init__(self, mongo_connector, init_all=False):
         """
         The init_all parameter is useful if you need to get access to the partner IP
@@ -62,6 +74,8 @@ class IPManager(object):
         """
         self.mongo_connector = mongo_connector
         self.all_ips_collection = mongo_connector.get_all_ips_connection()
+
+        self._logger = self._log()
 
         if init_all:
             self.__get_akamai_ips()
@@ -532,7 +546,7 @@ class IPManager(object):
             ip = str(ip_addr)
 
         if self.is_local_ip(ip):
-            print("WARNING: all_ips does not track local IP addresses")
+            self._logger.warning("WARNING: all_ips does not track local IP addresses")
             return
 
         record = {}

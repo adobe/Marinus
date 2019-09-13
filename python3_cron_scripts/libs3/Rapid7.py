@@ -17,6 +17,7 @@ Access to the service requires a complicated handshake with their Okta plugin.
 
 import configparser
 import json
+import logging
 import subprocess
 import time
 
@@ -35,23 +36,26 @@ class MyHTMLParser(HTMLParser):
     rdns_url = ""
     base_url = ""
 
+
     def set_base_location(self, base_location):
         self.base_url = base_location
 
+
     def handle_starttag(self, tag, attrs):
+        logger = logging.getLogger(__name__)
         if tag == "a":
             for attr in attrs:
                 if self.any_url == "" and attr[0] == "href" and attr[1].endswith("fdns_any.json.gz"):
-                    print(attr[1])
+                    logger.info(attr[1])
                     self.any_url =  self.base_url + attr[1]
                 elif self.a_url == "" and attr[0] == "href" and attr[1].endswith("fdns_a.json.gz"):
-                    print(attr[1])
+                    logger.info(attr[1])
                     self.a_url = self.base_url + attr[1]
                 elif self.aaaa_url == "" and attr[0] == "href" and attr[1].endswith("fdns_aaaa.json.gz"):
-                    print(attr[1])
+                    logger.info(attr[1])
                     self.aaaa_url = self.base_url + attr[1]
                 elif self.rdns_url == "" and attr[0] == "href" and attr[1].endswith("rdns.json.gz"):
-                    print(attr[1])
+                    logging.info(attr[1])
                     self.rdns_url = self.base_url + attr[1]
 
 
@@ -89,12 +93,19 @@ class Rapid7(object):
     BASE_URL = "https://opendata.rapid7.com"
     FDNS_PATH = "/sonar.fdns_v2/"
     RDNS_PATH = "/sonar.rdns_v2/"
-    debug = False
     PID_FILE = None
+    _logger = None
+
+
+    def _log(self):
+        """
+        Get the log
+        """
+        return logging.getLogger(__name__)
 
 
     @staticmethod
-    def _get_config_setting(config, section, key, type='str'):
+    def _get_config_setting(logger, config, section, key, type='str'):
         """
         Retrieves the key value from inside the section the connector.config file.
 
@@ -113,20 +124,20 @@ class Rapid7(object):
             else:
                 result = config.get(section, key)
         except configparser.NoSectionError:
-            print('Warning: ' + section + ' does not exist in config file')
+            logging.warning('Warning: ' + section + ' does not exist in config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.NoOptionError:
-            print('Warning: ' + key + ' does not exist in the config file')
+            logger.warning('Warning: ' + key + ' does not exist in the config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.Error as err:
-            print('Warning: Unexpected error with config file')
-            print(str(err))
+            logger.warning('Warning: Unexpected error with config file')
+            logger.warning(str(err))
             if type == 'boolean':
                 return 0
             else:
@@ -136,20 +147,23 @@ class Rapid7(object):
 
 
     def _init_Rapid7(self, config):
-        self.AUTH_URL = self._get_config_setting(config, "Rapid7", "rapid7.auth_url")
-        self.USERNAME = self._get_config_setting(config, "Rapid7", "rapid7.username")
-        self.PASSWORD = self._get_config_setting(config, "Rapid7", "rapid7.password")
+        self.AUTH_URL = self._get_config_setting(self._logger, config, "Rapid7", "rapid7.auth_url")
+        self.USERNAME = self._get_config_setting(self._logger, config, "Rapid7", "rapid7.username")
+        self.PASSWORD = self._get_config_setting(self._logger, config, "Rapid7", "rapid7.password")
 
 
-    def __init__(self, config_file="", debug=False):
+    def __init__(self, config_file="", log_level = None):
         if config_file != "":
             self.rapid7_config_file = config_file
-        self.debug = debug
+
+        self._logger = self._log()
+        if log_level is not None:
+            self._logger.setLevel(log_level)
 
         config = configparser.ConfigParser()
         list = config.read(self.rapid7_config_file)
         if len(list) == 0:
-            print('Error: Could not find the config file')
+            self._logger.error('Error: Could not find the config file')
             exit(0)
 
         self._init_Rapid7(config)
@@ -176,8 +190,8 @@ class Rapid7(object):
                                                                     "Origin": "https://insight.rapid7.com"})
 
         if res.status_code != 200:
-            print("Failed login")
-            print(res.text)
+            self._logger.error("Failed login")
+            self._logger.error(res.text)
             exit(0)
 
         data = json.loads(res.text)
@@ -188,8 +202,8 @@ class Rapid7(object):
         res = s.get("https://rapid7ipimseu.okta-emea.com/login/sessionCookieRedirect?checkAccountSetupComplete=true&token=" + data['sessionToken'] + "&redirectUrl=https://rapid7ipimseu.okta-emea.com/home/template_saml_2_0/0oatgdg8ruitg9ZTr0i6/3079")
 
         if res.status_code != 200:
-            print("Unable to do cookie redirect")
-            print(res.text)
+            self._logger.error("Unable to do cookie redirect")
+            self._logger.error(res.text)
             exit(0)
 
 
@@ -201,8 +215,8 @@ class Rapid7(object):
         res = s.post("https://insight.rapid7.com/saml/SSO", data=saml_data)
 
         if res.status_code != 200:
-            print("SSO Failure!")
-            print(res.text)
+            self._logger.error("SSO Failure!")
+            self._logger.error(res.text)
             exit(0)
 
 
@@ -214,7 +228,7 @@ class Rapid7(object):
         req = s.get(list_location)
 
         if req.status_code != 200:
-            print("Bad Request")
+            self._logger.error("Bad Request")
             jobs_manager.record_job_error()
             exit(0)
 
