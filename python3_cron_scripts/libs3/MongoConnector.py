@@ -17,6 +17,7 @@ This module manages the connection to the primary, authoritative MongoDB.
 import configparser
 import logging
 import time
+
 from pymongo import MongoClient
 from pymongo.errors import AutoReconnect
 
@@ -222,6 +223,28 @@ class MongoConnector(object):
         return result
 
 
+    def perform_insert(self, collection, query):
+        """
+        This will perform a find with a retry for dropped connections
+        """
+        success = False
+        num_tries = 0
+        while not success:
+            try:
+                result = collection.insert(query)
+                success = True
+            except AutoReconnect:
+                if num_tries < 5:
+                    self._logger.warning("Warning: Failed to connect to the database. Retrying.")
+                    time.sleep(5)
+                    num_tries = num_tries + 1
+                else:
+                    self._logger.error("ERROR: Exceeded the max number of connection attempts to MongoDB!")
+                    exit(1)
+
+        return result
+
+
     def get_akamai_ips_connection(self):
         """ Returns a connection to the akamai_ips collection in MongoDB """
         return self.m_connection.akamai_ips
@@ -329,6 +352,10 @@ class MongoConnector(object):
     def get_jobs_connection(self):
         """ Returns a connection to the jobs collection in MongoDB """
         return self.m_connection.jobs
+
+    def get_owasp_amass_connection(self):
+        """ Returns a connection to the owasp_amass collection in MongoDB """
+        return self.m_connection.owasp_amass
 
     def get_sonar_reverse_dns_connection(self):
         """ Returns a connection to the sonar_rdns collection in MongoDB """
