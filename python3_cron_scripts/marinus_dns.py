@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -18,8 +18,10 @@ Sonar records are not always complete since they are not as focused on a single 
 """
 
 import json
+import logging
 import re
 import time
+
 from datetime import datetime
 
 import requests
@@ -27,6 +29,7 @@ from tld import get_fld
 
 from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def get_fld_from_value(value, zone):
@@ -68,8 +71,14 @@ def find_sub_zones(all_dns):
 
 
 def main():
+    """
+    Begin Main...
+    """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print ("Starting: " + str(now))
+    logger.info("Starting...")
 
     dns_types = {"a":1, "ns":2, "cname":5, "soa":6, "ptr":12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33, "naptr": 35, "ds": 43, "rrsig": 46, "dnskey": 48}
 
@@ -90,16 +99,16 @@ def main():
             result = google_dns.fetch_DNS_records(zone, dnum)
 
             if result == []:
-                print("No records found for " + zone)
+                logger.debug("No records found for " + zone)
             else:
                 new_record = result[0]
                 new_record['status'] = 'confirmed'
                 new_record['zone'] = zone
                 new_record['created'] = datetime.now()
-                print ("Found " + dtype + " for: " + zone)
+                logger.debug ("Found " + dtype + " for: " + zone)
                 dns_manager.insert_record(new_record, "marinus")
 
-    print("Starting SOA Search")
+    logger.info("Starting SOA Search")
 
     soa_searches = find_sub_zones(all_dns_collection)
     for entry in soa_searches:
@@ -110,7 +119,7 @@ def main():
             new_record['status'] = 'confirmed'
             new_record['zone'] = get_fld_from_value(entry, '')
             new_record['created'] = datetime.now()
-            print ("Found SOA: " + entry)
+            logger.debug ("Found SOA: " + entry)
             if new_record['zone'] != '':
                 dns_manager.insert_record(new_record, "marinus")
 
@@ -118,6 +127,7 @@ def main():
 
     now = datetime.now()
     print ("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

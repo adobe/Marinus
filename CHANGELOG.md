@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## September 18, 2019
+* The scripts have been updated to leverage Python logging. This allows more control of the output levels of the scripts. In addition, the new format adds line numbers and timestamps to the output. Please see the python3_cron_scripts/README.md file for more information.
+
+
 ## August 18, 2019
 * Added support for Google Cloud Platform (GCP) to the REST API and the website UI.
 

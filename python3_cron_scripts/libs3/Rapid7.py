@@ -55,7 +55,7 @@ class MyHTMLParser(HTMLParser):
                     logger.info(attr[1])
                     self.aaaa_url = self.base_url + attr[1]
                 elif self.rdns_url == "" and attr[0] == "href" and attr[1].endswith("rdns.json.gz"):
-                    logging.info(attr[1])
+                    logger.info(attr[1])
                     self.rdns_url = self.base_url + attr[1]
 
 
@@ -124,7 +124,7 @@ class Rapid7(object):
             else:
                 result = config.get(section, key)
         except configparser.NoSectionError:
-            logging.warning('Warning: ' + section + ' does not exist in config file')
+            logger.warning('Warning: ' + section + ' does not exist in config file')
             if type == 'boolean':
                 return 0
             else:

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -23,11 +23,14 @@ If the entry still exists, then it will add "{source_name}_saved" as a source an
 The original source is removed because it technically no longer exists there.
 The "{source}_saved" indicates the original source while also indicating that Marinus is now tracking the entry its own.
 """
+import logging
 
 from datetime import datetime
 
 from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
+
 
 def is_tracked_zone(cname, zones):
     """
@@ -59,7 +62,7 @@ def get_int_for_unk_type(dtype):
     return int(dtype[7:])
 
 
-def fix_unk_types(dtype, g_dns):
+def fix_unk_types(logger, dtype, g_dns):
     """
     This is to address issues with Sonar data for unknown values.
     This function will try to determine if Marinus is able to recognize the DNS type.
@@ -72,19 +75,19 @@ def fix_unk_types(dtype, g_dns):
                 break
 
     if dtype.startswith("unk_in_"):
-        print("Warning: Unknown type: " + dtype)
+        logger.warning("Unknown type: " + dtype)
 
     return dtype
 
 
-def get_lookup_int(result, GDNS):
+def get_lookup_int(logger, result, GDNS):
     """
     Get the DNS Type integer for the Google DNS query
     """
     if result['type'].startswith("unk_in_"):
         # Sonar didn't know what it was.
 
-        new_type = fix_unk_types(result['type'], GDNS)
+        new_type = fix_unk_types(logger, result['type'], GDNS)
         if new_type.startswith("unk_in"):
             # Marinus doesn't know what it is either.
             lookup_int = get_int_for_unk_type(result['type'])
@@ -126,6 +129,7 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
 
     # The sources for which to remove expired entries
     # Infoblox is handled separately
@@ -151,6 +155,7 @@ def main():
 
     now = datetime.now()
     print ("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     all_dns_collection = mongo_connector.get_all_dns_connection()
@@ -166,7 +171,7 @@ def main():
     # Get the date for today minus two months
     d_minus_2m = monthdelta(datetime.now(), -2)
 
-    print("Removing SRDNS as of: " + str(d_minus_2m))
+    logger.info("Removing SRDNS as of: " + str(d_minus_2m))
 
     # Remove the old records
     srdns_collection = mongo_connector.get_sonar_reverse_dns_connection()
@@ -180,7 +185,7 @@ def main():
     for entry in sources:
         removal_date = monthdelta(datetime.now(), entry['diff'])
         source = entry['name']
-        print("Removing " + source + " as of: " + str(removal_date))
+        logger.debug("Removing " + source + " as of: " + str(removal_date))
 
         last_domain = ""
         results = all_dns_collection.find({'sources': {"$size": 1}, 'sources.source': source, 'sources.updated': {"$lt": removal_date}})
@@ -188,7 +193,7 @@ def main():
             if result['fqdn'] != last_domain:
                 last_domain = result['fqdn']
 
-                lookup_int = get_lookup_int(result, GDNS)
+                lookup_int = get_lookup_int(logger, result, GDNS)
                 dns_result = GDNS.fetch_DNS_records(result['fqdn'], lookup_int)
 
                 if dns_result != []:
@@ -205,7 +210,7 @@ def main():
 
     for source in amass_sources:
         removal_date = monthdelta(datetime.now(), amass_diff)
-        print("Removing " + source + " as of: " + str(removal_date))
+        logger.debug("Removing " + source + " as of: " + str(removal_date))
 
         last_domain = ""
         results = mongo_connector.perform_find(all_dns_collection, {'sources': {"$size": 1}, 'sources.source': source, 'sources.updated': {"$lt": removal_date}})
@@ -213,7 +218,7 @@ def main():
             if result['fqdn'] != last_domain:
                 last_domain = result['fqdn']
 
-                lookup_int = get_lookup_int(result, GDNS)
+                lookup_int = get_lookup_int(logger, result, GDNS)
                 dns_result = GDNS.fetch_DNS_records(result['fqdn'], lookup_int)
 
                 if dns_result != []:
@@ -226,6 +231,7 @@ def main():
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete")
 
 
 if __name__ == "__main__":

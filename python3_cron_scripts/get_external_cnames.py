@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -25,13 +25,15 @@ and therefore so did this script. After 0.7, the Python tld library started refe
 as a FLD.
 """
 
+import logging
 import time
-from datetime import datetime
 
+from datetime import datetime
 from tld import get_fld
 
 from libs3 import DNSManager, MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def is_tracked_zone(cname, zones):
@@ -107,9 +109,11 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print ("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
@@ -128,7 +132,7 @@ def main():
 
 
     # Collect the all_dns cnames.
-    print ("Starting All DNS...")
+    logger.info ("Starting All DNS...")
     all_dns_recs = dns_manager.find_multiple({'type':'cname'}, None)
 
     for srec in all_dns_recs:
@@ -148,6 +152,7 @@ def main():
 
     now = datetime.now()
     print ("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

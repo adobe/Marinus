@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -17,19 +17,25 @@ We are also allowed more queries per day on the free API than the paid API.
 Therefore, we use the free API in order to save the paid API credits for more critical work.
 """
 
+import logging
 import time
+
 from datetime import datetime
 
 from libs3 import MongoConnector, VirusTotal, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     # Create an instance of the VirusTotal class
     vt_instance = VirusTotal.VirusTotal()
@@ -46,17 +52,17 @@ def main():
 
     # For each tracked TLD
     for zone in zones:
-        print("Checking " + zone)
+        logger.debug("Checking " + zone)
         results = vt_instance.get_domain_report(zone)
 
         if results is None:
-            print("Error querying zone " + zone)
+            logger.warning("Error querying zone " + zone)
         elif results['response_code'] == -1:
-            print("VT unhappy with " + zone)
+            logger.warning("VT unhappy with " + zone)
         elif results['response_code'] == 0:
-            print("VT doesn't have " + zone)
+            logger.warning("VT doesn't have " + zone)
         else:
-            print("Matched " + zone)
+            logger.debug("Matched " + zone)
 
             results['zone'] = zone
             results['created'] = datetime.now()
@@ -85,6 +91,8 @@ def main():
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete.")
+
 
 if __name__ == "__main__":
     main()

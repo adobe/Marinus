@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -19,6 +19,7 @@ This script assumes that the censys and certificate transparency scripts have co
 
 import argparse
 import json
+import logging
 import time
 from datetime import datetime
 
@@ -26,6 +27,7 @@ import requests
 
 from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def add_to_list(str_to_add, dns_names):
@@ -88,7 +90,7 @@ def extract_ct_certificate_names(dns_names, mongo_connector):
             add_to_list(dns_name, dns_names)
 
 
-def extract_censys_certificate_names(dns_names, mongo_connector):
+def extract_censys_certificate_names(logger, dns_names, mongo_connector):
     """
     Extract the domain names from certificates found in the censys records.
     """
@@ -105,16 +107,16 @@ def extract_censys_certificate_names(dns_names, mongo_connector):
             for dns_name in ssl_res["p443"]["https"]["tls"]["certificate"]["parsed"]["subject"]["common_name"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
-            print("Censys: Common Name key not found.")
+            logger.debug("Censys: Common Name key not found.")
 
         try:
             for dns_name in ssl_res["p443"]["https"]["tls"]["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
-            print("Censys: DNS Name key not found.")
+            logger.debug("Censys: DNS Name key not found.")
 
 
-def extract_zgrab_certificate_names(dns_names, mongo_connector):
+def extract_zgrab_certificate_names(logger, dns_names, mongo_connector):
     """
     Extract the domain names from certificates found in the ZGrab port records.
     """
@@ -131,16 +133,16 @@ def extract_zgrab_certificate_names(dns_names, mongo_connector):
             for dns_name in ssl_res["data"]["tls"]["server_certificates"]["certificate"]["parsed"]["subject"]["common_name"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
-            print("Zgrab: Common Name key not found.")
+            logger.debug("Zgrab: Common Name key not found.")
 
         try:
             for dns_name in ssl_res["data"]["tls"]["server_certificates"]["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
-            print("Zgrab: DNS Name key not found.")
+            logger.debug("Zgrab: DNS Name key not found.")
 
 
-def extract_zgrab2_certificate_names(dns_names, mongo_connector):
+def extract_zgrab2_certificate_names(logger, dns_names, mongo_connector):
     """
     Extract the domain names from certificates found in the ZGrab 2.0 port records.
     """
@@ -157,21 +159,24 @@ def extract_zgrab2_certificate_names(dns_names, mongo_connector):
             for dns_name in ssl_res["data"]["tls"]['result']['handshake_log']["server_certificates"]["certificate"]["parsed"]["subject"]["common_name"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
-            print("ZGrab2: Common Name key not found.")
+            logger.debug("ZGrab2: Common Name key not found.")
 
         try:
             for dns_name in ssl_res["data"]["tls"]['result']['handshake_log']["server_certificates"]["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
-            print("ZGrab2: DNS Name key not found.")
+            logger.debug("ZGrab2: DNS Name key not found.")
+
 
 def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
@@ -192,16 +197,16 @@ def main():
     extract_ct_certificate_names(dns_names, mongo_connector)
     # extract_censys_certificate_names(dns_names, mongo_connector)
     if args.zgrab_version == 1:
-        extract_zgrab_certificate_names(dns_names, mongo_connector)
+        extract_zgrab_certificate_names(logger, dns_names, mongo_connector)
     else:
-        extract_zgrab2_certificate_names(dns_names, mongo_connector)
+        extract_zgrab2_certificate_names(logger, dns_names, mongo_connector)
 
     input_list = []
 
     # Some SSL certificates are for multiple domains.
     # The tracked company may not own all domains.
     # Therefore, we filter to only the root domains that belong to the tracked company.
-    print("Pre-filter list: " + str(len(dns_names)))
+    logger.info("Pre-filter list: " + str(len(dns_names)))
     for hostname in dns_names:
         if not hostname.startswith("*"):
             zone = get_tracked_zone(hostname, zones)
@@ -227,17 +232,17 @@ def main():
                             add_to_round_two(ip_addr['value'], round_two)
 
                 else:
-                    print("Failed IP Lookup for: " + hostname)
+                    logger.warning("Failed IP Lookup for: " + hostname)
             else:
-                print("Failed match on zone for: " + hostname)
+                logger.warning("Failed match on zone for: " + hostname)
         else:
-            print("Skipping wildcard: " + hostname)
+            logger.warning("Skipping wildcard: " + hostname)
 
     dead_dns_collection = mongo_connector.get_dead_dns_connection()
 
     # Some DNS records will be CNAME records pointing to other tracked domains.
     # This is a single level recursion to lookup those domains.
-    print("Round Two list: " + str(len(round_two)))
+    logger.info("Round Two list: " + str(len(round_two)))
     for hostname in round_two:
         zone = get_tracked_zone(hostname, zones)
         if zone != None:
@@ -255,18 +260,18 @@ def main():
                         record['status'] = 'unknown'
                         input_list.append(record)
             else:
-                print("Failed IP Lookup for: " + hostname)
+                logger.warning("Failed IP Lookup for: " + hostname)
                 original_record = dns_manager.find_one({"fqdn": hostname}, "ssl")
                 if original_record != None:
                     original_record.pop("_id")
                     dead_dns_collection.insert(original_record)
         else:
-            print("Failed match on zone for: " + hostname)
+            logger.warning("Failed match on zone for: " + hostname)
 
 
     # Record all the results.
     dns_manager.remove_by_source("ssl")
-    print("List length: " + str(len(input_list)))
+    logger.info("List length: " + str(len(input_list)))
     for final_result in input_list:
         dns_manager.insert_record(final_result, "ssl")
 
@@ -275,8 +280,8 @@ def main():
 
     now = datetime.now()
     print ("Ending: " + str(now))
+    logger.info("Complete")
 
 
 if __name__ == "__main__":
     main()
-

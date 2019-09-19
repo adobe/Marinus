@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -20,12 +20,15 @@ This script is based on the Azure Python SDK:
 https://docs.microsoft.com/en-us/python/api/azure-mgmt-dns/azure.mgmt.dns?view=azure-python
 """
 
+import logging
+
 from datetime import datetime
 
 from azure.mgmt.dns.models import ZoneType
 
 from libs3 import ZoneIngestor, AzureConnector, DNSManager, MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def split_id(url_id):
@@ -39,7 +42,7 @@ def split_id(url_id):
     return data
 
 
-def process_soa_record(entry):
+def process_soa_record(logger, entry):
     """
     Convert the Azure SOA record object into Marinus information
     """
@@ -51,7 +54,7 @@ def process_soa_record(entry):
     value += " " + str(soa.retry_time)
     value += " " + str(soa.expire_time)
     value += " " + str(soa.minimum_ttl)
-    print ("SOA: " + value)
+    logger.debug ("SOA: " + value)
 
     results = []
     results.append({'fqdn': entry.fqdn[:-1], 'type': 'soa', 'value': value})
@@ -59,66 +62,66 @@ def process_soa_record(entry):
     return results
 
 
-def process_arecords(entry):
+def process_arecords(logger, entry):
     """
     Convert the Azure A record object into Marinus information
     """
     results = []
     for arecord in entry.arecords:
-        print("A: " + entry.fqdn[:-1] + " : " + arecord.ipv4_address)
+        logger.debug("A: " + entry.fqdn[:-1] + " : " + arecord.ipv4_address)
         results.append({'fqdn': entry.fqdn[:-1], 'type': 'a', 'value': arecord.ipv4_address})
 
     return results
 
 
-def process_ns_records(entry):
+def process_ns_records(logger, entry):
     """
     Convert the Azure NS record object into Marinus information
     """
     results = []
     for ns_record in entry.ns_records:
-        print("NS: " + entry.fqdn[:-1] + " : " + ns_record.nsdname)
+        logger.debug("NS: " + entry.fqdn[:-1] + " : " + ns_record.nsdname)
         results.append({'fqdn': entry.fqdn[:-1], 'type': 'ns', 'value': ns_record.nsdname[:-1]})
 
     return results
 
 
-def process_mx_records(entry):
+def process_mx_records(logger, entry):
     """
     Convert the Azure MX record object into Marinus information
     """
     results = []
     for mx_record in entry.mx_records:
         value = str(mx_record.preference) + " " + mx_record.exchange
-        print("MX: " + entry.fqdn[:-1] + " : " + value)
+        logger.debug ("MX: " + entry.fqdn[:-1] + " : " + value)
         results.append({'fqdn': entry.fqdn[:-1], 'type': 'mx', 'value': value})
 
     return results
 
 
-def process_cname_record(entry):
+def process_cname_record(logger, entry):
     """
     Convert the Azure CNAME record object into Marinus information
     """
-    print("CNAME: " + entry.fqdn[:-1] + " : " + entry.cname_record.cname)
+    logger.debug("CNAME: " + entry.fqdn[:-1] + " : " + entry.cname_record.cname)
     results = []
     results.append({'fqdn': entry.fqdn[:-1], 'type': 'cname', 'value': entry.cname_record.cname})
     return results
 
 
-def process_aaaa_records(entry):
+def process_aaaa_records(logger, entry):
     """
     Convert the Azure AAAA record object into Marinus information
     """
     results = []
     for aaaa_record in entry.aaaa_records:
-        print("AAAA: " + entry.fqdn[:-1] + " : " + aaaa_record.ipv6_address)
+        logger.debug("AAAA: " + entry.fqdn[:-1] + " : " + aaaa_record.ipv6_address)
         results.append({'fqdn': entry.fqdn[:-1], 'type': 'aaaa', 'value': aaaa_record.ipv6_address})
 
     return results
 
 
-def process_txt_records(entry):
+def process_txt_records(logger, entry):
     """
     Convert the Azure TXT record object into Marinus information
     """
@@ -127,68 +130,73 @@ def process_txt_records(entry):
         text_value = ""
         for txt in txt_record.value:
             text_value += txt
-        print("TXT: " + entry.fqdn[:-1] + " : " + text_value)
+        logger.debug("TXT: " + entry.fqdn[:-1] + " : " + text_value)
         results.append({'fqdn': entry.fqdn[:-1], 'type': 'txt', 'value': text_value})
 
     return results
 
 
-def process_ptr_records(entry):
+def process_ptr_records(logger, entry):
     """
     Convert the Azure PTR record object into Marinus information
     """
     results = []
     for ptr_record in entry.ptr_records:
-        print("PTR: " + entry.fqdn + " : " + ptr_record.ptrdname)
+        logger.debug("PTR: " + entry.fqdn + " : " + ptr_record.ptrdname)
         results.append({'fqdn': entry.fqdn[:-1], 'type': 'ptr', 'value': ptr_record.ptrdname})
 
     return results
 
 
-def process_srv_records(entry):
+def process_srv_records(logger, entry):
     """
     Convert the Azure SRV record object into Marinus information
     """
     results = []
     for srv_record in entry.srv_records:
         value = str(srv_record.priority) + " " + str(srv_record.weight) + " " + str(srv_record.port) + " " + srv_record.target
-        print("SRV: " + value)
+        logger.debug("SRV: " + value)
         results.append({'fqdn': entry.fqdn[:-1], 'type': 'srv', 'value': value})
 
     return results
 
 
-def extract_record_set_value(field, entry):
+def extract_record_set_value(logger, field, entry):
     """
     Call the approprite function for the given field type.
     """
     if field == 'A':
         # The missing underscore is intentional. MS was inconsistent.
-        return process_arecords(entry)
+        return process_arecords(logger, entry)
     elif field == 'AAAA':
-        return process_aaaa_records(entry)
+        return process_aaaa_records(logger, entry)
     elif field == 'MX':
-        return process_mx_records(entry)
+        return process_mx_records(logger, entry)
     elif field == 'NS':
-        return process_ns_records(entry)
+        return process_ns_records(logger, entry)
     elif field == 'PTR':
-        return process_ptr_records(entry)
+        return process_ptr_records(logger, entry)
     elif field == 'SRV':
-        return process_srv_records(entry)
+        return process_srv_records(logger, entry)
     elif field == 'TXT':
-        return process_txt_records(entry)
+        return process_txt_records(logger, entry)
     elif field == 'CNAME':
-        return process_cname_record(entry)
+        return process_cname_record(logger, entry)
     elif field == 'SOA':
-        return process_soa_record(entry)
+        return process_soa_record(logger, entry)
     else:
-        print("Unknown Record Set Type")
+        logger.warning("Unknown Record Set Type")
 
 
 def main():
+    """
+    Begin Main...
+    """
+    logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print ("Starting: " + str(now))
+    logger.info("Starting...")
 
     azure_connector = AzureConnector.AzureConnector()
     mongo_connector = MongoConnector.MongoConnector()
@@ -223,34 +231,38 @@ def main():
 
 
     for zone in zones:
-        print("Zone: " + zone.name)
+        logger.info("Zone: " + zone.name)
         data = split_id(zone.id)
 
         if zone.zone_type == ZoneType.public:
-            print (zone.name + " is public:")
+            logger.info (zone.name + " is public:")
 
             if zone.name not in current_zones:
-                print("Creating zone: " + zone.name)
+                logger.debug("Creating zone: " + zone.name)
                 zone_ingestor.add_zone(zone.name, "azure:" + data["resourceGroups"])
 
             try:
-                print("ResourceGroup: " + data["resourceGroups"])
+                logger.info("ResourceGroup: " + data["resourceGroups"])
                 records = dns_client.record_sets.list_all_by_dns_zone(data["resourceGroups"], zone.name)
                 for entry in records:
                     # The record_data id value ends in rtype/rvalue so you must guess the rtype
                     record_data = split_id(entry.id)
                     for rtype in record_types:
                         if rtype in record_data:
-                            results = extract_record_set_value(rtype, entry)
+                            results = extract_record_set_value(logger, rtype, entry)
                             for result in results:
                                 result['zone'] = zone.name
                                 result['created'] = datetime.now()
                                 result['status'] = 'confirmed'
                                 dns_manager.insert_record(result, "azure:" + data["resourceGroups"])
             except:
-                print("No records found")
+                logger.warning("No records found")
 
     jobs_manager.record_job_complete()
+
+    now = datetime.now()
+    print ("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

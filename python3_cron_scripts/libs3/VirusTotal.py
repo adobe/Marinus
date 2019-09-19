@@ -60,13 +60,13 @@ class VirusTotal(object):
             else:
                 result = config.get(section, key)
         except configparser.NoSectionError:
-            logging.warning ('Warning: ' + section + ' does not exist in config file')
+            logger.warning ('Warning: ' + section + ' does not exist in config file')
             if type == 'boolean':
                 return 0
             else:
                 return ""
         except configparser.NoOptionError:
-            logging.warning ('Warning: ' + key + ' does not exist in the config file')
+            logger.warning ('Warning: ' + key + ' does not exist in the config file')
             if type == 'boolean':
                 return 0
             else:

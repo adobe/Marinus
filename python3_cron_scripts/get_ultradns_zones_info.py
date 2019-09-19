@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -18,16 +18,21 @@ This script assumes that you are an UltraDNS customer.
 
 import requests
 import json
+import logging
+
 from datetime import datetime
 from netaddr import IPAddress
 from netaddr.core import AddrFormatError
+
 from libs3 import APIHelper, DNSManager, UltraDNSHelper
+from libs3.LoggingUtil import LoggingUtil
 
 class UltraDNSZonesInfo(object):
 
     UH = UltraDNSHelper.UltraDNSHelper('get_ultradns_zones_info')
     APIH = APIHelper.APIHelper()
     DNS_MGR = DNSManager.DNSManager(UH.MC)
+    _logger = None
 
     def __ultradns_zone_info_response_handler(self, response):
         """
@@ -40,7 +45,7 @@ class UltraDNSZonesInfo(object):
             record_sets = response_data['rrSets']
         except (ValueError, AttributeError) as err:
             if self.UH.incorrect_response_json_allowed > 0:
-                print('Unable to parse response JSON for zone ' + self.zone_queried)
+                self._logger.warning('Unable to parse response JSON for zone ' + self.zone_queried)
                 self.UH.incorrect_response_json_allowed -= 1
             else:
                 self.APIH.handle_api_error(
@@ -67,7 +72,7 @@ class UltraDNSZonesInfo(object):
                             if IPAddress(dns).is_private():
                                 continue
                         except AddrFormatError as err:
-                            print('For ' + fqdn + ' encountered: ' + str(err))
+                            self._logger.warning('For ' + fqdn + ' encountered: ' + str(err))
                             continue
 
                     if not(dns_info['type'] in ['soa', 'txt']) and dns.endswith('.'):
@@ -115,6 +120,8 @@ class UltraDNSZonesInfo(object):
         Extracts the zone DNS information from UltraDNS in a paginated manner for the UltraDNS zones.
         """
         print("Starting: " + str(datetime.now()))
+        self._logger.info("Starting...")
+
         self.UH.jobs_manager.record_job_start()
         self.UH.get_previous_zones()
 
@@ -130,10 +137,13 @@ class UltraDNSZonesInfo(object):
         # Record status
         self.UH.jobs_manager.record_job_complete()
         print("Ending: " + str(datetime.now()))
+        self._logger.info("Complete.")
 
     def __init__(self):
+        self._logger = LoggingUtil.create_log(__name__)
         self.__get_ultradns_zones_info()
 
 
 if __name__ == '__main__':
+    logger = LoggingUtil.create_log(__name__)
     UltraDNSZonesInfo = UltraDNSZonesInfo()

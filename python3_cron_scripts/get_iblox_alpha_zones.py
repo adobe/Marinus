@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -23,14 +23,17 @@ This script should be the first Infoblox script executed and only takes about tw
 This script is only useful to Infoblox customers.
 """
 
-
+import backoff
+import logging
 import re
-from datetime import datetime
 import requests
 import string
-import backoff
+
+from datetime import datetime
 from requests.auth import HTTPBasicAuth
+
 from libs3 import MongoConnector, ZoneIngestor, InfobloxHelper, APIHelper, JobsManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 class InfobloxZone(object):
@@ -38,6 +41,8 @@ class InfobloxZone(object):
     alphabet_queried = None
     APIH = APIHelper.APIHelper()
     IH = InfobloxHelper.InfobloxHelper()
+
+    _logger = None
 
     # Connect to the database
     MC = MongoConnector.MongoConnector()
@@ -49,6 +54,7 @@ class InfobloxZone(object):
 
     next_page_id = None
     source = 'Infoblox'
+
 
     def __get_base_url(self):
         """
@@ -128,12 +134,12 @@ class InfobloxZone(object):
                 insert_text['created'] = datetime.now()
                 insert_text['updated'] = datetime.now()
                 self.ip_collection.insert_one(insert_text)
-                print("Added IP: " + utf8_zone)
+                self._logger.info("Added IP: " + utf8_zone)
             else:
-                for doc in cursor:
+                for _ in cursor:
                     self.ip_collection.update_one({'zone': zone['fqdn']},
                                                   {'$currentDate': {"updated": True}})
-                    print("Updated IP: " + utf8_zone)
+                    self._logger.info("Updated IP: " + utf8_zone)
         else:
             # cleaning the values from the previous zones found. The resultant set
             # will need to be cleared of the source value 'Infoblox'.
@@ -153,7 +159,7 @@ class InfobloxZone(object):
             response_result = response_data['result']
         except (ValueError, AttributeError) as err:
             if self.incorrect_response_json_allowed > 0:
-                print('Unable to parse response JSON for alphabet ' + self.alphabet_queried)
+                self._logger.warning('Unable to parse response JSON for alphabet ' + self.alphabet_queried)
                 self.incorrect_response_json_allowed -= 1
             else:
                 self.APIH.handle_api_error(
@@ -223,6 +229,7 @@ class InfobloxZone(object):
         Extracts the Infoblox zones using paginated requests.
         """
         print("Starting: " + str(datetime.now()))
+        self._logger.info("Starting....")
         self.job_manager = JobsManager.JobsManager(self.MC, 'get_iblox_alpha_zones')
         self.job_manager.record_job_start()
 
@@ -240,11 +247,14 @@ class InfobloxZone(object):
         self.job_manager.record_job_complete()
 
         print("Ending: " + str(datetime.now()))
+        self._logger.info("Complete")
 
     def __init__(self):
+        self._logger = LoggingUtil.create_log(__name__)
         self.incorrect_response_json_allowed = self.APIH.INCORRECT_RESPONSE_JSON_ALLOWED
         self.get_infoblox_zones()
 
 
 if __name__ == '__main__':
+    logger = LoggingUtil.create_log(__name__)
     IZ = InfobloxZone()

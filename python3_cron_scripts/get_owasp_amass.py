@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -26,14 +26,17 @@ This script does not support "amass.netdomains" or "amass.viz" at this time.
 """
 import argparse
 import json
+import logging
 import os.path
 import subprocess
 import time
 
 from datetime import datetime
+from dateutil import parser
 
 from libs3 import DNSManager, JobsManager, MongoConnector
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def is_tracked_zone(cname, zones):
@@ -81,11 +84,16 @@ def check_save_location(save_location):
 
 
 def main():
+    """
+    Begin main...
+    """
+    logger = LoggingUtil.create_log(__name__)
 
     mongo_connector = MongoConnector.MongoConnector()
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'owasp_amass')
 
@@ -103,11 +111,11 @@ def main():
     args = arg_parser.parse_args()
 
     if not os.path.isfile(args.amass_path):
-        print("ERROR: Incorrect amass_path argument provided")
+        logger.error("Incorrect amass_path argument provided")
         exit(1)
 
     if 'config_file' in args and not os.path.isfile(args.config_file):
-        print("ERROR: Incorrect config_file location")
+        logger.error("Incorrect config_file location")
         exit(1)
 
     if 'output_dir' in args:
@@ -119,7 +127,14 @@ def main():
 
     jobs_manager.record_job_start()
 
+    # If the job died half way through, you can skip over domains that were already processed
+    # when you restart the script.
+    new_zones = []
     for zone in zones:
+        if not os.path.isfile(output_dir + zone + "-do.json"):
+            new_zones.append(zone)
+
+    for zone in new_zones:
         # Pace out calls to the Amass services
         time.sleep(args.sleep)
 
@@ -146,7 +161,7 @@ def main():
         except subprocess.CalledProcessError as e:
             # Even when there is an error, there will likely still be results.
             # We can continue with the data that was collected thus far.
-            print("ERROR: Amass run exited with a non-zero status: " + str(e))
+            logger.warning("ERROR: Amass run exited with a non-zero status: " + str(e))
 
 
         if os.path.isfile(output_dir + zone + "-do.json"):
@@ -156,7 +171,7 @@ def main():
                 try:
                     json_data.append(json.loads(line))
                 except:
-                    print("Amass wrote an incomplete line: " + str(line))
+                    logger.warning("Amass wrote an incomplete line: " + str(line))
             output.close()
 
             for finding in json_data:
@@ -166,15 +181,15 @@ def main():
                 elif is_tracked_zone(finding['domain'], zones):
                     record_finding(dns_manager, finding)
                 else:
-                    # print("Skipping: " + finding['domain'] + " type: " + finding['type'])
+                    # logger.debug("Skipping: " + finding['domain'] + " type: " + finding['type'])
                     pass
 
     jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":
     main()
-

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -24,6 +24,7 @@ which refers to ".net", ".com", ".co.uk", etc.
 """
 
 import json
+import logging
 import math
 import re
 import time
@@ -35,6 +36,7 @@ from networkx.readwrite import json_graph
 
 from libs3 import MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 REPLACE_CHAR = "!"
@@ -148,9 +150,11 @@ def main():
     """
     The main thread for this program.
     """
+    logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'create_tpd_graphs')
@@ -165,8 +169,8 @@ def main():
         groups = []
         graph = nx.DiGraph()
         add_to_list(tpd, groups)
-            
-        # A space is added because sometimes the tpd is the same as the end target node        
+
+        # A space is added because sometimes the tpd is the same as the end target node
         graph.add_node(tpd + " ", data_type="tld", type=0, depends=[],
                        dependedOnBy=[], docs="<h1>Parent</h1>")
 
@@ -257,7 +261,7 @@ def main():
         try:
             tpd_graphs_collection.insert_one(new_data)
         except:
-            print("ERROR: Could not insert " + tpd)
+            logger.error("ERROR: Could not insert " + tpd)
 
         time.sleep(1)
 
@@ -271,6 +275,7 @@ def main():
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

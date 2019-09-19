@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -22,6 +22,7 @@ the maximum size of allowed JSON objects in MongoDB.
 """
 
 import json
+import logging
 import math
 import re
 import time
@@ -33,6 +34,7 @@ from tld import get_fld
 
 from libs3 import DNSManager, MongoConnector, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 # Constant for dealing with Mongo not allowing "." in key names
@@ -239,9 +241,11 @@ def main():
     """
     Begin Main
     """
+    logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
@@ -365,7 +369,7 @@ def main():
             graphs_docs_collection.remove({'zone': zone})
             graphs_docs_collection.insert_one(new_docs_data)
         except:
-            print("ERROR: Can't insert: " + zone)
+            logger.error("ERROR: Can't insert: " + zone)
 
         time.sleep(1)
 
@@ -382,6 +386,7 @@ def main():
 
     now = datetime.now()
     print("Ending: " + str(now))
+    logger.info("Complete")
 
 
 if __name__ == "__main__":

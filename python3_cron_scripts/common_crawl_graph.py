@@ -30,6 +30,7 @@ Common Crawl methodology is not consistent from run to run.
 
 import argparse
 import json
+import logging
 import requests
 import string
 import subprocess
@@ -38,6 +39,7 @@ from datetime import datetime
 
 from libs3 import MongoConnector, DNSManager, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 # NOTE: This can be overridden by the command-line parameter
@@ -50,13 +52,13 @@ from libs3.ZoneManager import ZoneManager
 CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2019-may-jun-jul/host/cc-main-2019-may-jun-jul-host-vertices.paths.gz"
 
 
-def download_file(url):
+def download_file(logger, url):
     """
     Download the file from the provided URL.
     Use the filename in the URL as the name of the outputed file.
     """
     local_filename = url.split('/')[-1]
-    print(local_filename)
+    logger.debug(local_filename)
     # NOTE the stream=True parameter
     req = requests.get(url, stream=True)
     with open(local_filename, 'wb') as out_f:
@@ -92,7 +94,7 @@ def swap_order(value):
     return new_value
 
 
-def parse_file(vertices_file, reversed_zones, dns_manager):
+def parse_file(logger, vertices_file, reversed_zones, dns_manager):
     """
     For each vertices files, iterate over the entries searching for matching zones.
     """
@@ -112,7 +114,7 @@ def parse_file(vertices_file, reversed_zones, dns_manager):
                 results = google_dns.fetch_DNS_records(matched_domain)
                 for result in results:
                     if result['fqdn'].endswith("." + matched_zone) or result['fqdn'] == matched_zone:
-                        print("Inserting: " + matched_domain)
+                        logger.debug("Inserting: " + matched_domain)
                         result['created'] = datetime.now()
                         result['status'] = 'confirmed'
                         result['zone'] = matched_zone
@@ -143,7 +145,7 @@ def get_first_and_last_line(fname):
         return(first.decode("utf-8"),last.decode("utf-8"))
 
 
-def get_zone_sublist(fc, lc, grouped_zones):
+def get_zone_sublist(logger, fc, lc, grouped_zones):
     """
     Comparing every single zone to every single line of the file is inefficient and slow.
     Common Crawl tracks over a billion entries and each line requires two comparisons per zone.
@@ -171,8 +173,8 @@ def get_zone_sublist(fc, lc, grouped_zones):
     first_pos = chars.index(fc)
     last_pos = chars.index(lc)
 
-    print(str(first_pos) + ": " + chars[first_pos])
-    print(str(last_pos) + ": " + chars[last_pos])
+    logger.debug(str(first_pos) + ": " + chars[first_pos])
+    logger.debug(str(last_pos) + ": " + chars[last_pos])
 
     new_zone_list = []
     for i in range(first_pos, last_pos + 1):
@@ -185,6 +187,8 @@ def main():
     """
     Begin main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     parser = argparse.ArgumentParser(description='Search the Common Crawl graph dataset for new domains')
     parser.add_argument('--url', metavar="URL", help='The URL for the latest vertices file')
     args = parser.parse_args()
@@ -196,6 +200,7 @@ def main():
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
@@ -216,7 +221,7 @@ def main():
         first_letter = zone[0]
         grouped_zones[first_letter].append(zone)
 
-    compressed_download_list = download_file(CURRENT_FILE)
+    compressed_download_list = download_file(logger, CURRENT_FILE)
     subprocess.check_call(["gunzip", "-f", compressed_download_list])
 
     download_list = compressed_download_list.split(".")[:-1]
@@ -227,7 +232,7 @@ def main():
     for entry in vertices_file_entries:
         # Download file
         vert_file_url = "https://commoncrawl.s3.amazonaws.com/" + entry.rstrip("\n")
-        compressed_vertices_file = download_file(vert_file_url)
+        compressed_vertices_file = download_file(logger, vert_file_url)
 
         # Decompress file
         subprocess.check_call(["gunzip", "-f", compressed_vertices_file])
@@ -247,10 +252,10 @@ def main():
         last_char = last_domain[0]
 
         # Get the list of zones relevant to that range
-        searchable_zones = get_zone_sublist(first_char, last_char, grouped_zones)
+        searchable_zones = get_zone_sublist(logger, first_char, last_char, grouped_zones)
 
         # Parse file and insert matches
-        parse_file(vertices_file, searchable_zones, dns_manager)
+        parse_file(logger, vertices_file, searchable_zones, dns_manager)
         subprocess.check_call(["rm", vertices_file])
 
     # Remove all entries more than two months old
@@ -261,6 +266,7 @@ def main():
 
     now = datetime.now()
     print("Ending: " + str(now))
+    logger.info("Complete")
 
 
 if __name__ == "__main__":

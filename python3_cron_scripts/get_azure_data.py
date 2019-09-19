@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -24,11 +24,15 @@ It was preferable over the alternatives which were vulnerable to XXE attacks.
 https://docs.python.org/3/library/xml.html#xml-vulnerabilities
 """
 
+import logging
+import requests
+
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from html.parser import HTMLParser
-import requests
+
 from libs3 import MongoConnector, JobsManager
+from libs3.LoggingUtil import LoggingUtil
 
 XML_LOCATION = "https://www.microsoft.com/en-us/download/confirmation.aspx?id=41653"
 
@@ -38,6 +42,7 @@ class MyHTMLParser(HTMLParser):
     Create a subclass and override the handler methods.
     """
     URL = ""
+    logger = LoggingUtil.create_log(__name__)
 
     def handle_starttag(self, tag, attrs):
         found = False
@@ -49,7 +54,7 @@ class MyHTMLParser(HTMLParser):
             if found:
                 for attr in attrs:
                     if attr[0] == "href":
-                        print(attr[1])
+                        self.logger.info(attr[1])
                         self.URL = attr[1]
 
 
@@ -57,8 +62,11 @@ def main():
     """
     Begin main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print ("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_azure_data')
@@ -68,24 +76,24 @@ def main():
     req = requests.get(XML_LOCATION)
 
     if req.status_code != 200:
-        print("Bad Request")
+        logger.error("Bad Request")
         jobs_manager.record_job_error()
-        exit(0)
+        exit(1)
 
     parser = MyHTMLParser()
     parser.feed(req.text)
 
     if parser.URL == "":
-        print("Unable to identify URL in Microsoft HTML")
+        logger.error("Unable to identify URL in Microsoft HTML")
         jobs_manager.record_job_error()
-        exit(0)
+        exit(1)
 
     req = requests.get(parser.URL)
 
     if req.status_code != 200:
-        print("Bad Request")
+        logger.error("Bad Request")
         jobs_manager.record_job_error()
-        exit(0)
+        exit(1)
 
     root = ET.fromstring(req.text)
 
@@ -108,6 +116,7 @@ def main():
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

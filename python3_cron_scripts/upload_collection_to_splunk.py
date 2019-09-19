@@ -26,14 +26,16 @@ This script could be altered to upload any collection that is relevant to your o
 """
 
 import argparse
+import logging
 import requests
 
 from datetime import datetime
 
 from libs3 import MongoConnector, SplunkHECManager, JobsManager
+from libs3.LoggingUtil import LoggingUtil
 
 
-def upload_zgrab_443(splunk_manager, mongo_connector):
+def upload_zgrab_443(logger, splunk_manager, mongo_connector):
     """
     Upload the HTTP Headers from Zgrab scans of HTTPS servers
     In a redirect scenario, this uploads the headers of the final page which returns a 200.
@@ -53,25 +55,25 @@ def upload_zgrab_443(splunk_manager, mongo_connector):
         try:
             data['host'] = result['data']['http']['result']['response']['request']['host']
         except:
-            print("Passing on host")
+            logger.debug("Passing on host")
             pass
 
         try:
             data['response_headers'] = result['data']['http']['result']['response']['headers']
         except:
-            print("Skipping on headers")
+            logger.debug("Skipping on headers")
             continue
 
         try:
             data['status_code'] = result['data']['http']['result']['response']['status_code']
         except:
-            print("Passing on status_code")
+            logger.debug("Passing on status_code")
             pass
 
         splunk_manager.push_to_splunk_hec("marinus_443_domain_headers", data)
 
 
-def upload_zgrab_80(splunk_manager, mongo_connector):
+def upload_zgrab_80(logger, splunk_manager, mongo_connector):
     """
     Upload the HTTP Headers from Zgrab scans of HTTP servers.
     In a redirect scenario, this uploads the headers of the final page which returns a 200.
@@ -91,19 +93,19 @@ def upload_zgrab_80(splunk_manager, mongo_connector):
         try:
             data['host'] = result['data']['http']['result']['response']['request']['host']
         except:
-            print("Passing on host")
+            logger.debug("Passing on host")
             pass
 
         try:
             data['response_headers'] = result['data']['http']['result']['response']['headers']
         except:
-            print("Skipping on headers")
+            logger.debug("Skipping on headers")
             continue
 
         try:
             data['status_code'] = result['data']['http']['result']['response']['status_code']
         except:
-            print("Passing on status_code")
+            logger.debug("Passing on status_code")
             pass
 
         splunk_manager.push_to_splunk_hec("marinus_80_domain_headers", data)
@@ -113,10 +115,12 @@ def main():
     """
     Begin main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print("Starting: " + str(now))
 
-    parser = argparse.ArgumentParser(description='Search Mavlink logs for IP address')
+    parser = argparse.ArgumentParser(description='Search Splunk logs for IP address')
     parser.add_argument('--collection_name', choices=["http_80", "http_443"],  metavar="COLLECTION", required=True, help='The collection to upload to Splunk')
     args = parser.parse_args()
 
@@ -127,13 +131,15 @@ def main():
     jobs_manager.record_job_start()
 
     if args.collection_name == "http_443":
-        upload_zgrab_443(splunk_manager, mongo_connector)
+        upload_zgrab_443(logger, splunk_manager, mongo_connector)
     elif args.collection_name == "http_80":
-        upload_zgrab_80(splunk_manager, mongo_connector)
+        upload_zgrab_80(logger, splunk_manager, mongo_connector)
 
     jobs_manager.record_job_complete()
+
     now = datetime.now()
     print ("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

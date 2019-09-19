@@ -22,6 +22,7 @@ https://developers.facebook.com/docs/certificate-transparency-api
 
 import argparse
 import json
+import logging
 import os
 import time
 from datetime import datetime
@@ -30,9 +31,11 @@ import requests
 
 from libs3 import FacebookConnector, MongoConnector, X509Parser, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
-def make_https_request(fb_url):
+
+def make_https_request(logger, fb_url):
     """
     Utility function so that the script can loop over paged results.
     """
@@ -40,17 +43,17 @@ def make_https_request(fb_url):
         req = requests.get(fb_url)
         req.raise_for_status()
     except requests.exceptions.ConnectionError:
-        print("Connection Error while fetching the cert list")
+        logger.error("Connection Error while fetching the cert list")
         exit(0)
     except requests.exceptions.HTTPError:
         # This occasionally triggers on false domain names
         # For instance, we are holding .web but it isn't officially recognized yet.
         # Therefore, Facebook will error on it but it is safe to continue processing.
-        print("HTTP Error while fetching the cert list")
+        logger.warning("HTTP Error while fetching the cert list")
         return None
     except requests.exceptions.RequestException as err:
-        print("Request exception while fetching the cert list")
-        print(str(err))
+        logger.error("Request exception while fetching the cert list")
+        logger.error(str(err))
         exit(0)
 
     if req.status_code != 200:
@@ -59,7 +62,7 @@ def make_https_request(fb_url):
     return json.loads(req.text)
 
 
-def fetch_domain(fbc, access_token, zone):
+def fetch_domain(logger, fbc, access_token, zone):
     """
     Fetch the results for the specified zone.
     """
@@ -73,10 +76,10 @@ def fetch_domain(fbc, access_token, zone):
     cert_results = []
 
     while fb_url is not None:
-        result = make_https_request(fb_url)
+        result = make_https_request(logger, fb_url)
 
         if result is None:
-            print("Error querying: " + zone)
+            logger.warning("Error querying: " + zone)
             return None
 
         cert_results = cert_results + result['data']
@@ -103,8 +106,11 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     # Make database connections
     mongo_connector = MongoConnector.MongoConnector()
@@ -134,13 +140,13 @@ def main():
 
     for zone in zones:
         time.sleep(15)
-        results = fetch_domain(fb_connector, access_token, zone)
+        results = fetch_domain(logger, fb_connector, access_token, zone)
 
         if results is None:
-            print("ERROR looking up: " + zone)
+            logger.warning("ERROR looking up: " + zone)
             continue
 
-        print(zone + ": " + str(len(results)))
+        logger.info(zone + ": " + str(len(results)))
 
         for result in results:
             if args.fetch_cert_records == "dbAndSave":
@@ -161,8 +167,8 @@ def main():
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":
     main()
-

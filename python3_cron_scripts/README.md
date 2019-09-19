@@ -106,3 +106,6 @@ Most of the scripts record their status in a *jobs* collection within MongoDB. T
 
 ## Requirements.txt
 This file contains the Python libraries used by the various scripts. Run 'pip install -r requirements.txt' in order to install of the required dependencies.
+
+## Logging
+All of the Python scripts will use print to output their start and stop times. In addition, the scripts take advantage of Python logging. The format of the output is defined in the libs3/LoggingUtil.py library. You can manually edit a given Python script to override the default log level or provide a config file location in the LoggingUtil.create_log() call. If a manual override is not done, then the LoggingUtil class will look for a 'logging.conf' file in the parent folder. The conf files should follow the Python logging YAML format. If a conf file is not found, then it will use the default settings specified within the class.

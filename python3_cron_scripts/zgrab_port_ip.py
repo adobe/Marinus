@@ -37,19 +37,21 @@ https://github.com/zmap/zgrab2
 
 import argparse
 import json
+import logging
 import os
 import queue
 import random
 import subprocess
 import threading
 import time
-from datetime import datetime, timedelta
 
+from datetime import datetime, timedelta
 from bson.objectid import ObjectId
 from dateutil.parser import parse
 
 from libs3 import RemoteMongoConnector, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 # Globals that need to maintain consistency between threads.
@@ -88,7 +90,7 @@ def get_mx_ips(zones, ip_manager, all_dns_collection):
     ips = set([])
     ip_context = []
 
-    mx_results = all_dns_collection.find({'type': 'mx'})
+    mx_results = all_dns_collection.find({'type': 'mx', 'zone': {"$ne": ""}})
 
     for result in mx_results:
         record = result['value']
@@ -150,7 +152,7 @@ def get_ips(ip_manager, all_dns_collection):
     ips = set([])
     ip_context = []
 
-    domain_results = all_dns_collection.find({'type': 'a'})
+    domain_results = all_dns_collection.find({'type': 'a', 'zone': {"$ne": ""}})
     for result in domain_results:
         if not ip_manager.is_local_ip(result['value']):
             ips.add(result['value'])
@@ -479,7 +481,7 @@ def run_port_465_command(target_list, tnum):
         return json_output
 
 
-def process_thread(ips, port, run_command, zones_struct, zgrab_collection, tnum):
+def process_thread(logger, ips, port, run_command, zones_struct, zgrab_collection, tnum):
     """
     Runs zgrab and stores the result if necessary
     """
@@ -498,24 +500,24 @@ def process_thread(ips, port, run_command, zones_struct, zgrab_collection, tnum)
                 if port == "25":
                     if ('zgrab2' in global_zgrab_path and 'result' in result['data']['smtp'] and 'starttls' in result['data']['smtp']['result']) or \
                          "error_component" in result and result['error_component'] == "starttls":
-                        print("Adding " + str(result['ip']) + " to retest list")
+                        logger.debug("Adding " + str(result['ip']) + " to retest list")
                         global_retest_list.append(result['ip'])
                     else:
-                        print("Failed " + port + ": " + str(result['ip']))
+                        logger.warning("Failed " + port + ": " + str(result['ip']))
                 else:
-                    print("Failed " + port + ": " + str(result['ip']))
+                    logger.warning("Failed " + port + ": " + str(result['ip']))
             else:
                 result['aws'] = zones_struct['ip_manager'].is_aws_ip(result['ip'])
                 result['azure'] = zones_struct['ip_manager'].is_azure_ip(result['ip'])
                 result['gcp'] = zones_struct['ip_manager'].is_gcp_ip(result['ip'])
                 result['tracked'] = zones_struct['ip_manager'].is_tracked_ip(result['ip'])
                 insert_result(result, port, zones_struct['ip_context'], zones_struct['zones'], zgrab_collection)
-                print("Inserted " + port + ": " + result['ip'])
+                logger.debug("Inserted " + port + ": " + result['ip'])
     else:
-        print("Failed " + port + ": " + str(ips))
+        logger.warning("Failed " + port + ": " + str(ips))
 
 
-def process_data(tnum, q, port, command, zones_struct, zgrab_collection):
+def process_data(logger, tnum, q, port, command, zones_struct, zgrab_collection):
     """
     Does the per-thread getting of a value, running the sub-function, and marking a completion.
     None of the global variables are assigned locally in order to ensure a global reference.
@@ -532,12 +534,12 @@ def process_data(tnum, q, port, command, zones_struct, zgrab_collection):
                 if global_work_queue.empty():
                     break
             global_queue_lock.release()
-            print ("Thread %s processing %s" % (str(tnum), data))
+            logger.debug("Thread %s processing %s" % (str(tnum), data))
             try:
-                process_thread(data, port, command, zones_struct, zgrab_collection, tnum)
+                process_thread(logger, data, port, command, zones_struct, zgrab_collection, tnum)
             except Exception as ex:
-                print("Thread error processing: " + str(data))
-                print(str(ex))
+                logger.warning("Thread error processing: " + str(data))
+                logger.warning(str(ex))
             for _ in range(0,i):
                 q.task_done()
         else:
@@ -557,10 +559,11 @@ class ZgrabThread (threading.Thread):
         self.zgrab_collection = zgrab_collection
         self.run_command = command
         self.q = q
+        self.logger = LoggingUtil.create_log(__name__)
     def run(self):
-        print ("Starting Thread-" + str(self.thread_id))
-        process_data(self.thread_id, self.q, self.port, self.run_command, self.zones_struct, self.zgrab_collection)
-        print ("Exiting Thread-" + str(self.thread_id))
+        self.logger.debug("Starting Thread-" + str(self.thread_id))
+        process_data(self.logger, self.thread_id, self.q, self.port, self.run_command, self.zones_struct, self.zgrab_collection)
+        self.logger.debug("Exiting Thread-" + str(self.thread_id))
 
 
 def check_save_location(save_location):
@@ -573,11 +576,16 @@ def check_save_location(save_location):
 
 
 def main():
+    """
+    Beging Main...
+    """
     global global_exit_flag
     global global_retest_list
     global global_sleep_time
     global global_queue_size
     global global_zgrab_path
+
+    logger = LoggingUtil.create_log(__name__)
 
     global_retest_list = []
 
@@ -592,19 +600,20 @@ def main():
     args = parser.parse_args()
 
     if args.p == None:
-        print("A port value (22, 25, 443, or 465) must be provided.")
-        exit(0)
+        logger.error("A port value (22, 25, 443, or 465) must be provided.")
+        exit(1)
 
     if is_running(os.path.basename(__file__)):
         """
         Check to see if a previous attempt to parse is still running...
         """
         now = datetime.now()
-        print(str(now) + ": I am already running! Goodbye!")
+        logger.warning(str(now) + ": I am already running! Goodbye!")
         exit(0)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     rm_connector = RemoteMongoConnector.RemoteMongoConnector()
     all_dns_collection = rm_connector.get_all_dns_connection()
@@ -632,7 +641,7 @@ def main():
     if args.qs and int(args.qs) > 0:
         global_queue_size = int(args.qs)
 
-    print("Got IPs: " + str(len(ips)))
+    logger.info("Got IPs: " + str(len(ips)))
     zones_struct['ip_context'] = ip_context
 
     zgrab_collection = rm_connector.get_zgrab_port_data_connection()
@@ -651,14 +660,14 @@ def main():
 
     threads = []
 
-    print ("Creating " + str(args.t) + " threads")
+    logger.debug("Creating " + str(args.t) + " threads")
     for thread_id in range (1, args.t + 1):
         thread = ZgrabThread(thread_id, global_work_queue, args.p, run_command, zones_struct, zgrab_collection)
         thread.start()
         threads.append(thread)
         thread_id += 1
 
-    print("Populating Queue")
+    logger.info("Populating Queue")
     global_queue_lock.acquire()
     for ip in ips:
         global_work_queue.put(ip)
@@ -675,13 +684,13 @@ def main():
     for t in threads:
         t.join()
 
-    print ("Exiting Main Thread")
+    logger.info ("Exiting Main Thread")
 
-    print("Global retest list: " + str(len(global_retest_list)))
+    logger.info ("Global retest list: " + str(len(global_retest_list)))
 
     # Retest any SMTP hosts that did not respond to the StartTLS handshake
     if args.p == "25" and len(global_retest_list) > 0:
-        process_thread(global_retest_list, args.p, run_port_25_no_tls_command, zones_struct, zgrab_collection, "retest")
+        process_thread(logger, global_retest_list, args.p, run_port_25_no_tls_command, zones_struct, zgrab_collection, "retest")
 
 
     # Remove old entries from before the scan
@@ -714,6 +723,7 @@ def main():
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

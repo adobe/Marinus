@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -16,22 +16,30 @@ It has no dependencies on other scripts.
 """
 
 import json
-from datetime import datetime
+import logging
 import requests
+
+from datetime import datetime
+
 from libs3 import MongoConnector, JobsManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 JSON_LOCATION = "https://ip-ranges.amazonaws.com/ip-ranges.json"
+
 
 def main():
     """
     Begin main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     # Make database connections
     mongo_connector = MongoConnector.MongoConnector()
 
     now = datetime.now()
     print ("Starting: " + str(now))
+    logger.info("Starting...")
 
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_aws_data')
     jobs_manager.record_job_start()
@@ -40,9 +48,9 @@ def main():
     req = requests.get(JSON_LOCATION)
 
     if req.status_code != 200:
-        print("Bad Request")
+        logger.error("Bad Request")
         jobs_manager.record_job_error()
-        exit(0)
+        exit(1)
 
 
     # Convert the response to JSON
@@ -58,6 +66,8 @@ def main():
 
     now = datetime.now()
     print ("Complete: " + str(now))
+    logger.info("Complete.")
+
 
 if __name__ == "__main__":
     main()

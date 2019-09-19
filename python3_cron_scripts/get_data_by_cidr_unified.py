@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -19,6 +19,7 @@ It will store the Sonar files in a './files' directory
 import argparse
 import ipaddress
 import json
+import logging
 import os
 import subprocess
 import sys
@@ -28,6 +29,7 @@ from datetime import datetime
 import requests
 from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager, GoogleDNS, IPManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def is_running(process):
@@ -91,7 +93,7 @@ def find_zone(domain, zones):
     return ""
 
 
-def update_dns(dns_file, dns_manager, ip_manager, zones):
+def update_dns(logger, dns_file, dns_manager, ip_manager, zones):
     """
     Search DNS file and insert relevant records into the database.
     """
@@ -107,7 +109,7 @@ def update_dns(dns_file, dns_manager, ip_manager, zones):
             try:
                 domain = data['name']
             except:
-                print("Error with line: " + line)
+                logger.warning("Error with line: " + line)
                 domain = ""
 
             dtype = data['type']
@@ -115,12 +117,12 @@ def update_dns(dns_file, dns_manager, ip_manager, zones):
             try:
                 value = data['value']
             except KeyError:
-                print("Error with line: " + line)
+                logger.warning("Error with line: " + line)
                 value = ""
             timestamp = data['timestamp']
 
             if dtype == "a" and value != "" and domain != "" and ip_manager.is_tracked_ip(value):
-                print("Matched DNS " + value)
+                logger.debug("Matched DNS " + value)
                 zone = find_zone(domain, zones)
                 insert_json = {}
                 insert_json['fqdn'] = domain
@@ -155,7 +157,7 @@ def check_for_ptr_record(ipaddr, dns_manager, g_dns, zones):
         dns_manager.insert_record(new_record, "sonar_rdns")
 
 
-def update_rdns(rdns_file, rdns_collection, dns_manager, ip_manager, zones):
+def update_rdns(logger, rdns_file, rdns_collection, dns_manager, ip_manager, zones):
     """
     Search RDNS file and insert relevant records into the database.
     """
@@ -182,7 +184,7 @@ def update_rdns(rdns_file, rdns_collection, dns_manager, ip_manager, zones):
             timestamp = data['timestamp']
 
             if domain != None and ip_addr != None and ip_manager.is_tracked_ip(ip_addr):
-                print("Matched RDNS " + ip_addr)
+                logger.debug("Matched RDNS " + ip_addr)
                 zone = find_zone(domain, zones)
                 result = rdns_collection.find({'ip': ip_addr}).count()
                 if result == 0:
@@ -204,7 +206,7 @@ def update_rdns(rdns_file, rdns_collection, dns_manager, ip_manager, zones):
                 check_for_ptr_record(ip_addr, dns_manager, g_dns, zones)
 
 
-def download_remote_files(s, file_reference, data_dir, jobs_manager):
+def download_remote_files(logger, s, file_reference, data_dir, jobs_manager):
     """
     Download and unzip the given file reference.
     """
@@ -212,13 +214,12 @@ def download_remote_files(s, file_reference, data_dir, jobs_manager):
 
     dns_file = download_file(s, file_reference, data_dir)
 
-    now = datetime.now()
-    print ("File downloaded: " + str(now))
+    logger.info ("File downloaded.")
 
     try:
         subprocess.run(["gunzip", dns_file], check=True)
     except:
-        print("Could not unzip file: " + dns_file)
+        logger.error("Could not unzip file: " + dns_file)
         jobs_manager.record_job_error()
         exit(1)
 
@@ -240,13 +241,15 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
 
     if is_running(os.path.basename(__file__)):
-        print("Already running...")
+        logger.warning("Already running...")
         exit(0)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     r7 = Rapid7.Rapid7()
 
@@ -256,7 +259,7 @@ def main():
     rdns_collection = mongo_connection.get_sonar_reverse_dns_connection()
 
     zones = ZoneManager.get_distinct_zones(mongo_connection)
-    print ("Zone length: " + str(len(zones)))
+    logger.info ("Zone length: " + str(len(zones)))
 
     save_directory = "./files/"
 
@@ -276,22 +279,18 @@ def main():
         try:
             html_parser = r7.find_file_locations(s, "rdns", jobs_manager)
             if html_parser.rdns_url == "":
-                now = datetime.now()
-                print ("Unknown Error: " + str(now))
+                logger.error ("Unknown Error")
                 jobs_manager.record_job_error()
                 exit(0)
 
-            unzipped_rdns = download_remote_files(s, html_parser.rdns_url, save_directory, jobs_manager)
-            update_rdns(unzipped_rdns, rdns_collection, dns_manager, ip_manager, zones)
+            unzipped_rdns = download_remote_files(logger, s, html_parser.rdns_url, save_directory, jobs_manager)
+            update_rdns(logger, unzipped_rdns, rdns_collection, dns_manager, ip_manager, zones)
         except Exception as ex:
-            now = datetime.now()
-            print ("Unknown error occured at: " + str(now))
-            print ("Unexpected error: " + str(ex))
+            logger.error ("Unexpected error: " + str(ex))
             jobs_manager.record_job_error()
             exit(0)
 
-        now = datetime.now()
-        print ("RDNS Complete: " + str(now))
+        logger.info ("RDNS Complete")
         jobs_manager.record_job_complete()
 
     elif args.sonar_file_type == "dns":
@@ -301,32 +300,30 @@ def main():
         try:
             html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
             if html_parser.any_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.any_url, save_directory, jobs_manager)
-                update_dns(unzipped_dns, dns_manager, ip_manager, zones)
+                unzipped_dns = download_remote_files(logger, s, html_parser.any_url, save_directory, jobs_manager)
+                update_dns(logger, unzipped_dns, dns_manager, ip_manager, zones)
             if html_parser.a_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.a_url, save_directory, jobs_manager)
-                update_dns(unzipped_dns, dns_manager, ip_manager, zones)
+                unzipped_dns = download_remote_files(logger, s, html_parser.a_url, save_directory, jobs_manager)
+                update_dns(logger, unzipped_dns, dns_manager, ip_manager, zones)
             if html_parser.aaaa_url != "":
-                unzipped_dns = download_remote_files(s, html_parser.aaaa_url, save_directory, jobs_manager)
-                update_dns(unzipped_dns, dns_manager, ip_manager, zones)
+                unzipped_dns = download_remote_files(logger, s, html_parser.aaaa_url, save_directory, jobs_manager)
+                update_dns(logger, unzipped_dns, dns_manager, ip_manager, zones)
         except Exception as ex:
-            now = datetime.now()
-            print ("Unknown error occured at: " + str(now))
-            print ("Unexpected error: " + str(ex))
+            logger.error ("Unexpected error: " + str(ex))
 
             jobs_manager.record_job_error()
             exit(0)
 
-        now = datetime.now()
-        print ("DNS Complete: " + str(now))
+        logger.info ("DNS Complete")
 
         jobs_manager.record_job_complete()
 
     else:
-        print ("Unrecognized sonar_file_type option. Exiting...")
+        logger.error ("Unrecognized sonar_file_type option. Exiting...")
 
     now = datetime.now()
     print ("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

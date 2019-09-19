@@ -15,12 +15,15 @@ Get the list of Google Cloud Compute public IP ranges from their DNS TXT records
 https://cloud.google.com/compute/docs/faq#find_ip_range
 """
 
+import logging
+
 from datetime import datetime
 
 from libs3 import GoogleDNS, MongoConnector, JobsManager
+from libs3.LoggingUtil import LoggingUtil
 
 
-def recursive_search(target, google_dns):
+def recursive_search(logger, target, google_dns):
     """
     The TXT records are recursive with references to other TXT records.
     This function recursively searches all references and returns the
@@ -37,8 +40,8 @@ def recursive_search(target, google_dns):
                 continue
             elif "include" in value:
                 parts = value.split(":")
-                print("Checking: " + parts[1])
-                temp = recursive_search(parts[1], google_dns)
+                logger.debug ("Checking: " + parts[1])
+                temp = recursive_search(logger, parts[1], google_dns)
                 for entry in temp:
                     if entry not in ranges:
                         ranges.append(entry)
@@ -46,7 +49,7 @@ def recursive_search(target, google_dns):
                 if value not in ranges:
                     ranges.append(value)
             else:
-                print("Unrecognized string: " + value)
+                logger.warning("Unrecognized string: " + value)
 
     return ranges
 
@@ -56,8 +59,11 @@ def main():
     This function extract the IP address ranges from the TXT records
     and stores them in gcp_ips collection within the database.
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print ("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     gcp_collection = mongo_connector.get_gcp_ips_connection()
@@ -65,7 +71,7 @@ def main():
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_gcp_ranges')
     jobs_manager.record_job_start()
 
-    ip_ranges = recursive_search("_cloud-netblocks.googleusercontent.com", google_dns)
+    ip_ranges = recursive_search(logger, "_cloud-netblocks.googleusercontent.com", google_dns)
 
     ipv4_ranges = []
     ipv6_ranges = []
@@ -77,7 +83,7 @@ def main():
         elif parts[0] == "ip6" and parts[1] not in ipv6_ranges:
             ipv6_ranges.append({"ipv6_prefix": parts[1]})
         else:
-            print("Unrecognized data: " + entry)
+            logger.warning("Unrecognized data: " + entry)
 
     new_data = {}
     new_data['prefixes'] = ipv4_ranges
@@ -91,6 +97,7 @@ def main():
 
     now = datetime.now()
     print ("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

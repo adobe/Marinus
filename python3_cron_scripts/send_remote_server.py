@@ -24,18 +24,20 @@ This script is only necessary if a remote MongoDB is deployed.
 """
 
 import argparse
+import logging
 import sys
 
 from datetime import datetime
 
 from libs3 import MongoConnector, RemoteMongoConnector, JobsManager
+from libs3.LoggingUtil import LoggingUtil
 
 
-def update_zones(mongo_connector, rm_connector, update_zone_list):
+def update_zones(logger, mongo_connector, rm_connector, update_zone_list):
     """
     Copy all the currently known FLDs to the remote database.
     """
-    print("Starting Zones..")
+    logger.info("Starting Zones..")
     zones_collection = mongo_connector.get_zone_connection()
     remote_zones_collection = rm_connector.get_zone_connection()
 
@@ -54,11 +56,11 @@ def update_zones(mongo_connector, rm_connector, update_zone_list):
     return (zone_list)
 
 
-def update_ip_zones(mongo_connector, rm_connector):
+def update_ip_zones(logger, mongo_connector, rm_connector):
     """
     Copy all of the currently known CIDRs to the remote database.
     """
-    print("Starting IPZones..")
+    logger.info("Starting IPZones..")
     ipzones_collection = mongo_connector.get_ipzone_connection()
     remote_ipzones_collection = rm_connector.get_ipzone_connection()
 
@@ -78,11 +80,11 @@ def update_ip_zones(mongo_connector, rm_connector):
         remote_ipv6_zones_collection.insert(zone)
 
 
-def update_config(mongo_connector, rm_connector):
+def update_config(logger, mongo_connector, rm_connector):
     """
     Copy the config data to the remote database
     """
-    print("Starting Config..")
+    logger.info("Starting Config..")
     config_collection = mongo_connector.get_config_connection()
     remote_config_collection = rm_connector.get_config_connection()
 
@@ -93,11 +95,11 @@ def update_config(mongo_connector, rm_connector):
         remote_config_collection.insert(config)
 
 
-def update_aws_cidrs(mongo_connector, rm_connector):
+def update_aws_cidrs(logger, mongo_connector, rm_connector):
     """
     Copy the list of AWS CIDRs to the remote database
     """
-    print("Starting AWS CIDRs..")
+    logger.info("Starting AWS CIDRs..")
     aws_ips_collection = mongo_connector.get_aws_ips_connection()
     remote_aws_ips_collection = rm_connector.get_aws_ips_connection()
 
@@ -108,11 +110,11 @@ def update_aws_cidrs(mongo_connector, rm_connector):
         remote_aws_ips_collection.insert(ip_addr)
 
 
-def update_azure_cidrs(mongo_connector, rm_connector):
+def update_azure_cidrs(logger, mongo_connector, rm_connector):
     """
     Copy the list of Azure CIDRs to the remote database
     """
-    print("Starting Azure IPs..")
+    logger.info("Starting Azure IPs..")
     azure_ips_collection = mongo_connector.get_azure_ips_connection()
     remote_azure_ips_collection = rm_connector.get_azure_ips_connection()
 
@@ -123,11 +125,11 @@ def update_azure_cidrs(mongo_connector, rm_connector):
         remote_azure_ips_collection.insert(ip_addr)
 
 
-def update_akamai_cidrs(mongo_connector, rm_connector):
+def update_akamai_cidrs(logger, mongo_connector, rm_connector):
     """
     Copy the list of Akamai CIDRs to the remote database
     """
-    print("Starting Akamai IPs..")
+    logger.info("Starting Akamai IPs..")
     akamai_ips_collection = mongo_connector.get_akamai_ips_connection()
     remote_akamai_ips_collection = rm_connector.get_akamai_ips_connection()
 
@@ -138,11 +140,11 @@ def update_akamai_cidrs(mongo_connector, rm_connector):
         remote_akamai_ips_collection.insert(ip_addr)
 
 
-def update_gcp_cidrs(mongo_connector, rm_connector):
+def update_gcp_cidrs(logger, mongo_connector, rm_connector):
     """
     Copy the list of GCP CIDRs to the remote database
     """
-    print("Starting GCP IPs..")
+    logger.info("Starting GCP IPs..")
     gcp_ips_collection = mongo_connector.get_gcp_ips_connection()
     remote_gcp_ips_collection = rm_connector.get_gcp_ips_connection()
 
@@ -153,12 +155,12 @@ def update_gcp_cidrs(mongo_connector, rm_connector):
         remote_gcp_ips_collection.insert(ip_addr)
 
 
-def update_all_dns(mongo_connector, rm_connector, zone_list):
+def update_all_dns(logger, mongo_connector, rm_connector, zone_list):
     """
     Performing a zone by zone upload to minimize the chances of the zgrab script
     pulling a zone at the same time it is being deleted.
     """
-    print("Starting All DNS..")
+    logger.info("Starting All DNS..")
     all_dns_collection = mongo_connector.get_all_dns_connection()
     remote_all_dns_collection = rm_connector.get_all_dns_connection()
 
@@ -174,8 +176,11 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     parser = argparse.ArgumentParser(description='Send specific collections to the remote MongoDB. If no arguments are provided, then all data is mirrored.')
     parser.add_argument('--send_zones', action="store_true", required=False, help='Send IP zones')
@@ -197,30 +202,32 @@ def main():
 
 
     if send_all or args.send_zones:
-        zone_list = update_zones(mongo_connector, remote_mongo_connector, True)
+        zone_list = update_zones(logger, mongo_connector, remote_mongo_connector, True)
     else:
-        zone_list = update_zones(mongo_connector, remote_mongo_connector, False)
+        zone_list = update_zones(logger, mongo_connector, remote_mongo_connector, False)
 
     if send_all or args.send_ip_zones:
-        update_ip_zones(mongo_connector, remote_mongo_connector)
+        update_ip_zones(logger, mongo_connector, remote_mongo_connector)
 
     if send_all or args.send_third_party_zones:
-        update_aws_cidrs(mongo_connector, remote_mongo_connector)
-        update_azure_cidrs(mongo_connector, remote_mongo_connector)
-        update_akamai_cidrs(mongo_connector, remote_mongo_connector)
-        update_gcp_cidrs(mongo_connector, remote_mongo_connector)
+        update_aws_cidrs(logger, mongo_connector, remote_mongo_connector)
+        update_azure_cidrs(logger, mongo_connector, remote_mongo_connector)
+        update_akamai_cidrs(logger, mongo_connector, remote_mongo_connector)
+        update_gcp_cidrs(logger, mongo_connector, remote_mongo_connector)
 
     if send_all or args.send_config:
-        update_config(mongo_connector, remote_mongo_connector)
+        update_config(logger, mongo_connector, remote_mongo_connector)
 
     if send_all or args.send_dns_records:
-        update_all_dns(mongo_connector, remote_mongo_connector, zone_list)
+        update_all_dns(logger, mongo_connector, remote_mongo_connector, zone_list)
 
     # Record status
     jobs_manager.record_job_complete()
 
     now = datetime.now()
     print ("Complete: " + str(now))
+    logger.info("Complete.")
+
 
 if __name__ == "__main__":
     main()

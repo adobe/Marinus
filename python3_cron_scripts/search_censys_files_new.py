@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -25,6 +25,7 @@ Eventually, the two files can be joined as one so as not to play the crontab gam
 """
 
 import json
+import logging
 import os.path
 import re
 import subprocess
@@ -33,6 +34,7 @@ from datetime import datetime
 
 from libs3 import RemoteMongoConnector, IPManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 # Constants for output files
@@ -138,13 +140,13 @@ def main():
     """
     Begin main...
     """
+    logger = LoggingUtil.create_log(__name__)
 
     if is_running("get_censys_files.py"):
         """
         Check to see if a download is in process...
         """
-        now = datetime.now()
-        print(str(now) + ": Can't run due to get_files running. Goodbye!")
+        logger.warning("Can't run due to get_files running. Goodbye!")
         exit(0)
 
 
@@ -152,8 +154,7 @@ def main():
         """
         Check to see if a previous attempt to parse is still running...
         """
-        now = datetime.now()
-        print(str(now) + ": I am already running! Goodbye!")
+        logger.warning("I am already running! Goodbye!")
         exit(0)
 
     # Make the relevant database connections
@@ -167,17 +168,18 @@ def main():
     status = jobs_collection.find_one({'job_name':'censys'})
     if status['status'] != "DOWNLOADED":
         now = datetime.now()
-        print(str(now) + ": The status is not set to DOWNLOADED. Goodbye!")
+        logger.warning(str(now) + ": The status is not set to DOWNLOADED. Goodbye!")
         exit(0)
 
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     # Collect the list of available zones
     zones = ZoneManager.get_distinct_zones(RMC)
 
-    print("Zones: " + str(len(zones)))
+    logger.info("Zones: " + str(len(zones)))
 
     # Get the current configuration information for Marinus.
     config_collection = RMC.get_config_connection()
@@ -187,7 +189,7 @@ def main():
     for org in configs[0]['SSL_Orgs']:
         orgs.append(org)
 
-    print("Orgs: " + str(len(orgs)))
+    logger.info("Orgs: " + str(len(orgs)))
 
     # Obtain the name of the decompressed file.
     filename_f = open(FILENAME_FILE, "r")
@@ -196,8 +198,7 @@ def main():
 
     # For manual testing: decompressed_file = "ipv4.json"
 
-    now = datetime.now()
-    print(str(now) + ": Beginning file processing...")
+    logger.info("Beginning file processing...")
 
     # Remove old results from the database
     results_collection = RMC.get_results_connection()
@@ -212,7 +213,8 @@ def main():
 
                     """
                     Does the SSL certificate match a known organization?
-                    Is the IP address in a known CIDR or Splunk?
+                    Is the IP address in a known CIDR?
+                    Is the IP address recorded in Splunk?
                     """
                     if check_in_org(entry, orgs) or \
                       ip_manager.is_tracked_ip(entry['ip']) or \
@@ -238,18 +240,18 @@ def main():
                     #         entry['azure'] = ip_manager.is_azure_ip(entry['ip'])
                     #         insert_result(entry, results_collection)
                 except ValueError as err:
-                    print("Value Error!")
-                    print(str(err))
+                    logger.error("Value Error!")
+                    logger.error(str(err))
                 except:
-                    print("Line unexpected error:", sys.exc_info()[0])
-                    print("Line unexpected error:", sys.exc_info()[1])
+                    logger.error("Line unexpected error: " + str(sys.exc_info()[0]))
+                    logger.error("Line unexpected error: " + str(sys.exc_info()[1]))
     except IOError as err:
-        print("I/O error({0}): {1}".format(err.errno, err.strerror))
-        exit(0)
+        logger.error("I/O error({0}): {1}".format(err.errno, err.strerror))
+        exit(1)
     except:
-        print("Unexpected error:", sys.exc_info()[0])
-        print("Unexpected error:", sys.exc_info()[1])
-        exit(0)
+        logger.error("Unexpected error: " + str(sys.exc_info()[0]))
+        logger.error("Unexpected error: " + str(sys.exc_info()[1]))
+        exit(1)
 
     # Indicate that the processing of the job is complete and ready for download to Marinus
     jobs_collection.update_one({'job_name': 'censys'},
@@ -259,6 +261,7 @@ def main():
 
     now = datetime.now()
     print("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

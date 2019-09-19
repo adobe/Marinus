@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -16,17 +16,21 @@ This script queries Infoblox for the 'host' information of the zones in the zone
 This script is only useful to Infoblox customers.
 """
 
+import logging
+
 from datetime import datetime
 
 from libs3 import InfobloxDNSManager, MongoConnector, JobsManager
-
+from libs3.LoggingUtil import LoggingUtil
 
 def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
 
     print("Starting: " + str(datetime.now()))
+    logger.info("Starting...")
 
     # Make database connections
     mc = MongoConnector.MongoConnector()
@@ -40,6 +44,7 @@ def main():
     jobs_manager.record_job_complete()
 
     print("Ending: " + str(datetime.now()))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

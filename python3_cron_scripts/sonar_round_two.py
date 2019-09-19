@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -16,6 +16,7 @@ If found, it will try to look them up and add them to the DNS list
 """
 
 import json
+import logging
 import time
 from datetime import datetime
 
@@ -24,6 +25,7 @@ from tld import get_fld
 
 from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def add_to_list(str_to_add, round_three):
@@ -56,29 +58,29 @@ def is_tracked_zone(cname, zones):
     return False
 
 
-def lookup_hostname(host, zones, round_three):
+def lookup_hostname(logger, host, zones, round_three):
     """
     Use Google DNS over HTTPS to lookup host
     """
     try:
         req = requests.get("https://dns.google.com/resolve?name=" + host)
     except:
-        print ("Requests attempt failed!")
+        logger.error ("Requests attempt failed!")
         return []
 
     if req.status_code != 200:
-        print ("Error looking up: " + host)
+        logger.error("Error looking up: " + host)
         return []
 
     nslookup_results = json.loads(req.text)
 
     if nslookup_results['Status'] != 0:
-        print ("Status error looking up: " + host)
+        logger.warning ("Status error looking up: " + host)
         return []
 
     if "Answer" not in nslookup_results:
-        print ("Could not find Answer in DNS result for " + host)
-        print (req.text)
+        logger.warning ("Could not find Answer in DNS result for " + host)
+        logger.warning (req.text)
         return []
 
     results = []
@@ -92,7 +94,7 @@ def lookup_hostname(host, zones, round_three):
         elif answer['type'] == 28:
             results.append({'type': 'aaaa', 'value': answer['data']})
         else:
-            print ("Unrecognized type: " + str(answer['type']))
+            logger.warning ("Unrecognized type: " + str(answer['type']))
 
     return results
 
@@ -101,8 +103,11 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print ("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
@@ -122,18 +127,18 @@ def main():
         if is_tracked_zone(result['value'], zones):
             round_two.append(result['value'])
 
-    print ("Round two pre-list: " + str(len(round_two)))
+    logger.info ("Round two pre-list: " + str(len(round_two)))
 
     dead_dns_collection = mongo_connector.get_dead_dns_connection()
 
     for value in round_two:
         is_present = dns_manager.find_count({'fqdn': value}, "sonar_dns")
         if is_present == 0:
-            print (value + " not found")
+            logger.debug (value + " not found")
             time.sleep(1)
             result = google_dns.fetch_DNS_records(value)
             if result == []:
-                print ("Unable to resolve")
+                logger.debug ("Unable to resolve")
                 original_records = dns_manager.find_multiple({"value": value}, "sonar_dns")
                 for record in original_records:
                     check = dead_dns_collection.find({'fqdn': record['fqdn']}).count()
@@ -149,13 +154,13 @@ def main():
                         new_record['created'] = datetime.now()
                         if result[0]['type'] == "cname" and is_tracked_zone(entry['value'], zones):
                             add_to_list(entry['value'], round_three)
-                        print ("Found: " + value)
+                        logger.debug ("Found: " + value)
                         if new_record['zone'] != '':
                             dns_manager.insert_record(new_record, "marinus")
 
 
     # For each tracked CName result found in the first pass across Sonar DNS
-    print("Round Three length: " + str(len(round_three)))
+    logger.info("Round Three length: " + str(len(round_three)))
     for hostname in round_three:
         zone = get_fld_from_value(hostname, '')
         if zone != None and zone != '':
@@ -176,9 +181,9 @@ def main():
                 if original_record != None:
                     original_record.pop("_id")
                     dead_dns_collection.insert(original_record)
-                print("Failed IP Lookup for: " + hostname)
+                logger.debug("Failed IP Lookup for: " + hostname)
         else:
-            print("Failed match on zone for: " + hostname)
+            logger.debug("Failed match on zone for: " + hostname)
 
 
     # Record status
@@ -186,6 +191,7 @@ def main():
 
     now = datetime.now()
     print ("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

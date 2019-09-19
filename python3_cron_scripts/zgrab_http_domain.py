@@ -30,19 +30,22 @@ https://github.com/zmap/zgrab
 https://github.com/zmap/zgrab2
 """
 
-import subprocess
-import json
-import time
 import argparse
-import threading
+import json
+import logging
 import queue
 import os
 import random
+import subprocess
+import time
+import threading
+
 from dateutil.parser import parse
 from datetime import datetime, timedelta
 
 from libs3 import RemoteMongoConnector, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 # Constants for the threads
@@ -153,7 +156,7 @@ def run_port_443_command(target_list, tnum):
         return json_output
 
 
-def process_thread(domains, port, run_command, zone, zgrab_collection, tnum):
+def process_thread(logger, domains, port, run_command, zone, zgrab_collection, tnum):
     """
     Runs zgrab and stores the result if necessary
     """
@@ -168,16 +171,16 @@ def process_thread(domains, port, run_command, zone, zgrab_collection, tnum):
         for result in results:
             if ('zgrab2' in global_zgrab_path and "error" in result['data']['http']) or \
                 'error' in result:
-                print("Failed " + port + ": " + str(result['domain']))
+                logger.warning("Failed " + port + ": " + str(result['domain']))
             else:
                 result['zones'] = [zone]
                 insert_result(result, zgrab_collection)
-                print("Inserted " + port + ": " + result['domain'])
+                logger.debug("Inserted " + port + ": " + result['domain'])
     else:
-        print("Failed " + port + ": " + str(domains))
+        logger.warning("Failed " + port + ": " + str(domains))
 
 
-def process_data(tnum, q, port, command, zone, zgrab_collection):
+def process_data(logger, tnum, q, port, command, zone, zgrab_collection):
     """
     Does the per-thread getting of value, running the sub-function, and marking a completion.
     """
@@ -192,12 +195,12 @@ def process_data(tnum, q, port, command, zone, zgrab_collection):
                 if global_work_queue.empty():
                     break
             global_queue_lock.release()
-            print ("Thread %s processing %s" % (str(tnum), str(data)))
+            logger.debug("Thread %s processing %s" % (str(tnum), str(data)))
             try:
-                process_thread(data, port, command, zone, zgrab_collection, tnum)
+                process_thread(logger, data, port, command, zone, zgrab_collection, tnum)
             except Exception as ex:
-                print("Thread error processing: " + str(data))
-                print(str(ex))
+                logger.error("Thread error processing: " + str(data))
+                logger.error(str(ex))
             for _ in range(0,i):
                 q.task_done()
         else:
@@ -217,10 +220,11 @@ class ZgrabThread (threading.Thread):
         self.zone = zone
         self.run_command = command
         self.q = q
+        self.logger = LoggingUtil.create_log(__name__)
     def run(self):
-        print ("Starting Thread-" + str(self.thread_id))
-        process_data(self.thread_id, self.q, self.port, self.run_command, self.zone, self.zgrab_collection)
-        print ("Exiting Thread-" + str(self.thread_id))
+        self.logger.debug("Starting Thread-" + str(self.thread_id))
+        process_data(self.logger, self.thread_id, self.q, self.port, self.run_command, self.zone, self.zgrab_collection)
+        self.logger.debug("Exiting Thread-" + str(self.thread_id))
 
 
 def check_save_location(save_location):
@@ -233,8 +237,13 @@ def check_save_location(save_location):
 
 
 def main():
+    """
+    Begin Main...
+    """
     global global_exit_flag
     global global_zgrab_path
+
+    logger = LoggingUtil.create_log(__name__)
 
     parser = argparse.ArgumentParser(description='Launch zgrab against domains using port 80 or 443.')
     parser.add_argument('-p',  choices=['443', '80'], metavar="port", help='The web port: 80 or 443')
@@ -243,19 +252,20 @@ def main():
     args = parser.parse_args()
 
     if args.p == None:
-       print("A port value (80 or 443) must be provided.")
-       exit(0)
+       logger.error("A port value (80 or 443) must be provided.")
+       exit(1)
 
     if is_running(os.path.basename(__file__)):
         """
         Check to see if a previous attempt to parse is still running...
         """
         now = datetime.now()
-        print(str(now) + ": I am already running! Goodbye!")
+        logger.warning(str(now) + ": I am already running! Goodbye!")
         exit(0)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     rm_connector = RemoteMongoConnector.RemoteMongoConnector()
     all_dns_collection = rm_connector.get_all_dns_connection()
@@ -288,7 +298,7 @@ def main():
         if len(domains) < args.t:
            num_threads = len(domains)
 
-        print ("Creating " + str(num_threads) + " threads")
+        logger.debug ("Creating " + str(num_threads) + " threads")
 
         threads = []
         for thread_id in range (1, num_threads + 1):
@@ -297,9 +307,9 @@ def main():
             threads.append(thread)
             thread_id += 1
 
-        print (zone + " length: " + str(len(domains)))
+        logger.debug (zone + " length: " + str(len(domains)))
 
-        print("Populating Queue")
+        logger.info("Populating Queue")
         global_queue_lock.acquire()
         for domain in domains:
             global_work_queue.put(domain)
@@ -309,7 +319,7 @@ def main():
         while not global_work_queue.empty():
             pass
 
-        print("Queue empty")
+        logger.info("Queue empty")
         # Notify threads it's time to exit
         global_exit_flag = 1
 
@@ -325,6 +335,7 @@ def main():
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

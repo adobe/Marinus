@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -20,6 +20,7 @@ You can specify multiple sources on the command line.
 
 import argparse
 import json
+import logging
 from datetime import datetime
 
 import networkx as nx
@@ -27,6 +28,7 @@ from networkx.readwrite import json_graph
 
 from libs3 import DNSManager, MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 
@@ -346,9 +348,11 @@ def main():
     """
     Begin Main()
     """
+    logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     mongo_ct = mongo_connector.get_certificate_transparency_connection()
@@ -372,7 +376,7 @@ def main():
         zgrab_collection = mongo_connector.get_zgrab_443_data_connection()
 
     for zone in zones:
-        print("Creating: " + zone)
+        logger.info("Creating: " + zone)
         graph = nx.DiGraph()
 
         certs_list = {}
@@ -407,6 +411,7 @@ def main():
 
     now = datetime.now()
     print("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -24,6 +24,7 @@ to the root domain.
 This script should be run after all the data generating scripts have completed.
 """
 import json
+import logging
 import math
 import re
 import time
@@ -34,6 +35,7 @@ from networkx.readwrite import json_graph
 
 from libs3 import DNSManager, MongoConnector, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 # Constant for dealing with Mongo not allowing "." in key names
@@ -278,9 +280,11 @@ def main():
     """
     Begin Main
     """
+    logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     # Set up all the database connections
     mongo_connector = MongoConnector.MongoConnector()
@@ -299,11 +303,11 @@ def main():
     # Create the stats on the network data
     group_data = create_network_data_sets(groups, mongo_connector)
 
-    print("Number of Tracked Class C's: " + str(group_data['tracked_count']))
-    print("Number of AWS Class C's: " + str(group_data['aws_count']))
-    print("Number of Azure Class C's: " + str(group_data['azure_count']))
-    print("Number of Akamai Class C's: " + str(group_data['akamai_count']))
-    print("Number of Class C's: " + str(len(groups)))
+    logger.info("Number of Tracked Class C's: " + str(group_data['tracked_count']))
+    logger.info("Number of AWS Class C's: " + str(group_data['aws_count']))
+    logger.info("Number of Azure Class C's: " + str(group_data['azure_count']))
+    logger.info("Number of Akamai Class C's: " + str(group_data['akamai_count']))
+    logger.info("Number of Class C's: " + str(len(groups)))
 
     # Get the current list of zones
     zones = ZoneManager.get_distinct_zones(mongo_connector)
@@ -400,6 +404,7 @@ def main():
 
     now = datetime.now()
     print("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

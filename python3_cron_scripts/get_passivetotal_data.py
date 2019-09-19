@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -24,57 +24,60 @@ This script requires a PassiveTotal subscription.
 """
 
 import json
+import logging
 import re
+
 from datetime import datetime
 
 from libs3 import MongoConnector, PassiveTotal, ZoneIngestor, JobsManager
+from libs3.LoggingUtil import LoggingUtil
 
 
-def search_pt_email(email, pt, zi, jobs_manager):
+def search_pt_email(logger, email, pt, zi, jobs_manager):
     """
     Search PassiveTotal for records associated with the provided email address.
     """
-    print("Searching: " + email)
+    logger.info("Searching: " + email)
     results = pt.get_whois(email)
 
     if results is None:
-        print("Error querying email: " + email)
+        logger.error("Error querying email: " + email)
         jobs_manager.record_job_error()
         exit(0)
 
-    print("Results for " + email + ": " + str(len(results['results'])))
+    logger.info("Results for " + email + ": " + str(len(results['results'])))
 
     for j in range(0, len(results['results'])):
         domain = results['results'][j]['domain'].encode('utf-8').decode('utf8')
-        print("Checking domain: " + domain)
+        logger.debug("Checking domain: " + domain)
 
         if re.match(r"^([0-9]{1,3}\.){3}[0-9]{1,3}\/\d\d$", domain):
-            print("Matched IP address. Skipping...")
+            logger.debug("Matched IP address. Skipping...")
             continue
 
         zi.add_zone(domain, 'PassiveTotal')
 
 
-def search_pt_org(org, pt, zi, jobs_manager):
+def search_pt_org(logger, org, pt, zi, jobs_manager):
     """
     Search PassiveTotal for records associated with the provided organization.
     """
-    print("Searching: " + org)
+    logger.info("Searching: " + org)
     results = pt.get_organization(org)
 
     if results is None:
-        print("Error querying org: " + org)
+        logger.error("Error querying org: " + org)
         jobs_manager.record_job_error()
         exit(0)
 
-    print("Results for " + org + ": " + str(len(results['results'])))
+    logger.info("Results for " + org + ": " + str(len(results['results'])))
 
     for j in range(0, len(results['results'])):
         domain = results['results'][j]['domain'].encode('utf-8').decode('utf8')
-        print("Checking domain: " + domain)
+        logger.debug("Checking domain: " + domain)
 
         if re.match(r"^([0-9]{1,3}\.){3}[0-9]{1,3}\/\d\d$", domain) or re.match(r"^([0-9]{1,3}\.){3}[0-9]{1,3}$", domain):
-            print("Matched IP address. Skipping...")
+            logger.debug("Matched IP address. Skipping...")
             continue
 
         zi.add_zone(domain, 'PassiveTotal')
@@ -84,8 +87,11 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     # Obtain the list of known email addresses from the config collection
     MC = MongoConnector.MongoConnector()
@@ -99,16 +105,17 @@ def main():
 
     # Perform a search for each email address
     for i in range(0, len(res[0]['DNS_Admins'])):
-        search_pt_email(res[0]['DNS_Admins'][i], PT, zi, jobs_manager)
+        search_pt_email(logger, res[0]['DNS_Admins'][i], PT, zi, jobs_manager)
 
     for i in range(0, len(res[0]['Whois_Orgs'])):
-        search_pt_org(res[0]['Whois_Orgs'][i], PT, zi, jobs_manager)
+        search_pt_org(logger, res[0]['Whois_Orgs'][i], PT, zi, jobs_manager)
 
     # Record status
     jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

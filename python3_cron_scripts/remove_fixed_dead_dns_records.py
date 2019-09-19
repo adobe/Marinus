@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -20,22 +20,26 @@ Once foo.example.org is deleted, we can remove it from the Dead DNS tracking lis
 """
 
 import json
-import time
-from datetime import datetime
-
+import logging
 import requests
+import time
+
+from datetime import datetime
 from bson.objectid import ObjectId
 
 from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print ("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dead_dns_collection = mongo_connector.get_dead_dns_connection()
@@ -50,7 +54,7 @@ def main():
         time.sleep(1)
         lookup_result = google_dns.fetch_DNS_records(result['fqdn'])
         if lookup_result == []:
-            print ("Removing " + result['fqdn'])
+            logger.info ("Removing " + result['fqdn'])
             dead_dns_collection.remove({"_id":ObjectId(result['_id'])})
 
     # Record status
@@ -58,6 +62,8 @@ def main():
 
     now = datetime.now()
     print ("Ending: " + str(now))
+    logger.info("Complete.")
+
 
 if __name__ == "__main__":
     main()

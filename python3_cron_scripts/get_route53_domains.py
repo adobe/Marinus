@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -21,11 +21,14 @@ https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html
 
 import boto3
 import copy
+import logging
 import time
+
 from datetime import datetime
 
 from libs3 import MongoConnector, DNSManager, ZoneIngestor, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def update_records(r53_client, dns_manager, zone_data, r53_source):
@@ -58,8 +61,11 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print ("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
@@ -95,7 +101,7 @@ def main():
         # Double check that this is not a new zone
         zone_name = zone_data['Name'][:-1]
         if zone_name not in current_zones:
-            print("Creating zone: " + zone_name)
+            logger.info("Creating zone: " + zone_name)
             zone_ingestor.add_zone(zone_data['Name'], r53_source)
 
         # Add hosts to the zone
@@ -107,6 +113,7 @@ def main():
 
     now = datetime.now()
     print ("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

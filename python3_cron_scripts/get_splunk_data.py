@@ -19,13 +19,15 @@ useful in Marinus.
 """
 
 import json
+import logging
 
 from datetime import datetime
 
 from libs3 import MongoConnector, SplunkQueryManager, JobsManager, DNSManager
+from libs3.LoggingUtil import LoggingUtil
 
 
-def parse_splunk_results(results, dns_manager, splunk_collection):
+def parse_splunk_results(logger, results, dns_manager, splunk_collection):
     """
     Put your logic for parsing splunk results here...
     Depending on the data, you might store it in the master DNS table using the dns_manager.
@@ -34,13 +36,19 @@ def parse_splunk_results(results, dns_manager, splunk_collection):
     for result in results:
         if isinstance(result, dict):
             my_data = result['my_field']
-            print(str(my_data))
+            logger.debug(str(my_data))
             # Do what is appropriate for your data here.
 
 
 def main():
+    """
+    Begin Main...
+    """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     splunk_query_manager = SplunkQueryManager.SplunkQueryManager()
@@ -50,28 +58,29 @@ def main():
     jobs_manager = JobsManager.JobsManager(mongo_connector, "get_splunk_data")
     jobs_manager.record_job_start()
 
-    print ("Starting Splunk Query")
+    logger.info ("Starting Splunk Query")
 
     results_per_page = 100
 
     # Put your custom Splunk search query here.
     results = splunk_query_manager.do_search('search index=...', results_per_page)
 
-    print("Processing " + str(splunk_query_manager.RESULTCOUNT) + " results")
+    logger.info ("Processing " + str(splunk_query_manager.RESULTCOUNT) + " results")
 
-    parse_splunk_results(results, dns_manager, splunk_collection)
+    parse_splunk_results(logger, results, dns_manager, splunk_collection)
 
     while True:
         results = splunk_query_manager.get_next_page()
         if results is None:
             break
-        parse_splunk_results(results, dns_manager, splunk_collection)
+        parse_splunk_results(logger, results, dns_manager, splunk_collection)
 
 
     jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

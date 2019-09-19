@@ -23,6 +23,7 @@ saving certificates. The default is "/mnt/workspace/crt_sh" but this can be over
 
 import argparse
 import json
+import logging
 import os
 import requests
 import time
@@ -34,6 +35,8 @@ from requests.packages.urllib3.util.retry import Retry
 
 from libs3 import MongoConnector, DNSManager, GoogleDNS, X509Parser, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
+
 
 def requests_retry_session(
     retries=5,
@@ -54,15 +57,15 @@ def requests_retry_session(
     return session
 
 
-def make_https_request(url, download=False):
+def make_https_request(logger, url, download=False):
     """
     Utility function for making HTTPS requests.
     """
     try:
         req = requests_retry_session().get(url)
     except Exception as ex:
-        print("Connection died after 5 tries")
-        print(str(ex))
+        logger.error("Connection died after 5 tries")
+        logger.error(str(ex))
         exit(1)
 
     if req.status_code != 200:
@@ -147,7 +150,7 @@ def get_cert_zones(cert, zones):
     return cert_zones
 
 
-def add_new_certificate_values(new_ids, ct_collection, zones, save_location=None):
+def add_new_certificate_values(logger, new_ids, ct_collection, zones, save_location=None):
     """
     Add new certificate values to the database.
     """
@@ -160,10 +163,10 @@ def add_new_certificate_values(new_ids, ct_collection, zones, save_location=None
             # Pace out certificate requests against their service
             time.sleep(2)
 
-            c_file = make_https_request("https://crt.sh/?d=" + str(min_cert_id), True)
+            c_file = make_https_request(logger, "https://crt.sh/?d=" + str(min_cert_id), True)
 
             if c_file is None:
-                print("ERROR: Failed communicating with crt.sh. Skipping cert_id: " + str(min_cert_id))
+                logger.warning("ERROR: Failed communicating with crt.sh. Skipping cert_id: " + str(min_cert_id))
                 continue
 
             if save_location is not None:
@@ -171,11 +174,11 @@ def add_new_certificate_values(new_ids, ct_collection, zones, save_location=None
 
             cert = x509_parser.parse_data(c_file, "crt_sh")
             if cert is None:
-                print("ERROR: Could not parse certificate for: " + str(min_cert_id) + ". Skipping for now.")
+                logger.warning("ERROR: Could not parse certificate for: " + str(min_cert_id) + ". Skipping for now.")
                 continue
 
             cert_zones = get_cert_zones(cert, zones)
-            print("Adding crt.sh id: " + str(min_cert_id) + " SHA256: " + cert['fingerprint_sha256'])
+            logger.info("Adding crt.sh id: " + str(min_cert_id) + " SHA256: " + cert['fingerprint_sha256'])
 
             if ct_collection.find({"fingerprint_sha256": cert['fingerprint_sha256']}).count() != 0:
                 # The certificate exists in the database but does not have crt_sh id and/or zones
@@ -197,8 +200,14 @@ def check_save_location(save_location):
 
 
 def main():
+    """
+    Begin Main...
+    """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     # Set up the common objects
     mongo_connector = MongoConnector.MongoConnector()
@@ -229,9 +238,9 @@ def main():
         time.sleep(5)
 
         # This could be done with backoff but we don't want to be overly aggressive.
-        json_result = make_https_request("https://crt.sh/?q=%25." + zone + "&output=json")
+        json_result = make_https_request(logger, "https://crt.sh/?q=%25." + zone + "&output=json")
         if json_result is None:
-            print("Can't find result for: " + zone)
+            logger.warning("Can't find result for: " + zone)
             json_result = "{}"
 
         json_data = json.loads(json_result)
@@ -249,9 +258,9 @@ def main():
             add_new_domain_names(new_names, zones, mongo_connector)
 
         if args.download_methods == "dbAndSave":
-            add_new_certificate_values(new_ids, ct_collection, zones, save_location)
+            add_new_certificate_values(logger, new_ids, ct_collection, zones, save_location)
         elif args.download_methods == "dbOnly":
-            add_new_certificate_values(new_ids, ct_collection, zones, None)
+            add_new_certificate_values(logger, new_ids, ct_collection, zones, None)
 
     # Set isExpired for any entries that have recently expired.
     ct_collection.update({"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
@@ -261,8 +270,8 @@ def main():
 
     now = datetime.now()
     print("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":
     main()
-

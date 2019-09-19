@@ -30,19 +30,22 @@ https://github.com/zmap/zgrab
 https://github.com/zmap/zgrab2
 """
 
+import argparse
+import json
+import logging
 import os
+import queue
+import random
 import subprocess
 import threading
-import queue
-import json
 import time
-import random
-import argparse
+
 from dateutil.parser import parse
 from datetime import datetime, timedelta
 
 from libs3 import RemoteMongoConnector, JobsManager, IPManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 global_exit_flag = 0
@@ -69,7 +72,7 @@ def get_ips(ip_manager, all_dns_collection):
     ips = set([])
     ip_context = []
 
-    domain_results = all_dns_collection.find({'type': 'a'})
+    domain_results = all_dns_collection.find({'type': 'a', 'zone': {"$ne": ""}})
     for result in domain_results:
         if not ip_manager.is_local_ip(result['value']):
             ips.add(result['value'])
@@ -247,7 +250,7 @@ def run_port_443_command(target_list, tnum):
         return json_output
 
 
-def process_thread(ips, port, run_command, zones_struct, zgrab_collection, tnum):
+def process_thread(logger, ips, port, run_command, zones_struct, zgrab_collection, tnum):
     """
     Runs zgrab and stores the result if necessary
     """
@@ -262,19 +265,19 @@ def process_thread(ips, port, run_command, zones_struct, zgrab_collection, tnum)
         for result in results:
             if ('zgrab2' in global_zgrab_path and "error" in result['data']['http']) or \
                 'error' in result:
-                print("Failed " + port + ": " + str(result['ip']))
+                logger.warning("Failed " + port + ": " + str(result['ip']))
             else:
                 result['aws'] = zones_struct['ip_manager'].is_aws_ip(result['ip'])
                 result['azure'] = zones_struct['ip_manager'].is_azure_ip(result['ip'])
                 result['gcp'] = zones_struct['ip_manager'].is_gcp_ip(result['ip'])
                 result['tracked'] = zones_struct['ip_manager'].is_tracked_ip(result['ip'])
                 insert_result(result, port, zones_struct['ip_context'], zones_struct['zones'], zgrab_collection)
-                print("Inserted " + port + ": " + result['ip'])
+                logger.debug("Inserted " + port + ": " + result['ip'])
     else:
-        print("Failed " + port + ": " + str(ips))
+        logger.warning("Failed " + port + ": " + str(ips))
 
 
-def process_data(tnum, q, port, command, zones_struct, zgrab_collection):
+def process_data(logger, tnum, q, port, command, zones_struct, zgrab_collection):
     """
     Does the per-thread getting of a value, running the sub-function, and marking a completion.
     """
@@ -289,12 +292,12 @@ def process_data(tnum, q, port, command, zones_struct, zgrab_collection):
                 if global_work_queue.empty():
                     break
             global_queue_lock.release()
-            print ("Thread %s processing %s" % (str(tnum), data))
+            logger.debug ("Thread %s processing %s" % (str(tnum), data))
             try:
-                process_thread(data, port, command, zones_struct, zgrab_collection, tnum)
+                process_thread(logger, data, port, command, zones_struct, zgrab_collection, tnum)
             except Exception as ex:
-                print("Thread error processing: " + str(data))
-                print(str(ex))
+                logger.warning("Thread error processing: " + str(data))
+                logger.warning(str(ex))
             for _ in range(0,i):
                 q.task_done()
         else:
@@ -314,10 +317,11 @@ class ZgrabThread (threading.Thread):
         self.zgrab_collection = zgrab_collection
         self.run_command = command
         self.q = q
+        self.logger = LoggingUtil.create_log(__name__)
     def run(self):
-        print ("Starting Thread-" + str(self.thread_id))
-        process_data(self.thread_id, self.q, self.port, self.run_command, self.zones_struct, self.zgrab_collection)
-        print ("Exiting Thread-" + str(self.thread_id))
+        self.logger.debug ("Starting Thread-" + str(self.thread_id))
+        process_data(self.logger, self.thread_id, self.q, self.port, self.run_command, self.zones_struct, self.zgrab_collection)
+        self.logger.debug ("Exiting Thread-" + str(self.thread_id))
 
 
 def check_save_location(save_location):
@@ -330,8 +334,13 @@ def check_save_location(save_location):
 
 
 def main():
+    """
+    Begin Main...
+    """
     global global_exit_flag
     global global_zgrab_path
+
+    logger = LoggingUtil.create_log(__name__)
 
     parser = argparse.ArgumentParser(description='Launch zgrab against IPs using port 80 or 443.')
     parser.add_argument('-p',  choices=['443', '80'], metavar="port", help='The web port: 80 or 443')
@@ -340,19 +349,20 @@ def main():
     args = parser.parse_args()
 
     if args.p == None:
-       print("A port value (80 or 443) must be provided.")
-       exit(0)
+       logger.error("A port value (80 or 443) must be provided.")
+       exit(1)
 
     if is_running(os.path.basename(__file__)):
         """
         Check to see if a previous attempt to parse is still running...
         """
         now = datetime.now()
-        print(str(now) + ": I am already running! Goodbye!")
+        logger.warning(str(now) + ": I am already running! Goodbye!")
         exit(0)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     rm_connector = RemoteMongoConnector.RemoteMongoConnector()
     all_dns_collection = rm_connector.get_all_dns_connection()
@@ -368,7 +378,7 @@ def main():
     zones_struct['ip_manager'] = ip_manager
 
     (ips, ip_context) = get_ips(ip_manager, all_dns_collection)
-    print("Got IPs: " + str(len(ips)))
+    logger.info("Got IPs: " + str(len(ips)))
     zones_struct['ip_context'] = ip_context
 
     if args.p == "443":
@@ -384,14 +394,14 @@ def main():
 
     threads = []
 
-    print ("Creating " + str(args.t) + " threads")
+    logger.debug("Creating " + str(args.t) + " threads")
     for thread_id in range (1, args.t + 1):
         thread = ZgrabThread(thread_id, global_work_queue, args.p, run_command, zones_struct, zgrab_collection)
         thread.start()
         threads.append(thread)
         thread_id += 1
 
-    print("Populating Queue")
+    logger.info("Populating Queue")
     global_queue_lock.acquire()
     for ip in ips:
         global_work_queue.put(ip)
@@ -408,7 +418,7 @@ def main():
     for t in threads:
         t.join()
 
-    print ("Exiting Main Thread")
+    logger.info ("Exiting Main Thread")
 
     # Remove last week's old entries
     lastweek = datetime.now() - timedelta(days=7)
@@ -418,6 +428,7 @@ def main():
 
     now = datetime.now()
     print("Complete: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

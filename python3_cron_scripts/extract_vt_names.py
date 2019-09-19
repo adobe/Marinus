@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -19,6 +19,7 @@ This script assumes that the following scripts have been run:
 """
 
 import json
+import logging
 import time
 from datetime import datetime
 
@@ -26,6 +27,7 @@ import requests
 
 from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def add_to_list(str_to_add, round_two):
@@ -62,9 +64,11 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
@@ -107,13 +111,13 @@ def main():
                     if ip_addr['type'] == "cname" and is_tracked_zone(ip_addr['value'], zones):
                         add_to_list(ip_addr['value'], round_two)
             else:
-                print("Failed IP Lookup for: " + hostname)
+                logger.warning("Failed IP Lookup for: " + hostname)
 
 
     dead_dns_collection = mongo_connector.get_dead_dns_connection()
 
     # For each tracked CName result found in the first pass across VirusTotal
-    print("Round Two length: " + str(len(round_two)))
+    logger.info("Round Two length: " + str(len(round_two)))
     for hostname in round_two:
         zone = get_tracked_zone(hostname, zones)
         if zone != None:
@@ -135,14 +139,14 @@ def main():
                 if original_record != None:
                     original_record.pop("_id")
                     dead_dns_collection.insert(original_record)
-                print("Failed IP Lookup for: " + hostname)
+                logger.warning("Failed IP Lookup for: " + hostname)
         else:
-            print("Failed match on zone for: " + hostname)
+            logger.warning("Failed match on zone for: " + hostname)
 
 
     # Update the database
     dns_manager.remove_by_source("virustotal")
-    print("List length: " + str(len(input_list)))
+    logger.info("List length: " + str(len(input_list)))
 
     for final_result in input_list:
         dns_manager.insert_record(final_result, "virustotal")
@@ -152,6 +156,7 @@ def main():
 
     now = datetime.now()
     print("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -18,8 +18,11 @@ This script assumes that you are an UltraDNS customer.
 
 import requests
 import json
+import logging
+
 from datetime import datetime
 from libs3 import APIHelper, ZoneIngestor, UltraDNSHelper
+from libs3.LoggingUtil import LoggingUtil
 
 
 class UltraDNSZone(object):
@@ -27,6 +30,7 @@ class UltraDNSZone(object):
     UH = UltraDNSHelper.UltraDNSHelper('get_ultradns_zones')
     APIH = APIHelper.APIHelper()
     ZI = ZoneIngestor.ZoneIngestor()
+    _logger = None
 
     def __ultradns_zone_response_handler(self, response):
         """
@@ -38,7 +42,7 @@ class UltraDNSZone(object):
             response = response.json()
         except (ValueError, AttributeError) as err:
             if self.UH.incorrect_response_json_allowed > 0:
-                print('Unable to parse response JSON for retrieving UltraDNS zones for the offset' + self.UH.offset)
+                self._logger.warning('Unable to parse response JSON for retrieving UltraDNS zones for the offset' + self.UH.offset)
                 self.UH.incorrect_response_json_allowed -= 1
             else:
                 self.APIH.handle_api_error(
@@ -97,7 +101,10 @@ class UltraDNSZone(object):
         """
         Extracts the zones listing from UltraDNS in a paginated manner.
         """
+        self._logger = LoggingUtil.create_log(__name__)
+
         print("Starting: " + str(datetime.now()))
+        self._logger.info("Starting...")
         self.UH.jobs_manager.record_job_start()
 
         # Part of clean_collection code.
@@ -111,10 +118,12 @@ class UltraDNSZone(object):
         self.UH.jobs_manager.record_job_complete()
 
         print("Ending: " + str(datetime.now()))
+        self._logger.info("Complete.")
 
     def __init__(self):
         self.get_ultradns_zones()
 
 
 if __name__ == '__main__':
+    logger = LoggingUtil.create_log(__name__)
     UltraDNSZone = UltraDNSZone()

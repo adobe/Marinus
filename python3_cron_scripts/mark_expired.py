@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -25,15 +25,18 @@ with international domains.
 """
 
 import json
+import logging
 import re
+
 from datetime import datetime, timedelta
 from tld import get_tld
 
 from libs3 import MongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
-def get_primary_zones(zones):
+def get_primary_zones(logger, zones):
     """
     The whois_lookups script is not reliable for international zones
     Therefore, we want to trim the list to ones that we know work.
@@ -46,7 +49,7 @@ def get_primary_zones(zones):
        try:
            tld = get_tld(zone, fix_protocol=True)
        except:
-           print(zone + " was not compatible with TLD")
+           logger.warning(zone + " was not compatible with TLD")
            continue
 
        if tld in supported_tld_list:
@@ -59,8 +62,11 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     # Obtain the list of known email addresses from the config collection
     mongo_connector = MongoConnector.MongoConnector()
@@ -77,7 +83,7 @@ def main():
 
     # The Python Whois library is hit and miss with some international zones.
     # For now, this script focuses on the most popular TLDs.
-    new_zones = get_primary_zones(zones)
+    new_zones = get_primary_zones(logger, zones)
 
     expired_list = []
     for zone in new_zones:
@@ -89,7 +95,7 @@ def main():
         if all_dns_collection.find({'zone': zone}).count() > 0:
             # This may be a case where the Python Whois library failed
             # and the zone is still active.
-            print("DNS records still exist for " + zone)
+            logger.debug("DNS records still exist for " + zone)
             expired_list.remove(zone)
 
     zone_manager = ZoneManager(mongo_connector)
@@ -104,7 +110,7 @@ def main():
 
 
     for zone in expired_list:
-        print("Expiring: " + zone)
+        logger.debug("Expiring: " + zone)
         zone_manager.set_status(zone, ZoneManager.EXPIRED, "mark_expired.py")
 
 
@@ -118,13 +124,13 @@ def main():
     if 'Whois_Name_Servers' in result[0]:
        name_servers = result[0]['Whois_Name_Servers']
 
-    print(str(name_servers))
+    logger.debug(str(name_servers))
 
     for zone in possibly_renewed:
         # We need to be careful of automatically marking something renewed
         # since it could have been registered by someone else.
         if whois_collection.find({'zone': zone, 'org': {"$in": orgs}}).count() == 1:
-            print("ATTENTION: " + zone + " has been renewed based on org")
+            logger.warning("ATTENTION: " + zone + " has been renewed based on org")
             zone_manager.set_status(zone, ZoneManager.UNCONFIRMED, "mark_expired.py")
         else:
             result = whois_collection.find({'zone': zone}, {'name_servers': 1, "_id": 0})
@@ -132,7 +138,7 @@ def main():
             if result is not None and 'name_servers' in result[0] and result[0]['name_servers'] is not None:
                 for entry in result[0]['name_servers']:
                     if entry.lower() in name_servers:
-                        print("ATTENTION: " + zone + " has been renewed based on name servers")
+                        logger.warning("ATTENTION: " + zone + " has been renewed based on name servers")
                         zone_manager.set_status(zone, ZoneManager.UNCONFIRMED, "mark_expired.py")
                         found = 1
                         break
@@ -141,12 +147,12 @@ def main():
                 if result is not None and 'name_server_groups' in result[0] and result[0]['name_server_groups'] is not None:
                     for entry in result[0]['name_server_groups']:
                         if entry.lower() in name_servers:
-                            print("ATTENTION: " + zone + " has been renewed based on name server_groups")
+                            logger.warning("ATTENTION: " + zone + " has been renewed based on name server_groups")
                             zone_manager.set_status(zone, ZoneManager.UNCONFIRMED, "mark_expired.py")
                             found = 1
                             break
             if found == 0:
-                print("WARNING: " + zone + " has been renewed by an unknown entity")
+                logger.warning(zone + " has been renewed by an unknown entity")
 
 
 
@@ -155,6 +161,7 @@ def main():
 
     now = datetime.now()
     print("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -25,14 +25,16 @@ This script assumes that all the tracked zones have already been collected.
 """
 
 import json
+import logging
 import time
-from datetime import datetime, timedelta
-
 import whois
+
+from datetime import datetime, timedelta
 from tld import get_fld
 
 from libs3 import RemoteMongoConnector, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def get_zones(mongo_connector):
@@ -62,7 +64,7 @@ def get_fld_from_value(value, zone):
     return res
 
 
-def correct_name_servers(result, zone):
+def correct_name_servers(logger, result, zone):
     """
     This is to deal with issues in the whois library where the response
     is a string instead of an array. Known variants include:
@@ -93,18 +95,18 @@ def correct_name_servers(result, zone):
             new_list.append(result['name_servers'])
             return(new_list)
     else:
-        print("ERROR: " + zone + " had an unexpected name_servers response of " + result["name_servers"])
+        logger.warning("ERROR: " + zone + " had an unexpected name_servers response of " + result["name_servers"])
         return([])
 
 
-def do_whois_lookup(zone, whois_collection):
+def do_whois_lookup(logger, zone, whois_collection):
     """
     Perform the whois lookup and update the database with the results
     """
     try:
         result = whois.whois(zone)
     except Exception as exc:
-        print("Whois Exception! " + repr(exc))
+        logger.warning("Whois Exception! " + repr(exc))
         result = None
 
     # If we successfully retrieved a result...
@@ -122,7 +124,7 @@ def do_whois_lookup(zone, whois_collection):
         result['updated'] = datetime.now()
 
         if "name_servers" in result and isinstance(result['name_servers'], str):
-            result["name_servers"] = correct_name_servers(result, zone)
+            result["name_servers"] = correct_name_servers(logger, result, zone)
 
         name_server_groups = []
         if "name_servers" in result and result["name_servers"] is not None:
@@ -130,7 +132,7 @@ def do_whois_lookup(zone, whois_collection):
                 fld = get_fld_from_value(name_server, None)
                 if fld is not None and fld not in name_server_groups:
                     name_server_groups.append(fld)
-        
+
         result["name_server_groups"] = name_server_groups
 
         # Try to update the record, or insert if it doesn't exist
@@ -138,13 +140,13 @@ def do_whois_lookup(zone, whois_collection):
         try:
             whois_collection.update({'zone': zone}, result, upsert=True)
         except Exception as exc:
-            print("Insert exception for " + zone + ": " + repr(exc))
+            logger.warning("Insert exception for " + zone + ": " + repr(exc))
             success = False
 
         if success:
-            print("Successfully updated: " + zone + "!")
+            logger.info("Successfully updated: " + zone + "!")
     else:
-        print("Unable to to look up zone: " + zone)
+        logger.debug("Unable to to look up zone: " + zone)
 
     # Sleep so that we don't get blocked by whois servers for too many requests
     time.sleep(45)
@@ -154,8 +156,11 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     mongo_connector = RemoteMongoConnector.RemoteMongoConnector()
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'whois_lookups')
@@ -170,13 +175,13 @@ def main():
         # Ensure the zone contains at least one dot. This is left over from an old bug.
         if zone.find(".") > 0:
 
-            print(zone)
+            logger.debug(zone)
             zone_result = whois_collection.find_one({'zone': zone})
 
             # If we haven't done a lookup in the past, try to collect the data.
             # A limit exists on the number of whois lookups you can perform so limit to new domains.
             if zone_result is None:
-                do_whois_lookup(zone, whois_collection)
+                do_whois_lookup(logger, zone, whois_collection)
 
     # The cap on the number of old entries to be updated.
     MAX_OLD_ENTRIES = 400
@@ -187,7 +192,7 @@ def main():
 
     i = 0
     for result in zone_result:
-        do_whois_lookup(result["zone"], whois_collection)
+        do_whois_lookup(logger, result["zone"], whois_collection)
         i = i + 1
 
         # Chances are that a lot of the entries were inserted on the same day.
@@ -200,6 +205,7 @@ def main():
 
     now = datetime.now()
     print("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":
