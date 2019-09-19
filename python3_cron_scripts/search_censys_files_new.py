@@ -167,8 +167,7 @@ def main():
 
     status = jobs_collection.find_one({'job_name':'censys'})
     if status['status'] != "DOWNLOADED":
-        now = datetime.now()
-        logger.warning(str(now) + ": The status is not set to DOWNLOADED. Goodbye!")
+        logger.warning("The status is not set to DOWNLOADED. Goodbye!")
         exit(0)
 
 

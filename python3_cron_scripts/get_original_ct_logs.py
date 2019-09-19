@@ -41,6 +41,7 @@ in the 'ct_log_type'.
 import argparse
 import base64
 import json
+import logging
 import os
 import requests
 import struct
@@ -52,6 +53,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 from libs3 import MongoConnector, X509Parser, JobsManager
 from libs3.ZoneManager import ZoneManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def requests_retry_session(retries=5, backoff_factor=7, status_forcelist=[408, 500, 502, 503, 504], session=None,):
@@ -68,7 +70,7 @@ def requests_retry_session(retries=5, backoff_factor=7, status_forcelist=[408, 5
     return session
 
 
-def make_https_request(url, download=False):
+def make_https_request(logger, url, download=False):
     """
     Utility function for making HTTPs requests.
     """
@@ -76,17 +78,17 @@ def make_https_request(url, download=False):
         req = requests_retry_session().get(url)
         req.raise_for_status()
     except requests.exceptions.ConnectionError:
-        print("Connection Error while fetching the cert list")
+        logger.error("Connection Error while fetching the cert list")
         exit(0)
     except requests.exceptions.HTTPError:
-        print("HTTP Error while fetching the cert list")
+        logger.warning("HTTP Error while fetching the cert list")
         return None
     except requests.exceptions.RequestException as err:
-        print("Request exception while fetching the cert list")
-        print(str(err))
+        logger.error("Request exception while fetching the cert list")
+        logger.error(str(err))
         exit(1)
     except Exception as e:
-        print("UNKNOWN ERROR with the HTTP Request: " + str(e))
+        logger.error("UNKNOWN ERROR with the HTTP Request: " + str(e))
         exit(1)
 
     if req.status_code != 200:
@@ -98,21 +100,21 @@ def make_https_request(url, download=False):
     return req.text
 
 
-def fetch_sth(url):
+def fetch_sth(logger, url):
     """
     Fetch the initial STH record from the CT Log.
     """
-    result = make_https_request(url + "/ct/v1/get-sth")
+    result = make_https_request(logger, url + "/ct/v1/get-sth")
     return json.loads(result)
 
 
-def fetch_certificate_batch(url, starting_index, ending_index):
+def fetch_certificate_batch(logger, url, starting_index, ending_index):
     """
     Fetch a range of records from the CT Log.
     Each log has its own limits on the number of records returned which means
     that the ending_index may be ignored.
     """
-    result = make_https_request(url + "/ct/v1/get-entries?start=" + str(starting_index) + "&end=" + str(ending_index))
+    result = make_https_request(logger, url + "/ct/v1/get-entries?start=" + str(starting_index) + "&end=" + str(ending_index))
     return json.loads(result)
 
 
@@ -144,7 +146,7 @@ def read_leaf_header(leaf):
     return header
 
 
-def get_cert_from_leaf(leaf):
+def get_cert_from_leaf(logger, leaf):
     """
     Extract the certificate from the certificate leaf
     """
@@ -159,8 +161,8 @@ def get_cert_from_leaf(leaf):
     cert = header['Entry'][3:]
 
     if cert_length != len(cert) - 2:
-        print("Error processing leaf: Length mismatch.")
-        print("CERT_LENGTH: " + str(cert_length) + " LENGTH: " + str(len(cert)))
+        logger.warning("Error processing leaf: Length mismatch.")
+        logger.warning("CERT_LENGTH: " + str(cert_length) + " LENGTH: " + str(len(cert)))
         return None, cert_type
 
     return cert, cert_type
@@ -221,7 +223,7 @@ def insert_certificate(cert, source, ct_collection, cert_zones):
         ct_collection.update({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {source + "_id": cert[source + "_id"], 'ct_log_type': cert['ct_log_type'], 'zones': cert_zones, 'marinus_updated': datetime.now()}, "$addToSet": {"sources": source}})
 
 
-def write_file(cert, save_location, save_type, source):
+def write_file(logger, cert, save_location, save_type, source):
     """
     Write the file to disk.
     """
@@ -232,7 +234,7 @@ def write_file(cert, save_location, save_type, source):
         try:
             c_file = crypto.load_certificate(crypto.FILETYPE_ASN1, base64.b64decode(cert['raw']))
         except:
-            print("ERROR: Couldn't write the file but it is saved in the DB. Skipping the write to disk operation.")
+            logger.error("ERROR: Couldn't write the file but it is saved in the DB. Skipping the write to disk operation.")
             return
 
     if save_type == "PEM":
@@ -260,8 +262,11 @@ def main():
     """
     Begin Main...
     """
+    logger = LoggingUtil.create_log(__name__)
+
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     # Make database connections
     mongo_connector = MongoConnector.MongoConnector()
@@ -291,7 +296,7 @@ def main():
     try:
         ct_log_map = x509parser.CT_LOG_MAP[source]
     except:
-        print("ERROR: UNKNOWN LOG SOURCE: " + source)
+        logger.error("ERROR: UNKNOWN LOG SOURCE: " + source)
         exit(1)
 
     if args.cert_save_location:
@@ -314,10 +319,10 @@ def main():
         starting_index = fetch_starting_index(ct_collection, source)
     else:
         starting_index = args.starting_index
-    print("Starting Index: " + str(starting_index))
+    logger.info("Starting Index: " + str(starting_index))
 
-    sth_data = fetch_sth("https://" + ct_log_map['url'])
-    print("Tree size: " + str(sth_data['tree_size']))
+    sth_data = fetch_sth(logger, "https://" + ct_log_map['url'])
+    logger.info("Tree size: " + str(sth_data['tree_size']))
 
     current_index = starting_index
     while current_index < sth_data['tree_size']:
@@ -325,11 +330,11 @@ def main():
         if ending_index > sth_data['tree_size']:
             ending_index = sth_data['tree_size']
 
-        print("Checking from index: " + str(current_index) + " to index " + str(ending_index))
-        certs = fetch_certificate_batch("https://" + ct_log_map['url'], current_index, ending_index)
+        logger.debug("Checking from index: " + str(current_index) + " to index " + str(ending_index))
+        certs = fetch_certificate_batch(logger, "https://" + ct_log_map['url'], current_index, ending_index)
 
         for entry in certs['entries']:
-            der_cert, cert_type = get_cert_from_leaf(entry['leaf_input'])
+            der_cert, cert_type = get_cert_from_leaf(logger, entry['leaf_input'])
             if der_cert is None and cert_type == 1 and not args.include_precerts:
                 current_index = current_index + 1
                 continue
@@ -341,7 +346,7 @@ def main():
 
             cert = x509parser.parse_data(der_cert, source)
             if cert is None:
-                print("Skipping certificate index: " + str(current_index))
+                logger.warning("Skipping certificate index: " + str(current_index))
                 current_index = current_index + 1
                 continue
 
@@ -355,11 +360,11 @@ def main():
             if check_org_relevancy(cert, ssl_orgs) or cert_zones != []:
                 cert[source + "_id"] = current_index
                 cert['zones'] = cert_zones
-                print("Adding " + source + " id: " + str(current_index) + " SHA256: " + cert['fingerprint_sha256'])
+                logger.info("Adding " + source + " id: " + str(current_index) + " SHA256: " + cert['fingerprint_sha256'])
                 insert_certificate(cert, source, ct_collection, cert_zones)
 
                 if download_method == 'dbAndSave':
-                    write_file(cert, save_location, save_type, source)
+                    write_file(logger, cert, save_location, save_type, source)
 
             current_index = current_index + 1
 
@@ -371,8 +376,8 @@ def main():
 
     now = datetime.now()
     print("Ending: " + str(now))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":
     main()
-
