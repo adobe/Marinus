@@ -34,6 +34,48 @@ The remote database allows for scripts to be executed in a separate remote netwo
 
 If you are able to run all of your scripts within a single environment, then the remote database is not necessary. Specifying the same connnection information for both databases within the connector.config file will force the scripts to use a single database. You will also not need to run the send_remote_server.py or download_from_remote_database.py scripts.
 
+For better performance, you can add indexes on the collections. The following is a list of example MongoDB commands for creating indexes in order to improve the performance of Marinus. You only need to run the commands for collections that you use. For instance, if you do not use Infoblox, then you can skip all of the iblox_* commands:
+
+db.getCollection('all_dns').createIndex({'fqdn': 1})
+db.getCollection('all_dns').createIndex({'type': 1})
+db.getCollection('all_dns').createIndex({'zone': 1})
+db.getCollection('all_dns').createIndex({'value': 'hashed'})
+db.getCollection('all_ips').createIndex({'ip': 1})
+db.getCollection('censys').createIndex({'ip': 1})
+db.getCollection('cert_graphs').createIndex({'zone': 1})
+db.getCollection('cidr_graphs').createIndex({'zone': 1})
+db.getCollection('ct_certs').createIndex({'fingerprint_sha256': 1})
+db.getCollection('ct_certs').createIndex({'isExpired': 1})
+db.getCollection('graphs_data').createIndex({'zone': 1})
+db.getCollection('graphs_docs').createIndex({'zone': 1})
+db.getCollection('graphs_links').createIndex({'zone': 1})
+db.getCollection('iblox_a_records').createIndex({'_ref': 1})
+db.getCollection('iblox_aaaa_records').createIndex({'_ref': 1})
+db.getCollection('iblox_a_records').createIndex({'_ref': 1})
+db.getCollection('iblox_cname_records').createIndex({'_ref': 1})
+db.getCollection('iblox_extattr_records').createIndex({'_ref': 1})
+db.getCollection('iblox_host_records').createIndex({'_ref': 1})
+db.getCollection('iblox_mx_records').createIndex({'_ref': 1})
+db.getCollection('iblox_txt_records').createIndex({'_ref': 1})
+db.getCollection('ip_zones').createIndex({'zone': 1})
+db.getCollection('ipv6_zones').createIndex({'zone': 1})
+db.getCollection('jobs').createIndex({'job_name': 1})
+db.getCollection('sonar_rdns').createIndex({'ip': 1})
+db.getCollection('tpd_graphs').createIndex({'zone': 1})
+db.getCollection('tpds').createIndex({'tld': 1})
+db.getCollection('users').createIndex({'userid': 1})
+db.getCollection('users').createIndex({'apiKey': 1})
+db.getCollection('virustotal').createIndex({'zone': 1})
+db.getCollection('whois').createIndex({'zone': 1})
+db.getCollection('zgrab_443_data').createIndex({'domain': 1})
+db.getCollection('zgrab_443_data').createIndex({'ip': 1})
+db.getCollection('zgrab_80_data').createIndex({'domain': 1})
+db.getCollection('zgrab_80_data').createIndex({'ip': 1})
+db.getCollection('zgrab_port_data').createIndex({'ip': 1})
+db.getCollection('zones').createIndex({'zone': 1})
+db.getCollection('zones').createIndex({'status': 1})
+
+
 ## Set up
 The scripts and the associated libs directory can be placed anywhere on an instance so long as it meets the following requirements:
 
