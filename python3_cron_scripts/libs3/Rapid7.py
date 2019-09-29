@@ -35,6 +35,11 @@ class MyHTMLParser(HTMLParser):
     any_url = ""
     a_url = ""
     aaaa_url = ""
+    mx_url = ""
+    cname_url = ""
+    txt_url = ""
+    txt_mx_dmarc = ""
+    txt_mx_mta_sts = ""
     rdns_url = ""
     base_url = ""
 
@@ -56,6 +61,21 @@ class MyHTMLParser(HTMLParser):
                 elif self.aaaa_url == "" and attr[0] == "href" and attr[1].endswith("fdns_aaaa.json.gz"):
                     logger.info(attr[1])
                     self.aaaa_url = self.base_url + attr[1]
+                elif self.mx_url == "" and attr[0] == "href" and attr[1].endswith("fdns_mx.json.gz"):
+                    logger.info(attr[1])
+                    self.mx_url = self.base_url + attr[1]
+                elif self.cname_url == "" and attr[0] == "href" and attr[1].endswith("fdns_cname.json.gz"):
+                    logger.info(attr[1])
+                    self.cname_url = self.base_url + attr[1]
+                elif self.txt_url == "" and attr[0] == "href" and attr[1].endswith("fdns_txt.json.gz"):
+                    logger.info(attr[1])
+                    self.txt_url = self.base_url + attr[1]
+                elif self.txt_mx_dmarc == "" and attr[0] == "href" and attr[1].endswith("fdns_txt_mx_dmarc.json.gz"):
+                    logger.info(attr[1])
+                    self.txt_mx_dmarc = self.base_url + attr[1]
+                elif self.txt_mx_mta_sts == "" and attr[0] == "href" and attr[1].endswith("fdns_txt_mx_mta-sts.json.gz"):
+                    logger.info(attr[1])
+                    self.txt_mx_mta_sts = self.base_url + attr[1]
                 elif self.rdns_url == "" and attr[0] == "href" and attr[1].endswith("rdns.json.gz"):
                     logger.info(attr[1])
                     self.rdns_url = self.base_url + attr[1]
@@ -152,7 +172,8 @@ class Rapid7(object):
         if res.status_code != 200:
             self._logger.error("Failed login")
             self._logger.error(res.text)
-            exit(0)
+            jobs_manager.record_job_error()
+            exit(1)
 
         data = json.loads(res.text)
 
@@ -164,7 +185,8 @@ class Rapid7(object):
         if res.status_code != 200:
             self._logger.error("Unable to do cookie redirect")
             self._logger.error(res.text)
-            exit(0)
+            jobs_manager.record_job_error()
+            exit(1)
 
 
         # Fetch the SAML Tokens for the Rapid7 site
@@ -177,7 +199,8 @@ class Rapid7(object):
         if res.status_code != 200:
             self._logger.error("SSO Failure!")
             self._logger.error(res.text)
-            exit(0)
+            jobs_manager.record_job_error()
+            exit(1)
 
 
         # A final redirect step for the Open Data site
@@ -190,7 +213,7 @@ class Rapid7(object):
         if req.status_code != 200:
             self._logger.error("Bad Request")
             jobs_manager.record_job_error()
-            exit(0)
+            exit(1)
 
         parser = MyHTMLParser()
         parser.set_base_location(self.BASE_URL)
