@@ -18,6 +18,9 @@ import configparser
 import logging
 import requests
 
+from libs3.ConnectorUtil import ConnectorUtil
+
+
 class InfobloxConnector(object):
     """
       This class is designed to manage Infoblox connection data.
@@ -41,53 +44,11 @@ class InfobloxConnector(object):
         return logging.getLogger(__name__)
 
 
-    @staticmethod
-    def _get_config_setting(logger, config, section, key, type='str'):
-        """
-        Retrieves the key value from inside the section the connector.config file.
-
-        This function is in multiple modules because it was originally designed
-        that each module could be standalone.
-
-        @param config A Python ConfigParser object
-        @param section The section where the key exists
-        @param key The name of the key to retrieve
-        @param type (Optional) Specify 'boolean' to convert True/False strings to booleans.
-        @return A string or boolean from the config file.
-        """
-        try:
-            if type == 'boolean':
-                result = config.getboolean(section, key)
-            else:
-                result = config.get(section, key)
-        except configparser.NoSectionError:
-            logger.warning('Warning: ' + section + ' does not exist in config file')
-            if type == 'boolean':
-                return 0
-            else:
-                return ""
-        except configparser.NoOptionError:
-            logger.warning('Warning: ' + key + ' does not exist in the config file')
-            if type == 'boolean':
-                return 0
-            else:
-                return ""
-        except configparser.Error as err:
-            logger.warning('Warning: Unexpected error with config file')
-            logger.warning(str(err))
-            if type == 'boolean':
-                return 0
-            else:
-                return ""
-
-        return result
-
-
     def __init_iblox_connection(self, config):
-        self.HOST = self._get_config_setting(self._logger, config, "Infoblox", "infoblox.HOST")
-        self.UNAME = self._get_config_setting(self._logger, config, "Infoblox", "infoblox.username")
-        self.PASSWD = self._get_config_setting(self._logger, config, "Infoblox", "infoblox.passwd")
-        self.VERSION = self._get_config_setting(self._logger, config, "Infoblox", "infoblox.version")
+        self.HOST = ConnectorUtil.get_config_setting(self._logger, config, "Infoblox", "infoblox.HOST")
+        self.UNAME = ConnectorUtil.get_config_setting(self._logger, config, "Infoblox", "infoblox.username")
+        self.PASSWD = ConnectorUtil.get_config_setting(self._logger, config, "Infoblox", "infoblox.passwd")
+        self.VERSION = ConnectorUtil.get_config_setting(self._logger, config, "Infoblox", "infoblox.version")
 
 
     def __init__(self, config_file="", log_level=None):

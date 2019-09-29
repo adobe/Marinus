@@ -21,6 +21,8 @@ import json
 import logging
 import requests
 
+from libs3.ConnectorUtil import ConnectorUtil
+
 from azure.mgmt.dns import DnsManagementClient
 from azure.mgmt.resource import ResourceManagementClient
 
@@ -46,55 +48,12 @@ class AzureConnector(object):
         return logging.getLogger(__name__)
 
 
-    @staticmethod
-    def _get_config_setting(logger, config, section, key, type='str'):
-        """
-        Retrieves the key value from inside the section the connector.config file.
-
-        This function is in multiple modules because it was originally designed
-        that each module could be standalone.
-
-        :param config: A Python ConfigParser object
-        :param section: The section where the key exists
-        :param key: The name of the key to retrieve
-        :param type: (Optional) Specify 'boolean' to convert True/False strings to booleans.
-        :return: A string or boolean from the config file.
-        """
-        try:
-            if type == 'boolean':
-                result = config.getboolean(section, key)
-            else:
-                result = config.get(section, key)
-        except configparser.NoSectionError:
-            logger.warning('Warning: ' + section + ' does not exist in config file')
-            if type == 'boolean':
-                return 0
-            else:
-                return ""
-        except configparser.NoOptionError:
-            logger.warning('Warning: ' + key + ' does not exist in the config file')
-            if type == 'boolean':
-                return 0
-            else:
-                return ""
-        except configparser.Error as err:
-            logger.warning('Warning: Unexpected error with config file')
-            logger.warning(str(err))
-            if type == 'boolean':
-                return 0
-            else:
-                return ""
-
-        return result
-
-
     def _init_azure(self, config):
-        self.TENANT_ID = self._get_config_setting(self._logger, config, "Azure", "az.tenant_id")
-        self.CLIENT_ID = self._get_config_setting(self._logger, config, "Azure", "az.client_id")
-        self.KEY = self._get_config_setting(self._logger, config, "Azure", "az.sp_password")
-        self.SUBSCRIPTION_ID = self._get_config_setting(self._logger, config, "Azure", "az.subscription_id")
-        self.FILE_PATH = self._get_config_setting(self._logger, config, "Azure", "az.file_path")
-
+        self.TENANT_ID = ConnectorUtil.get_config_setting(self._logger, config, "Azure", "az.tenant_id")
+        self.CLIENT_ID = ConnectorUtil.get_config_setting(self._logger, config, "Azure", "az.client_id")
+        self.KEY = ConnectorUtil.get_config_setting(self._logger, config, "Azure", "az.sp_password")
+        self.SUBSCRIPTION_ID = ConnectorUtil.get_config_setting(self._logger, config, "Azure", "az.subscription_id")
+        self.FILE_PATH = ConnectorUtil.get_config_setting(self._logger, config, "Azure", "az.file_path")
 
 
     def __init__(self, config_file="", log_level = None):

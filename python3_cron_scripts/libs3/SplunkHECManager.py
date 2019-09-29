@@ -22,9 +22,12 @@ import logging
 import requests
 import time
 
+from libs3.ConnectorUtil import ConnectorUtil
+
 from bson import json_util
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+
 
 class HECLogLevel(object):
     """
@@ -58,57 +61,15 @@ class SplunkHECManager(object):
         return logging.getLogger(__name__)
 
 
-    @staticmethod
-    def _get_config_setting(logger, config, section, key, type='str'):
-        """
-        Retrieves the key value from inside the section the connector.config file.
-
-        This function is in multiple modules because it was originally designed
-        that each module could be standalone.
-
-        :param config: A Python ConfigParser object
-        :param section: The section where the key exists
-        :param key: The name of the key to retrieve
-        :param type: (Optional) Specify 'boolean' to convert True/False strings to booleans.
-        :return: A string or boolean from the config file.
-        """
-        try:
-            if type == 'boolean':
-                result = config.getboolean(section, key)
-            else:
-                result = config.get(section, key)
-        except configparser.NoSectionError:
-            logger.warning('Warning: ' + section + ' does not exist in config file')
-            if type == 'boolean':
-                return 0
-            else:
-                return ''
-        except configparser.NoOptionError:
-            logger.warning('Warning: ' + key + ' does not exist in the config file')
-            if type == 'boolean':
-                return 0
-            else:
-                return ''
-        except configparser.Error as err:
-            logger.warning('Warning: Unexpected error with config file')
-            logger.warning(str(err))
-            if type == 'boolean':
-                return 0
-            else:
-                return ''
-
-        return result
-
-
     def _init_splunk_hec_connection(self, config):
         """
         Initialize the class members
         """
-        self.HOST = self._get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.host')
-        self.PORT = self._get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.port')
-        self.ACCESS_TOKEN = self._get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.access_token')
-        self.HOSTNAME = self._get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.hostname')
-        self.INDEX = self._get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.index')
+        self.HOST = ConnectorUtil.get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.host')
+        self.PORT = ConnectorUtil.get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.port')
+        self.ACCESS_TOKEN = ConnectorUtil.get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.access_token')
+        self.HOSTNAME = ConnectorUtil.get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.hostname')
+        self.INDEX = ConnectorUtil.get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.index')
         self.URL = "https://" + self.HOST + ":" + self.PORT + "/services/collector/"
         self.HEADERS = { 'Authorization': "Splunk {}".format(self.ACCESS_TOKEN) }
 

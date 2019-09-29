@@ -14,7 +14,6 @@
 This module allows scripts to perform paginated queries against a Splunk server.
 """
 
-import configparser
 import json
 import logging
 import time

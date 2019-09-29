@@ -19,6 +19,8 @@ import configparser
 import logging
 import time
 
+from libs3.ConnectorUtil import ConnectorUtil
+
 from pymongo import MongoClient
 from pymongo.errors import AutoReconnect
 
@@ -42,55 +44,13 @@ class RemoteMongoConnector(object):
         return logging.getLogger(__name__)
 
 
-    @staticmethod
-    def _get_config_setting(logger, config, section, key, type='str'):
-        """
-        Retrieves the key value from inside the section the connector.config file.
-
-        This function is in multiple modules because it was originally designed
-        that each module could be standalone.
-
-        :param config: A Python ConfigParser object
-        :param section: The section where the key exists
-        :param key: The name of the key to retrieve
-        :param type: (Optional) Specify 'boolean' to convert True/False strings to booleans.
-        :return: A string or boolean from the config file.
-        """
-        try:
-            if type == 'boolean':
-                result = config.getboolean(section, key)
-            else:
-                result = config.get(section, key)
-        except configparser.NoSectionError:
-            logger.warning('Warning: ' + section + ' does not exist in config file')
-            if type == 'boolean':
-                return 0
-            else:
-                return ""
-        except configparser.NoOptionError:
-            logger.warning('Warning: ' + key + ' does not exist in the config file')
-            if type == 'boolean':
-                return 0
-            else:
-                return ""
-        except configparser.Error as err:
-            logger.warning('Warning: Unexpected error with config file')
-            logger.warning(str(err))
-            if type == 'boolean':
-                return 0
-            else:
-                return ""
-
-        return result
-
-
     def _init_mongo_connection(self, config):
-        protocol = self._get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.protocol")
-        endpoint = self._get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.host")
-        path = self._get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.path")
-        username = self._get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.username")
-        password = self._get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.password")
-        cacert = self._get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.ca_cert")
+        protocol = ConnectorUtil.get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.protocol")
+        endpoint = ConnectorUtil.get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.host")
+        path = ConnectorUtil.get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.path")
+        username = ConnectorUtil.get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.username")
+        password = ConnectorUtil.get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.password")
+        cacert = ConnectorUtil.get_config_setting(self._logger, config, "RemoteMongoDB", "mongo.ca_cert")
 
         if username != "" and password != "":
             connection_string = protocol + username + ":" + password + "@" + endpoint + path

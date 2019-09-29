@@ -20,6 +20,7 @@ import logging
 import logging.config
 import os.path
 
+
 class LoggingUtil():
 
     @staticmethod
