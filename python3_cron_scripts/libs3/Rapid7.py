@@ -144,7 +144,7 @@ class Rapid7(object):
         list = config.read(self.rapid7_config_file)
         if len(list) == 0:
             self._logger.error('Error: Could not find the config file')
-            exit(0)
+            exit(1)
 
         self._init_Rapid7(config)
 

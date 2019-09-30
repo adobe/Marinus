@@ -68,7 +68,7 @@ class AzureConnector(object):
         list = config.read(self.azure_config_file)
         if len(list) == 0:
             self._logger.error('Error: Could not find the config file')
-            exit(0)
+            exit(1)
 
         self._init_azure(config)
 

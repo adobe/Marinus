@@ -61,7 +61,7 @@ class FacebookConnector(object):
         list = config.read(self.fb_config_file)
         if len(list) == 0:
             self._logger.error('Error: Could not find the config file')
-            exit(0)
+            exit(1)
 
         self._init_facebook(config)
 
@@ -81,18 +81,18 @@ class FacebookConnector(object):
 
         except requests.exceptions.ConnectionError:
             self._logger.error("Connection Error while obtaining access token")
-            exit(0)
+            exit(1)
         except requests.exceptions.HTTPError:
             self._logger.error("HTTP Error while obtaining access token")
-            exit(0)
+            exit(1)
         except requests.exceptions.RequestException as err:
             self._logger.error("Request exception while obtaining access token")
             self._logger.error(str(err))
-            exit(0)
+            exit(1)
 
         if req.status_code != 200:
             self._logger.error("Error while obtaining access token")
-            exit(0)
+            exit(1)
 
         response = json.loads(req.text)
 

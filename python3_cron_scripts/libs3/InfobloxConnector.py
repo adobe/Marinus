@@ -63,6 +63,6 @@ class InfobloxConnector(object):
         list = config.read(self.iblox_config_file)
         if len(list) == 0:
             self._logger.error('Error: Could not find the config file')
-            exit(0)
+            exit(1)
 
         self.__init_iblox_connection(config)
