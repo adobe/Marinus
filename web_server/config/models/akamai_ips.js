@@ -34,9 +34,9 @@ const akamaiIpModel = mongoose.model('akamaiIpModel', akamaiIpSchema);
 module.exports = {
     AkamaiIpModel: akamaiIpModel,
     getAkamaiIpZonesPromise: function() {
-        return akamaiIpModel.find({}, {'ranges': 1, '_id': 0});
+        return akamaiIpModel.find({}, {'ranges': 1, '_id': 0}).exec();
     },
     getAkamaiIpv6ZonesPromise: function() {
-        return akamaiIpModel.find({}, {'ipv6_ranges': 1, '_id': 0});
+        return akamaiIpModel.find({}, {'ipv6_ranges': 1, '_id': 0}).exec();
     },
 };

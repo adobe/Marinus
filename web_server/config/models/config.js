@@ -29,15 +29,15 @@ const configModel = mongoose.model('configModel', configSchema);
 module.exports = {
     configModel: configModel,
     getDNSAdminsPromise: function() {
-        return configModel.find({}, {'DNS_Admins': 1, '_id': 0});
+        return configModel.find({}, {'DNS_Admins': 1, '_id': 0}).exec();
     },
     getSSLOrgsPromise: function() {
-        return configModel.find({}, {'SSL_Orgs': 1, '_id': 0});
+        return configModel.find({}, {'SSL_Orgs': 1, '_id': 0}).exec();
     },
     getWhoisOrgsPromise: function() {
-        return configModel.find({}, {'Whois_Orgs': 1, '_id': 0});
+        return configModel.find({}, {'Whois_Orgs': 1, '_id': 0}).exec();
     },
     getFullConfigPromise: function() {
-        return configModel.find({});
+        return configModel.find({}).exec();
     },
 };

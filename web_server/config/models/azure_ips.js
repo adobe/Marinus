@@ -30,6 +30,6 @@ const azureIpModel = mongoose.model('azureIpModel', azureIpSchema);
 module.exports = {
     AzureIpModel: azureIpModel,
     getAzureIpZonesPromise: function() {
-        return azureIpModel.find({}, {'prefixes': 1, '_id': 0});
+        return azureIpModel.find({}, {'prefixes': 1, '_id': 0}).exec();
     },
 };

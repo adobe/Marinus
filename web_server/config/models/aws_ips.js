@@ -37,9 +37,9 @@ const awsIpModel = mongoose.model('awsIpModel', awsIpSchema);
 module.exports = {
     AwsIpModel: awsIpModel,
     getAwsIpZonesPromise: function() {
-        return awsIpModel.find({}, {'prefixes': 1, '_id': 0});
+        return awsIpModel.find({}, {'prefixes': 1, '_id': 0}).exec();
     },
     getAwsIpv6ZonesPromise: function() {
-        return awsIpModel.find({}, {'ipv6_prefixes': 1, '_id': 0});
+        return awsIpModel.find({}, {'ipv6_prefixes': 1, '_id': 0}).exec();
     },
 };
