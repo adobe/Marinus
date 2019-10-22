@@ -84,7 +84,7 @@ module.exports = function(app, envConfig){
         });
 
         app.use(expressSession({secret: envConfig.cookieSecret,
-                              cookie: {secure: true,
+                              cookie: {secure: true, sameSite: "None",
                               maxAge: 1000 * 60 * 60 * 24 * 1},
                               store: store,
                               resave: false,
@@ -97,7 +97,7 @@ module.exports = function(app, envConfig){
         app.use(mlogger('combined'));
 
         app.use(expressSession({secret: envConfig.cookieSecret,
-                              cookie: {secure: true,
+                              cookie: {secure: true, sameSite: "None",
                               maxAge: 1000 * 60 * 60 * 24 * 1},
                               resave: false,
                               saveUninitialized: false}));
