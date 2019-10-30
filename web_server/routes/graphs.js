@@ -316,6 +316,8 @@ module.exports = function(envConfig) {
      *     description: Fetch the d3.js config component of the zone's graph.
      *   - name: Graphs - Fetch zone docs
      *     description: Fetch the d3.js docs component of the zone's graph.
+     *   - name: Graphs - Fetch zone count
+     *     description: Fetch the count of the graphs for the zone.
      *   - name: Graphs - Fetch zone data
      *     description: Fetch the d3.js data component of the zone's graph.
      *
@@ -436,6 +438,45 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      *
+     * /api/v1.0/graphs/{zone}?count=1:
+     *   get:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: This is just to confirm that the graph exists without sending the entire response body.
+     *     tags: [Graphs - Fetch zone count]
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: zone
+     *         type: string
+     *         required: true
+     *         description: The zone ("example.org", "example.com", etc.) to fetch.
+     *         in: path
+     *       - name: count
+     *         type: string
+     *         required: true
+     *         description: Must be set to "1" to get the count.
+     *         in: path
+     *     responses:
+     *       200:
+     *         description: Returns a count of 1 if the graph record exists.
+     *         type: object
+     *         schema:
+     *           $ref: '#/definitions/CountResponse'
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       404:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/ResultsNotFound'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
+     * 
      * /api/v1.0/graphs/{zone}:
      *   get:
      *   # Operation-specific security:
@@ -479,6 +520,7 @@ module.exports = function(envConfig) {
         }
 
         let graphPromise;
+        let count = false;
         if (req.query.hasOwnProperty('dataType') &&
             req.query.dataType === 'links') {
             graphPromise = graphLinksRecs.getGraphLinksByZone(req.params.zone);
@@ -486,8 +528,11 @@ module.exports = function(envConfig) {
                    req.query.dataType === 'config') {
             graphPromise = graphRecs.getGraphConfigByZone(req.params.zone);
         } else if (req.query.hasOwnProperty('dataType') &&
-            req.query.dataType === 'docs') {
-              graphPromise = graphDocsRecs.getGraphDocsByZone(req.params.zone);
+                    req.query.dataType === 'docs') {
+            graphPromise = graphDocsRecs.getGraphDocsByZone(req.params.zone);
+        } else if (req.query.hasOwnProperty('count') && req.query.count == "1") {
+            count = true;
+            graphPromise = graphDataRecs.getGraphCountByZone(req.params.zone)
         } else {
             graphPromise = graphDataRecs.getGraphDataByZone(req.params.zone);
         }
@@ -497,7 +542,11 @@ module.exports = function(envConfig) {
                 res.status(404).json({'message': 'Zone not found'});
                 return;
             }
-            res.status(200).json(data);
+            if (count) {
+                res.status(200).json({'count': data});
+            } else {
+                res.status(200).json(data);
+            }
             return;
         });
       });

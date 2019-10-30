@@ -37,4 +37,7 @@ module.exports = {
             'zone': zone,
         }, limitQuery).exec();
     },
+    getGraphCountByZone: function(zone) {
+        return(graphDataModel.countDocuments({'zone': zone}).exec());
+    },
 };
