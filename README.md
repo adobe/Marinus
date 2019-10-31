@@ -7,7 +7,7 @@ Since Marinus collects data from third-parties, it does not provide a snapshot o
 
 Marinus is able to collect a wide-variety of information from third-party sources. Once the root domains (e.g. example.org) are entered into the system, Marinus starts by collecting DNS information. DNS is the underpinning of the Internet and is often used for security controls like SPF and DKIM. Sources like Censys or the Marinux zgrab scripts will provide the handshake information from connections to services such as SSH, SMTP, HTTP, and HTTPS. In addition, Marinus can also check certificate transparency logs for additional TLS information. Finally, Marinus can search services such as VirusTotal for any references to the root domains in malware records. These combine to create a database of information that can be dynamically searched in order to ensure security best practices, respond quickly to incidents, and improve security automation and processes within the organization. Having an automatically-updated, company-wide database of an organization's external footprint can save a centralized security team numerous phone calls and emails. In addition, it can provide a view of the network without the need to scan it yourself.
 
-## What is included in this project
+## What is included in this project?
 Marinus is comprised of a collection of Python scripts which collect the information from the third-party resources and store it in the database. The data can be accessed through a web UI or via REST APIs provided by a Node.js web server. A nginx server acts as a proxy into the Node.js web services.
 
 This repository stores four folders relevant to Marinus:
