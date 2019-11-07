@@ -374,6 +374,8 @@ function display_group_table(results) {
     displayHTML += create_table_body();
 
     var groupSel = document.getElementById("selectGroup");
+    let initialLength = groupSel.length;
+
     for (var i=0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(results[i]['name']);
@@ -392,11 +394,13 @@ function display_group_table(results) {
         displayHTML += create_table_entry(members);
         displayHTML += end_table_row()
 
-        var option = document.createElement("option");
-        option.text = results[i]['name'];
-        option.value = results[i]['name'];
+        if (initialLength == 0) {
+            var option = document.createElement("option");
+            option.text = results[i]['name'];
+            option.value = results[i]['name'];
 
-        groupSel.add(option);
+            groupSel.add(option);
+        }
     }
 
     displayHTML += end_table() + "<br/>";
