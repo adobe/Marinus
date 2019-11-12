@@ -16,13 +16,7 @@ window.addEventListener("load", buildPage);
 var lastCensysResult;
 var useCensys = false;
 
-var divRefTable = {"sonar_dns": "Sonar DNS",
-                   "sonar_rdns": "Sonar RDNS",
-                   "infoblox-a": "Infoblox A",
-                   "infoblox-host": "Infoblox Host",
-                   "UltraDNS": "UltraDNS",
-                   "common_crawl": "Common Crawl",
-                   "censys": "Censys"};
+var divRefTable = {};
 
 function add_table_row(displayName, cellID) {
     let tableRef = document.getElementById('ipRangeTable').getElementsByTagName('tbody')[0];
@@ -40,7 +34,12 @@ function add_table_row(displayName, cellID) {
 }
 
 function buildPage() {
+    make_get_request("/api/v1.0/dns/sources", populateDivRefTable);
+}
+
+function continueBuildPage(){
     document.getElementById("search_form").addEventListener("submit", queries);
+
 
     if (ScanDataSources.includes("censys")) {
         useCensys = true;
@@ -62,6 +61,14 @@ function buildPage() {
         document.getElementById("dynamic_whois_section").appendChild(whois_div);
         document.getElementById("whoisLookup").addEventListener("click",whois_lookup);
     }
+}
+
+function populateDivRefTable(results) {
+    for (let result in results['sources']) {
+        let val = results['sources'][result];
+        divRefTable[val] = val;
+    }
+    continueBuildPage();
 }
 
 function whois_lookup() {
@@ -155,17 +162,11 @@ function get_details() {
     if (callId.startsWith("censys") && useCensys) {
         url = "/api/v1.0/censys/ips?range=" + range;
         callback = displayCensys;
-    } else if (callId.startsWith("infoblox-a")) {
-        url = "/api/v1.0/dns?source=infoblox-a&range=" + range;
-        callback = displayDNS;
-    } else if (callId.startsWith("infoblox-host")) {
-        url = "/api/v1.0/dns?source=infoblox-host&range=" + range;
-        callback = displayDNS;
     } else if (callId.startsWith("sonar_rdns")) {
         url = "/api/v1.0/sonar/rdns?range=" + range;
         callback = displaySRDNS;
-    } else if (callId.startsWith("sonar_dns")) {
-        url = "/api/v1.0/dns?source=sonar_dns&range=" + range;
+    } else {
+        url = "/api/v1.0/dns?source=" + callId.substring(0, callId.length-5) + "&range=" + range;
         callback = displayDNS;
     }
 
