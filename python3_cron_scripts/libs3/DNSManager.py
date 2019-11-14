@@ -219,8 +219,8 @@ class DNSManager(object):
         :return: A boolean indicating success or failure
         """
         d_minus_2m = self.monthdelta(datetime.now(), month_delta)
-        results = self.all_dns_collection.find({'sources.source': source,
-                                                'sources.updated': {"$lt": d_minus_2m}}
+        results = self.all_dns_collection.find({'sources': {"$elemMatch": {'source': source,
+                                                               'updated': {"$lt": d_minus_2m}}}}
                                               ).batch_size(30)
 
         for result in results:
