@@ -131,28 +131,6 @@ def main():
     """
     logger = LoggingUtil.create_log(__name__)
 
-    # The sources for which to remove expired entries
-    # Infoblox is handled separately
-    # {"source_name": date_difference_in_months}
-    sources = [{"name": "sonar_dns", "diff": -2},
-               {"name": "sonar_dns_saved", "diff": -2},
-               {"name": "sonar_rdns", "diff": -2},
-               {"name": "sonar_rdns_saved", "diff": -2},
-               {"name": "ssl", "diff": -2},
-               {"name": "ssl_saved", "diff": -2},
-               {"name": "virustotal", "diff": -2},
-               {"name": "virustotal_saved", "diff": -2},
-               {"name": "UltraDNS", "diff": -2},
-               {"name": "UltraDNS_saved", "diff": -2},
-               {"name": "marinus", "diff": -2},
-               {"name": "marinus_saved", "diff": -2},
-               {"name": "mx", "diff": -2},
-               {"name": "mx_saved", "diff": -2},
-               {"name": "common_crawl", "diff": -4},
-               {"name": "common_crawl_saved", "diff": -4}]
-
-    amass_diff = -2
-
     now = datetime.now()
     print ("Starting: " + str(now))
     logger.info("Starting...")
@@ -165,6 +143,20 @@ def main():
 
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'remove_expired_entries')
     jobs_manager.record_job_start()
+
+    # The sources for which to remove expired entries
+    results = mongo_connector.perform_distinct(all_dns_collection, 'sources.source')
+
+    sources = []
+    for source in results:
+        temp = {}
+        temp['name'] = source
+        if "common_crawl" in source:
+            temp['diff'] = -4
+        else:
+            temp['diff'] = -2
+
+        sources.append(temp)
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
@@ -201,31 +193,6 @@ def main():
 
         dns_manager.remove_all_by_source_and_date(source, entry['diff'])
 
-    # Process amass entries
-    temp_sources = mongo_connector.perform_distinct(all_dns_collection, 'sources.source')
-    amass_sources = []
-    for entry in temp_sources:
-        if entry.startswith("amass:"):
-            amass_sources.append(entry)
-
-    for source in amass_sources:
-        removal_date = monthdelta(datetime.now(), amass_diff)
-        logger.debug("Removing " + source + " as of: " + str(removal_date))
-
-        last_domain = ""
-        results = mongo_connector.perform_find(all_dns_collection, {'sources': {"$size": 1}, 'sources.source': source, 'sources.updated': {"$lt": removal_date}})
-        for result in results:
-            if result['fqdn'] != last_domain:
-                last_domain = result['fqdn']
-
-                lookup_int = get_lookup_int(logger, result, GDNS)
-                dns_result = GDNS.fetch_DNS_records(result['fqdn'], lookup_int)
-
-                if dns_result != []:
-                    insert_current_results(dns_result, dns_manager, zones, result, source)
-
-        dns_manager.remove_all_by_source_and_date(source, amass_diff)
-
     # Record status
     jobs_manager.record_job_complete()
 
@@ -236,3 +203,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
