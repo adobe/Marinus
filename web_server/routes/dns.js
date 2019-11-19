@@ -87,6 +87,17 @@ function createRange(range) {
  *             updated:
  *               type: string
  *               example: 2016-06-22T02:08:46.893Z
+ *       accountInfo:
+ *         type: array
+ *         items:
+ *           type: object
+ *           properties:
+ *             key:
+ *               type: string
+ *               example: "accountType"
+ *             value:
+ *               type: string
+ *               example: "aws"
  *       sonar_timestamp:
  *         type: integer
  *         example: 1489274775
@@ -185,6 +196,12 @@ module.exports = function(envConfig) {
      *         description: Fetch DNS CName records whose value ends with the provided string. This search is not strictly
      *                      limited to TLDs (e.g. .edu). The search is a regex that just checks whether the CName ends with
      *                      whatever value is provided.
+     *         in: query
+     *       - name: accountInfoValue
+     *         type: string
+     *         required: false
+     *         description: Fetch DNS records based on the value of an accountInfo entry. If AccountInfo is specified in the
+     *                      all_dns table, this will search for any records with the provided value.
      *         in: query
      *       - name: zone
      *         type: string
@@ -448,6 +465,8 @@ module.exports = function(envConfig) {
             }
         } else if (req.query.hasOwnProperty('zone')) {
             promise = allDNS.getAllDNSByZonePromise(req.query.zone, source);
+        } else if (req.query.hasOwnProperty('accountInfoValue')) {
+            promise = allDNS.getByAccountInfo(req.query.accountInfoValue);
         } else {
             res.status(400).json({
                 'message': 'A domain, ip, or zone must be provided',

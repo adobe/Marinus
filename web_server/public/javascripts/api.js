@@ -194,7 +194,7 @@ function allDNSResult(results) {
          return;
     }
     displayHTML += create_new_table();
-    displayHTML += create_table_head(["Type", "Value", "Domain", "Zone", "Sources"]);
+    displayHTML += create_table_head(["Type", "Value", "Domain", "Zone", "Sources", "Accounts"]);
     displayHTML += create_table_body();
 
     for (let i=0; i < results.length; i++) {
@@ -203,12 +203,24 @@ function allDNSResult(results) {
         displayHTML += create_table_entry(results[i]['value']);
         displayHTML += create_table_entry(create_anchor("/domain?search=" + results[i]['fqdn'], results[i]['fqdn']));
         displayHTML += create_table_entry(create_anchor("/zone?search=" + results[i]['zone'], results[i]['zone']));
+    
         let sources = "";
         for (let source in results[i]['sources']) {
             sources += results[i]['sources'][source]['source'] + ", ";
         }
         sources = sources.substring(0, sources.length - 2);
         displayHTML += create_table_entry(sources);
+
+        if (results[i].hasOwnProperty("accountInfo")) {
+            let text = "";
+            for (let entry in results[i]['accountInfo']) {
+                text += results[i]['accountInfo'][entry]['key'] + " : " + results[i]['accountInfo'][entry]['value'] + ", ";
+            }
+            text = text.substring(0, text.length - 2);
+            displayHTML += create_table_entry(text);
+        } else {
+            displayHTML += create_table_entry("unknown")
+        }
         displayHTML += end_table_row();
     }
 

@@ -26,6 +26,7 @@ const allDnsSchema = new Schema({
     zone: String,
     created: Date,
     value: String,
+    accountInfo: [{key: String, value: String}],
     type: String, // Record type: "a", "cname", etc.
 }, {
     collection: 'all_dns',
@@ -265,5 +266,11 @@ module.exports = {
          * Returns the list of distinct DNS record sources.
          */
         return allDnsModel.distinct('sources.source').exec()
+    },
+    getByAccountInfo: function(accountInfoValue) {
+        /**
+         * Returns DNS names matching an accountInfoValue
+         */
+        return allDnsModel.find({'accountInfo.value': accountInfoValue}).exec()
     }
 };
