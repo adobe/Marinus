@@ -154,6 +154,8 @@ class X509Parser(object):
                             'url': 'ct.cloudflare.com/logs/nimbus2021'},
                 'nimbus2022': {'id': 'QcjKsd8iRkoQxqE6CUKHXk4xixsD6+tLx2jwkGKWBvY=',
                             'url': 'ct.cloudflare.com/logs/nimbus2022'},
+                'nimbus2023': {'id': 'ejKMVNi3LbYg6jjgUh7phBZwMhOFTTvSK8E6V6NS61I=',
+                            'url': 'ct.cloudflare.com/logs/nimbus2023'},
                 # Misc
                 'venafi-ctlog-gen2': {'id': 'AwGd8/2FppqOvR+sxtqbpz5Gl3T+d/V5/FoIuDKMHWs=',
                             'url': 'ctlog-gen2.api.venafi.com'},
@@ -618,3 +620,4 @@ class X509Parser(object):
 
         cert_object = self.__parse(data, certSource)
         return cert_object
+
