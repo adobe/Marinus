@@ -127,7 +127,7 @@ class SplunkHECManager(object):
         message_body = json_util.dumps(data)
 
         try:
-            _requests_retry_session().post(self.URL + endpoint, data=message_body, headers=self.HEADERS)
+            _requests_retry_session().post(self.URL + endpoint, data=message_body, headers=self.HEADERS, timeout=120)
         except requests.exceptions.HTTPError as e:
             self._logger.error("Error uploading record: " + json.dumps(message, default=json_util.default))
             self._logger.error(e)

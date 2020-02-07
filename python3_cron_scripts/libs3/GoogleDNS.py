@@ -72,7 +72,7 @@ class GoogleDNS(object):
             logger = logging.getLogger(__name__)
 
             try:
-                req = _requests_retry_session().get(url)
+                req = _requests_retry_session().get(url, timeout=120)
             except Exception as ex:
                 logger.error("Google DNS request attempts failed!")
                 logger.error(str(ex))

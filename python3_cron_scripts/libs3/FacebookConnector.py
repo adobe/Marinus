@@ -76,7 +76,7 @@ class FacebookConnector(object):
             req = requests.get(self.BASE_URL + self.VERSION + \
                             "/oauth/access_token?client_id=" + self.KEY + \
                             "&client_secret=" + self.TOKEN + \
-                            "&grant_type=client_credentials")
+                            "&grant_type=client_credentials", timeout=120)
             req.raise_for_status()
 
         except requests.exceptions.ConnectionError:

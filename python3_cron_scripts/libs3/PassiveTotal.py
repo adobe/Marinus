@@ -75,7 +75,7 @@ class PassiveTotal(object):
         """
         parameters = {'field': 'email', 'query': email}
         req = requests.get(self.URL + "whois/search", params=parameters,
-                           auth=HTTPBasicAuth(self.TOKEN, self.KEY))
+                           auth=HTTPBasicAuth(self.TOKEN, self.KEY), timeout=120)
 
         if req.status_code != 200:
             self._logger.warning(req.status_code)

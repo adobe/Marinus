@@ -80,7 +80,7 @@ class VirusTotal(object):
         :return: The JSON response or None if not found.
         """
         req = requests.get((self.URL + "domain/report" +
-                            "?apikey=" + self.APIKEY + "&domain=" + domain))
+                            "?apikey=" + self.APIKEY + "&domain=" + domain), timeout=120)
         if req.status_code != 200:
             self._logger.error ("Error: " + str(req.status_code))
             return None

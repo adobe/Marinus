@@ -64,7 +64,7 @@ class UltraDNSHelper(object):
         Makes API calls with exponential retry capabilities using 'backoff'. The API is
         retried 3 times in case of ConnectionError exception before the script exists.
         """
-        return requests.get(url, params, headers=headers)
+        return requests.get(url, params, headers=headers, timeout=120)
 
     @backoff.on_exception(backoff.expo,
                           requests.exceptions.ConnectionError,
@@ -89,7 +89,7 @@ class UltraDNSHelper(object):
             data['refresh_token'] = self.refresh_token
 
         try:
-            res = requests.post(login_url, data)
+            res = requests.post(login_url, data, timeout=120)
             res.raise_for_status()
         except requests.exceptions.HTTPError as herr:
             self.APIH.handle_api_error(str(herr) + ' : ' + res.text, self.jobs_manager)
