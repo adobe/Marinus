@@ -549,6 +549,10 @@ class IPManager(object):
             self._logger.warning("WARNING: all_ips does not track local IP addresses")
             return
 
+        if ip_addr is None:
+            self._logger.error("ERROR: Could not insert: " + str(ip))
+            return
+
         record = {}
         record['ip'] = ip
         record['version'] = ip_addr.version
