@@ -31,7 +31,7 @@ import time
 from datetime import datetime
 from pprint import pprint
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util import Retry
 
 from libs3 import MongoConnector, DNSManager, GoogleDNS, X509Parser, JobsManager
 from libs3.ZoneManager import ZoneManager

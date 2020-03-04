@@ -26,7 +26,7 @@ from libs3.ConnectorUtil import ConnectorUtil
 
 from bson import json_util
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util import Retry
 
 
 class HECLogLevel(object):

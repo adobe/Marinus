@@ -49,7 +49,7 @@ import struct
 from datetime import datetime
 from OpenSSL import crypto
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util import Retry
 
 from libs3 import MongoConnector, X509Parser, JobsManager
 from libs3.ZoneManager import ZoneManager
