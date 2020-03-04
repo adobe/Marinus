@@ -27,6 +27,7 @@ class ConnectorUtil():
         This function is in multiple modules because it was originally designed
         that each module could be standalone.
 
+        :param logger: A Python logging object
         :param config: A Python ConfigParser object
         :param section: The section where the key exists
         :param key: The name of the key to retrieve
