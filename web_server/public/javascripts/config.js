@@ -455,16 +455,18 @@ function display_jobs_table(results) {
 
     results.sort(compare);
     for (var i=0; i < results.length; i++) {
-        displayHTML += create_table_row();
-        displayHTML += create_table_entry(results[i]['job_name']);
-        displayHTML += create_table_entry(results[i]['updated']);
+        if (results[i]['status'] != "RETIRED") {
+            displayHTML += create_table_row();
+            displayHTML += create_table_entry(results[i]['job_name']);
+            displayHTML += create_table_entry(results[i]['updated']);
 
-        if (results[i]['status'] === "ERROR") {
-            displayHTML += create_table_entry(results[i]['status'], "", "errorResult");
-        } else {
-            displayHTML += create_table_entry(results[i]['status']);
+            if (results[i]['status'] === "ERROR") {
+                displayHTML += create_table_entry(results[i]['status'], "", "errorResult");
+            } else {
+                displayHTML += create_table_entry(results[i]['status']);
+            }
+            displayHTML += end_table_row();
         }
-        displayHTML += end_table_row();
     }
 
     displayHTML += end_table() + "<br/>";

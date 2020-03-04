@@ -39,6 +39,9 @@ class JobsManager(object):
     # The job is complete
     COMPLETE = "COMPLETE"
 
+    # The job is no longer used
+    COMPLETE = "RETIRED"
+
 
     # Settings
     ###################
