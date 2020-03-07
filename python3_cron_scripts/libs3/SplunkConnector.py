@@ -36,6 +36,9 @@ class SplunkConnector(object):
 
 
     def _init_splunk_connection(self, config):
+        """
+        Initialize defaults
+        """
         self.HOST = ConnectorUtil.get_config_setting(self._logger, config, 'Splunk', 'splunk.host')
         self.PORT = ConnectorUtil.get_config_setting(self._logger, config, 'Splunk', 'splunk.port')
         self.USERNAME = ConnectorUtil.get_config_setting(self._logger, config, 'Splunk', 'splunk.username')
@@ -43,6 +46,10 @@ class SplunkConnector(object):
 
 
     def __init__(self, log_level=None):
+        """
+        Initialize the object
+        """
+
         self._logger = self._log()
         if log_level is not None:
             self._logger.setLevel(log_level)
@@ -66,3 +73,4 @@ class SplunkConnector(object):
                                 password=self.PASSWORD)
 
         return service
+
