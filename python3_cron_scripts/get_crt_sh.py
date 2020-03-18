@@ -29,7 +29,6 @@ import requests
 import time
 
 from datetime import datetime
-from pprint import pprint
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
@@ -248,8 +247,8 @@ def main():
         new_names = []
         new_ids = []
         for entry in json_data:
-            if entry['min_cert_id'] not in new_ids:
-                new_ids.append(entry['min_cert_id'])
+            if entry['id'] not in new_ids:
+                new_ids.append(entry['id'])
 
             if "*" not in entry["name_value"] and entry["name_value"] not in new_names:
                 new_names.append(entry["name_value"])
