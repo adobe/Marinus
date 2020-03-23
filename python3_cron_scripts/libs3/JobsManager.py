@@ -40,7 +40,7 @@ class JobsManager(object):
     COMPLETE = "COMPLETE"
 
     # The job is no longer used
-    COMPLETE = "RETIRED"
+    RETIRED = "RETIRED"
 
 
     # Settings
