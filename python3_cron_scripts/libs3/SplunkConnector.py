@@ -43,6 +43,7 @@ class SplunkConnector(object):
         self.PORT = ConnectorUtil.get_config_setting(self._logger, config, 'Splunk', 'splunk.port')
         self.USERNAME = ConnectorUtil.get_config_setting(self._logger, config, 'Splunk', 'splunk.username')
         self.PASSWORD = ConnectorUtil.get_config_setting(self._logger, config, 'Splunk', 'splunk.password')
+        self.APP = ConnectorUtil.get_config_setting(self._logger, config, 'Splunk', 'splunk.app')
 
 
     def __init__(self, log_level=None):
@@ -67,10 +68,17 @@ class SplunkConnector(object):
         """
         Create a Splunk client
         """
-        service = client.connect(host=self.HOST,
-                                port=self.PORT,
-                                username=self.USERNAME,
-                                password=self.PASSWORD)
+        if self.APP is not None and self.APP != '':
+            service = client.connect(host=self.HOST,
+                                    port=self.PORT,
+                                    username=self.USERNAME,
+                                    password=self.PASSWORD,
+                                    app=self.APP)
+        else:
+            service = client.connect(host=self.HOST,
+                                     port=self.PORT,
+                                     username=self.USERNAME,
+                                     password=self.PASSWORD)
 
         return service
 
