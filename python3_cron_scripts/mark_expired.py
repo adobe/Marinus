@@ -157,7 +157,7 @@ def main():
 
 
     # Record status
-    jobs_manager.record_job_start()
+    jobs_manager.record_job_complete()
 
     now = datetime.now()
     print("Ending: " + str(now))
