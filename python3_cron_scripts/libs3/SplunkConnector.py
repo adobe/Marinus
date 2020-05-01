@@ -46,7 +46,7 @@ class SplunkConnector(object):
         self.APP = ConnectorUtil.get_config_setting(self._logger, config, 'Splunk', 'splunk.app')
 
 
-    def __init__(self, log_level=None):
+    def __init__(self, config_file="", log_level=None):
         """
         Initialize the object
         """
@@ -54,6 +54,9 @@ class SplunkConnector(object):
         self._logger = self._log()
         if log_level is not None:
             self._logger.setLevel(log_level)
+
+        if config_file != "":
+            self.splunk_config_file = config_file
 
         config = configparser.ConfigParser()
         config_file = config.read(self.splunk_config_file)

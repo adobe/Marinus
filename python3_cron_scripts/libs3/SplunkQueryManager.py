@@ -56,7 +56,7 @@ class SplunkQueryManager(object):
         return logging.getLogger(__name__)
 
 
-    def __init__(self, log_level = None):
+    def __init__(self, config_file="", log_level = None):
         """
         Initialize the query manager
         """
@@ -65,7 +65,7 @@ class SplunkQueryManager(object):
             self._logger.setLevel(log_level)
 
         if self._CLIENT == None:
-            splunk_connector = SplunkConnector.SplunkConnector()
+            splunk_connector = SplunkConnector.SplunkConnector(config_file)
             self._CLIENT = splunk_connector.get_splunk_client()
 
         self._OFFSET = 0
