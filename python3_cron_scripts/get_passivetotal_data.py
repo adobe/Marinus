@@ -33,6 +33,37 @@ from libs3 import MongoConnector, PassiveTotal, ZoneIngestor, JobsManager
 from libs3.LoggingUtil import LoggingUtil
 
 
+def search_pt_nameserver(logger, name_server, orgs, pt, zi, jobs_manager):
+    """
+    Search PassiveTotal based on the name server.
+    Double check with org and/or email since the zone may be owned by someone else.
+    """
+    logger.info("Searching: " + name_server)
+    results = pt.get_name_server(name_server)
+
+    if results is None:
+        logger.error("Error querying nameserver: " + name_server)
+        jobs_manager.record_job_error()
+        exit(0)
+
+    logger.info("Results for " + name_server + ": " + str(len(results['results'])))
+
+    for j in range(0, len(results['results'])):
+        domain = results['results'][j]['domain'].encode('utf-8').decode('utf8')
+        logger.debug("Checking domain: " + domain)
+
+        if re.match(r"^([0-9]{1,3}\.){3}[0-9]{1,3}\/\d\d$", domain):
+            logger.debug("Matched IP address. Skipping...")
+            continue
+
+        if results['results'][j]['organization'] not in orgs:
+            logger.warning(domain + " not registered by known org: " + results['results'][j]['organization'])
+            logger.warning("Registrant: " + str(results['results'][j]['registrant']))
+            continue
+
+        zi.add_zone(domain, 'PassiveTotal')
+
+
 def search_pt_email(logger, email, pt, zi, jobs_manager):
     """
     Search PassiveTotal for records associated with the provided email address.
@@ -109,6 +140,9 @@ def main():
 
     for i in range(0, len(res[0]['Whois_Orgs'])):
         search_pt_org(logger, res[0]['Whois_Orgs'][i], PT, zi, jobs_manager)
+
+    for i in range(0, len(res[0]['Whois_Name_Servers'])):
+        search_pt_nameserver(logger, res[0]['Whois_Name_Servers'][i], res[0]['Whois_Orgs'], PT, zi, jobs_manager)
 
     # Record status
     jobs_manager.record_job_complete()

@@ -68,6 +68,35 @@ class PassiveTotal(object):
         self._init_passivetotal(config)
 
 
+    def get_name_server(self, name_server):
+        """
+        Fetches the whois records from PassiveTotal based on the registered name_server.
+        @param name_server The name_server to search for in the whois records.
+        """
+        parameters = {'field': 'nameserver', 'query': name_server}
+        req = requests.get(self.URL + "whois/search", params=parameters,
+                           auth=HTTPBasicAuth(self.TOKEN, self.KEY), timeout=120)
+
+        if req.status_code != 200:
+            self._logger.warning(req.status_code)
+            self._logger.warning(req.text)
+            time.sleep(5)
+            req = requests.get(self.URL + "whois/search?field=nameserver&query=" + name_server,
+                               auth=HTTPBasicAuth(self.TOKEN, self.KEY))
+            if req.status_code != 200:
+                self._logger.error("Second nameserverlookup attempt failed.")
+                self._logger.error(req.status_code)
+                self._logger.error(req.text)
+                return None
+
+        try:
+            res = json.loads(req.text)
+        except:
+            return None
+
+        return res
+
+
     def get_whois(self, email):
         """
         Fetches the whois records from PassiveTotal based on the registered email.
