@@ -508,9 +508,9 @@ class IPManager(object):
         domains = []
 
         for result in results:
-            if result['zone'] not in zones:
+            if result['zone'] not in zones and result['zone'] != '':
                 zones.append(result['zone'])
-            if result['fqdn'] not in domains:
+            if result['fqdn'] not in domains and result['fqdn'] != ip:
                 domains.append(result['fqdn'])
         
         return zones, domains
