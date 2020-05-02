@@ -100,6 +100,7 @@ def update_dns(logger, dns_file, zones, dns_mgr):
                 domain = ""
 
             timestamp = data['timestamp']
+
             if zone != "" and value != "":
                 logger.debug ("Domain matches! " + domain + " Zone: " + zone)
 
@@ -173,7 +174,9 @@ def update_rdns(logger, rdns_file, zones, mongo_connector):
                 domain = ""
                 ip_addr = ""
                 zone = ""
+
             timestamp = data['timestamp']
+
             if zone != "" and domain != "":
                 logger.debug("Domain matches! " + domain + " Zone: " + zone)
                 result = rdns_collection.find({'ip': ip_addr}).count()

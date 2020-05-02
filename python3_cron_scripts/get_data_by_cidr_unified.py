@@ -90,6 +90,7 @@ def find_zone(domain, zones):
     for zone in zones:
         if domain.endswith("." + zone) or domain == zone:
             return zone
+
     return ""
 
 
