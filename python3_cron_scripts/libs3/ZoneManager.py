@@ -29,7 +29,7 @@ class ZoneManager(object):
     CONFIRMED = "confirmed"
 
     # A status of unconfirmed means that it was added via automation
-    # It has not been revied by a human
+    # It has not been reviewed by a human
     UNCONFIRMED = "unconfirmed"
 
     # A status of false positive means that a human identified that automation made a mistake
