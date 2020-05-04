@@ -69,7 +69,7 @@ def search_pt_email(logger, email, pt, zi, jobs_manager):
     Search PassiveTotal for records associated with the provided email address.
     """
     logger.info("Searching: " + email)
-    results = pt.get_whois(email)
+    results = pt.get_email(email)
 
     if results is None:
         logger.error("Error querying email: " + email)

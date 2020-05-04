@@ -33,7 +33,7 @@ class PassiveTotal(object):
     pt_config_file = 'connector.config'
     KEY = None
     TOKEN = None
-    URL = None
+    URL = "https://api.passivetotal.org/v2/"
     _logger = None
 
 
@@ -97,7 +97,7 @@ class PassiveTotal(object):
         return res
 
 
-    def get_whois(self, email):
+    def get_email(self, email):
         """
         Fetches the whois records from PassiveTotal based on the registered email.
         @param email The email to search for in the whois records.
@@ -153,3 +153,38 @@ class PassiveTotal(object):
             return None
 
         return res
+
+
+    def get_whois(self, domain):
+        """
+        Get Whois based on domain
+        """
+        parameters = {'query': domain}
+        req = requests.get(self.URL + "whois", params= parameters,
+                           auth=HTTPBasicAuth(self.TOKEN, self.KEY))
+
+        if req.status_code == 404:
+            self._logger.warning("Domain not found: " + domain)
+            return None
+        elif req.status_code != 200:
+            self._logger.warning(req.status_code)
+            self._logger.warning(req.text)
+            time.sleep(5)
+            req = requests.get(self.URL + "whois?&query=" + domain,
+                               auth=HTTPBasicAuth(self.TOKEN, self.KEY))
+            if req. status_code == 404:
+                self._logger.warning("Domain not found: " + domain)
+                return None
+            elif req.status_code != 200:
+                self._logger.error("Second domain lookup attempt failed.")
+                self._logger.error(req.status_code)
+                self._logger.error(req.text)
+                return None
+
+        try:
+            res = json.loads(req.text)
+        except:
+            return None
+
+        return res
+
