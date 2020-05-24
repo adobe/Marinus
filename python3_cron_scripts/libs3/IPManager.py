@@ -539,6 +539,11 @@ class IPManager(object):
         This function completely rebuilds the record because it is simpler and cleaner than tracking which
         data came from which location and whether to expire specific sections.
         """
+
+        if ip is None or ip == "":
+            self._logger.error("ERROR: Sent an invalid IP address: " + str(ip))
+            return
+
         if isinstance(ip, str):
             ip_addr = IPAddress(ip)
         else:
