@@ -24,6 +24,7 @@ const allIPsSchema = new Schema({
     reverse_dns: String,
     zones: [],
     domains: [],
+    sources: [{source: String, updated: Date}],
     host: {
         hosting_partner: String,
         host_cidr: String,

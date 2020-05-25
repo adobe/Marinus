@@ -20,6 +20,7 @@ for any custom integrations that you may want to make within your network.
 
 import logging
 
+from bson.objectid import ObjectId
 from datetime import datetime
 from netaddr import IPAddress, IPNetwork
 
@@ -533,7 +534,7 @@ class IPManager(object):
         return rnds_value, rdns_zone
 
 
-    def insert_record(self, ip):
+    def insert_record(self, ip, source=None):
         """
         Insert an IP into the tracking table
         This function completely rebuilds the record because it is simpler and cleaner than tracking which
@@ -570,6 +571,17 @@ class IPManager(object):
         else:
             record['created'] = datetime.now()
 
+        if source is not None:
+            if result is not None and 'sources' not in result:
+                record['sources'] = [{'source': source, 'updated': datetime.now()}]
+            elif result is not None:
+                record['sources'] = []
+                for source_entry in result['sources']:
+                    if source_entry['source'] == source:
+                        record['sources'].append({'source': source, 'updated': datetime.now()})
+                    else:
+                        record['sources'].append(source_entry)
+
         record['zones'], record['domains'] = self.find_dns_zones(ip)
 
         rdns_value, rdns_zone = self.extract_rdns_info(ip)
@@ -605,8 +617,27 @@ class IPManager(object):
         Delete old records that have not been updated since the provided date
         """
 
-        results = self.mongo_connector.perform_find(self.all_ips_collection, {"updated": {"$lt": expire_date}})
+        results = self.mongo_connector.perform_find(self.all_ips_collection, {"updated": {"$lt": expire_date}}, batch_size=100)
 
         for result in results:
             self.all_ips_collection.remove({"ip": result['ip']})
+
+
+    def delete_records_by_date_and_source(self, source, expire_date):
+        """
+        Delete old records by source and date
+        """
+
+        results = self.all_ips_collection.find({'sources': {"$elemMatch": {'source': source,
+                                                               'updated': {"$lt": expire_date}}}}
+                                              ).batch_size(30)
+
+        for result in results:
+            if len(result['sources']) > 1:
+                self.all_ips_collection.update({'_id': ObjectId(result['_id'])},
+                                               {"$pull": {"sources": {"source": source}}})
+            else:
+                self.all_ips_collection.remove({'_id': ObjectId(result['_id'])})
+
+        return True
 

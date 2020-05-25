@@ -46,6 +46,17 @@ const ipRecs = require('../config/models/ip');
  *       domains:
  *         type: array
  *         example: [www.example.org, www.example.net]
+ *       sources:
+ *         type: array
+ *         items:
+ *           type: object
+ *           properties:
+ *             source:
+ *               type: string
+ *               example: "infoblox"
+ *             updated:
+ *               type: string
+ *               example: 2016-06-22T02:08:46.893Z
  *       host:
  *         type: object
  *         properties:

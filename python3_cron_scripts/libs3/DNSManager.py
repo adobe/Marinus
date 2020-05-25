@@ -109,7 +109,7 @@ class DNSManager(object):
 
         if result['type'] == 'a' or result['type'] == 'aaaa':
             ip_manager = IPManager.IPManager(self.mongo_connector)
-            ip_manager.insert_record(result['value'])
+            ip_manager.insert_record(result['value'], source_name)
 
 
     def find_multiple(self, criteria, source):
