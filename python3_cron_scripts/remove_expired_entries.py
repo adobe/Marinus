@@ -144,6 +144,8 @@ def main():
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'remove_expired_entries')
     jobs_manager.record_job_start()
 
+    zones = ZoneManager.get_distinct_zones(mongo_connector)
+
     # The sources for which to remove expired entries
     results = mongo_connector.perform_distinct(all_dns_collection, 'sources.source')
 
@@ -158,18 +160,6 @@ def main():
 
         sources.append(temp)
 
-    zones = ZoneManager.get_distinct_zones(mongo_connector)
-
-    # Get the date for today minus two months
-    d_minus_2m = monthdelta(datetime.now(), -2)
-
-    logger.info("Removing SRDNS as of: " + str(d_minus_2m))
-
-    # Remove the old records
-    srdns_collection = mongo_connector.get_sonar_reverse_dns_connection()
-    srdns_collection.remove({'updated': {"$lt": d_minus_2m}})
-
-    ip_manager.delete_records_by_date(d_minus_2m)
 
     # Before completely removing old entries, make an attempt to see if they are still valid.
     # Occasionally, a host name will still be valid but, for whatever reason, is no longer tracked by a source.
@@ -192,6 +182,18 @@ def main():
                     insert_current_results(dns_result, dns_manager, zones, result, source)
 
         dns_manager.remove_all_by_source_and_date(source, entry['diff'])
+
+
+   # Get the date for today minus two months
+    d_minus_2m = monthdelta(datetime.now(), -2)
+
+    logger.info("Removing SRDNS as of: " + str(d_minus_2m))
+
+    # Remove the old records
+    srdns_collection = mongo_connector.get_sonar_reverse_dns_connection()
+    srdns_collection.remove({'updated': {"$lt": d_minus_2m}})
+
+    ip_manager.delete_records_by_date(d_minus_2m)
 
     # Record status
     jobs_manager.record_job_complete()
