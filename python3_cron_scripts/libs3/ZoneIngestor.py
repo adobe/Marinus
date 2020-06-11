@@ -16,6 +16,7 @@ It expects 3 inputs:
 -- zone: Required value.
 -- source: Default value set to 'Manual'
 -- parent: Default value set to None
+-- custom_fields: Default value set None. This a Python dictionary of additional fields to add to the source record.
 """
 
 import logging
@@ -138,7 +139,7 @@ class ZoneIngestor(object):
                                          '$set': {'updated': datetime.now()}}
                                         )
 
-    def __add_new_zone(self, zone, source, parent):
+    def __add_new_zone(self, zone, source, parent, custom_fields):
         """
         Add a new record with the parent zone and the sub-zone.
         The source value is as provided in the initial function call.
@@ -160,19 +161,25 @@ class ZoneIngestor(object):
         insert_zone = dict()
         insert_zone['zone'] = parent
         insert_zone['reporting_sources'] = list()
-        insert_zone['reporting_sources'].append({
+        sources_data = {
             'created': datetime.now(),
             'updated': datetime.now(),
             'status': 'unconfirmed',
             'source': source,
-        })
+        }
+
+        if custom_fields is not None:
+            for key_value in custom_fields.keys():
+                sources_data[key_value] = custom_fields[key_value]
+
+        insert_zone['reporting_sources'].append(sources_data)
         insert_zone['created'] = datetime.now()
         insert_zone['updated'] = datetime.now()
         insert_zone['status'] = 'unconfirmed'
         insert_zone['sub_zones'] = sub_zones
         self.zone_collection.insert_one(insert_zone)
 
-    def __update_source_time(self, record, source):
+    def __update_source_time(self, record, source, custom_fields):
         """
         Append the source to the list of sources of parent zone if not previously present.
         Update the updated time of the parent zone entry.
@@ -191,6 +198,10 @@ class ZoneIngestor(object):
             source_data['updated'] = datetime.now()
             source_data['status'] = 'unconfirmed'
             source_data['source'] = source
+
+            if custom_fields is not None:
+                for key_value in custom_fields.keys():
+                    source_data[key_value] = custom_fields[key_value]
 
             self.zone_collection.update_one({'_id': ObjectId(record['_id'])},
                                             {'$push': {'reporting_sources': source_data},
@@ -227,7 +238,7 @@ class ZoneIngestor(object):
         self.zone_collection.remove({'zone': zone})
 
 
-    def __zone_previously_not_present(self, zone, source, parent):
+    def __zone_previously_not_present(self, zone, source, parent, custom_fields):
         """
         Handling of the zone while it does not already exists.
         1. Check if the parent value has been provided in the parameters.
@@ -256,7 +267,7 @@ class ZoneIngestor(object):
                     return False
                 self.__add_sub_zone(zone, source, parent_record[0])
             else:
-                self.__add_new_zone(zone, source, parent)
+                self.__add_new_zone(zone, source, parent, custom_fields)
 
         else:
             # check for a previously present parent.
@@ -277,9 +288,9 @@ class ZoneIngestor(object):
                     for sub_zone in sub_zone_records:
                         self.__delete_zone(sub_zone['zone'])
                 else:
-                    self.__add_new_zone(None, source, zone)
+                    self.__add_new_zone(None, source, zone, custom_fields)
 
-    def __zone_previously_present(self, zone, source, parent, cursor):
+    def __zone_previously_present(self, zone, source, parent, cursor, custom_fields):
         """
         Handling of the zone while it already exists in the collection as zone/sub-zone. The function returns
         in case multiple documents of the zone are discovered.
@@ -312,14 +323,14 @@ class ZoneIngestor(object):
 
         if record['zone'] == zone:
             if not parent:
-                    self.__update_source_time(record, source)
+                    self.__update_source_time(record, source, custom_fields)
             else:
                 # Return in case the zone is present with another source since sub-zones cannot have two sources.
                 if len(record['reporting_sources']) > 1 or not (record['reporting_sources'][0]['source'] == source):
                     self._logger.error('Error: The zone:{zone} has multiple sources'.format(zone=zone))
                     return
 
-                self.__add_new_zone(zone, source, parent)
+                self.__add_new_zone(zone, source, parent, custom_fields)
                 self.__delete_zone(zone)
         else:
             record_zone = None
@@ -340,12 +351,13 @@ class ZoneIngestor(object):
 
             self.__update_time(record, zone)
 
-    def add_zone(self, zone, source='Manual', parent=None):
+    def add_zone(self, zone, source='Manual', parent=None, custom_fields=None):
         """
         Publicly exposed function responsible to ingest the zone into zone collection
         :param zone: Zone value.
         :param source: Source of the zone being ingested. Default value is Manual.
         :param parent: Parent zone of the zone being ingested if any. Default value is None
+        :param custom_fields: An optional dictionary of custom fields to add to the source record.
         """
         if not zone:
             self._logger.error('Error: Provide zone value.')
@@ -362,6 +374,6 @@ class ZoneIngestor(object):
         })
 
         if cursor.count() == 0:
-            self.__zone_previously_not_present(zone, source, parent)
+            self.__zone_previously_not_present(zone, source, parent, custom_fields)
         else:
-            self.__zone_previously_present(zone, source, parent, cursor)
+            self.__zone_previously_present(zone, source, parent, cursor, custom_fields)
