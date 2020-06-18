@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -176,10 +176,10 @@ class ZoneManager(object):
     def get_zone(self, zone):
         """
         Fetch the full individual zone record.
-        This is not a staticmethod since it would probably be called repeatedly.
+        This is not a static method since it would probably be called repeatedly.
         """
 
-        return self.mongo_connector.perform_find(self.zone_collection, {'zone': zone})
+        return self.mongo_connector.perform_find_one(self.zone_collection, {'zone': zone})
 
 
     def get_zones_by_status(self, status):
