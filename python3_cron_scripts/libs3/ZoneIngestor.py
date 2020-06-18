@@ -215,6 +215,14 @@ class ZoneIngestor(object):
                                                       'updated': datetime.now()
                                                       }}
                                             )
+            if custom_fields is not None:
+                for key_value in custom_fields.keys():
+                    self.zone_collection.update_one({'_id': ObjectId(record['_id']),
+                                                    'reporting_sources.source': source},
+                                                    {'$set': {'reporting_sources.$.' + key_value: custom_fields[key_value],
+                                                            'updated': datetime.now()
+                                                            }}
+                                                    )
 
     def __update_time(self, record, zone):
         """
