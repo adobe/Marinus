@@ -153,7 +153,7 @@ def main():
         command_line.append(zone)
         command_line.append("-src")
         command_line.append("-ip")
-        command_line.append("-do")
+        command_line.append("-o")
         command_line.append(output_dir + zone + "-do.json")
 
         try:
