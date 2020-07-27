@@ -111,7 +111,10 @@ def insert_current_results(dns_result, dns_manager, zones, result, source):
             new_entry['updated'] = datetime.now()
             new_entry['zone'] = result['zone']
             new_entry['fqdn'] = dns_entry['fqdn']
-            new_entry['created'] = result['created']
+            if 'created' in result:
+                new_entry['created'] = result['created']
+            else:
+                new_entry['created'] = datetime.now()
             new_entry['value'] = dns_entry['value']
             new_entry['type'] = dns_entry['type']
             new_entry['status'] = 'confirmed'
