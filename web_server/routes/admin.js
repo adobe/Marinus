@@ -763,8 +763,14 @@ module.exports = function(envConfig) {
                     let newZone = new zone.ZoneModel();
                     newZone.updated = Date.now();
                     newZone.created = Date.now();
-                    newZone.status = 'confirmed';
-                    newZone.source = 'manual';
+                    newZone.status = 'unconfirmed';
+                    newZone.reporting_sources = [];
+                    let reporting_sources = {}
+                    reporting_sources['created'] = Date.now();
+                    reporting_sources['updated'] = Date.now();
+                    reporting_sources['source'] = 'manual';
+                    reporting_sources['status'] = 'unconfirmed';
+                    newZone.reporting_sources.push(reporting_sources);
                     newZone.zone = req.body.zone;
                     newZone.save(function(err) {
                         if (err) {
