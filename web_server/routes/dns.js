@@ -208,6 +208,7 @@ module.exports = function(envConfig) {
      *         required: false
      *         description: Fetch all DNS parameters associated with this zone. Also works in conjunction with txtSearch, dnsType,
      *                      and cnameTLD queries.
+     *         in: query
      *     responses:
      *       200:
      *         description: Returns the array of DNS results.
