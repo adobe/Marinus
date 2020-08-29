@@ -94,7 +94,7 @@ This is an example file that contains information on the order in which the scri
 ## Sonar searches
 The sonar scripts (get_data_by_cidr_unified, get_sonar_data_unified) each run daily. If the scripts detect that they are already running, then they will exit. Within Adobe's environment, it takes five machines to run these scripts because each script can be run in one of two modes (searching Sonar RDNS or searching Sonar DNS). The forward DNS runs are split across two machines since there are different files involved.
 
-## Censys searches and Zzrab scripts
+## Censys searches and Zgrab scripts
 The get_censys_files script will download and unpack the Censys file. The search_censys_files script will search the downloaded file for the relevant zone relevant entries. It could technically be one script but there were certain advantages to keeping them separate. This script requires a commercial subscription to Censys.
 
 The Censys project utilizes tools from the ZMap Project to collect data. The Marinus zgrab scripts allow you to collect data similar to Censys that can be used in conjunction or as an alternative to their services. The Marinus zgrab scripts can be used to collect data on ports 22, 25, 443, and 465. The zgrab_port_ip scripts will capture the handshake for these ports. The zgrab_http_domain and zgrab_http_ip scripts will record HTTP specific information from servers, such as HTTP headers, that can be used to more deeply measure and monitor web servers. These are currently based on the original zgrab scripts. Research is being done on how to port them to the new zgrab 2.0 project.
