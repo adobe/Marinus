@@ -52,7 +52,8 @@ from libs3.LoggingUtil import LoggingUtil
 # CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2019-may-jun-jul/host/cc-main-2019-may-jun-jul-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2019-aug-sep-oct/host/cc-main-2019-aug-sep-oct-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2019-20-nov-dec-jan/host/cc-main-2019-20-nov-dec-jan-host-vertices.paths.gz"
-CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2020-feb-mar-may/host/cc-main-2020-feb-mar-may-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2020-feb-mar-may/host/cc-main-2020-feb-mar-may-host-vertices.paths.gz"
+CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2020-jul-aug-sep/host/cc-main-2020-jul-aug-sep-host-vertices.paths.gz"
 
 
 def download_file(logger, url):
