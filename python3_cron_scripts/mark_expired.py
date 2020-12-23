@@ -76,9 +76,9 @@ def main():
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'mark_expired')
     jobs_manager.record_job_start()
 
-    # Grab all zones that are not expired of false_positives
+    # Grab all zones that are not expired or false_positives
     # Also exclude any that were recently created since they won't have data yet
-    date_delta = datetime.today() - timedelta(days=30)
+    date_delta = datetime.today() - timedelta(days=90)
     zones = zones_collection.distinct('zone', {'created': {"$lt": date_delta}, 'status': {"$nin": [ZoneManager.EXPIRED, ZoneManager.FALSE_POSITIVE]}})
 
     # The Python Whois library is hit and miss with some international zones.
