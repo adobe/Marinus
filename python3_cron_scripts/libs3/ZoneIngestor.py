@@ -21,7 +21,7 @@ It expects 3 inputs:
 
 import logging
 
-from libs3 import MongoConnector
+from libs3 import MongoConnector, ZoneManager
 from datetime import datetime
 from bson.objectid import ObjectId
 
@@ -31,6 +31,7 @@ class ZoneIngestor(object):
     # Connect to the database
     MC = MongoConnector.MongoConnector()
     zone_collection = MC.get_zone_connection()
+    zone_manager = ZoneManager.ZoneManager(MC)
 
     _logger = logging.getLogger(__name__)
 
@@ -245,7 +246,6 @@ class ZoneIngestor(object):
         """
         self.zone_collection.remove({'zone': zone})
 
-
     def __zone_previously_not_present(self, zone, source, parent, custom_fields):
         """
         Handling of the zone while it does not already exists.
@@ -331,7 +331,10 @@ class ZoneIngestor(object):
 
         if record['zone'] == zone:
             if not parent:
-                    self.__update_source_time(record, source, custom_fields)
+                self.__update_source_time(record, source, custom_fields)
+
+                if record['status'] == self.zone_manager.EXPIRED:
+                    self.zone_manager.set_status(zone, self.zone_manager.UNCONFIRMED, source)
             else:
                 # Return in case the zone is present with another source since sub-zones cannot have two sources.
                 if len(record['reporting_sources']) > 1 or not (record['reporting_sources'][0]['source'] == source):
@@ -358,6 +361,9 @@ class ZoneIngestor(object):
                 return
 
             self.__update_time(record, zone)
+
+            if record['status'] == self.zone_manager.EXPIRED:
+                self.zone_manager.set_status(zone, self.zone_manager.UNCONFIRMED, source)
 
     def add_zone(self, zone, source='Manual', parent=None, custom_fields=None):
         """
