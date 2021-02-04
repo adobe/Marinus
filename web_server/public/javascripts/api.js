@@ -630,7 +630,7 @@ function display_scan_output(results, port) {
     } else if (port === "80") {
         data = results[0]['data']['http'];
     } else if (port === "443") {
-        data = results[0]['data']['https'];
+        data = results[0]['data']['http'];
     } else if (port === "465") {
         data = results[0]['data']['smtps'];
     }
