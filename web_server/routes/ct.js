@@ -1386,14 +1386,14 @@ module.exports = function(envConfig) {
      *
      * tags:
      *   - name: CT - Total Count
-     *     description: Returns the total count of certificates with the saved certificate transparency logs.
+     *     description: Returns the total count of certificates within the saved certificate transparency logs.
      *
      * /api/v1.0/ct/total_count:
      *   get:
      *   # Operation-specific security:
      *     security:
      *       - APIKeyHeader: []
-     *     description: Returns the total count of certificates with the saved certificate transparency logs.
+     *     description: Returns the total count of certificates within the saved certificate transparency logs.
      *     tags: [CT - Total Count]
      *     produces:
      *       - application/json
