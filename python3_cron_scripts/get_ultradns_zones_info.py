@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Adobe. All rights reserved.
+# Copyright 2021 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -12,6 +12,7 @@
 
 """
 This script fetches the zones DNS information from UltraDNS.
+The get_ultradns_zones script should be executed prior to this script.
 
 This script assumes that you are an UltraDNS customer.
 """
@@ -26,6 +27,8 @@ from netaddr.core import AddrFormatError
 
 from libs3 import APIHelper, DNSManager, UltraDNSHelper
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
+
 
 class UltraDNSZonesInfo(object):
 
@@ -61,7 +64,8 @@ class UltraDNSZonesInfo(object):
                 if record['ownerName'].endswith('.'):
                     fqdn = record['ownerName'][:-1]
 
-                dns_info['zone'] = self.zone_queried
+                # A get_root_domain lookup is performed because UDNS supports sub-zones
+                dns_info['zone'] = ZoneManager.get_root_domain(self.zone_queried)
                 dns_info['fqdn'] = fqdn
                 dns_info['type'] = record['rrtype'].split(' ')[0].lower()
                 dns_info['status'] = 'unknown'

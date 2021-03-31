@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Adobe. All rights reserved.
+# Copyright 2021 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -12,6 +12,7 @@
 
 """
 This script fetches new zones (root domains) from UltraDNS.
+This script should be run prior to executing get_ultradns_zones_info.
 
 This script assumes that you are an UltraDNS customer.
 """
