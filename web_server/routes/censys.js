@@ -1309,6 +1309,11 @@ module.exports = function(envConfig) {
      *         required: false
      *         description: Limit responses to only those for the provided org (e.g. "Acme Inc.")
      *         in: query
+     *       - name: serial_number
+     *         type: string
+     *         required: false
+     *         description: Limit responses to only those for the provided serial_number
+     *         in: query
      *       - name: fingerprint_sha1
      *         type: string
      *         required: false
@@ -1404,6 +1409,11 @@ module.exports = function(envConfig) {
      *         required: false
      *         description: Limit responses to only those for the provided org (e.g. "Acme Inc.")
      *         in: query
+     *       - name: serial_number
+     *         type: string
+     *         required: false
+     *         description: Limit responses to only those for the provided serial_number
+     *         in: query
      *       - name: fingerprint_sha1
      *         type: string
      *         required: false
@@ -1452,6 +1462,12 @@ module.exports = function(envConfig) {
                     promise = censys.getSSLByZonePromise(req.query.zone, true);
                 } else {
                     promise = censys.getSSLByZonePromise(req.query.zone, false);
+                }
+            } else if (req.query.hasOwnProperty('serial_number')) {
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    promise = censys.getRecordsBySSLSerialNumberPromise(req.query.serial_number, true);
+                } else {
+                    promise = censys.getRecordsBySSLSerialNumberPromise(req.query.serial_number, false);
                 }
             } else if (req.query.hasOwnProperty('fingerprint_sha1')) {
                 if (req.query.hasOwnProperty('count') && req.query.count === '1') {

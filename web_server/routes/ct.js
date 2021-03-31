@@ -85,6 +85,10 @@ function isValidDate(d_string) {
  *         type: string
  *         example: '2016-11-14T23:59:59.000Z'
  *         description: The date Marinus last updated the certificate
+ *       serial_number:
+ *         type: string
+ *         example: a1:b2:c3:d4:e5:f6
+ *         description: The serial number for the certificate
  *       signature_algorithm:
  *         type: string
  *         example: RSA-SHA256
@@ -510,7 +514,119 @@ module.exports = function(envConfig) {
            res.json(data);
            return;
        });
-  });
+    });
+
+    /**
+     * @swagger
+     *
+     * security:
+     *   - APIKeyHeader: []
+     *
+     * tags:
+     *   - name: CT - Serial number search
+     *     description: Find CT certificates that contain the provied serial number represented as a hex string.
+     *   - name: CT - Serial number count
+     *     description: Count the CT certificates that contain the provied serial number represented as a hex string.
+     *
+     * /api/v1.0/ct/serial_number/{sn}:
+     *   get:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: Check for certificates with the provided serial number represented as a hex string
+     *     tags: [CT - Serial number search]
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: sn
+     *         type: string
+     *         required: true
+     *         description: The serial number for the certificate expressed as a hex string
+     *         in: path
+     *     responses:
+     *       200:
+     *         description: Returns a JSON object with the matched certificates.
+     *         schema:
+     *           $ref: '#/definitions/CT-LogResponse'
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       404:
+     *         description: No matching records found.
+     *         schema:
+     *           $ref: '#/definitions/ResultsNotFound'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
+     *
+     * /api/v1.0/ct/serial_number/{sn}?count=1:
+     *   get:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: Count the certificates with the provided serial number represented as a hex string
+     *     tags: [CT - Serial number count]
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: sn
+     *         type: string
+     *         required: true
+     *         description: The serial number for the certificate expressed as a hex string
+     *         in: path
+     *       - name: count
+     *         type: integer
+     *         required: true
+     *         description: Set to 1 to count the number of matching results
+     *         in: query
+     *     responses:
+     *       200:
+     *         description: Returns a count of the matched certificates.
+     *         schema:
+     *           $ref: '#/definitions/CountResponse'
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       404:
+     *         description: No matching records found.
+     *         schema:
+     *           $ref: '#/definitions/ResultsNotFound'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
+     */
+    router.route('/ct/serial_number/:sn')
+    .get(function(req, res) {
+       if (!(req.params.hasOwnProperty('sn'))) {
+           res.status(400).json({'message': 'A serial_number name must be provided.'});
+           return;
+        }
+
+        let count = false;
+        if (req.query.hasOwnProperty('count') && req.query.count == "1") {
+            count = true;
+        }
+
+       let promise = ct.getCertTransBySerialNumberPromise(req.params.sn.toLowerCase(), count);
+
+       promise.then(function(data) {
+            if (data === null) {
+                res.status(404).json({'message': 'Serial number not found'});
+                return;
+            }
+            if (count) {
+                res.status(200).json({'count': data});
+                return;
+            } else {
+                res.status(200).json(data);
+            }
+            return;
+       });
+    });
 
     /**
      * @swagger

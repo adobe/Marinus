@@ -1979,6 +1979,11 @@ module.exports = function(envConfig) {
      *         required: false
      *         description: The Common Name of the owner of the certificate. This can be used with recursive.
      *         in: query
+     *       - name: serial_number
+     *         type: string
+     *         required: false
+     *         description: The Serial Number of the certificate. This can be used with recursive.
+     *         in: query
      *       - name: org
      *         type: string
      *         required: false
@@ -2139,6 +2144,12 @@ module.exports = function(envConfig) {
                 }
             } else if (req.query.hasOwnProperty('common_name')) {
                 promise = zgrab443.getSSLByCommonNamePromise(req.query.common_name, recursive);
+            } else if (req.query.hasOwnProperty('serial_number')) {
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    promise = zgrab443.getSSLBySerialNumberPromise(req.query.serial_number.toLowerCase(), true, recursive);
+                } else {
+                    promise = zgrab443.getSSLBySerialNumberPromise(req.query.serial_number.toLowerCase(), false, recursive);
+                }
             } else if (req.query.hasOwnProperty('zone')) {
                 if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                     promise = zgrab443.getSSLByZonePromise(req.query.zone, true);
@@ -3293,16 +3304,16 @@ module.exports = function(envConfig) {
                 promise = zgrab80.getHttpHeaderPromise(header, zone, false);
             }
             promise.then(function(data) {
-            if (!data || data.length === 0) {
-                res.status(404).json({'message': 'Header not found'});
+                if (!data || data.length === 0) {
+                    res.status(404).json({'message': 'Header not found'});
+                    return;
+                }
+                if (count) {
+                    res.status(200).json({'count': data});
+                } else {
+                    res.status(200).json(data);
+                }
                 return;
-            }
-            if (count) {
-                res.status(200).json({'count': data});
-            } else {
-                res.status(200).json(data);
-            }
-            return;
             });
         });
 

@@ -27,6 +27,7 @@ const certTransparencySchema = new Schema({
     not_before: Date,
     marinus_createdate: Date,
     marinus_updated: Date,
+    serial_number: String,
     signature_algorithm: String,
     subject_common_names: [],
     subject_dns_names: [],
@@ -116,6 +117,17 @@ module.exports = {
     },
     getCertTransById: function(id) {
         return certTransModel.findById(id).exec();
+    },
+    getCertTransBySerialNumberPromise: function(serial_number, count) {
+      if (serial_number.includes(":") == false) {
+        serial_number = serial_number.replace(/..\B/g, '$&:');
+      }
+
+      if (count) {
+        return certTransModel.countDocuments({'serial_number': serial_number.toLowerCase()}).exec();
+      } 
+
+      return certTransModel.find({'serial_number': serial_number.toLowerCase()}).exec();
     },
     getCertTransIssuers: function(issuer, count, excludeExpired) {
         let promise;

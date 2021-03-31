@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2021 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -37,10 +37,18 @@ function buildPage() {
         cell2.innerHTML = "";
     }
     document.getElementById("search_form").addEventListener("submit", queries);
+    document.getElementById("sn_search_form").addEventListener("submit", sn_queries);
+
     var searchVal = qs("search");
     if (searchVal) {
         document.getElementById("search_input").value = searchVal;
         queries();
+    }
+
+    var snSearchVal = qs("sn");
+    if (snSearchVal) {
+        document.getElementById("sn_search_input").value = snSearchVal;
+        sn_queries();
     }
 }
 
@@ -94,9 +102,19 @@ function displayZscan(results) {
 }
 
 function displayCT(results) {
-    var displayHTML = create_anchor("/api/v1.0/ct/download/" + results['_id'], "Click to download the DER file") + "<br/";
-    displayHTML += '<div class="bg-light"><pre>' + results['full_certificate'] + "</pre></div><br/>";
-    document.getElementById("certDetails").innerHTML = "<h3>Certificate</h3>" + displayHTML;
+    var displayHTML = "";
+    if (Array.isArray(results)) {
+        for (let i=0; i < results.length; i++) {
+            displayHTML += create_h3("Certificate " + i.toString());
+            displayHTML += create_anchor("/api/v1.0/ct/download/" + results[i]['_id'], "Click to download the DER file") + "<br/";
+            displayHTML += '<div class="bg-light"><pre>' + results[i]['full_certificate'] + "</pre></div><br/><br/>";
+        }
+        document.getElementById("certDetails").innerHTML = displayHTML;
+    } else {
+        displayHTML = create_anchor("/api/v1.0/ct/download/" + results['_id'], "Click to download the DER file") + "<br/";
+        displayHTML += '<div class="bg-light"><pre>' + results['full_certificate'] + "</pre></div><br/>";
+        document.getElementById("certDetails").innerHTML = "<h3>Certificate</h3>" + displayHTML;
+    }
 }
 
 function get_details() {
@@ -105,21 +123,35 @@ function get_details() {
     var url;
     var callback
 
-    if (callId.startsWith("censys") && sha_hash.length === 40) {
-        url = "/api/v1.0/censys/certs?fingerprint_sha1=" + sha_hash;
-        callback = displayCensys;
-    } else if (callId.startsWith("censys")) {
-        url = "/api/v1.0/censys/certs?fingerprint_sha256=" + sha_hash;
-        callback = displayCensys;
-    } else if (callId.startsWith("zscan") && sha_hash.length === 40) {
-        url = "/api/v1.0/zgrab/443/certs?fingerprint_sha1=" + sha_hash;
-        callback = displayZscan;
-    } else if (callId.startsWith("zscan")) {
-        url = "/api/v1.0/zgrab/443/certs?fingerprint_sha256=" + sha_hash;
-        callback = displayZscan;
-    } else if (callId.startsWith("cert")) {
-        url = "/api/v1.0/ct/fingerprint/" + sha_hash;
-        callback = displayCT;
+    if (sha_hash != null && sha_hash != "") {
+        if (callId.startsWith("censys") && sha_hash.length === 40) {
+            url = "/api/v1.0/censys/certs?fingerprint_sha1=" + sha_hash;
+            callback = displayCensys;
+        } else if (callId.startsWith("censys")) {
+            url = "/api/v1.0/censys/certs?fingerprint_sha256=" + sha_hash;
+            callback = displayCensys;
+        } else if (callId.startsWith("zscan") && sha_hash.length === 40) {
+            url = "/api/v1.0/zgrab/443/certs?fingerprint_sha1=" + sha_hash;
+            callback = displayZscan;
+        } else if (callId.startsWith("zscan")) {
+            url = "/api/v1.0/zgrab/443/certs?fingerprint_sha256=" + sha_hash;
+            callback = displayZscan;
+        } else if (callId.startsWith("cert")) {
+            url = "/api/v1.0/ct/fingerprint/" + sha_hash;
+            callback = displayCT;
+        }
+    } else {
+        let serial_number = document.getElementById("sn_search_input").value.trim().toLowerCase();
+        if (callId.startsWith("censys")) {
+            url = "/api/v1.0/censys/certs?serial_number=" + serial_number;
+            callback = displayCensys;
+        } else if (callId.startsWith("zscan")) {
+            url = "/api/v1.0/zgrab/443/certs?serial_number=" + serial_number;
+            callback = displayZscan;
+        } else if (callId.startsWith("cert")) {
+            url = "/api/v1.0/ct/serial_number/" + serial_number;
+            callback = displayCT;
+        }
     }
 
     make_get_request(url, callback, null, "", []);
@@ -137,6 +169,7 @@ function get_counts(url, divRef) {
 
 function queries(event) {
     var sha_hash = document.getElementById("search_input").value.trim().toLowerCase();
+    document.getElementById("sn_search_input").value = "";
 
     if (sha_hash.length === 40) {
         get_counts("/api/v1.0/ct/fingerprint/" + sha_hash + "?count=1", "certTransparency");
@@ -161,3 +194,22 @@ function queries(event) {
     }
     return false;
 }
+
+function sn_queries(event) {
+    var serial_number = document.getElementById("sn_search_input").value.trim().toLowerCase();
+    document.getElementById("search_input").value = "";
+
+    get_counts("/api/v1.0/ct/serial_number/" + serial_number + "?count=1", "certTransparency");
+    if (ScanDataSources.includes("censys")) {
+        get_counts("/api/v1.0/censys/certs?count=1&serial_number=" + serial_number, "censysRecords");
+    }
+    if (ScanDataSources.includes("zgrab")) {
+        get_counts("/api/v1.0/zgrab/443/certs?count=1&serial_number=" + serial_number, "zscanRecords");
+    }
+
+    if (event) {
+        event.preventDefault();
+    }
+    return false;
+}
+

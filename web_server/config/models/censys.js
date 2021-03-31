@@ -235,6 +235,24 @@ module.exports = {
         }
         return (promise);
     },
+    getRecordsBySSLSerialNumberPromise: function(serial_number, count) {
+        if (serial_number.includes(":") == false) {
+          serial_number = serial_number.replace(/..\B/g, '$&:');
+        }
+
+        let promise;
+
+        if (count) {
+          promise = cSchema.censysModel.countDocuments({
+            'p443.https.tls.certificate.parsed.serial_number': serial_number,
+          }).exec();
+        } else {
+          promise = cSchema.censysModel.find({
+            'p443.https.tls.certificate.parsed.serial_number': serial_number,
+          }).exec();
+        }
+        return (promise);
+    },
     getCAIssuersListPromise() {
         return cSchema.censysModel.distinct('p443.https.tls.chain.0.parsed.issuer.common_name').exec();
     },

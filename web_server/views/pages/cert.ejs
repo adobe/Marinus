@@ -2,13 +2,13 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Cert Lookup</title>
+    <title>Certificate Lookup</title>
     <% include ../partials/head %>
     <script src="/javascripts/cert_search.js"></script>
 </head>
 <body>
 
-<% include ../partials/header %>
+  <% include ../partials/header %>
 
   <form id="search_form">
     <section>
@@ -20,33 +20,49 @@
       <input type="text" name="search" class="form-control" id="search_input"></input>
     </section>
   </form>
+  <br/>
+  <form id="sn_search_form">
+    <section>
+      <label id="snCertLabel" for="sn_search_input">Alternatively, you can search by the serial number.</label>
+      <div class="input-group col-6">
+          <div class="input-group-prepend">
+            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="check"></div>
+          </div>
+      <input type="text" name="search" class="form-control" id="sn_search_input"></input>
+    </section>
+  </form>
 
-<br/>
-<br/>
+  <br/>
+  <br/>
 
-<div class="divTable">
-  <div class="tableRow">
-    <div id="rangeCounts" class="tableCell">
-        <table class="table" id="certCountTable">
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Count</th>
-                </tr>
-            </thead>
-            <tbody id="certListBody">
-                <tr>
-                    <td>Certificiate Transparency Records</td>
-                    <td id="certTransparency"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <div id="certDetails" class="tableCell">
+  <div class="divTable">
+    <div class="tableRow">
+      <div id="rangeCounts" class="tableCell">
+          <table class="table" id="certCountTable">
+              <thead>
+                  <tr>
+                      <th>Type</th>
+                      <th>Count</th>
+                  </tr>
+              </thead>
+              <tbody id="certListBody">
+                  <tr>
+                      <td>Certificiate Transparency Records</td>
+                      <td id="certTransparency"></td>
+                  </tr>
+              </tbody>
+          </table>
+      </div>
     </div>
   </div>
-</div>
-<br/>
+  <br/>
+
+  <div class="divTable">
+    <div class="tableRow">
+      <div id="certDetails" class="tableCell">
+      </div>
+    </div>
+  </div>
 
 <% include ../partials/footer %>
 

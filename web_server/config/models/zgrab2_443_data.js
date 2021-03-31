@@ -127,6 +127,46 @@ module.exports = {
         }
         return (promise);
     },
+    getSSLBySerialNumberPromise: function(serialNumber, count, recursive) {
+        if (serialNumber.includes(":") == false) {
+            serialNumber = serialNumber.replace(/..\B/g, '$&:');
+        }
+
+        let promise;
+        if (recursive === true) {
+            if (count) {
+                promise = z2_443_schema.zgrab2_443_model.countDocuments({
+                    [zgrab2_cert_path + 'certificate.parsed.serial_number']: serialNumber
+                }, {'domain': 1, 'ip':1, 'data.http': 1}).exec();
+            } else {
+                promise = z2_443_schema.zgrab2_443_model.find({
+                    [zgrab2_cert_path + 'certificate.parsed.serial_number']: serialNumber
+                }, {'domain': 1, 'ip':1, 'data.http': 1}).exec();
+            }
+        } else {
+            if (count) {
+                promise = z2_443_schema.zgrab2_443_model.aggregate([{"$project":
+                {'domain': 1,
+                'ip': 1,
+                'data.http':
+                    {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
+                {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.serial_number': serialNumber}},
+                {"$count": "count"}
+                ]
+                ).exec();
+            } else {
+                promise = z2_443_schema.zgrab2_443_model.aggregate([{"$project":
+                    {'domain': 1,
+                    'ip': 1,
+                    'data.http':
+                        {"$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]]}}},
+                    {"$match": {'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.serial_number': serialNumber}}
+                    ]
+                    ).exec();
+            }
+        }
+        return (promise);
+    },
     getSSLByZonePromise: function(zone, count, recursive) {
         let escZone = zone.replace('.', '\\.');
         let reZone = new RegExp('^.*\.' + escZone + '$');
