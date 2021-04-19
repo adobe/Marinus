@@ -108,8 +108,8 @@ def main():
             insert_json['prefixes'].append({'region': region_name, 'ip_prefix': cidr})
 
     azure_ips = mongo_connector.get_azure_ips_connection()
-    azure_ips.remove({})
-    azure_ips.insert(insert_json)
+    azure_ips.delete_many({})
+    azure_ips.insert_many(insert_json)
 
     # Record status
     jobs_manager.record_job_complete()

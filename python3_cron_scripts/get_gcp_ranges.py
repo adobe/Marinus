@@ -90,8 +90,8 @@ def main():
     new_data['ipv6_prefixes'] = ipv6_ranges
     new_data['created'] = now
 
-    gcp_collection.remove({})
-    gcp_collection.insert(new_data)
+    gcp_collection.delete_many({})
+    gcp_collection.insert_many(new_data)
 
     jobs_manager.record_job_complete()
 
