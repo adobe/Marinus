@@ -158,7 +158,7 @@ def main():
             cert['facebook_id'] = result['id']
 
             if ct_collection.count_documents({'fingerprint_sha256': cert['fingerprint_sha256']}) == 0:
-                ct_collection.insert_one(cert)
+                mongo_connector.perform_insert(ct_collection, cert)
             else:
                 if ct_collection.count_documents({'fingerprint_sha256': cert['fingerprint_sha256'], 'facebook_id': result['id'], 'zones': zone}) == 0:
                     ct_collection.update_one({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {'marinus_updated': datetime.now(), 'facebook_id': result['id']}, "$addToSet": {'zones': zone}})
