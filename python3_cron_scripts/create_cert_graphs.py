@@ -54,7 +54,7 @@ def get_censys_count(censys_collection, sha256_hash):
     """
     Get the count of matching certificates for the provided hash
     """
-    result_count = censys_collection.find({'p443.https.tls.certificate.parsed.fingerprint_sha256': sha256_hash}).count()
+    result_count = censys_collection.count_documents({'p443.https.tls.certificate.parsed.fingerprint_sha256': sha256_hash})
     return result_count
 
 
@@ -111,11 +111,11 @@ def get_scan_count(zgrab_collection, sha256_hash, version):
     Get the count of matching certificates for the provided hash
     """
     if version == 1:
-        result_count = zgrab_collection.find({"$or": [{'data.http.response.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash},
-                                                      {'data.http.response.redirect_response_chain.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash}]}).count()
+        result_count = zgrab_collection.count_documents({"$or": [{'data.http.response.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash},
+                                                      {'data.http.response.redirect_response_chain.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash}]})
     else:
-        result_count = zgrab_collection.find({"$or": [{'data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash},
-                                                      {'data.http.result.redirect_response_chain.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash}]}).count()
+        result_count = zgrab_collection.count_documents({"$or": [{'data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash},
+                                                      {'data.http.result.redirect_response_chain.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha256': sha256_hash}]})
     return result_count
 
 
