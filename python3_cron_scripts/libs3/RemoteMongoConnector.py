@@ -140,7 +140,7 @@ class RemoteMongoConnector(object):
         num_tries = 0
         while not success:
             try:
-                result = collection.find(query).count()
+                result = collection.count_documents(query)
                 success = True
             except AutoReconnect:
                 if num_tries < 5:
@@ -181,13 +181,13 @@ class RemoteMongoConnector(object):
 
     def perform_insert(self, collection, query):
         """
-        This will perform a find with a retry for dropped connections
+        This will perform an insert_one with a retry for dropped connections
         """
         success = False
         num_tries = 0
         while not success:
             try:
-                result = collection.insert(query)
+                result = collection.insert_one(query)
                 success = True
             except AutoReconnect:
                 if num_tries < 5:
