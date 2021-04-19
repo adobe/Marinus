@@ -357,16 +357,16 @@ def main():
         new_links_data['errs'] = []
 
         try:
-            graphs_collection.remove({'zone': zone})
+            graphs_collection.delete_one({'zone': zone})
             graphs_collection.insert_one(new_data)
 
-            graphs_data_collection.remove({'zone': zone})
+            graphs_data_collection.delete_one({'zone': zone})
             graphs_data_collection.insert_one(new_graph_data)
 
-            graphs_links_collection.remove({'zone': zone})
+            graphs_links_collection.delete_one({'zone': zone})
             graphs_links_collection.insert_one(new_links_data)
 
-            graphs_docs_collection.remove({'zone': zone})
+            graphs_docs_collection.delete_one({'zone': zone})
             graphs_docs_collection.insert_one(new_docs_data)
         except:
             logger.error("ERROR: Can't insert: " + zone)
@@ -376,10 +376,10 @@ def main():
     # Remove last week's old entries
     # In theory, shouldn't do anything but being complete
     lastweek = datetime.now() - timedelta(days=7)
-    graphs_collection.remove({'created': {"$lt": lastweek}})
-    graphs_data_collection.remove({'created': {"$lt": lastweek}})
-    graphs_links_collection.remove({'created': {"$lt": lastweek}})
-    graphs_docs_collection.remove({'created': {"$lt": lastweek}})
+    graphs_collection.delete_many({'created': {"$lt": lastweek}})
+    graphs_data_collection.delete_many({'created': {"$lt": lastweek}})
+    graphs_links_collection.delete_many({'created': {"$lt": lastweek}})
+    graphs_docs_collection.delete_many({'created': {"$lt": lastweek}})
 
     # Record status
     jobs_manager.record_job_complete()

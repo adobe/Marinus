@@ -390,14 +390,14 @@ def main():
         new_data['zone'] = cidr
 
         cidr_graphs_collection = mongo_connector.get_cidr_graphs_connection()
-        cidr_graphs_collection.remove({'zone': cidr})
+        cidr_graphs_collection.delete_one({'zone': cidr})
         cidr_graphs_collection.insert_one(new_data)
 
         time.sleep(1)
 
     # Remove last week's old entries
     lastweek = datetime.now() - timedelta(days=7)
-    cidr_graphs_collection.remove({'created': {"$lt": lastweek}})
+    cidr_graphs_collection.delete_many({'created': {"$lt": lastweek}})
 
     # Record status
     jobs_manager.record_job_complete()
