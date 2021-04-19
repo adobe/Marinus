@@ -27,7 +27,7 @@ import argparse
 import logging
 import sys
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from libs3 import MongoConnector, RemoteMongoConnector, JobsManager
 from libs3.LoggingUtil import LoggingUtil
@@ -45,9 +45,9 @@ def update_zones(logger, mongo_connector, rm_connector, update_zone_list):
     zone_list = []
 
     if update_zone_list:
-        remote_zones_collection.remove({})
+        remote_zones_collection.delete_many({})
         for zone in zones:
-                remote_zones_collection.insert(zone)
+                remote_zones_collection.insert_one(zone)
                 zone_list.append(zone['zone'])
     else:
         for zone in zones:
@@ -66,18 +66,18 @@ def update_ip_zones(logger, mongo_connector, rm_connector):
 
     ipzones = ipzones_collection.find({}, {"_id": 0})
 
-    remote_ipzones_collection.remove({})
+    remote_ipzones_collection.delete_many({})
     for zone in ipzones:
-        remote_ipzones_collection.insert(zone)
+        remote_ipzones_collection.insert_one(zone)
 
     ipv6_zones_collection = mongo_connector.get_ipv6_zone_connection()
     remote_ipv6_zones_collection = rm_connector.get_ipv6_zone_connection()
 
     ipv6_zones = ipv6_zones_collection.find({}, {"_id": 0})
 
-    remote_ipv6_zones_collection.remove({})
+    remote_ipv6_zones_collection.delete_many({})
     for zone in ipv6_zones:
-        remote_ipv6_zones_collection.insert(zone)
+        remote_ipv6_zones_collection.insert_one(zone)
 
 
 def update_config(logger, mongo_connector, rm_connector):
@@ -90,9 +90,9 @@ def update_config(logger, mongo_connector, rm_connector):
 
     configs = config_collection.find({}, {"_id": 0})
 
-    remote_config_collection.remove({})
+    remote_config_collection.delete_many({})
     for config in configs:
-        remote_config_collection.insert(config)
+        remote_config_collection.insert_one(config)
 
 
 def update_aws_cidrs(logger, mongo_connector, rm_connector):
@@ -105,9 +105,9 @@ def update_aws_cidrs(logger, mongo_connector, rm_connector):
 
     aws_ips = aws_ips_collection.find({}, {"_id": 0})
 
-    remote_aws_ips_collection.remove({})
+    remote_aws_ips_collection.delete_many({})
     for ip_addr in aws_ips:
-        remote_aws_ips_collection.insert(ip_addr)
+        remote_aws_ips_collection.insert_one(ip_addr)
 
 
 def update_azure_cidrs(logger, mongo_connector, rm_connector):
@@ -120,9 +120,9 @@ def update_azure_cidrs(logger, mongo_connector, rm_connector):
 
     azure_ips = azure_ips_collection.find({}, {"_id": 0})
 
-    remote_azure_ips_collection.remove({})
+    remote_azure_ips_collection.delete_many({})
     for ip_addr in azure_ips:
-        remote_azure_ips_collection.insert(ip_addr)
+        remote_azure_ips_collection.insert_one(ip_addr)
 
 
 def update_akamai_cidrs(logger, mongo_connector, rm_connector):
@@ -135,9 +135,9 @@ def update_akamai_cidrs(logger, mongo_connector, rm_connector):
 
     akamai_ips = akamai_ips_collection.find({}, {"_id": 0})
 
-    remote_akamai_ips_collection.remove({})
+    remote_akamai_ips_collection.delete_many({})
     for ip_addr in akamai_ips:
-        remote_akamai_ips_collection.insert(ip_addr)
+        remote_akamai_ips_collection.insert_one(ip_addr)
 
 
 def update_gcp_cidrs(logger, mongo_connector, rm_connector):
@@ -150,15 +150,17 @@ def update_gcp_cidrs(logger, mongo_connector, rm_connector):
 
     gcp_ips = gcp_ips_collection.find({}, {"_id": 0})
 
-    remote_gcp_ips_collection.remove({})
+    remote_gcp_ips_collection.delete_many({})
     for ip_addr in gcp_ips:
-        remote_gcp_ips_collection.insert(ip_addr)
+        remote_gcp_ips_collection.insert_one(ip_addr)
 
 
 def update_all_dns(logger, mongo_connector, rm_connector, zone_list):
     """
+    Remove all previous records and replace with new records.
+
     Performing a zone by zone upload to minimize the chances of the zgrab script
-    pulling a zone at the same time it is being deleted.
+    pulling a zone at the same time as it is being deleted.
     """
     logger.info("Starting All DNS..")
     all_dns_collection = mongo_connector.get_all_dns_connection()
@@ -167,9 +169,46 @@ def update_all_dns(logger, mongo_connector, rm_connector, zone_list):
     for zone in zone_list:
         all_dns = all_dns_collection.find({'zone': zone}, {"_id": 0}).batch_size(50)
 
-        remote_all_dns_collection.remove({'zone': zone})
+        remote_all_dns_collection.delete_many({'zone': zone})
         for ip_addr in all_dns:
-            remote_all_dns_collection.insert(ip_addr)
+            remote_all_dns_collection.insert_one(ip_addr)
+
+
+def update_all_dns_diff_mode(logger, mongo_connector, rm_connector, zone_list, date_diff):
+    """
+    Only upload records if the number of records changed or if there has been a recent update
+
+    Performing a zone by zone upload to minimize the chances of the zgrab script
+    pulling a zone at the same time as it is being deleted.
+    """
+    logger.info("Starting All DNS diff mode..")
+    all_dns_collection = mongo_connector.get_all_dns_connection()
+    remote_all_dns_collection = rm_connector.get_all_dns_connection()
+
+    for zone in zone_list:
+
+        all_dns_count = mongo_connector.perform_count(all_dns_collection, {'zone': zone})
+        remote_dns_count = rm_connector.perform_count(remote_all_dns_collection, {'zone': zone})
+
+        # Perform a full update
+        if all_dns_count != remote_dns_count:
+            logger.info("Performing a full update for zone: " + str(zone))
+            all_dns = all_dns_collection.find({'zone': zone}, {"_id": 0}).batch_size(50)
+
+            remote_all_dns_collection.delete_many({'zone': zone})
+            for ip_addr in all_dns:
+                rm_connector.perform_insert(remote_all_dns_collection, ip_addr)
+        else:
+            update_date = datetime.now() - timedelta(days=date_diff)
+            new_entries = all_dns_collection.find({'zone': zone, 'updated': {"$gt": update_date}}, {"_id": 0}).batch_size(50)
+
+            i = 0
+            for entry in new_entries:
+                remote_all_dns_collection.delete_one({'fqdn': entry['fqdn']})
+                rm_connector.perform_insert(remote_all_dns_collection, entry)
+                i = i + 1
+
+            logger.info("Performed a partial update for zone: " + str(zone) + " with " + str(i) + " records")
 
 
 def main():
@@ -187,7 +226,9 @@ def main():
     parser.add_argument('--send_ip_zones', action="store_true", required=False, help='Send IP zones')
     parser.add_argument('--send_third_party_zones', action="store_true", required=False, help='Send AWS, Azure, etc.')
     parser.add_argument('--send_config', action="store_true", required=False, help='Send configs')
-    parser.add_argument('--send_dns_records', action="store_true", required=False, help='Send DNS records')
+    parser.add_argument('--send_dns_records', action="store_false", required=False, help='Replace all DNS records')
+    parser.add_argument('--send_dns_diff', action="store_true", required=False, help='Send new DNS records')
+    parser.add_argument('--date_diff', default=2, type=int, help='The number of days used for identifying new records in send_dns_diff')
     args = parser.parse_args()
 
     send_all = False
@@ -202,24 +243,59 @@ def main():
 
 
     if send_all or args.send_zones:
-        zone_list = update_zones(logger, mongo_connector, remote_mongo_connector, True)
+        try:
+            zone_list = update_zones(logger, mongo_connector, remote_mongo_connector, True)
+        except:
+            logger.error("Could not communicate with the remote database when sending zones")
+            jobs_manager.record_job_error()
+            exit(1)
     else:
         zone_list = update_zones(logger, mongo_connector, remote_mongo_connector, False)
 
     if send_all or args.send_ip_zones:
-        update_ip_zones(logger, mongo_connector, remote_mongo_connector)
+        try:
+            update_ip_zones(logger, mongo_connector, remote_mongo_connector)
+        except:
+            logger.error("Could not communicate with the remote database when sending IP zones")
+            jobs_manager.record_job_error()
+            exit(1)
 
     if send_all or args.send_third_party_zones:
-        update_aws_cidrs(logger, mongo_connector, remote_mongo_connector)
-        update_azure_cidrs(logger, mongo_connector, remote_mongo_connector)
-        update_akamai_cidrs(logger, mongo_connector, remote_mongo_connector)
-        update_gcp_cidrs(logger, mongo_connector, remote_mongo_connector)
+        try:
+            update_aws_cidrs(logger, mongo_connector, remote_mongo_connector)
+            update_azure_cidrs(logger, mongo_connector, remote_mongo_connector)
+            update_akamai_cidrs(logger, mongo_connector, remote_mongo_connector)
+            update_gcp_cidrs(logger, mongo_connector, remote_mongo_connector)
+        except:
+            logger.error("Could not communicate with the remote database when sending third-party zones")
+            jobs_manager.record_job_error()
+            exit(1)
 
     if send_all or args.send_config:
-        update_config(logger, mongo_connector, remote_mongo_connector)
+        try:
+            update_config(logger, mongo_connector, remote_mongo_connector)
+        except:
+            logger.error("Could not communicate with the remote database when sending config data")
+            jobs_manager.record_job_error()
+            exit(1)
 
-    if send_all or args.send_dns_records:
-        update_all_dns(logger, mongo_connector, remote_mongo_connector, zone_list)
+    # This will completely repopulate the DNS records table.
+    if args.send_dns_records:
+        try:
+            update_all_dns(logger, mongo_connector, remote_mongo_connector, zone_list)
+        except:
+            logger.error("Could not communicate with the remote database when sending DNS records")
+            jobs_manager.record_job_error()
+            exit(1)
+
+    # If you have a large data set, then you may only want to send updated records
+    if send_all or args.send_dns_diff:
+        try:
+            update_all_dns_diff_mode(logger, mongo_connector, remote_mongo_connector, zone_list, args.date_diff)
+        except:
+            logger.error("Could not communicate with the remote database when sending DNS diff records")
+            jobs_manager.record_job_error()
+            exit(1)
 
     # Record status
     jobs_manager.record_job_complete()
