@@ -138,7 +138,7 @@ def do_whois_lookup(logger, zone, whois_collection):
         # Try to update the record, or insert if it doesn't exist
         success = True
         try:
-            whois_collection.update({'zone': zone}, result, upsert=True)
+            whois_collection.update_one({'zone': zone}, result, upsert=True)
         except Exception as exc:
             logger.warning("Insert exception for " + zone + ": " + repr(exc))
             success = False
