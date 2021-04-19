@@ -257,7 +257,7 @@ def main():
         new_data['zone'] = tpd
 
         tpd_graphs_collection = mongo_connector.get_tpd_graphs_connection()
-        tpd_graphs_collection.remove({'zone': tpd})
+        tpd_graphs_collection.delete_one({'zone': tpd})
         try:
             tpd_graphs_collection.insert_one(new_data)
         except:
@@ -268,7 +268,7 @@ def main():
 
     # Remove last week's old entries
     lastweek = datetime.now() - timedelta(days=7)
-    tpd_graphs_collection.remove({'created': {"$lt": lastweek}})
+    tpd_graphs_collection.delete_many({'created': {"$lt": lastweek}})
 
     # Record status
     jobs_manager.record_job_complete()
