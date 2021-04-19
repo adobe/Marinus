@@ -157,11 +157,11 @@ def main():
             cert = x509_parser.parse_data(result['certificate_pem'], "facebook")
             cert['facebook_id'] = result['id']
 
-            if ct_collection.find({'fingerprint_sha256': cert['fingerprint_sha256']}).count() == 0:
-                ct_collection.insert(cert)
+            if ct_collection.count_documents({'fingerprint_sha256': cert['fingerprint_sha256']}) == 0:
+                ct_collection.insert_one(cert)
             else:
-                if ct_collection.find({'fingerprint_sha256': cert['fingerprint_sha256'], 'facebook_id': result['id'], 'zones': zone}).count() == 0:
-                    ct_collection.update({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {'marinus_updated': datetime.now(), 'facebook_id': result['id']}, "$addToSet": {'zones': zone}})
+                if ct_collection.count_documents({'fingerprint_sha256': cert['fingerprint_sha256'], 'facebook_id': result['id'], 'zones': zone}) == 0:
+                    ct_collection.update_one({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {'marinus_updated': datetime.now(), 'facebook_id': result['id']}, "$addToSet": {'zones': zone}})
 
     jobs_manager.record_job_complete()
 
