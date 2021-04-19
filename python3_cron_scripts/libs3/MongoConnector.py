@@ -56,7 +56,7 @@ class MongoConnector(object):
             connection_string = protocol + endpoint + path
 
         if cacert != "":
-            client = MongoClient(connection_string, ssl=True, ssl_ca_certs=cacert)
+            client = MongoClient(connection_string, tls=True, tlsCAFile=cacert)
         else:
             client = MongoClient(connection_string)
 
