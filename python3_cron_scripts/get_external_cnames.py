@@ -143,9 +143,9 @@ def main():
     # Update the database
     tpds_collection = mongo_connector.get_tpds_connection()
 
-    tpds_collection.remove({})
+    tpds_collection.delete_many({})
     for key in groups.keys():
-        tpds_collection.insert(groups[key])
+        tpds_collection.insert_one(groups[key])
 
     # Record status
     jobs_manager.record_job_complete()
