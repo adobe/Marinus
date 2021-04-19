@@ -179,7 +179,7 @@ def add_new_certificate_values(logger, new_ids, ct_collection, zones, save_locat
             cert_zones = get_cert_zones(cert, zones)
             logger.info("Adding crt.sh id: " + str(min_cert_id) + " SHA256: " + cert['fingerprint_sha256'])
 
-            if ct_collection.find({"fingerprint_sha256": cert['fingerprint_sha256']}).count() != 0:
+            if ct_collection.count_documents({"fingerprint_sha256": cert['fingerprint_sha256']}) != 0:
                 # The certificate exists in the database but does not have crt_sh id and/or zones
                 ct_collection.update_one({"fingerprint_sha256": cert['fingerprint_sha256']}, {"$set": {"crt_sh_min_id": min_cert_id, "zones": cert_zones, 'marinus_updated': datetime.now()}, "$addToSet": {'sources': 'crt_sh'}})
             else:
