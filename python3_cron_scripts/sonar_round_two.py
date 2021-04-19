@@ -141,7 +141,7 @@ def main():
                 logger.debug ("Unable to resolve")
                 original_records = dns_manager.find_multiple({"value": value}, "sonar_dns")
                 for record in original_records:
-                    check = dead_dns_collection.find({'fqdn': record['fqdn']}).count()
+                    check = dead_dns_collection.count_documents({'fqdn': record['fqdn']})
                     if check == 0:
                         record.pop("_id")
                         dead_dns_collection.insert(record)
