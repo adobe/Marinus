@@ -403,8 +403,8 @@ def main():
         my_data['zone'] = zone
         my_data['created'] = datetime.now()
 
-        cert_graphs_collection.remove({'zone': zone})
-        cert_graphs_collection.insert(my_data)
+        cert_graphs_collection.delete_one({'zone': zone})
+        cert_graphs_collection.insert_one(my_data)
 
     # Record status
     jobs_manager.record_job_complete()
