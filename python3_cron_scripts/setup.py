@@ -38,7 +38,7 @@ def create_collections(m_connection):
                    "whois", "zgrab_443_data", "zgrab_80_data", "zgrab_port_data", "zones"]
 
     for collection in collections:
-        if m_connection[collection].find({}).count() > 0:
+        if m_connection[collection].count_documents({}) > 0:
             print("WARNING: The " + collection + " already exists.")
 
 
@@ -72,13 +72,13 @@ def create_user(mongo_connector, username):
     """
     user_collection = mongo_connector.get_users_connection()
 
-    if user_collection.find({}).count() > 0:
+    if user_collection.count_documents({}) > 0:
         print("WARNING: The user collection already exists. Skipping initialization.")
         return
 
     now = datetime.now()
 
-    existing_check = user_collection.find({'userid': username}).count()
+    existing_check = user_collection.count_documents({'userid': username})
     if existing_check != 0:
         print ("User already exists!")
         return
@@ -97,13 +97,13 @@ def create_first_groups(mongo_connector, username):
     """
     group_collection = mongo_connector.get_groups_connection()
 
-    if group_collection.find({}).count() > 0:
+    if group_collection.count_documents({}) > 0:
         print("WARNING: The group collection already exists. Skipping initialization.")
         return
 
     now = datetime.now()
 
-    existing_check = group_collection.find({'name': "admin"}).count()
+    existing_check = group_collection.count_documents({'name': "admin"})
     if existing_check != 0:
         print ("The groups have already been created! You should add users to the groups instead.")
         return
@@ -124,7 +124,7 @@ def add_user_to_group(mongo_connector, username, group):
     group_collection = mongo_connector.get_groups_connection()
     now = datetime.now()
 
-    user_exists = user_collection.find({"userid": username}).count()
+    user_exists = user_collection.count_documents({"userid": username})
     if user_exists == 0:
         print("User does not yet exist. Please create the user first.")
         return
@@ -147,7 +147,7 @@ def add_admin_to_group(mongo_connector, username, group):
     group_collection = mongo_connector.get_groups_connection()
     now = datetime.now()
 
-    user_exists = user_collection.find({"userid": username}).count()
+    user_exists = user_collection.count_documents({"userid": username})
     if user_exists == 0:
         print("User does not yet exist. Please create the user first.")
         return
@@ -170,7 +170,7 @@ def create_config_collection(mongo_collection):
     new_config["updated"] = now
 
     config_collection = mongo_collection.get_config_connection()
-    if config_collection.find({}).count() > 0:
+    if config_collection.count_documents({}) > 0:
         print("WARNING: The config collection already exists. Skipping initialiation.")
         return
 
@@ -250,7 +250,7 @@ def create_IPv4_zone(mongo_collection, cidr):
     ipv4_zone_collection = mongo_collection.get_ipzone_connection()
     now = datetime.now()
 
-    double_check = ipv4_zone_collection.find({"zone": cidr}).count()
+    double_check = ipv4_zone_collection.count_documents({"zone": cidr})
     if double_check != 0:
         print("CIDR value: " + cidr + " already exists!")
         return
@@ -286,7 +286,7 @@ def create_IPv6_zone(mongo_collection, cidr):
     ipv6_zone_collection = mongo_collection.get_ipv6_zone_connection()
     now = datetime.now()
 
-    double_check = ipv6_zone_collection.find({"zone": cidr}).count()
+    double_check = ipv6_zone_collection.count_documents({"zone": cidr})
     if double_check != 0:
         print("CIDR value: " + cidr + " already exists!")
         return
