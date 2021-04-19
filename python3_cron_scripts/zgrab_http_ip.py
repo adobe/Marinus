@@ -199,7 +199,7 @@ def insert_result(entry, port, ip_context, zones, results_collection):
 
     entry['zones'] = zones
 
-    results_collection.update({"ip": entry['ip']}, entry, upsert=True)
+    results_collection.replace_one({"ip": entry['ip']}, entry, upsert=True)
 
 
 def run_port_80_command(target_list, tnum):
@@ -422,7 +422,7 @@ def main():
 
     # Remove last week's old entries
     lastweek = datetime.now() - timedelta(days=7)
-    zgrab_collection.remove({'ip': {"$ne": "<nil>"}, 'timestamp': {"$lt": lastweek}})
+    zgrab_collection.delete_many({'ip': {"$ne": "<nil>"}, 'timestamp': {"$lt": lastweek}})
 
     jobs_manager.record_job_complete()
 

@@ -97,7 +97,7 @@ def insert_result(entry, results_collection):
         new_date = parse(temp_date)
         entry["timestamp"] = new_date
 
-    results_collection.update({"domain": entry['domain']}, entry, upsert=True)
+    results_collection.replace_one({"domain": entry['domain']}, entry, upsert=True)
 
 
 def run_port_80_command(target_list, tnum):
@@ -329,7 +329,7 @@ def main():
 
     # Remove last week's old entries
     lastweek = datetime.now() - timedelta(days=7)
-    zgrab_collection.remove({'domain': {"$ne": "<nil>"}, 'timestamp': {"$lt": lastweek}})
+    zgrab_collection.delete_many({'domain': {"$ne": "<nil>"}, 'timestamp': {"$lt": lastweek}})
 
     jobs_manager.record_job_complete()
 

@@ -313,21 +313,21 @@ def insert_result(entry, port, ip_context, all_zones, results_collection):
     entry['zones'] = zones
     entry['domains'] = domains
 
-    exists = results_collection.find({"ip": entry['ip']}).count()
+    exists = results_collection.count_documents({"ip": entry['ip']})
 
     if exists == 0:
-        results_collection.insert(entry)
+        results_collection.insert_one(entry)
     elif port == "443":
-        results_collection.update({"ip": entry['ip']}, {"$set": {"data.tls": entry['data']['tls'], 'timestamp': entry['timestamp']}})
+        results_collection.update_one({"ip": entry['ip']}, {"$set": {"data.tls": entry['data']['tls'], 'timestamp': entry['timestamp']}})
     elif port == "22":
         if 'zgrab2' in global_zgrab_path:
-            results_collection.update({"ip": entry['ip']}, {"$set": {"data.ssh": entry['data']['ssh'], 'timestamp': entry['timestamp']}})
+            results_collection.update_one({"ip": entry['ip']}, {"$set": {"data.ssh": entry['data']['ssh'], 'timestamp': entry['timestamp']}})
         else:
-            results_collection.update({"ip": entry['ip']}, {"$set": {"data.xssh": entry['data']['xssh'], 'timestamp': entry['timestamp']}})
+            results_collection.update_one({"ip": entry['ip']}, {"$set": {"data.xssh": entry['data']['xssh'], 'timestamp': entry['timestamp']}})
     elif port == "25":
-        results_collection.update({"ip": entry['ip']}, {"$set": {"data.smtp": entry['data']['smtp'], 'timestamp': entry['timestamp']}})
+        results_collection.update_one({"ip": entry['ip']}, {"$set": {"data.smtp": entry['data']['smtp'], 'timestamp': entry['timestamp']}})
     elif port == "465":
-        results_collection.update({"ip": entry['ip']}, {"$set": {"data.smtps": entry['data']['smtps'], 'timestamp': entry['timestamp']}})
+        results_collection.update_one({"ip": entry['ip']}, {"$set": {"data.smtps": entry['data']['smtps'], 'timestamp': entry['timestamp']}})
 
 
 def run_port_22_command(target_list, tnum):
@@ -717,7 +717,7 @@ def main():
             zgrab_collection.update_one({"_id": ObjectId(result['_id'])}, {"$unset": {'data.smtps': ""}})
 
     # Remove any completely empty entries
-    zgrab_collection.remove({'data': {}})
+    zgrab_collection.delete_many({'data': {}})
 
     jobs_manager.record_job_complete()
 
