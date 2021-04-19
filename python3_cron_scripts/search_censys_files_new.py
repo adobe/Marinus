@@ -133,7 +133,7 @@ def insert_result(entry, results_collection):
     This was done as an update because it was clear whether Censys would de-duplicate.
     """
     entry["createdAt"] = datetime.utcnow()
-    results_collection.update({"ip": entry['ip']}, entry, upsert=True)
+    results_collection.update_one({"ip": entry['ip']}, entry, upsert=True)
 
 
 def main():
@@ -201,7 +201,7 @@ def main():
 
     # Remove old results from the database
     results_collection = RMC.get_results_connection()
-    results_collection.remove({})
+    results_collection.delete_many({})
     all_dns_collection = RMC.get_all_dns_connection()
 
     try:
