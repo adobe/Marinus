@@ -77,9 +77,9 @@ def main():
     jobs_manager.record_job_start()
 
     # Grab all zones that are not expired or false_positives
-    # Also exclude any that were recently created since they won't have data yet
+    # Also exclude any that were recently updated since they still resolve
     date_delta = datetime.today() - timedelta(days=90)
-    zones = zones_collection.distinct('zone', {'created': {"$lt": date_delta}, 'status': {"$nin": [ZoneManager.EXPIRED, ZoneManager.FALSE_POSITIVE]}})
+    zones = zones_collection.distinct('zone', {'updated': {"$lt": date_delta}, 'status': {"$nin": [ZoneManager.EXPIRED, ZoneManager.FALSE_POSITIVE]}})
 
     # The Python Whois library is hit and miss with some international zones.
     # For now, this script focuses on the most popular TLDs.
@@ -87,12 +87,12 @@ def main():
 
     expired_list = []
     for zone in new_zones:
-        if whois_collection.find({'zone': zone}).count() == 0:
+        if whois_collection.count_documents({'zone': zone}) == 0:
             # Assume it is expired if there is no longer a whois record present
             expired_list.append(zone)
 
     for zone in expired_list:
-        if all_dns_collection.find({'zone': zone}).count() > 0:
+        if all_dns_collection.count_documents({'zone': zone}) > 0:
             # This may be a case where the Python Whois library failed
             # and the zone is still active.
             logger.debug("DNS records still exist for " + zone)
@@ -105,7 +105,7 @@ def main():
 
     possibly_renewed = []
     for zone in already_expired:
-        if whois_collection.find({'zone': zone}).count() == 1:
+        if whois_collection.count_documents({'zone': zone}) == 1:
             possibly_renewed.append(zone)
 
 
@@ -129,7 +129,7 @@ def main():
     for zone in possibly_renewed:
         # We need to be careful of automatically marking something renewed
         # since it could have been registered by someone else.
-        if whois_collection.find({'zone': zone, 'org': {"$in": orgs}}).count() == 1:
+        if whois_collection.count_documents({'zone': zone, 'org': {"$in": orgs}}) == 1:
             logger.warning("ATTENTION: " + zone + " has been renewed based on org")
             zone_manager.set_status(zone, ZoneManager.UNCONFIRMED, "mark_expired.py")
         else:
