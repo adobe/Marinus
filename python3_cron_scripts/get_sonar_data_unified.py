@@ -179,7 +179,7 @@ def update_rdns(logger, rdns_file, zones, mongo_connector):
 
             if zone != "" and domain != "":
                 logger.debug("Domain matches! " + domain + " Zone: " + zone)
-                result = rdns_collection.find({'ip': ip_addr}).count()
+                result = mongo_connector.perform_count(rdns_collection, {'ip': ip_addr})
                 if result == 0:
                     insert_json = {}
                     insert_json['ip'] = ip_addr
@@ -189,7 +189,7 @@ def update_rdns(logger, rdns_file, zones, mongo_connector):
                     insert_json['sonar_timestamp'] = int(timestamp)
                     insert_json['created'] = datetime.now()
                     insert_json['updated'] = datetime.now()
-                    rdns_collection.insert(insert_json)
+                    mongo_connector.perform_insert(rdns_collection, insert_json)
                 else:
                     rdns_collection.update({"ip": ip_addr},
                                            {'$set': {"fqdn": domain},

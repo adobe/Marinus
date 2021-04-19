@@ -158,11 +158,13 @@ def check_for_ptr_record(ipaddr, dns_manager, g_dns, zones):
         dns_manager.insert_record(new_record, "sonar_rdns")
 
 
-def update_rdns(logger, rdns_file, rdns_collection, dns_manager, ip_manager, zones):
+def update_rdns(logger, rdns_file, mongo_connection, dns_manager, ip_manager, zones):
     """
     Search RDNS file and insert relevant records into the database.
     """
     g_dns = GoogleDNS.GoogleDNS()
+    rdns_collection = mongo_connection.get_sonar_reverse_dns_connection()
+
     with open(rdns_file, "r") as rdns_f:
         for line in rdns_f:
             try:
@@ -187,7 +189,8 @@ def update_rdns(logger, rdns_file, rdns_collection, dns_manager, ip_manager, zon
             if domain != None and ip_addr != None and ip_manager.is_tracked_ip(ip_addr):
                 logger.debug("Matched RDNS " + ip_addr)
                 zone = find_zone(domain, zones)
-                result = rdns_collection.find({'ip': ip_addr}).count()
+                result = mongo_connection.perform_count(rdns_collection, {'ip': ip_addr})
+
                 if result == 0:
                     insert_json = {}
                     insert_json['ip'] = ip_addr
@@ -197,9 +200,9 @@ def update_rdns(logger, rdns_file, rdns_collection, dns_manager, ip_manager, zon
                     insert_json['sonar_timestamp'] = int(timestamp)
                     insert_json['created'] = datetime.now()
                     insert_json['updated'] = datetime.now()
-                    rdns_collection.insert(insert_json)
+                    mongo_connection.perform_insert(rdns_collection, insert_json)
                 else:
-                    rdns_collection.update({"ip": ip_addr},
+                    rdns_collection.update_one({"ip": ip_addr},
                                            {'$set': {"fqdn": domain},
                                             '$currentDate': {"updated" : True}})
 
@@ -257,7 +260,6 @@ def main():
     mongo_connection = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connection)
     ip_manager = IPManager.IPManager(mongo_connection)
-    rdns_collection = mongo_connection.get_sonar_reverse_dns_connection()
 
     zones = ZoneManager.get_distinct_zones(mongo_connection)
     logger.info ("Zone length: " + str(len(zones)))
@@ -285,7 +287,7 @@ def main():
                 exit(0)
 
             unzipped_rdns = download_remote_files(logger, s, html_parser.rdns_url, save_directory, jobs_manager)
-            update_rdns(logger, unzipped_rdns, rdns_collection, dns_manager, ip_manager, zones)
+            update_rdns(logger, unzipped_rdns, mongo_connection, dns_manager, ip_manager, zones)
         except Exception as ex:
             logger.error ("Unexpected error: " + str(ex))
             jobs_manager.record_job_error()
