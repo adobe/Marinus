@@ -194,7 +194,7 @@ def main():
 
     # Remove the old records
     srdns_collection = mongo_connector.get_sonar_reverse_dns_connection()
-    srdns_collection.remove({'updated': {"$lt": d_minus_2m}})
+    srdns_collection.delete_many({'updated': {"$lt": d_minus_2m}})
 
     ip_manager.delete_records_by_date(d_minus_2m)
 

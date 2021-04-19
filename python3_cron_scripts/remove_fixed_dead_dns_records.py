@@ -55,7 +55,7 @@ def main():
         lookup_result = google_dns.fetch_DNS_records(result['fqdn'])
         if lookup_result == []:
             logger.info ("Removing " + result['fqdn'])
-            dead_dns_collection.remove({"_id":ObjectId(result['_id'])})
+            dead_dns_collection.delete_one({"_id":ObjectId(result['_id'])})
 
     # Record status
     jobs_manager.record_job_complete()
