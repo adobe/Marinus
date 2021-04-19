@@ -27,12 +27,12 @@ from libs3.LoggingUtil import LoggingUtil
 logger = LoggingUtil.create_log(__name__)
 
 mongo_connector = MongoConnector.MongoConnector()
-AKAMAI_COLLECTION = mongo_connector.get_akamai_ips_connection()
+akamai_collection = mongo_connector.get_akamai_ips_connection()
 jobs_manager = JobsManager.JobsManager(mongo_connector, "upload_akamai_data")
 jobs_manager.record_job_start()
 
 # Clear previous data
-AKAMAI_COLLECTION.remove({})
+akamai_collection.delete_many({})
 
 AKAMAI_DATA = {}
 
@@ -75,7 +75,7 @@ AKAMAI_DATA['ipv6_ranges'].append({'cidr': '2600:1400::/24',
                                    'ipv6_range': '2600:1400:: - 2600:14FF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF'})
 
 # Insert the data
-AKAMAI_COLLECTION.insert(AKAMAI_DATA)
+akamai_collection.insert_many(AKAMAI_DATA)
 
 jobs_manager.record_job_complete()
 
