@@ -60,8 +60,12 @@ class UltraDNSZone(object):
                     # if zone_name in self.UH.previous_zones:
                     #     del self.UH.previous_zones[zone_name]
 
+                    custom_fields = {}
+                    custom_fields['accountName'] = zone['properties']['accountName']
+                    custom_fields['owner'] = zone['properties']['owner']
+
                     # Add the zone to the zones collection
-                    self.ZI.add_zone(zone_name, self.UH.source)
+                    self.ZI.add_zone(zone_name, self.UH.source, custom_fields=custom_fields)
 
             self.UH.set_offset(response['resultInfo'])
 
