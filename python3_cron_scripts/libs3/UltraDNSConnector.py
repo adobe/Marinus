@@ -24,6 +24,11 @@ from sys import exit
 
 class UltraDNSConnector(object):
     ultra_config_file = 'connector.config'
+
+    LOGIN = 'https://api.ultradns.com/authorization/token'
+    ZONES = 'https://api.ultradns.com/zones/'
+    ZONEINFO = 'https://api.ultradns.com/zones/{zone_queried}./rrsets'
+
     _logger = None
 
 
