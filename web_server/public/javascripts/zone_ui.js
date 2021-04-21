@@ -98,7 +98,15 @@ function display_zone_data(results) {
 
     let sources = '';
     for (let result in results['reporting_sources']) {
-        sources = sources + results['reporting_sources'][result]['source'] + ", ";
+        sources = sources + results['reporting_sources'][result]['source'];
+
+        if (results['reporting_sources'][result]['source'] == "UltraDNS") {
+            if ('accountName' in results['reporting_sources'][result]) {
+                sources = sources + " - accountName: " + results['reporting_sources'][result]['accountName'];
+            }
+        }
+
+        sources = sources + ", ";
     }
     sources = sources.substring(0, sources.length - 2);
 
