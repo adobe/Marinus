@@ -37,7 +37,7 @@ def download_censys_scan_info(censys_collection, remote_censys_collection):
 
 
     # Remove the previous results from the local Censys collection
-    censys_collection.remove({})
+    censys_collection.delete_many({})
 
 
     # Insert the new results from the remote server into the local server
@@ -46,7 +46,7 @@ def download_censys_scan_info(censys_collection, remote_censys_collection):
 
 
     # Since the database is copied, we can clear the remote database.
-    remote_censys_collection.remove({})
+    remote_censys_collection.delete_many({})
 
 
 def download_zgrab_info(logger, zgrab_data_collection, remote_zgrab_data_collection):
@@ -75,8 +75,8 @@ def download_zgrab_info(logger, zgrab_data_collection, remote_zgrab_data_collect
     # Remove results that are over four weeks old.
     # Four weeks is used to provide time in the event of a bug
     one_month_ago = datetime.now() - timedelta(days=30, hours=1)
-    remote_zgrab_data_collection.remove({'timestamp': {"$lte": one_month_ago}})
-    zgrab_data_collection.remove({'timestamp': {"$lte": one_month_ago}})
+    remote_zgrab_data_collection.delete_many({'timestamp': {"$lte": one_month_ago}})
+    zgrab_data_collection.delete_many({'timestamp': {"$lte": one_month_ago}})
 
 
 def download_zgrab_port_info(logger, zgrab_data_collection, remote_zgrab_data_collection):
@@ -97,8 +97,8 @@ def download_zgrab_port_info(logger, zgrab_data_collection, remote_zgrab_data_co
     # Remove results that are over four weeks old.
     # Four weeks is used to provide time in the event of a bug
     one_month_ago = datetime.now() - timedelta(days=30, hours=1)
-    remote_zgrab_data_collection.remove({'timestamp': {"$lte": one_month_ago}})
-    zgrab_data_collection.remove({'timestamp': {"$lte": one_month_ago}})
+    remote_zgrab_data_collection.delete_many({'timestamp': {"$lte": one_month_ago}})
+    zgrab_data_collection.delete_many({'timestamp': {"$lte": one_month_ago}})
 
 
 def download_whois_data(logger, whois_collection, remote_whois_collection):
@@ -115,7 +115,7 @@ def download_whois_data(logger, whois_collection, remote_whois_collection):
     scrub_date = datetime.now() - timedelta(days=120, hours=1)
 
     # Remove data from four months back
-    whois_collection.remove({'updated': {"$lte": scrub_date}})
+    whois_collection.delete_many({'updated': {"$lte": scrub_date}})
 
 
 def download_jobs_status(logger, jobs_collection, remote_jobs_collection):
