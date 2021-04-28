@@ -62,7 +62,7 @@ def download_zgrab_info(logger, zgrab_data_collection, remote_zgrab_data_collect
     # Insert the new results from the remote server into the local server
     logger.info("Beginning ZGrab IP inserts...")
     for result in ip_results:
-        zgrab_data_collection.update({'ip':result['ip']}, result, upsert=True)
+        zgrab_data_collection.replace_one({'ip':result['ip']}, result, upsert=True)
 
     # Grab the new results from the remote server.
     domain_results = remote_zgrab_data_collection.find({'ip': "<nil>", 'timestamp': {"$gte": yesterday}}, {"_id": 0})
@@ -70,7 +70,7 @@ def download_zgrab_info(logger, zgrab_data_collection, remote_zgrab_data_collect
     # Insert the new results from the remote server into the local server
     logger.info("Beginning ZGrab domain inserts...")
     for result in domain_results:
-        zgrab_data_collection.update({'domain':result['domain']}, result, upsert=True)
+        zgrab_data_collection.replace_one({'domain':result['domain']}, result, upsert=True)
 
     # Remove results that are over four weeks old.
     # Four weeks is used to provide time in the event of a bug
@@ -92,7 +92,7 @@ def download_zgrab_port_info(logger, zgrab_data_collection, remote_zgrab_data_co
     # Insert the new results from the remote server into the local server
     logger.info("Beginning ZGrab port inserts...")
     for result in ip_results:
-        zgrab_data_collection.update({'ip':result['ip']}, result, upsert=True)
+        zgrab_data_collection.replace_one({'ip':result['ip']}, result, upsert=True)
 
     # Remove results that are over four weeks old.
     # Four weeks is used to provide time in the event of a bug
@@ -109,7 +109,7 @@ def download_whois_data(logger, whois_collection, remote_whois_collection):
     whois_results = remote_whois_collection.find({}, {"_id": 0})
 
     for result in whois_results:
-        whois_collection.update({'zone': result['zone']}, result, upsert=True)
+        whois_collection.replace_one({'zone': result['zone']}, result, upsert=True)
 
     # Establish a date four months back
     scrub_date = datetime.now() - timedelta(days=120, hours=1)
@@ -126,7 +126,7 @@ def download_jobs_status(logger, jobs_collection, remote_jobs_collection):
     jobs_results = remote_jobs_collection.find({}, {"_id": 0})
 
     for result in jobs_results:
-        jobs_collection.update({'job_name': result['job_name']}, result, upsert=True)
+        jobs_collection.replace_one({'job_name': result['job_name']}, result, upsert=True)
 
 
 def main():
