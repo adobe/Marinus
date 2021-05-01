@@ -609,7 +609,7 @@ class IPManager(object):
                     """
                     record['host']['splunk'] = result
 
-        self.all_ips_collection.update_one({"ip": ip}, record, upsert=True)
+        self.all_ips_collection.replace_one({"ip": ip}, record, upsert=True)
 
 
     def delete_records_by_date(self, expire_date):
