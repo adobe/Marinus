@@ -94,17 +94,17 @@ class DNSManager(object):
                 name = 'sources.' + str(source_index) + '.updated'
                 entry = {}
                 entry[name] = datetime.now()
-                self.all_dns_collection.update({'_id': ObjectId(check['_id'])},
+                self.all_dns_collection.update_one({'_id': ObjectId(check['_id'])},
                                                {"$set": entry})
-                self.all_dns_collection.update({'_id': ObjectId(check['_id'])},
+                self.all_dns_collection.update_one({'_id': ObjectId(check['_id'])},
                                                {"$set": {'updated': datetime.now()}})
             else:
                 entry = {}
                 entry['source'] = source_name
                 entry['updated'] = datetime.now()
-                self.all_dns_collection.update({'_id': ObjectId(check['_id'])},
+                self.all_dns_collection.update_one({'_id': ObjectId(check['_id'])},
                                                {'$push': {'sources': entry}})
-                self.all_dns_collection.update({'_id': ObjectId(check['_id'])},
+                self.all_dns_collection.update_one({'_id': ObjectId(check['_id'])},
                                                {"$set": {'updated': datetime.now()}})
 
         if result['type'] == 'a' or result['type'] == 'aaaa':
@@ -176,10 +176,10 @@ class DNSManager(object):
             return False
 
         if len(result['sources']) == 1:
-            self.all_dns_collection.remove({'fqdn': domain})
+            self.all_dns_collection.delete_one({'fqdn': domain})
             return True
 
-        self.all_dns_collection.update({'_id': ObjectId(result['_id'])},
+        self.all_dns_collection.update_one({'_id': ObjectId(result['_id'])},
                                        {"$pull": {"sources": {"source": source}}})
         return True
 
@@ -200,10 +200,10 @@ class DNSManager(object):
             return False
 
         if len(result['sources']) == 1:
-            self.all_dns_collection.remove({'_id': ObjectId(object_id)})
+            self.all_dns_collection.delete_one({'_id': ObjectId(object_id)})
             return True
 
-        self.all_dns_collection.update({'_id': ObjectId(result['_id'])},
+        self.all_dns_collection.update_one({'_id': ObjectId(result['_id'])},
                                        {"$pull": {"sources": {"source": source}}})
         return True
 
@@ -225,10 +225,10 @@ class DNSManager(object):
 
         for result in results:
             if len(result['sources']) > 1:
-                self.all_dns_collection.update({'_id': ObjectId(result['_id'])},
+                self.all_dns_collection.update_one({'_id': ObjectId(result['_id'])},
                                                {"$pull": {"sources": {"source": source}}})
             else:
-                self.all_dns_collection.remove({'_id': ObjectId(result['_id'])})
+                self.all_dns_collection.delete_one({'_id': ObjectId(result['_id'])})
 
         return True
 
@@ -249,9 +249,9 @@ class DNSManager(object):
 
         for result in results:
             if len(result['sources']) == 1:
-                self.all_dns_collection.remove({'_id': ObjectId(result['_id'])})
+                self.all_dns_collection.delete_one({'_id': ObjectId(result['_id'])})
             else:
-                self.all_dns_collection.update({'_id': ObjectId(result['_id'])},
+                self.all_dns_collection.update_one({'_id': ObjectId(result['_id'])},
                                                {"$pull": {"sources": {"source": source}}})
         return True
 
