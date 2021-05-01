@@ -609,7 +609,7 @@ class IPManager(object):
                     """
                     record['host']['splunk'] = result
 
-        self.all_ips_collection.update({"ip": ip}, record, upsert=True)
+        self.all_ips_collection.update_one({"ip": ip}, record, upsert=True)
 
 
     def delete_records_by_date(self, expire_date):
@@ -620,7 +620,7 @@ class IPManager(object):
         results = self.mongo_connector.perform_find(self.all_ips_collection, {"updated": {"$lt": expire_date}}, batch_size=100)
 
         for result in results:
-            self.all_ips_collection.remove({"ip": result['ip']})
+            self.all_ips_collection.delete_one({"ip": result['ip']})
 
 
     def delete_records_by_date_and_source(self, source, expire_date):
@@ -634,10 +634,10 @@ class IPManager(object):
 
         for result in results:
             if len(result['sources']) > 1:
-                self.all_ips_collection.update({'_id': ObjectId(result['_id'])},
+                self.all_ips_collection.update_one({'_id': ObjectId(result['_id'])},
                                                {"$pull": {"sources": {"source": source}}})
             else:
-                self.all_ips_collection.remove({'_id': ObjectId(result['_id'])})
+                self.all_ips_collection.delete_one({'_id': ObjectId(result['_id'])})
 
         return True
 
