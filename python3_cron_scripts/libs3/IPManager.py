@@ -100,8 +100,10 @@ class IPManager(object):
         akamai_collection = self.mongo_connector.get_akamai_ips_connection()
 
         results = self.mongo_connector.perform_find_one(akamai_collection, {})
-        for result in results['ranges']:
-            self.Akamai_IPs.append(IPNetwork(result['cidr']))
+
+        if results is not None:
+            for result in results['ranges']:
+                self.Akamai_IPs.append(IPNetwork(result['cidr']))
 
 
     def __get_akamai_ipv6s(self):
@@ -115,8 +117,10 @@ class IPManager(object):
         akamai_collection = self.mongo_connector.get_akamai_ips_connection()
 
         results = self.mongo_connector.perform_find_one(akamai_collection, {})
-        for result in results['ipv6_ranges']:
-            self.Akamai_IPs.append(IPNetwork(result['cidr']))
+
+        if results is not None:
+            for result in results['ipv6_ranges']:
+                self.Akamai_IPs.append(IPNetwork(result['cidr']))
 
 
     def __get_aws_ips(self):
@@ -127,8 +131,10 @@ class IPManager(object):
         aws_ips_collection = self.mongo_connector.get_aws_ips_connection()
 
         results = self.mongo_connector.perform_find_one(aws_ips_collection, {})
-        for result in results['prefixes']:
-            self.AWS_IPs.append(IPNetwork(result['ip_prefix']))
+
+        if results is not None:
+            for result in results['prefixes']:
+                self.AWS_IPs.append(IPNetwork(result['ip_prefix']))
 
 
     def __get_aws_ipv6s(self):
@@ -141,8 +147,10 @@ class IPManager(object):
         aws_ips_collection = self.mongo_connector.get_aws_ips_connection()
 
         results = self.mongo_connector.perform_find_one(aws_ips_collection, {})
-        for result in results['ipv6_prefixes']:
-            self.AWS_IPs.append(IPNetwork(result['ipv6_prefix']))
+
+        if results is not None:
+            for result in results['ipv6_prefixes']:
+                self.AWS_IPs.append(IPNetwork(result['ipv6_prefix']))
 
 
     def __get_azure_ips(self):
@@ -153,8 +161,10 @@ class IPManager(object):
         azure_ips_collection = self.mongo_connector.get_azure_ips_connection()
 
         results = self.mongo_connector.perform_find_one(azure_ips_collection, {})
-        for result in results['prefixes']:
-            self.Azure_IPs.append(IPNetwork(result['ip_prefix']))
+
+        if results is not None:
+            for result in results['prefixes']:
+                self.Azure_IPs.append(IPNetwork(result['ip_prefix']))
 
 
     def __get_gcp_ips(self):
@@ -165,8 +175,10 @@ class IPManager(object):
         gcp_ips_collection = self.mongo_connector.get_gcp_ips_connection()
 
         results = self.mongo_connector.perform_find_one(gcp_ips_collection, {})
-        for result in results['prefixes']:
-            self.GCP_IPs.append(IPNetwork(result['ip_prefix']))
+
+        if results is not None:
+            for result in results['prefixes']:
+                self.GCP_IPs.append(IPNetwork(result['ip_prefix']))
 
 
     def __get_gcp_ipv6s(self):
@@ -179,8 +191,10 @@ class IPManager(object):
         gcp_ips_collection = self.mongo_connector.get_gcp_ips_connection()
 
         results = self.mongo_connector.perform_find_one(gcp_ips_collection, {})
-        for result in results['ipv6_prefixes']:
-            self.GCP_IPs.append(IPNetwork(result['ipv6_prefix']))
+
+        if results is not None:
+            for result in results['ipv6_prefixes']:
+                self.GCP_IPs.append(IPNetwork(result['ipv6_prefix']))
 
 
     def __get_tracked_cidrs(self):
