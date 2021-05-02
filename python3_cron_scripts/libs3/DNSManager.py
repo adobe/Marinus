@@ -45,10 +45,20 @@ class DNSManager(object):
         return logging.getLogger(__name__)
 
 
-    def __init__(self, mongo_connector):
+    def __init__(self, mongo_connector, alternative_collection=None):
+        """
+        Initialize the object with the necessary database configurations
+        """
         self._logger = self._log()
         self.mongo_connector = mongo_connector
-        self.all_dns_collection = mongo_connector.get_all_dns_connection()
+        if alternative_collection is not None:
+            try:
+                self.all_dns_collection = getattr(mongo_connector, alternative_collection)()
+            except:
+                self._logger.error("Could not fetch dynamic collection in DNS Manager")
+                exit(1)
+        else:
+            self.all_dns_collection = mongo_connector.get_all_dns_connection()
 
 
     @staticmethod
@@ -84,7 +94,7 @@ class DNSManager(object):
             result['sources'][0]['source'] = source_name
             result['sources'][0]['updated'] = datetime.now()
             result['updated'] = datetime.now()
-            self.all_dns_collection.insert(result)
+            self.mongo_connector.perform_insert(self.all_dns_collection, result)
         else:
             source_index = -1
             for i in range(0, len(check['sources'])):

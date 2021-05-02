@@ -284,3 +284,12 @@ class RemoteMongoConnector(object):
     def get_owasp_amass_connection(self):
         """ Returns a connection to the owasp_amass collection in MongoDB """
         return self.m_connection.owasp_amass
+
+    def get_sonar_data_dns(self):
+        """ Returns a connection to the sonar_dns collection in MongoDB """
+        return self.m_connection.sonar_dns
+
+    def get_sonar_reverse_dns_connection(self):
+        """ Returns a connection to the sonar_rdns collection in MongoDB """
+        return self.m_connection.sonar_rdns
+
