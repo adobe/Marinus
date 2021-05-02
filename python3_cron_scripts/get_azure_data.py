@@ -109,7 +109,7 @@ def main():
 
     azure_ips = mongo_connector.get_azure_ips_connection()
     azure_ips.delete_many({})
-    azure_ips.insert_many(insert_json)
+    azure_ips.insert_one(insert_json)
 
     # Record status
     jobs_manager.record_job_complete()
