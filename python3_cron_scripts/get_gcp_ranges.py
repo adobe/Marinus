@@ -91,7 +91,7 @@ def main():
     new_data['created'] = now
 
     gcp_collection.delete_many({})
-    gcp_collection.insert_many(new_data)
+    gcp_collection.insert_one(new_data)
 
     jobs_manager.record_job_complete()
 
