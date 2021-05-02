@@ -226,7 +226,7 @@ def main():
     parser.add_argument('--send_ip_zones', action="store_true", required=False, help='Send IP zones')
     parser.add_argument('--send_third_party_zones', action="store_true", required=False, help='Send AWS, Azure, etc.')
     parser.add_argument('--send_config', action="store_true", required=False, help='Send configs')
-    parser.add_argument('--send_dns_records', action="store_false", required=False, help='Replace all DNS records')
+    parser.add_argument('--send_dns_records', action="store_true", required=False, help='Replace all DNS records')
     parser.add_argument('--send_dns_diff', action="store_true", required=False, help='Send new DNS records')
     parser.add_argument('--date_diff', default=2, type=int, help='The number of days used for identifying new records in send_dns_diff')
     args = parser.parse_args()
@@ -280,7 +280,7 @@ def main():
             exit(1)
 
     # This will completely repopulate the DNS records table.
-    if args.send_dns_records:
+    if args.send_dns_records is not False:
         try:
             update_all_dns(logger, mongo_connector, remote_mongo_connector, zone_list)
         except:
