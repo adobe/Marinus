@@ -20,12 +20,9 @@ This script can be run daily.
 import logging
 
 from datetime import datetime, timedelta
-from libs3 import MongoConnector, RemoteMongoConnector, JobsManager
-from libs3.LoggingUtil import LoggingUtil
 
-# Connect to the remote databases
-mongo_connector = MongoConnector.MongoConnector()
-rm_connector = RemoteMongoConnector.RemoteMongoConnector()
+from libs3 import MongoConnector, RemoteMongoConnector, JobsManager, DNSManager
+from libs3.LoggingUtil import LoggingUtil
 
 
 def download_censys_scan_info(censys_collection, remote_censys_collection):
@@ -129,6 +126,67 @@ def download_jobs_status(logger, jobs_collection, remote_jobs_collection):
         jobs_collection.replace_one({'job_name': result['job_name']}, result, upsert=True)
 
 
+def download_sonar_dns(logger, dns_manager, remote_mongo_connector):
+    """
+    The remote sonar_dns_colllection is temporary storage for the remote Sonar scripts
+    """
+    logger.info("Beginning Sonar DNS Download")
+
+    # Calculate jobs
+    scrub_date = datetime.now() - timedelta(days=2, hours=9)
+
+    remote_sonar_dns_collection = remote_mongo_connector.get_sonar_data_dns()
+
+    # Get all dns records where 
+    results = remote_sonar_dns_collection.find({'updated': {"$gt": scrub_date}}, {"_id": 0, "sources": 0}).batch_size(50)
+
+    for result in results:
+        new_record = {}
+        new_record['zone'] = result['zone']
+        new_record['fqdn'] = result['fqdn']
+        new_record['status'] = result['status']
+        new_record['type'] = result['type']
+        new_record['value'] = result['value']
+        new_record['sonar_timestamp'] = result['sonar_timestamp']
+        new_record['created'] = result['created']
+        new_record['updated'] = result['updated']
+        dns_manager.insert_record(new_record, 'sonar_dns')
+
+    # Delete all DNS records not updated within 60 days?
+    scrub_date = datetime.now() - timedelta(days=60, hours=9)
+    remote_sonar_dns_collection.delete_many({'updated': {"$lt": scrub_date}})
+
+
+def download_sonar_rdns(logger, mongo_connector, remote_mongo_connector):
+    """
+    The remote sonar_rdns_colllection is temporary storage for the remote Sonar scripts
+    """
+    logger.info("Beginning Sonar RDNS Download")
+
+    # Calculate jobs
+    scrub_date = datetime.now() - timedelta(days=2, hours=9)
+
+    remote_sonar_rdns_collection = remote_mongo_connector.get_sonar_reverse_dns_connection()
+    rdns_collection = mongo_connector.get_sonar_reverse_dns_connection()
+
+    # Get all dns records where 
+    results = remote_mongo_connector.perform_find(remote_sonar_rdns_collection, {'updated': {"$gt": scrub_date}}, {"_id": 0}).batch_size(50)
+
+    for result in results:
+        count = mongo_connector.perform_count(rdns_collection, {'ip': result['ip']})
+
+        if count == 0:
+            mongo_connector.perform_insert(rdns_collection, result)
+        else:
+            rdns_collection.update_one({"ip": result['ip']},
+                                    {'$set': {"fqdn": result['fqdn']},
+                                    '$currentDate': {"updated" : True}})
+
+    # Delete all DNS records not updated within 60 days?
+    scrub_date = datetime.now() - timedelta(days=60, hours=9)
+    remote_sonar_rdns_collection.delete_many({'updated': {"$lt": scrub_date}})
+
+
 def main():
     """
     Begin Main...
@@ -138,6 +196,11 @@ def main():
     now = datetime.now()
     print("Starting: " + str(now))
     logger.info("Starting...")
+
+    # Connect to the remote databases
+    mongo_connector = MongoConnector.MongoConnector()
+    rm_connector = RemoteMongoConnector.RemoteMongoConnector()
+    dns_manager = DNSManager.DNSManager(mongo_connector)
 
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'remote_download')
     jobs_manager.record_job_start()
@@ -189,6 +252,12 @@ def main():
 
     # Download the status of the remote jobs
     download_jobs_status(logger, jobs_manager._jobs_collection, remote_jobs_collection)
+
+    # Download remote sonar DNS findings
+    download_sonar_dns(logger, dns_manager, rm_connector)
+
+    # Download remote sonar RDNS findings
+    download_sonar_rdns(logger, mongo_connector, rm_connector)
 
     # Update the local jobs database to done
     jobs_manager.record_job_complete()
