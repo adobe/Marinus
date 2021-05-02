@@ -59,7 +59,7 @@ def main():
     # Replace the old entries with the new entries
     aws_collection = mongo_connector.get_aws_ips_connection()
     aws_collection.delete_many({})
-    aws_collection.insert_one(json_data)
+    mongo_connector.perform_insert(aws_collection, json_data)
 
     # Record status
     jobs_manager.record_job_complete()

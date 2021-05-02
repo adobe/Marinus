@@ -75,7 +75,7 @@ AKAMAI_DATA['ipv6_ranges'].append({'cidr': '2600:1400::/24',
                                    'ipv6_range': '2600:1400:: - 2600:14FF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF'})
 
 # Insert the data
-akamai_collection.insert_one(AKAMAI_DATA)
+mongo_connector.perform_insert(akamai_collection, AKAMAI_DATA)
 
 jobs_manager.record_job_complete()
 
