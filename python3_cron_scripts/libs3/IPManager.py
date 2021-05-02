@@ -99,8 +99,8 @@ class IPManager(object):
 
         akamai_collection = self.mongo_connector.get_akamai_ips_connection()
 
-        results = self.mongo_connector.perform_find(akamai_collection, {})
-        for result in results[0]['ranges']:
+        results = self.mongo_connector.perform_find_one(akamai_collection, {})
+        for result in results['ranges']:
             self.Akamai_IPs.append(IPNetwork(result['cidr']))
 
 
@@ -114,8 +114,8 @@ class IPManager(object):
 
         akamai_collection = self.mongo_connector.get_akamai_ips_connection()
 
-        results = self.mongo_connector.perform_find(akamai_collection, {})
-        for result in results[0]['ipv6_ranges']:
+        results = self.mongo_connector.perform_find_one(akamai_collection, {})
+        for result in results['ipv6_ranges']:
             self.Akamai_IPs.append(IPNetwork(result['cidr']))
 
 
@@ -126,8 +126,8 @@ class IPManager(object):
         self.AWS_IPs = []
         aws_ips_collection = self.mongo_connector.get_aws_ips_connection()
 
-        results = self.mongo_connector.perform_find(aws_ips_collection, {})
-        for result in results[0]['prefixes']:
+        results = self.mongo_connector.perform_find_one(aws_ips_collection, {})
+        for result in results['prefixes']:
             self.AWS_IPs.append(IPNetwork(result['ip_prefix']))
 
 
@@ -140,8 +140,8 @@ class IPManager(object):
 
         aws_ips_collection = self.mongo_connector.get_aws_ips_connection()
 
-        results = self.mongo_connector.perform_find(aws_ips_collection, {})
-        for result in results[0]['ipv6_prefixes']:
+        results = self.mongo_connector.perform_find_one(aws_ips_collection, {})
+        for result in results['ipv6_prefixes']:
             self.AWS_IPs.append(IPNetwork(result['ipv6_prefix']))
 
 
@@ -152,8 +152,8 @@ class IPManager(object):
         self.Azure_IPs = []
         azure_ips_collection = self.mongo_connector.get_azure_ips_connection()
 
-        results = self.mongo_connector.perform_find(azure_ips_collection, {})
-        for result in results[0]['prefixes']:
+        results = self.mongo_connector.perform_find_one(azure_ips_collection, {})
+        for result in results['prefixes']:
             self.Azure_IPs.append(IPNetwork(result['ip_prefix']))
 
 
@@ -164,8 +164,8 @@ class IPManager(object):
         self.GCP_IPs = []
         gcp_ips_collection = self.mongo_connector.get_gcp_ips_connection()
 
-        results = self.mongo_connector.perform_find(gcp_ips_collection, {})
-        for result in results[0]['prefixes']:
+        results = self.mongo_connector.perform_find_one(gcp_ips_collection, {})
+        for result in results['prefixes']:
             self.GCP_IPs.append(IPNetwork(result['ip_prefix']))
 
 
@@ -178,8 +178,8 @@ class IPManager(object):
 
         gcp_ips_collection = self.mongo_connector.get_gcp_ips_connection()
 
-        results = self.mongo_connector.perform_find(gcp_ips_collection, {})
-        for result in results[0]['ipv6_prefixes']:
+        results = self.mongo_connector.perform_find_one(gcp_ips_collection, {})
+        for result in results['ipv6_prefixes']:
             self.GCP_IPs.append(IPNetwork(result['ipv6_prefix']))
 
 
