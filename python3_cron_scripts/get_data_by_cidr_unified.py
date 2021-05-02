@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Adobe. All rights reserved.
+# Copyright 2021 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -27,7 +27,7 @@ import time
 from datetime import datetime
 
 import requests
-from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager, GoogleDNS, IPManager
+from libs3 import DNSManager, MongoConnector, RemoteMongoConnector, Rapid7, JobsManager, GoogleDNS, IPManager
 from libs3.ZoneManager import ZoneManager
 from libs3.LoggingUtil import LoggingUtil
 
@@ -255,21 +255,26 @@ def main():
     print("Starting: " + str(now))
     logger.info("Starting...")
 
+    parser = argparse.ArgumentParser(description='Parse Sonar files based on CIDRs.')
+    parser.add_argument('--sonar_file_type', choices=['dns-any', 'dns-a', 'rdns'], required=True, help='Specify "dns-any", "dns-a", or "rdns"')
+    parser.add_argument('--database', choices=['local', 'remote'], required=False, default='local', help='Whether to use the local or remote DB')
+    args = parser.parse_args()
+
     r7 = Rapid7.Rapid7()
 
-    mongo_connection = MongoConnector.MongoConnector()
-    dns_manager = DNSManager.DNSManager(mongo_connection)
+    if args.database == 'remote':
+        mongo_connection = RemoteMongoConnector.RemoteMongoConnector()
+        dns_manager = DNSManager.DNSManager(mongo_connection, "get_sonar_data_dns")
+    else:
+        mongo_connection = MongoConnector.MongoConnector()
+        dns_manager = DNSManager.DNSManager(mongo_connection)
+
     ip_manager = IPManager.IPManager(mongo_connection)
 
     zones = ZoneManager.get_distinct_zones(mongo_connection)
     logger.info ("Zone length: " + str(len(zones)))
 
     save_directory = "./files/"
-
-    parser = argparse.ArgumentParser(description='Parse Sonar files based on CIDRs.')
-    parser.add_argument('--sonar_file_type', required=True, help='Specify "dns" or "rdns"')
-    args = parser.parse_args()
-
     check_save_location(save_directory)
 
     # A session is necessary for the multi-step log-in process
@@ -305,6 +310,17 @@ def main():
             if html_parser.any_url != "":
                 unzipped_dns = download_remote_files(logger, s, html_parser.any_url, save_directory, jobs_manager)
                 update_dns(logger, unzipped_dns, dns_manager, ip_manager, zones)
+        except Exception as ex:
+            logger.error ("Unexpected error: " + str(ex))
+
+            jobs_manager.record_job_error()
+            exit(0)
+
+    elif args.sonar_file_type == "dns-a":
+        jobs_manager = JobsManager.JobsManager(mongo_connection, 'get_data_by_cidr_dns-a')
+        jobs_manager.record_job_start()
+
+        try:
             if html_parser.a_url != "":
                 unzipped_dns = download_remote_files(logger, s, html_parser.a_url, save_directory, jobs_manager)
                 update_dns(logger, unzipped_dns, dns_manager, ip_manager, zones)

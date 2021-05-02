@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Adobe. All rights reserved.
+# Copyright 2021 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -28,13 +28,9 @@ import time
 
 from datetime import datetime
 
-from libs3 import DNSManager, MongoConnector, Rapid7, JobsManager, GoogleDNS
+from libs3 import DNSManager, MongoConnector, RemoteMongoConnector, Rapid7, JobsManager, GoogleDNS
 from libs3.ZoneManager import ZoneManager
 from libs3.LoggingUtil import LoggingUtil
-
-
-mongo_connector = MongoConnector.MongoConnector()
-global_dns_manager = DNSManager.DNSManager(mongo_connector)
 
 
 def is_running(process):
@@ -128,7 +124,7 @@ def update_dns(logger, dns_file, zones, dns_mgr):
                 dns_mgr.insert_record(insert_json, "sonar_dns")
 
 
-def check_for_ptr_record(ipaddr, g_dns, zones):
+def check_for_ptr_record(ipaddr, g_dns, zones, dns_manager):
     """
     For an identified Sonar RDNS record, confirm that there
     is a related PTR record for the IP address. If confirmed,
@@ -147,10 +143,10 @@ def check_for_ptr_record(ipaddr, g_dns, zones):
         new_record['zone'] = rdns_zone
         new_record['created'] = datetime.now()
         new_record['status'] = 'unknown'
-        global_dns_manager.insert_record(new_record, "sonar_rdns")
+        dns_manager.insert_record(new_record, "sonar_rdns")
 
 
-def update_rdns(logger, rdns_file, zones, mongo_connector):
+def update_rdns(logger, rdns_file, zones, dns_mgr, mongo_connector):
     """
     Insert any matching Sonar RDNS records in the Marinus database.
     """
@@ -195,7 +191,7 @@ def update_rdns(logger, rdns_file, zones, mongo_connector):
                                            {'$set': {"fqdn": domain},
                                             '$currentDate': {"updated": True}})
 
-                check_for_ptr_record(ip_addr, g_dns, zones)
+                check_for_ptr_record(ip_addr, g_dns, zones, dns_mgr)
 
 
 def download_remote_files(logger, s, file_reference, data_dir, jobs_manager):
@@ -243,23 +239,30 @@ def main():
     print ("Starting: " + str(now))
     logger.info("Starting...")
 
+    parser = argparse.ArgumentParser(description='Parse Sonar files based on domain zones.')
+    parser.add_argument('--sonar_file_type', choices=['dns-any', 'dns-a', 'rdns'], required=True, help='Specify "dns-any", "dns-a", or "rdns"')
+    parser.add_argument('--database', choices=['local', 'remote'], required=False, default='local', help='Whether to use the local or remote DB')
+    args = parser.parse_args()
+
     r7 = Rapid7.Rapid7()
+
+    if args.database == 'remote':
+        mongo_connector = RemoteMongoConnector.RemoteMongoConnector()
+        dns_manager = DNSManager.DNSManager(mongo_connector, , "get_sonar_data_dns")
+    else:
+        mongo_connector = MongoConnector.MongoConnector()
+        dns_manager = DNSManager.DNSManager(mongo_connector)
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
     save_directory = "./files/"
-
-    parser = argparse.ArgumentParser(description='Parse Sonar files based on domain zones.')
-    parser.add_argument('--sonar_file_type', required=True, help='Specify "dns-any", "dns-a", or "rdns"')
-    args = parser.parse_args()
-
     check_save_location(save_directory)
 
     # A session is necessary for the multi-step log-in process
     s = requests.Session()
 
     if args.sonar_file_type == "rdns":
-        logger.info ("Updating RDNS")
+        logger.info ("Updating RDNS records")
         jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_sonar_data_rdns')
         jobs_manager.record_job_start()
 
@@ -271,7 +274,7 @@ def main():
                 exit(0)
 
             unzipped_rdns = download_remote_files(logger, s, html_parser.rdns_url, save_directory, jobs_manager)
-            update_rdns(logger, unzipped_rdns, zones, mongo_connector)
+            update_rdns(logger, unzipped_rdns, zones, dns_manager, mongo_connector)
         except Exception as ex:
             logger.error("Unexpected error: " + str(ex))
             jobs_manager.record_job_error()
@@ -279,7 +282,7 @@ def main():
 
         jobs_manager.record_job_complete()
     elif args.sonar_file_type == "dns-any":
-        logger.info("Updating DNS")
+        logger.info("Updating DNS ANY records")
 
         jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_sonar_data_dns-any')
         jobs_manager.record_job_start()
@@ -288,7 +291,7 @@ def main():
             html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
             if html_parser.any_url != "":
                 unzipped_dns = download_remote_files(logger, s, html_parser.any_url, save_directory, jobs_manager)
-                update_dns(logger, unzipped_dns, zones, global_dns_manager)
+                update_dns(logger, unzipped_dns, zones, dns_manager)
         except Exception as ex:
             logger.error("Unexpected error: " + str(ex))
             jobs_manager.record_job_error()
@@ -296,7 +299,7 @@ def main():
 
         jobs_manager.record_job_complete()
     elif args.sonar_file_type == "dns-a":
-        logger.info("Updating DNS")
+        logger.info("Updating DNS A, AAAA, and CNAME records")
 
         jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_sonar_data_dns-a')
         jobs_manager.record_job_start()
@@ -304,11 +307,17 @@ def main():
         try:
             html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
             if html_parser.a_url != "":
+                logger.info("Updating A records")
                 unzipped_dns = download_remote_files(logger, s, html_parser.a_url, save_directory, jobs_manager)
-                update_dns(logger, unzipped_dns, zones, global_dns_manager)
+                update_dns(logger, unzipped_dns, zones, dns_manager)
             if html_parser.aaaa_url != "":
+                logger.info("Updating AAAA records")
                 unzipped_dns = download_remote_files(logger, s, html_parser.aaaa_url, save_directory, jobs_manager)
-                update_dns(logger, unzipped_dns, zones, global_dns_manager)
+                update_dns(logger, unzipped_dns, zones, dns_manager)
+            if html_parser.cname_url != "":
+                logger.info("Updating CNAME records")
+                unzipped_dns = download_remote_files(logger, s, html_parser.cname_url, save_directory, jobs_manager)
+                update_dns(logger, unzipped_dns, zones, dns_manager)
         except Exception as ex:
             logger.error("Unexpected error: " + str(ex))
             jobs_manager.record_job_error()
