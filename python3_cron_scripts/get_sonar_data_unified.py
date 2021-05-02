@@ -248,7 +248,7 @@ def main():
 
     if args.database == 'remote':
         mongo_connector = RemoteMongoConnector.RemoteMongoConnector()
-        dns_manager = DNSManager.DNSManager(mongo_connector, , "get_sonar_data_dns")
+        dns_manager = DNSManager.DNSManager(mongo_connector, "get_sonar_data_dns")
     else:
         mongo_connector = MongoConnector.MongoConnector()
         dns_manager = DNSManager.DNSManager(mongo_connector)
