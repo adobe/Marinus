@@ -218,9 +218,9 @@ def insert_certificate(cert, source, ct_collection, cert_zones):
     """
 
     if ct_collection.find({'fingerprint_sha256': cert['fingerprint_sha256']}).count() == 0:
-        ct_collection.insert(cert)
+        ct_collection.insert_one(cert)
     else:
-        ct_collection.update({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {source + "_id": cert[source + "_id"], 'ct_log_type': cert['ct_log_type'], 'zones': cert_zones, 'marinus_updated': datetime.now()}, "$addToSet": {"sources": source}})
+        ct_collection.update_many({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {source + "_id": cert[source + "_id"], 'ct_log_type': cert['ct_log_type'], 'zones': cert_zones, 'marinus_updated': datetime.now()}, "$addToSet": {"sources": source}})
 
 
 def write_file(logger, cert, save_location, save_type, source):
@@ -369,8 +369,8 @@ def main():
             current_index = current_index + 1
 
     # Set isExpired for any entries that have recently expired.
-    ct_collection.update({"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
-                    {"$set": {"isExpired": True}}, multi=True)
+    ct_collection.update_many({"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
+                    {"$set": {"isExpired": True}})
 
     jobs_manager.record_job_complete()
 

@@ -262,8 +262,8 @@ def main():
             add_new_certificate_values(logger, new_ids, ct_collection, zones, None)
 
     # Set isExpired for any entries that have recently expired.
-    ct_collection.update({"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
-                        {"$set": {"isExpired": True}}, multi=True)
+    ct_collection.update_many({"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
+                        {"$set": {"isExpired": True}})
 
     jobs_manager.record_job_complete()
 
