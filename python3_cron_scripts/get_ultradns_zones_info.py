@@ -108,10 +108,17 @@ class UltraDNSZonesInfo(object):
             )
             response.raise_for_status()
         except requests.exceptions.HTTPError as herr:
-            err_msg = json.loads(response.text)['errorMessage']
+            message = json.loads(response.text)
+            if isinstance(message, list):
+                err_msg = json.loads(response.text)[0]['errorMessage']
+            else:
+                err_msg = json.loads(response.text)['errorMessage']
+
             if response.status_code == 401 and err_msg == self.UH.access_token_expiration_error:
                 self.UH.login('refresh_token')
                 self.__paginated_ultradns_zones_info_request()
+            elif response.status_code == 404:
+                self._logger.warning("ERROR: Could not find data for: " + str(self.zone_queried))
             else:
                 self.APIH.handle_api_error(herr, self.UH.jobs_manager)
         except requests.exceptions.RequestException as err:
