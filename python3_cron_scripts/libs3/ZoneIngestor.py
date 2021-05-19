@@ -225,7 +225,7 @@ class ZoneIngestor(object):
                                                             }}
                                                     )
 
-    def __update_time(self, record, zone):
+    def __update_time(self, record, zone, custom_fields=None):
         """
         Update the time of the zone record and that of the sub-zone.
 
@@ -238,6 +238,15 @@ class ZoneIngestor(object):
                                                   'updated': datetime.now()
                                                   }}
                                         )
+
+        if custom_fields is not None:
+            for key_value in custom_fields.keys():
+                self.zone_collection.update_one({'_id': ObjectId(record['_id']),
+                                                 'sub_zones.sub_zone': zone},
+                                                {'$set': {'sub_zones.$.' + key_value: custom_fields[key_value],
+                                                          'updated': datetime.now()
+                                                        }}
+                                                )
 
     def __delete_zone(self, zone):
         """
@@ -360,7 +369,7 @@ class ZoneIngestor(object):
                       format(zone=zone, source=source))
                 return
 
-            self.__update_time(record, zone)
+            self.__update_time(record, zone, custom_fields)
 
             if record['status'] == self.zone_manager.EXPIRED:
                 self.zone_manager.set_status(zone, self.zone_manager.UNCONFIRMED, source)
