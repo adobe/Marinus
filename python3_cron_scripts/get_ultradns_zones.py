@@ -62,7 +62,8 @@ class UltraDNSZone(object):
 
                     custom_fields = {}
                     custom_fields['accountName'] = zone['properties']['accountName']
-                    custom_fields['owner'] = zone['properties']['owner']
+                    if 'owner' in zone['properties']:
+                        custom_fields['owner'] = zone['properties']['owner']
 
                     # Add the zone to the zones collection
                     self.ZI.add_zone(zone_name, self.UH.source, custom_fields=custom_fields)
