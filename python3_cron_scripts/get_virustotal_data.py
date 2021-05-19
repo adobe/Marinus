@@ -71,6 +71,8 @@ def main():
             # Re-assign to an undotted key name
             if "Dr.Web category" in results:
                 results['Dr Web category'] = results.pop("Dr.Web category")
+            elif "alphaMountain.ai category" in results:
+                results['alphaMountain_ai category'] = results.pop("alphaMountain.ai category")
 
             vt_collection.delete_one({"zone": zone})
 
@@ -79,7 +81,8 @@ def main():
                   if '1.3.6.1.4.1.11129.2.4.2' in results['last_https_certificate']['extensions']:
                      results['last_https_certificate']['extensions']['sct_list'] = results['last_https_certificate']['extensions'].pop('1.3.6.1.4.1.11129.2.4.2')
 
-            vt_collection.insert(results)
+            mongo_connector.perform_insert(vt_collection, results)
+
 
         # This sleep command is so that we don't exceed the daily limit on the free API
         # This setting results in this script taking several days to complete
