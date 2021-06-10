@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Adobe. All rights reserved.
+# Copyright 2021 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -73,9 +73,10 @@ class X509Parser(object):
 
     ## This list needs to be periodically updated
     CT_LOG_MAP =   {
-                # Google
+                # Google - [ReadOnly]
                 'aviator': {'id': 'aPaY+B9kgr46jO65KB1M/HFRXWeT1ETRCmesu09P+8Q=',
                             'url': 'ct.googleapis.com/aviator'},
+                # Google
                 'icarus': {'id': 'KTxRllTIOWW6qlD8WAfUt2+/WHopctykwwz05UVH9Hg=',
                             'url': 'ct.googleapis.com/icarus'},
                 'pilot': {'id': 'pLkJkLQYWBSHuxOizGdwCjw1mAT5G9+443fNDsgN3BA=',
@@ -92,6 +93,10 @@ class X509Parser(object):
                             'url': 'ct.googleapis.com/logs/argon2020'},
                 'argon2021': {'id': '9lyUL9F3MCIUVBgIMJRWjuNNExkzv98MLyALzE7xZOM=',
                             'url': 'ct.googleapis.com/logs/argon2021'},
+                'argon2022': {'id': 'KXm+8J45OSHwVnOfY6V35b5XfZxgCvj5TV0mXCVdx4Q=',
+                            'url': 'ct.googleapis.com/logs/argon2022'},
+                'argon2023': {'id': '6D7Q2j71BjUy51covIlryQPTy9ERa+zraeF3fW0GvW4=',
+                            'url': 'ct.googleapis.com/logs/argon2023'},
                 'xenon2018': {'id': 'sQzVWabWeEaBH335pRUyc5rEjXA76gMj2l04dVvArU4=',
                             'url': 'ct.googleapis.com/logs/xenon2018'},
                 'xenon2019': {'id': 'CEEUmABxUywWGQRgvPxH/cJlOvopLHKzf/hjrinMyfA=',
@@ -102,6 +107,8 @@ class X509Parser(object):
                             'url': 'ct.googleapis.com/logs/xenon2021'},
                 'xenon2022': {'id': 'RqVV63X6kSAwtaKJafTzfREsQXS+/Um4havy/HD+bUc=',
                             'url': 'ct.googleapis.com/logs/xenon2022'},
+                'xenon2023': {'id': 'rfe++nz/EMiLnT2cHj4YarRnKV3PsQwkyoWGNOvcgoo=',
+                            'url': 'ct.googleapis.com/logs/xenon2023'},
                 # DigiCert
                 'digicert-ct1': {'id': 'VhQGmi/XwuzT9eG9RLI+x0Z2ubyZEVzA75SYVdaJ0N0=',
                             'url': 'ct1.digicert-ct.com/log'},
@@ -117,6 +124,8 @@ class X509Parser(object):
                             'url': 'yeti2021.ct.digicert.com/log'},
                 'yeti2022': {'id': 'IkVFB1lVJFaWP6Ev8fdthuAjJmOtwEt/XcaDXG7iDwI=',
                             'url': 'yeti2022.ct.digicert.com/log'},
+                'yeti2023': {'id': 'Nc8ZG7+xbFe/D61MbULLu7YnICZR6j/hKu+oA8M71kw=',
+                            'url': 'yeti2023.ct.digicert.com/log'},
                 'nessie2018': {'id': 'b/FBtWR+QiL37wUs7658If1gjifSr1pun0uKN9ZjPuU=',
                             'url': 'nessie2018.ct.digicert.com/log'},
                 'nessie2019': {'id': '/kRhCLHQGreKYsz+q2qysrq/86va2ApNizDfLQAIgww=',
@@ -127,7 +136,9 @@ class X509Parser(object):
                             'url': 'nessie2021.ct.digicert.com/log'},
                 'nessie2022': {'id': 'UaOw9f0BeZxWbbg3eI8MpHrMGyfL956IQpoN/tSLBeU=',
                             'url': 'nessie2022.ct.digicert.com/log'},
-                # Symantec
+                'nessie2023': {'id': 's3N3B+GEUPhjhtYFqdwRCUp5LbFnDAuH3PADDnk2pZo=',
+                            'url': 'nessie2023.ct.digicert.com/log'},
+                # Symantec [Retired]
                 'symantec-ct': {'id': '3esdK3oNT6Ygi4GtgWhwfi6OnQHVXIiNPRHEzbbsvsw=',
                             'url': 'ct.ws.symantec.com'},
                 'deneb': {'id': 'p85KTmIH4K3e5f2qSx+GdodntdACpV1HMQ5+ZwqV6rI=',
@@ -141,13 +152,14 @@ class X509Parser(object):
                             'url': 'mammoth.ct.comodo.com'},
                 'sabre': {'id': 'VYHUwhaQNgFK6gubVzxT8MDkOHhwJQgXL6OqHQcT0ww=',
                             'url': 'sabre.ct.comodo.com'},
-                # CloudFlare
+                # CloudFlare [no longer in Chrome]
                 'nimbus2017': {'id': 'H7w24ALt6X9AGZ6Gs1c7ikIX2AGHdGrQ2gOgYFTSDfQ=',
                             'url': 'ct.cloudflare.com/logs/nimbus2017'},
                 'nimbus2018': {'id': '23Sv7ssp7LH+yj5xbSzluaq7NveEcYPHXZ1PN7Yfv2Q=',
                             'url': 'ct.cloudflare.com/logs/nimbus2018'},
                 'nimbus2019': {'id': 'dH7agzGtMxCRIZzOJU9CcMK//V5CIAjGNzV55hB7zFY=',
                             'url': 'ct.cloudflare.com/logs/nimbus2019'},
+                # CloudFlare [active]
                 'nimbus2020': {'id': 'Xqdz+d9WwOe1Nkh90EngMnqRmgyEoRIShBh1loFxRVg=',
                             'url': 'ct.cloudflare.com/logs/nimbus2020'},
                 'nimbus2021': {'id': 'RJRlLrDuzq/EQAfYqP4owNrmgr7YyzG1P9MzlrW2gag=',
@@ -156,7 +168,14 @@ class X509Parser(object):
                             'url': 'ct.cloudflare.com/logs/nimbus2022'},
                 'nimbus2023': {'id': 'ejKMVNi3LbYg6jjgUh7phBZwMhOFTTvSK8E6V6NS61I=',
                             'url': 'ct.cloudflare.com/logs/nimbus2023'},
-                # Misc
+                # Let's Encrypt
+                'le-oak2021': {'id': 'lCC8Ho7VjWyIcx+CiyIsDdHaTV5sT5Q9YdtOL1hNosI=',
+                            'url': 'oak.ct.letsencrypt.org/2021'},
+                'le-oak2022': {'id': '36Veq2iCTx9sre64X04+WurNohKkal6OOxLAIERcKnM=',
+                            'url': 'oak.ct.letsencrypt.org/2022'},
+                'le-oak2023': {'id': 'tz77JN+cTbp18jnFulj0bF38Qs96nzXEnh0JgSXttJk=',
+                            'url': 'oak.ct.letsencrypt.org/2023'},
+                # Misc [Retired]
                 'venafi-ctlog-gen2': {'id': 'AwGd8/2FppqOvR+sxtqbpz5Gl3T+d/V5/FoIuDKMHWs=',
                             'url': 'ctlog-gen2.api.venafi.com'},
                 'cnnic-ctserver': {'id': 'pXesnO11SN2PAltnokEInfhuD0duwgPC7L7bGF8oJjg=',
