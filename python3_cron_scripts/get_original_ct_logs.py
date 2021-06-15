@@ -49,6 +49,7 @@ import struct
 from datetime import datetime
 from OpenSSL import crypto
 from requests.adapters import HTTPAdapter
+from requests.exceptions import Timeout
 from urllib3.util import Retry
 
 from libs3 import MongoConnector, X509Parser, JobsManager
@@ -70,25 +71,37 @@ def requests_retry_session(retries=5, backoff_factor=7, status_forcelist=[408, 5
     return session
 
 
-def make_https_request(logger, url, download=False):
+def make_https_request(logger, url, jobs_manager, download=False, timeout_attempt=0):
     """
     Utility function for making HTTPs requests.
     """
     try:
-        req = requests_retry_session().get(url)
+        req = requests_retry_session().get(url, timeout=120)
         req.raise_for_status()
     except requests.exceptions.ConnectionError:
         logger.error("Connection Error while fetching the cert list")
-        exit(0)
+        jobs_manager.record_job_error()
+        exit(1)
     except requests.exceptions.HTTPError:
         logger.warning("HTTP Error while fetching the cert list")
+        jobs_manager.record_job_error()
         return None
     except requests.exceptions.RequestException as err:
         logger.error("Request exception while fetching the cert list")
         logger.error(str(err))
+        jobs_manager.record_job_error()
         exit(1)
+    except Timeout:
+        if timeout_attempt == 0:
+            logger.warning("Timeout occurred. Attempting again...")
+            result = make_https_request(logger, url, jobs_manager, download, timeout_attempt=1)
+            return result
+        else:
+            logger.error("Too many timeouts. Exiting")
+            exit(1)
     except Exception as e:
         logger.error("UNKNOWN ERROR with the HTTP Request: " + str(e))
+        jobs_manager.record_job_error()
         exit(1)
 
     if req.status_code != 200:
@@ -100,21 +113,21 @@ def make_https_request(logger, url, download=False):
     return req.text
 
 
-def fetch_sth(logger, url):
+def fetch_sth(logger, url, jobs_manager):
     """
     Fetch the initial STH record from the CT Log.
     """
-    result = make_https_request(logger, url + "/ct/v1/get-sth")
+    result = make_https_request(logger, url + "/ct/v1/get-sth", jobs_manager)
     return json.loads(result)
 
 
-def fetch_certificate_batch(logger, url, starting_index, ending_index):
+def fetch_certificate_batch(logger, url, starting_index, ending_index, jobs_manager):
     """
     Fetch a range of records from the CT Log.
     Each log has its own limits on the number of records returned which means
     that the ending_index may be ignored.
     """
-    result = make_https_request(logger, url + "/ct/v1/get-entries?start=" + str(starting_index) + "&end=" + str(ending_index))
+    result = make_https_request(logger, url + "/ct/v1/get-entries?start=" + str(starting_index) + "&end=" + str(ending_index), jobs_manager)
     return json.loads(result)
 
 
@@ -321,7 +334,7 @@ def main():
         starting_index = args.starting_index
     logger.info("Starting Index: " + str(starting_index))
 
-    sth_data = fetch_sth(logger, "https://" + ct_log_map['url'])
+    sth_data = fetch_sth(logger, "https://" + ct_log_map['url'], jobs_manager)
     logger.info("Tree size: " + str(sth_data['tree_size']))
 
     current_index = starting_index
@@ -331,7 +344,7 @@ def main():
             ending_index = sth_data['tree_size']
 
         logger.debug("Checking from index: " + str(current_index) + " to index " + str(ending_index))
-        certs = fetch_certificate_batch(logger, "https://" + ct_log_map['url'], current_index, ending_index)
+        certs = fetch_certificate_batch(logger, "https://" + ct_log_map['url'], current_index, ending_index, jobs_manager)
 
         for entry in certs['entries']:
             der_cert, cert_type = get_cert_from_leaf(logger, entry['leaf_input'])
