@@ -98,6 +98,7 @@ def make_https_request(logger, url, jobs_manager, download=False, timeout_attemp
             return result
         else:
             logger.error("Too many timeouts. Exiting")
+            jobs_manager.record_job_error()
             exit(1)
     except Exception as e:
         logger.error("UNKNOWN ERROR with the HTTP Request: " + str(e))
