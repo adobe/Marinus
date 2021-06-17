@@ -21,9 +21,8 @@ import argparse
 import json
 import logging
 import time
-from datetime import datetime
 
-import requests
+from datetime import datetime
 
 from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
 from libs3.ZoneManager import ZoneManager
