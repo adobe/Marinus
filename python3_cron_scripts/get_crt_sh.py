@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Adobe. All rights reserved.
+# Copyright 2021 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -56,15 +56,16 @@ def requests_retry_session(
     return session
 
 
-def make_https_request(logger, url, download=False):
+def make_https_request(logger, url, jobs_manager, download=False):
     """
     Utility function for making HTTPS requests.
     """
     try:
-        req = requests_retry_session().get(url)
+        req = requests_retry_session().get(url, timeout=120)
     except Exception as ex:
         logger.error("Connection died after 5 tries")
         logger.error(str(ex))
+        jobs_manager.record_job_error()
         exit(1)
 
     if req.status_code != 200:
@@ -149,7 +150,7 @@ def get_cert_zones(cert, zones):
     return cert_zones
 
 
-def add_new_certificate_values(logger, new_ids, ct_collection, zones, save_location=None):
+def add_new_certificate_values(logger, jobs_manager, new_ids, ct_collection, zones, save_location=None):
     """
     Add new certificate values to the database.
     """
@@ -162,7 +163,7 @@ def add_new_certificate_values(logger, new_ids, ct_collection, zones, save_locat
             # Pace out certificate requests against their service
             time.sleep(2)
 
-            c_file = make_https_request(logger, "https://crt.sh/?d=" + str(min_cert_id), True)
+            c_file = make_https_request(logger, "https://crt.sh/?d=" + str(min_cert_id), jobs_manager, True)
 
             if c_file is None:
                 logger.warning("ERROR: Failed communicating with crt.sh. Skipping cert_id: " + str(min_cert_id))
@@ -237,7 +238,7 @@ def main():
         time.sleep(5)
 
         # This could be done with backoff but we don't want to be overly aggressive.
-        json_result = make_https_request(logger, "https://crt.sh/?q=%25." + zone + "&output=json")
+        json_result = make_https_request(logger, "https://crt.sh/?q=%25." + zone + "&output=json", jobs_manager)
         if json_result is None:
             logger.warning("Can't find result for: " + zone)
             json_result = "{}"
@@ -257,9 +258,9 @@ def main():
             add_new_domain_names(new_names, zones, mongo_connector)
 
         if args.download_methods == "dbAndSave":
-            add_new_certificate_values(logger, new_ids, ct_collection, zones, save_location)
+            add_new_certificate_values(logger, jobs_manager, new_ids, ct_collection, zones, save_location)
         elif args.download_methods == "dbOnly":
-            add_new_certificate_values(logger, new_ids, ct_collection, zones, None)
+            add_new_certificate_values(logger, jobs_manager, new_ids, ct_collection, zones, None)
 
     # Set isExpired for any entries that have recently expired.
     ct_collection.update_many({"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
