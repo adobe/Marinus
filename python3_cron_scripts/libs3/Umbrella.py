@@ -20,7 +20,6 @@ import configparser
 import json
 import logging
 import requests
-import time
 
 from libs3.ConnectorUtil import ConnectorUtil
 
