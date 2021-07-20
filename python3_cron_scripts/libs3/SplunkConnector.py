@@ -21,6 +21,7 @@ import logging
 from libs3.ConnectorUtil import ConnectorUtil
 
 import splunklib.client as client
+from splunklib.binding import AuthenticationError
 
 
 class SplunkConnector(object):
@@ -71,17 +72,21 @@ class SplunkConnector(object):
         """
         Create a Splunk client
         """
-        if self.APP is not None and self.APP != '':
-            service = client.connect(host=self.HOST,
-                                    port=self.PORT,
-                                    username=self.USERNAME,
-                                    password=self.PASSWORD,
-                                    app=self.APP)
-        else:
-            service = client.connect(host=self.HOST,
-                                     port=self.PORT,
-                                     username=self.USERNAME,
-                                     password=self.PASSWORD)
+        try:
+            if self.APP is not None and self.APP != '':
+                service = client.connect(host=self.HOST,
+                                        port=self.PORT,
+                                        username=self.USERNAME,
+                                        password=self.PASSWORD,
+                                        app=self.APP)
+            else:
+                service = client.connect(host=self.HOST,
+                                        port=self.PORT,
+                                        username=self.USERNAME,
+                                        password=self.PASSWORD)
+        except AuthenticationError:
+            self._logger.error("Could not authenticate to Splunk server")
+            return None
 
         return service
 
