@@ -64,9 +64,12 @@ class SplunkQueryManager(object):
         if log_level is not None:
             self._logger.setLevel(log_level)
 
-        if self._CLIENT == None:
+        if self._CLIENT is None:
             splunk_connector = SplunkConnector.SplunkConnector(config_file)
             self._CLIENT = splunk_connector.get_splunk_client()
+
+        if self._CLIENT is None:
+            self._logger.error("Could not create Splunk client")
 
         self._OFFSET = 0
         self._COUNT = 100
