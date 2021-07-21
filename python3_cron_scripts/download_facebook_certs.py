@@ -28,6 +28,7 @@ import time
 from datetime import datetime
 
 import requests
+from requests.exceptions import Timeout
 
 from libs3 import FacebookConnector, MongoConnector, X509Parser, JobsManager
 from libs3.ZoneManager import ZoneManager
@@ -35,7 +36,7 @@ from libs3.LoggingUtil import LoggingUtil
 
 
 
-def make_https_request(logger, fb_url):
+def make_https_request(logger, jobs_manager, fb_url, timeout_attempt=0):
     """
     Utility function so that the script can loop over paged results.
     """
@@ -44,17 +45,28 @@ def make_https_request(logger, fb_url):
         req.raise_for_status()
     except requests.exceptions.ConnectionError:
         logger.error("Connection Error while fetching the cert list")
-        exit(0)
+        jobs_manager.record_job_error()
+        exit(1)
     except requests.exceptions.HTTPError:
         # This occasionally triggers on false domain names
         # For instance, we are holding .web but it isn't officially recognized yet.
         # Therefore, Facebook will error on it but it is safe to continue processing.
         logger.warning("HTTP Error while fetching the cert list")
         return None
+    except Timeout:
+        if timeout_attempt == 0:
+            logger.warning("Timeout occurred. Attempting again...")
+            result = make_https_request(logger, jobs_manager, fb_url, timeout_attempt=1)
+            return result
+        else:
+            logger.error("Too many timeouts. Exiting")
+            jobs_manager.record_job_error()
+            exit(1)
     except requests.exceptions.RequestException as err:
         logger.error("Request exception while fetching the cert list")
         logger.error(str(err))
-        exit(0)
+        jobs_manager.record_job_error()
+        exit(1)
 
     if req.status_code != 200:
         return None
@@ -62,7 +74,7 @@ def make_https_request(logger, fb_url):
     return json.loads(req.text)
 
 
-def fetch_domain(logger, fbc, access_token, zone):
+def fetch_domain(logger, jobs_manager, fbc, access_token, zone):
     """
     Fetch the results for the specified zone.
     """
@@ -76,7 +88,7 @@ def fetch_domain(logger, fbc, access_token, zone):
     cert_results = []
 
     while fb_url is not None:
-        result = make_https_request(logger, fb_url)
+        result = make_https_request(logger, jobs_manager, fb_url)
 
         if result is None:
             logger.warning("Error querying: " + zone)
@@ -140,7 +152,7 @@ def main():
 
     for zone in zones:
         time.sleep(15)
-        results = fetch_domain(logger, fb_connector, access_token, zone)
+        results = fetch_domain(logger, jobs_manager, fb_connector, access_token, zone)
 
         if results is None:
             logger.warning("ERROR looking up: " + zone)
@@ -158,7 +170,7 @@ def main():
             cert['facebook_id'] = result['id']
 
             if ct_collection.count_documents({'fingerprint_sha256': cert['fingerprint_sha256']}) == 0:
-                mongo_connector.perform_insert(ct_collection, cert)
+                mongo_connector.perform_insert(ct_collection,cert)
             else:
                 if ct_collection.count_documents({'fingerprint_sha256': cert['fingerprint_sha256'], 'facebook_id': result['id'], 'zones': zone}) == 0:
                     ct_collection.update_one({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {'marinus_updated': datetime.now(), 'facebook_id': result['id']}, "$addToSet": {'zones': zone}})
@@ -172,3 +184,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
