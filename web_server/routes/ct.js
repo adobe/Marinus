@@ -267,7 +267,7 @@ module.exports = function(envConfig) {
        if (req.query.hasOwnProperty('count') && req.query.count === '1') {
            promise = ct.getSSLOrgCountPromise(org);
        } else {
-           promise = ct.getRecordsBySSLOrgPromise(org);
+           promise = ct.getCertTransOrgPromise(org);
        }
        promise.then(function(data) {
            if (data === null) {
