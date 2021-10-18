@@ -79,7 +79,6 @@ def main():
 
     round_two = []
 
-
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
     vt_collection = mongo_connector.get_virustotal_connection()
