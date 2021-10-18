@@ -157,7 +157,7 @@ class InfobloxExtattrManager(object):
             else:
                 self.APIH.handle_api_error(
                     'Unable to parse response JSON for 20 zones: ' + repr(err),
-                    'get_infoblox_' + self.record_type.lower() + '_extattr',
+                    'get_infoblox_' + self.record_type.lower() + '_extattrs',
                 )
         else:
             for response_object in response_result:
@@ -169,7 +169,7 @@ class InfobloxExtattrManager(object):
                 try:
                     self.__sanitise_response(response_object)
                 except IndexError as err:
-                    self.APIH.handle_api_error(err, 'get_infoblox_' + self.record_type.lower() + '_extattr')
+                    self.APIH.handle_api_error(err, 'get_infoblox_' + self.record_type.lower() + '_extattrs')
                 else:
                     self.__insert_extattrs(response_object)
 
@@ -201,9 +201,9 @@ class InfobloxExtattrManager(object):
             response = self.__backoff_api_retry()
             response.raise_for_status()
         except requests.exceptions.HTTPError as herr:
-            self.APIH.handle_api_error(herr, 'get_infoblox_' + self.record_type.lower() + '_extattr')
+            self.APIH.handle_api_error(herr, 'get_infoblox_' + self.record_type.lower() + '_extattrs')
         except requests.exceptions.RequestException as err:
-            self.APIH.handle_api_error(err, 'get_infoblox_' + self.record_type.lower() + '_extattr')
+            self.APIH.handle_api_error(err, 'get_infoblox_' + self.record_type.lower() + '_extattrs')
         else:
             self.next_page_id = None
             self.__infoblox_response_handler(response)
