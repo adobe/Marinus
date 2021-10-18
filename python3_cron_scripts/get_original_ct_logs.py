@@ -45,6 +45,7 @@ import logging
 import os
 import requests
 import struct
+import time
 
 from datetime import datetime
 from OpenSSL import crypto
@@ -78,13 +79,14 @@ def make_https_request(logger, url, jobs_manager, download=False, timeout_attemp
     try:
         req = requests_retry_session().get(url, timeout=120)
         req.raise_for_status()
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.ConnectionError as c_err:
         logger.error("Connection Error while fetching the cert list")
+        logger.error(str(c_err))
         jobs_manager.record_job_error()
         exit(1)
-    except requests.exceptions.HTTPError:
+    except requests.exceptions.HTTPError as h_err:
         logger.warning("HTTP Error while fetching the cert list")
-        jobs_manager.record_job_error()
+        logger.warning(str(h_err))
         return None
     except requests.exceptions.RequestException as err:
         logger.error("Request exception while fetching the cert list")
@@ -106,6 +108,7 @@ def make_https_request(logger, url, jobs_manager, download=False, timeout_attemp
         exit(1)
 
     if req.status_code != 200:
+        logger.error('ERROR: Status code ' + str(req.status_code))
         return None
 
     if download:
@@ -129,6 +132,16 @@ def fetch_certificate_batch(logger, url, starting_index, ending_index, jobs_mana
     that the ending_index may be ignored.
     """
     result = make_https_request(logger, url + "/ct/v1/get-entries?start=" + str(starting_index) + "&end=" + str(ending_index), jobs_manager)
+
+    if result is None:
+        logger.error('ERROR on request with starting index ' + str(starting_index) + ' and ending index ' + str(ending_index))
+        time.sleep(600)
+        result = make_https_request(logger, url + "/ct/v1/get-entries?start=" + str(starting_index) + "&end=" + str(ending_index), jobs_manager)
+
+    if result is None:
+        jobs_manager.record_job_error()
+        exit(1)
+
     return json.loads(result)
 
 
