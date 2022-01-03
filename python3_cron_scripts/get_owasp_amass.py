@@ -28,13 +28,14 @@ import argparse
 import json
 import logging
 import os.path
+import re
 import subprocess
 import time
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil import parser
 
-from libs3 import DNSManager, JobsManager, MongoConnector
+from libs3 import JobsManager, RemoteMongoConnector
 from libs3.ZoneManager import ZoneManager
 from libs3.LoggingUtil import LoggingUtil
 
@@ -47,31 +48,6 @@ def is_tracked_zone(cname, zones):
         if cname.endswith("." + zone) or cname == zone:
             return True
     return False
-
-
-def record_finding(dns_manager, finding):
-    """
-    Record a relevant line in the database.
-    """
-    new_record = {}
-    new_record['zone'] = finding['domain']
-    new_record['type'] = finding['type']
-
-    if new_record['type'] == 'a' or new_record['type'] == 'aaaa':
-        new_record['value'] = finding['addr']
-    elif new_record['type'] == 'ns' or \
-        new_record['type'] == 'cname' or \
-        new_record['type'] == 'mx' or \
-        new_record['type'] == 'ptr':
-        new_record['value'] = finding['target_name']
-    else:
-        print("ERROR! Unrecognized type: " + finding['type'])
-        return
-
-    new_record['fqdn'] = finding['name']
-    new_record['created'] = datetime.now()
-    new_record['status'] = 'unknown'
-    dns_manager.insert_record(new_record, "amass:" + finding['source'])
 
 
 def check_save_location(save_location):
@@ -89,7 +65,7 @@ def main():
     """
     logger = LoggingUtil.create_log(__name__)
 
-    mongo_connector = MongoConnector.MongoConnector()
+    mongo_connector = RemoteMongoConnector.RemoteMongoConnector()
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -97,24 +73,32 @@ def main():
 
     jobs_manager = JobsManager.JobsManager(mongo_connector, 'owasp_amass')
 
-    zones = ZoneManager.get_distinct_zones(mongo_connector)
-    dns_manager = DNSManager.DNSManager(mongo_connector)
+    amass_collection = mongo_connector.get_owasp_amass_connection()
 
     output_dir = "./amass_files/"
 
     arg_parser = argparse.ArgumentParser(description='Run the OWASP Amass tool and store the results in the database.')
     arg_parser.add_argument('--config_file', required=False, help='An optional Amass config file. Otherwise, defaults will be used.')
     arg_parser.add_argument('--amass_path', required=True, help='The path to the amass binary')
-    arg_parser.add_argument('--output_dir', default=output_dir, help="The path where to save Amass files.")
+    arg_parser.add_argument('--output_dir', default=output_dir, help="The local path where to save Amass files.")
+    arg_parser.add_argument('--docker_output_dir', default=output_dir, help="The path within Docker where to save Amass files.")
     arg_parser.add_argument('--amass_version', type=int, default=3, help='The version of OWASP Amass being used.')
+    arg_parser.add_argument('--amass_mode', required=False, type=str, default="local", choices=["local", "docker"], help='The version of OWASP Amass being used.')
+    arg_parser.add_argument('--amass_timeout', required=False, type=str, help='The timeout value for the Amass command line')
+    arg_parser.add_argument('--exclude_zones', required=False, type=str, default="", help='A comma delimited list of sub-strings used to exclude zones')
+    arg_parser.add_argument('--exclude_regex', required=False, type=str, default="", help='Exclude a list of domains containing a substring')
+    arg_parser.add_argument('--created_within_last', required=False, type=int, default=0, help='Only process zones created within the last x days')
+    arg_parser.add_argument('--if_list', required=False, type=str, default="", help='The amass -if list of sources to include. Can\'t be used with -ef.')
+    arg_parser.add_argument('--ef_list', required=False, type=str, default="", help='The amass -ef list of sources to exclude. Can\'t be used with -if.')
     arg_parser.add_argument('--sleep', type=int, default=5, help='Sleep time in seconds between amass runs so as not to overuse service limits.')
     args = arg_parser.parse_args()
 
-    if not os.path.isfile(args.amass_path):
+    if args.amass_mode == "local" and not os.path.isfile(args.amass_path):
         logger.error("Incorrect amass_path argument provided")
         exit(1)
 
-    if 'config_file' in args and not os.path.isfile(args.config_file):
+    # In Docker mode, this would be relative to the Docker path and not the system path
+    if args.amass_mode == "local" and 'config_file' in args and not os.path.isfile(args.config_file):
         logger.error("Incorrect config_file location")
         exit(1)
 
@@ -123,9 +107,30 @@ def main():
         if not output_dir.endswith("/"):
             output_dir = output_dir + "/"
 
-    check_save_location(output_dir)
+    # In Docker mode, this would be relative to the Docker path and not the system path
+    if args.amass_mode == "local":
+        check_save_location(output_dir)
 
     jobs_manager.record_job_start()
+
+    if args.created_within_last > 0:
+        zone_collection = mongo_connector.get_zone_connection()
+        past_create_date = datetime.now() - timedelta(days=args.created_within_last)
+        results = mongo_connector.perform_find(zone_collection, {'created': {"$gt": past_create_date}})
+        zones = []
+        for entry in results:
+            zones.append(entry['zone'])
+    elif args.exclude_regex is not None and len(args.exclude_regex) > 0:
+        exclude_re = re.compile('.*' + args.exclude_regex + '.*')
+        zone_collection = mongo_connector.get_zone_connection()
+        results = mongo_connector.perform_find(zone_collection, {"$and": [{"zone": {"$not": exclude_re}},
+                                            {'status': {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}}]})
+        zones = []
+        for entry in results:
+            zones.append(entry['zone'])
+    else:
+        zones = ZoneManager.get_distinct_zones(mongo_connector)
+
 
     # If the job died half way through, you can skip over domains that were already processed
     # when you restart the script.
@@ -134,13 +139,36 @@ def main():
         if not os.path.isfile(output_dir + zone + "-do.json"):
             new_zones.append(zone)
 
+    exclude_strings = args.exclude_zones.split()
+
+    # If exclude_strings was specified, then remove any matching zones
+    if len(exclude_strings) > 0:
+        for zone in new_zones:
+            for entry in exclude_strings:
+                if entry in zone:
+                    new_zones.remove(zone)
+
+    # Recently updated zones
+    # This helps reduce the number of redundant scans if you stop and restart
+    all_dns_collection = mongo_connector.get_all_dns_connection()
+    scrub_date = datetime.now() - timedelta(days=120, hours=9)
+    recent_zones = mongo_connector.perform_distinct(all_dns_collection, 'zone', {'sources.source': {"$regex": "amass:.*"}, 'sources.updated': {"$gt": scrub_date}})
+    for zone in recent_zones:
+        if zone in new_zones:
+            new_zones.remove(zone)
+
+    logger.info("New Zones Length: " + str(len(new_zones)))
+
     for zone in new_zones:
         # Pace out calls to the Amass services
         time.sleep(args.sleep)
 
-        command_line = []
+        if args.amass_mode == "local":
+            command_line = []
 
-        command_line.append(args.amass_path)
+            command_line.append(args.amass_path)
+        else:
+            command_line = args.amass_path.split()
 
         if int(args.amass_version) >= 3:
             command_line.append("enum")
@@ -149,12 +177,25 @@ def main():
             command_line.append("-config")
             command_line.append(args.config_file)
 
+        if args.amass_timeout:
+            command_line.append("-timeout")
+            command_line.append(args.amass_timeout)
+
+        if args.if_list:
+            command_line.append("-if")
+            command_line.append(args.if_list)
+
+        if args.ef_list:
+            command_line.append("-ef")
+            command_line.append(args.ef_list)
+
         command_line.append("-d")
         command_line.append(zone)
         command_line.append("-src")
         command_line.append("-ip")
-        command_line.append("-o")
-        command_line.append(output_dir + zone + "-do.json")
+        command_line.append("-nolocaldb")
+        command_line.append("-json")
+        command_line.append(args.docker_output_dir + zone + "-do.json")
 
         try:
             subprocess.check_call(command_line)
@@ -175,14 +216,17 @@ def main():
             output.close()
 
             for finding in json_data:
-                if 'type' in finding and finding['type'] == 'infrastructure' or finding['type'] == 'domain':
-                    # Not currently recording
-                    continue
-                elif is_tracked_zone(finding['domain'], zones):
-                    record_finding(dns_manager, finding)
-                else:
-                    # logger.debug("Skipping: " + finding['domain'] + " type: " + finding['type'])
-                    pass
+                finding['timestamp'] = datetime.now()
+                """
+                Results from amass squash the cname records and only provides the final IPs.
+                Therefore, we have to re-do the DNS lookup in download_from_remote_database.
+                This collection is just a recording of the original results
+                """
+                mongo_connector.perform_insert(amass_collection, finding)
+
+
+    # Clear old findings
+    amass_collection.delete_many({'timestamp': {"$lt": now}})
 
     jobs_manager.record_job_complete()
 
