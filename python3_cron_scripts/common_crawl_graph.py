@@ -31,16 +31,16 @@ Common Crawl methodology is not consistent from run to run.
 import argparse
 import json
 import logging
-import requests
 import string
 import subprocess
 import time
 from datetime import datetime
 
-from libs3 import MongoConnector, DNSManager, GoogleDNS, JobsManager
-from libs3.ZoneManager import ZoneManager
-from libs3.LoggingUtil import LoggingUtil
+import requests
 
+from libs3 import DNSManager, GoogleDNS, JobsManager, MongoConnector
+from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 # NOTE: This can be overridden by the command-line parameter
 # CURRENT_FILE_LIST = "http://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2017-18-nov-dec-jan/host/cc-main-2017-18-nov-dec-jan-host-vertices.paths.gz"

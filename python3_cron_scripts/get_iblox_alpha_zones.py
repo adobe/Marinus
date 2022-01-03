@@ -23,16 +23,16 @@ This script should be the first Infoblox script executed and only takes about tw
 This script is only useful to Infoblox customers.
 """
 
-import backoff
 import logging
 import re
-import requests
 import string
-
 from datetime import datetime
+
+import backoff
+import requests
 from requests.auth import HTTPBasicAuth
 
-from libs3 import MongoConnector, ZoneIngestor, InfobloxHelper, APIHelper, JobsManager
+from libs3 import APIHelper, InfobloxHelper, JobsManager, MongoConnector, ZoneIngestor
 from libs3.LoggingUtil import LoggingUtil
 
 

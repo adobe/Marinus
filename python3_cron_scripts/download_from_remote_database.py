@@ -17,11 +17,17 @@ This script is only necessary if a remote MongoDB is set up.
 This script can be run daily.
 """
 
-from datetime import datetime, timedelta
 import logging
 import time
+from datetime import datetime, timedelta
 
-from libs3 import MongoConnector, RemoteMongoConnector, JobsManager, DNSManager, GoogleDNS
+from libs3 import (
+    DNSManager,
+    GoogleDNS,
+    JobsManager,
+    MongoConnector,
+    RemoteMongoConnector,
+)
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
 

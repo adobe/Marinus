@@ -34,10 +34,9 @@ import networkx as nx
 from netaddr import IPAddress, IPNetwork
 from networkx.readwrite import json_graph
 
-from libs3 import MongoConnector, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
-
+from libs3.ZoneManager import ZoneManager
 
 REPLACE_CHAR = "!"
 

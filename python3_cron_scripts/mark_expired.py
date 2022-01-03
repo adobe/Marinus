@@ -27,13 +27,13 @@ with international domains.
 import json
 import logging
 import re
-
 from datetime import datetime, timedelta
+
 from tld import get_tld
 
-from libs3 import MongoConnector, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def get_primary_zones(logger, zones):

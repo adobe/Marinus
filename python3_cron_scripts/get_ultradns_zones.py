@@ -17,12 +17,13 @@ This script should be run prior to executing get_ultradns_zones_info.
 This script assumes that you are an UltraDNS customer.
 """
 
-import requests
 import json
 import logging
-
 from datetime import datetime
-from libs3 import APIHelper, ZoneIngestor, UltraDNSHelper
+
+import requests
+
+from libs3 import APIHelper, UltraDNSHelper, ZoneIngestor
 from libs3.LoggingUtil import LoggingUtil
 
 

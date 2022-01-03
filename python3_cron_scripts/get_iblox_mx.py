@@ -17,10 +17,9 @@ This script is only useful to Infoblox customers.
 """
 
 import logging
-
 from datetime import datetime
 
-from libs3 import InfobloxDNSManager, MongoConnector, JobsManager
+from libs3 import InfobloxDNSManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 
 

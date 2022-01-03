@@ -25,16 +25,16 @@ import argparse
 import json
 import logging
 import os
-import requests
 import time
-
 from datetime import datetime
+
+import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
-from libs3 import MongoConnector, DNSManager, GoogleDNS, X509Parser, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import DNSManager, GoogleDNS, JobsManager, MongoConnector, X509Parser
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def requests_retry_session(

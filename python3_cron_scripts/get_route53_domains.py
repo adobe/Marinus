@@ -19,16 +19,16 @@ providing credentials to the boto3 libary are detailed here:
 https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#guide-configuration
 """
 
-import boto3
 import copy
 import logging
 import time
-
 from datetime import datetime
 
-from libs3 import MongoConnector, DNSManager, ZoneIngestor, JobsManager
-from libs3.ZoneManager import ZoneManager
+import boto3
+
+from libs3 import DNSManager, JobsManager, MongoConnector, ZoneIngestor
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def update_records(r53_client, dns_manager, zone_data, r53_source):

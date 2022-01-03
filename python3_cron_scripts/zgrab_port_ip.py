@@ -44,15 +44,14 @@ import random
 import subprocess
 import threading
 import time
-
 from datetime import datetime, timedelta
+
 from bson.objectid import ObjectId
 from dateutil.parser import parse
 
-from libs3 import RemoteMongoConnector, JobsManager, IPManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import IPManager, JobsManager, RemoteMongoConnector
 from libs3.LoggingUtil import LoggingUtil
-
+from libs3.ZoneManager import ZoneManager
 
 # Globals that need to maintain consistency between threads.
 global_exit_flag = 0

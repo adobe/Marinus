@@ -27,13 +27,13 @@ as a FLD.
 
 import logging
 import time
-
 from datetime import datetime
+
 from tld import get_fld
 
-from libs3 import DNSManager, MongoConnector, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import DNSManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def is_tracked_zone(cname, zones):

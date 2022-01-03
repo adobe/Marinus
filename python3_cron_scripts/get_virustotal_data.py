@@ -19,12 +19,11 @@ Therefore, we use the free API in order to save the paid API credits for more cr
 
 import logging
 import time
-
 from datetime import datetime
 
-from libs3 import MongoConnector, VirusTotal, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import JobsManager, MongoConnector, VirusTotal
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def main():

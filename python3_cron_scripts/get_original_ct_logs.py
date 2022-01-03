@@ -43,19 +43,19 @@ import base64
 import json
 import logging
 import os
-import requests
 import struct
 import time
-
 from datetime import datetime
+
+import requests
 from OpenSSL import crypto
 from requests.adapters import HTTPAdapter
 from requests.exceptions import Timeout
 from urllib3.util import Retry
 
-from libs3 import MongoConnector, X509Parser, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import JobsManager, MongoConnector, X509Parser
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def requests_retry_session(retries=5, backoff_factor=7, status_forcelist=[408, 500, 502, 503, 504], session=None,):

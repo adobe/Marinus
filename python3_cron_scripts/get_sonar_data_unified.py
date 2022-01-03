@@ -21,16 +21,23 @@ import ipaddress
 import json
 import logging
 import os
-import requests
 import subprocess
 import sys
 import time
-
 from datetime import datetime
 
-from libs3 import DNSManager, MongoConnector, RemoteMongoConnector, Rapid7, JobsManager, GoogleDNS
-from libs3.ZoneManager import ZoneManager
+import requests
+
+from libs3 import (
+    DNSManager,
+    GoogleDNS,
+    JobsManager,
+    MongoConnector,
+    Rapid7,
+    RemoteMongoConnector,
+)
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def is_running(process):

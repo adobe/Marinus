@@ -33,20 +33,19 @@ https://github.com/zmap/zgrab2
 import argparse
 import json
 import logging
-import queue
 import os
+import queue
 import random
 import subprocess
-import time
 import threading
-
-from dateutil.parser import parse
+import time
 from datetime import datetime, timedelta
 
-from libs3 import RemoteMongoConnector, JobsManager, IPManager
-from libs3.ZoneManager import ZoneManager
-from libs3.LoggingUtil import LoggingUtil
+from dateutil.parser import parse
 
+from libs3 import IPManager, JobsManager, RemoteMongoConnector
+from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 # Constants for the threads
 global_exit_flag = 0

@@ -31,13 +31,13 @@ import os.path
 import re
 import subprocess
 import time
-
 from datetime import datetime, timedelta
+
 from dateutil import parser
 
 from libs3 import JobsManager, RemoteMongoConnector
-from libs3.ZoneManager import ZoneManager
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def is_tracked_zone(cname, zones):

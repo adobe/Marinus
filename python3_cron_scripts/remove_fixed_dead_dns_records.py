@@ -21,13 +21,13 @@ Once foo.example.org is deleted, we can remove it from the Dead DNS tracking lis
 
 import json
 import logging
-import requests
 import time
-
 from datetime import datetime
+
+import requests
 from bson.objectid import ObjectId
 
-from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
+from libs3 import DNSManager, GoogleDNS, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 
 

@@ -19,11 +19,11 @@ extattr functionality.
 """
 
 import logging
-
 from datetime import datetime
 
-from libs3 import InfobloxExtattrManager, MongoConnector, JobsManager
+from libs3 import InfobloxExtattrManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
+
 
 def main():
     """

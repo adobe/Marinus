@@ -20,10 +20,9 @@ This script requires a Cisco Umbrella subscription.
 import json
 import logging
 import re
-
 from datetime import datetime
 
-from libs3 import MongoConnector, Umbrella, ZoneIngestor, JobsManager
+from libs3 import JobsManager, MongoConnector, Umbrella, ZoneIngestor
 from libs3.LoggingUtil import LoggingUtil
 
 

@@ -24,12 +24,11 @@ The original source is removed because it technically no longer exists there.
 The "{source}_saved" indicates the original source while also indicating that Marinus is now tracking the entry its own.
 """
 import logging
-
 from datetime import datetime
 
-from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager, IPManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import DNSManager, GoogleDNS, IPManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def is_tracked_zone(cname, zones):

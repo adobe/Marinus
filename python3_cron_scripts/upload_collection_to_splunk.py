@@ -27,11 +27,11 @@ This script could be altered to upload any collection that is relevant to your o
 
 import argparse
 import logging
-import requests
-
 from datetime import datetime
 
-from libs3 import MongoConnector, SplunkHECManager, JobsManager
+import requests
+
+from libs3 import JobsManager, MongoConnector, SplunkHECManager
 from libs3.LoggingUtil import LoggingUtil
 
 

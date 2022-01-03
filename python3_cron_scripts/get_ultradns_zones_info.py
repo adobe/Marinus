@@ -17,11 +17,11 @@ The get_ultradns_zones script should be executed prior to this script.
 This script assumes that you are an UltraDNS customer.
 """
 
-import requests
 import json
 import logging
-
 from datetime import datetime
+
+import requests
 from netaddr import IPAddress
 from netaddr.core import AddrFormatError
 

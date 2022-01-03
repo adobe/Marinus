@@ -21,15 +21,14 @@ import json
 import logging
 import re
 import time
-
 from datetime import datetime
 
 import requests
 from tld import get_fld
 
-from libs3 import DNSManager, MongoConnector, GoogleDNS, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import DNSManager, GoogleDNS, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def get_fld_from_value(value, zone):

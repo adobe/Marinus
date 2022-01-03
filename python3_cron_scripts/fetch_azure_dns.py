@@ -21,14 +21,13 @@ https://docs.microsoft.com/en-us/python/api/azure-mgmt-dns/azure.mgmt.dns?view=a
 """
 
 import logging
-
 from datetime import datetime
 
 from azure.mgmt.dns.models import ZoneType
 
-from libs3 import ZoneIngestor, AzureConnector, DNSManager, MongoConnector, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import AzureConnector, DNSManager, JobsManager, MongoConnector, ZoneIngestor
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def split_id(url_id):

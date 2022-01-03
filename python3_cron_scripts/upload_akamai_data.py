@@ -18,10 +18,9 @@ At that time, it would be good to confirm that the Akamai IP ranges have not cha
 """
 
 import logging
-
 from datetime import datetime
 
-from libs3 import MongoConnector, JobsManager
+from libs3 import JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 
 logger = LoggingUtil.create_log(__name__)

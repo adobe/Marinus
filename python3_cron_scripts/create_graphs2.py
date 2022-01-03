@@ -32,10 +32,9 @@ import networkx as nx
 from networkx.readwrite import json_graph
 from tld import get_fld
 
-from libs3 import DNSManager, MongoConnector, JobsManager, IPManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import DNSManager, IPManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
-
+from libs3.ZoneManager import ZoneManager
 
 # Constant for dealing with Mongo not allowing "." in key names
 REPLACE_CHAR = "!"

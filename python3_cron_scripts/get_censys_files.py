@@ -21,7 +21,6 @@ import logging
 import re
 import subprocess
 import time
-
 from datetime import datetime
 
 import requests

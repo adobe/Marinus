@@ -26,10 +26,9 @@ This script requires a PassiveTotal subscription.
 import json
 import logging
 import re
-
 from datetime import datetime
 
-from libs3 import MongoConnector, PassiveTotal, ZoneIngestor, JobsManager
+from libs3 import JobsManager, MongoConnector, PassiveTotal, ZoneIngestor
 from libs3.LoggingUtil import LoggingUtil
 
 

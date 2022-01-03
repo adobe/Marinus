@@ -32,10 +32,9 @@ import subprocess
 import sys
 from datetime import datetime
 
-from libs3 import RemoteMongoConnector, IPManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import IPManager, RemoteMongoConnector
 from libs3.LoggingUtil import LoggingUtil
-
+from libs3.ZoneManager import ZoneManager
 
 # Constants for output files
 FILENAME_FILE = "filename.txt"

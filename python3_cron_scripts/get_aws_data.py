@@ -17,13 +17,12 @@ It has no dependencies on other scripts.
 
 import json
 import logging
-import requests
-
 from datetime import datetime
 
-from libs3 import MongoConnector, JobsManager
-from libs3.LoggingUtil import LoggingUtil
+import requests
 
+from libs3 import JobsManager, MongoConnector
+from libs3.LoggingUtil import LoggingUtil
 
 JSON_LOCATION = "https://ip-ranges.amazonaws.com/ip-ranges.json"
 

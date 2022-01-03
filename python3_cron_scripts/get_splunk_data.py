@@ -20,10 +20,9 @@ useful in Marinus.
 
 import json
 import logging
-
 from datetime import datetime
 
-from libs3 import MongoConnector, SplunkQueryManager, JobsManager, DNSManager
+from libs3 import DNSManager, JobsManager, MongoConnector, SplunkQueryManager
 from libs3.LoggingUtil import LoggingUtil
 
 

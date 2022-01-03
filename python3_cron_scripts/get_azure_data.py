@@ -25,13 +25,13 @@ https://docs.python.org/3/library/xml.html#xml-vulnerabilities
 """
 
 import logging
-import requests
-
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from html.parser import HTMLParser
 
-from libs3 import MongoConnector, JobsManager
+import requests
+
+from libs3 import JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 
 XML_LOCATION = "https://www.microsoft.com/en-us/download/confirmation.aspx?id=41653"

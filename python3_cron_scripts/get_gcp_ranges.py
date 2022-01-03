@@ -16,10 +16,9 @@ https://cloud.google.com/compute/docs/faq#find_ip_range
 """
 
 import logging
-
 from datetime import datetime
 
-from libs3 import GoogleDNS, MongoConnector, JobsManager
+from libs3 import GoogleDNS, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 
 

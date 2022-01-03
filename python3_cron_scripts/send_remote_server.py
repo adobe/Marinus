@@ -26,10 +26,9 @@ This script is only necessary if a remote MongoDB is deployed.
 import argparse
 import logging
 import sys
-
 from datetime import datetime, timedelta
 
-from libs3 import MongoConnector, RemoteMongoConnector, JobsManager
+from libs3 import JobsManager, MongoConnector, RemoteMongoConnector
 from libs3.LoggingUtil import LoggingUtil
 
 

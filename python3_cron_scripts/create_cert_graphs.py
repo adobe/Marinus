@@ -26,10 +26,9 @@ from datetime import datetime
 import networkx as nx
 from networkx.readwrite import json_graph
 
-from libs3 import DNSManager, MongoConnector, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import DNSManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
-
+from libs3.ZoneManager import ZoneManager
 
 
 def get_current_ct_certificates(ct_connection, zone):

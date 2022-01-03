@@ -27,14 +27,14 @@ This script assumes that all the tracked zones have already been collected.
 import json
 import logging
 import time
-import whois
-
 from datetime import datetime, timedelta
+
+import whois
 from tld import get_fld
 
-from libs3 import RemoteMongoConnector, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import JobsManager, RemoteMongoConnector
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def get_zones(mongo_connector):

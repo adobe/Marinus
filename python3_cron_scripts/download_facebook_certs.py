@@ -30,10 +30,9 @@ from datetime import datetime
 import requests
 from requests.exceptions import Timeout
 
-from libs3 import FacebookConnector, MongoConnector, X509Parser, JobsManager
-from libs3.ZoneManager import ZoneManager
+from libs3 import FacebookConnector, JobsManager, MongoConnector, X509Parser
 from libs3.LoggingUtil import LoggingUtil
-
+from libs3.ZoneManager import ZoneManager
 
 
 def make_https_request(logger, jobs_manager, fb_url, timeout_attempt=0):

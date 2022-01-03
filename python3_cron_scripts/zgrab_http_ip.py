@@ -39,14 +39,13 @@ import random
 import subprocess
 import threading
 import time
-
-from dateutil.parser import parse
 from datetime import datetime, timedelta
 
-from libs3 import RemoteMongoConnector, JobsManager, IPManager
-from libs3.ZoneManager import ZoneManager
-from libs3.LoggingUtil import LoggingUtil
+from dateutil.parser import parse
 
+from libs3 import IPManager, JobsManager, RemoteMongoConnector
+from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 global_exit_flag = 0
 global_queue_lock = threading.Lock()

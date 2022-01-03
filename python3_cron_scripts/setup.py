@@ -21,9 +21,9 @@ import argparse
 import ipaddress
 import random
 import string
-
 from datetime import datetime
-from libs3 import MongoConnector, ZoneIngestor, JobsManager
+
+from libs3 import JobsManager, MongoConnector, ZoneIngestor
 
 
 def create_collections(m_connection):
