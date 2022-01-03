@@ -14,12 +14,11 @@
 This module allows scripts to perform paginated queries against a Splunk server.
 """
 
+import errno
 import json
 import logging
 import time
-
 from socket import error as SocketError
-import errno
 
 import splunklib.client as client
 import splunklib.results as results
@@ -48,15 +47,13 @@ class SplunkQueryManager(object):
     # The logger
     _logger = None
 
-
     def _log(self):
         """
         Get the log
         """
         return logging.getLogger(__name__)
 
-
-    def __init__(self, config_file="", log_level = None):
+    def __init__(self, config_file="", log_level=None):
         """
         Initialize the query manager
         """
@@ -74,13 +71,11 @@ class SplunkQueryManager(object):
         self._OFFSET = 0
         self._COUNT = 100
 
-
     def _create_job(self, search_query):
         """
         Create the new job
         """
         return self._CLIENT.jobs.create(search_query, **{"exec_mode": "blocking"})
-
 
     def do_search(self, search_query, count):
         """
@@ -98,16 +93,13 @@ class SplunkQueryManager(object):
             result_stream = self._JOB.results()
             return results.ResultsReader(result_stream)
 
-
-        kwargs_paginate = {"count": self._COUNT,
-                            "offset": self._OFFSET}
+        kwargs_paginate = {"count": self._COUNT, "offset": self._OFFSET}
 
         blocksearch_results = self._JOB.results(**kwargs_paginate)
 
         self._OFFSET = self._OFFSET + self._COUNT
 
         return results.ResultsReader(blocksearch_results)
-
 
     def get_next_page(self):
         """
@@ -116,8 +108,7 @@ class SplunkQueryManager(object):
         if self._OFFSET >= self.RESULTCOUNT:
             return None
 
-        kwargs_paginate = {"count": self._COUNT,
-                            "offset": self._OFFSET}
+        kwargs_paginate = {"count": self._COUNT, "offset": self._OFFSET}
 
         try:
             blocksearch_results = self._JOB.results(**kwargs_paginate)
@@ -138,7 +129,9 @@ class SplunkQueryManager(object):
                 try:
                     blocksearch_results = self._JOB.results(**kwargs_paginate)
                 except SocketError as socket_error:
-                    self._logger.error("Second Socket Timeout Error! " + str(socket_error))
+                    self._logger.error(
+                        "Second Socket Timeout Error! " + str(socket_error)
+                    )
                     exit(1)
 
         self._OFFSET = self._OFFSET + self._COUNT

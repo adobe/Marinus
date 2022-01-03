@@ -18,110 +18,199 @@ https://developers.google.com/speed/public-dns/docs/dns-over-https
 
 import json
 import logging
-import requests
 
+import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
 
 class GoogleDNS(object):
 
-    DNS_TYPES = {"a": 1, "ns": 2, "cname": 5, "soa": 6, "ptr": 12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33, "naptr": 35, "ds": 43, "rrsig": 46, "dnskey": 48, "spf": 99, "any": 255, "caa": 257}
+    DNS_TYPES = {
+        "a": 1,
+        "ns": 2,
+        "cname": 5,
+        "soa": 6,
+        "ptr": 12,
+        "hinfo": 13,
+        "mx": 15,
+        "txt": 16,
+        "aaaa": 28,
+        "srv": 33,
+        "naptr": 35,
+        "ds": 43,
+        "rrsig": 46,
+        "dnskey": 48,
+        "spf": 99,
+        "any": 255,
+        "caa": 257,
+    }
 
     @staticmethod
     def fetch_DNS_records(host, dns_type=None):
-            """
-            Use Google DNS over HTTPS to lookup host
-            DNS Type mappings: "a":1, "ns":2, "cname":5, "soa":6, "ptr":12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33,
-                               "naptr": 35, "ds": 43, "rrsig": 46, "dnskey": 48, "spf": 99, "any": 255
-            It should be noted, that a DNS query with a specified dns_type will return only the immediate answer.
-            However, a request without a dns_type will be recursive for queries such as cname records.
-            Therefore, you would get a result array such as:
-            [{"fqdn": "cdn.example.org", "type": "cname", "value": "example.amazonaws.com"}, {"fqdn": "example.amazonaws.com", "type": "1", "value": "1.2.3.4"}]
+        """
+        Use Google DNS over HTTPS to lookup host
+        DNS Type mappings: "a":1, "ns":2, "cname":5, "soa":6, "ptr":12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33,
+                           "naptr": 35, "ds": 43, "rrsig": 46, "dnskey": 48, "spf": 99, "any": 255
+        It should be noted, that a DNS query with a specified dns_type will return only the immediate answer.
+        However, a request without a dns_type will be recursive for queries such as cname records.
+        Therefore, you would get a result array such as:
+        [{"fqdn": "cdn.example.org", "type": "cname", "value": "example.amazonaws.com"}, {"fqdn": "example.amazonaws.com", "type": "1", "value": "1.2.3.4"}]
 
-            :param host: The host
-            :param dns_type: Either a string (e.g. "AAAA") or the corresponding number for that type.
-            :return: An array of results containing the "fqdn", type", and "value" parameters or [] if nothing matched
-            """
+        :param host: The host
+        :param dns_type: Either a string (e.g. "AAAA") or the corresponding number for that type.
+        :return: An array of results containing the "fqdn", type", and "value" parameters or [] if nothing matched
+        """
 
-            def _requests_retry_session(retries=5, backoff_factor=7, status_forcelist=[408, 500, 502, 503, 504],session=None,):
-                """
-                A Closure method for this static method.
-                """
-                session = session or requests.Session()
-                retry = Retry(
-                    total=retries,
-                    read=retries,
-                    connect=retries,
-                    backoff_factor=backoff_factor,
-                    status_forcelist=status_forcelist,
+        def _requests_retry_session(
+            retries=5,
+            backoff_factor=7,
+            status_forcelist=[408, 500, 502, 503, 504],
+            session=None,
+        ):
+            """
+            A Closure method for this static method.
+            """
+            session = session or requests.Session()
+            retry = Retry(
+                total=retries,
+                read=retries,
+                connect=retries,
+                backoff_factor=backoff_factor,
+                status_forcelist=status_forcelist,
+            )
+            adapter = HTTPAdapter(max_retries=retry)
+            session.mount("http://", adapter)
+            session.mount("https://", adapter)
+            return session
+
+        if host is None or host == "":
+            return []
+
+        url = "https://dns.google.com/resolve?name=" + host
+
+        if dns_type is not None:
+            url = url + "&type=" + str(dns_type)
+
+        logger = logging.getLogger(__name__)
+
+        try:
+            req = _requests_retry_session().get(url, timeout=120)
+        except Exception as ex:
+            logger.error("Google DNS request attempts failed!")
+            logger.error(str(ex))
+            return []
+
+        if req.status_code != 200:
+            logger.error("Error looking up: " + host)
+            return []
+
+        nslookup_results = json.loads(req.text)
+
+        if nslookup_results["Status"] != 0:
+            logger.error("Status error looking up: " + host)
+            return []
+
+        if "Answer" not in nslookup_results:
+            logger.warning("Could not find Answer in DNS result for " + host)
+            # logger.debug (req.text)
+            return []
+
+        results = []
+        for answer in nslookup_results["Answer"]:
+            if answer["type"] == 1:
+                results.append(
+                    {"fqdn": answer["name"][:-1], "type": "a", "value": answer["data"]}
                 )
-                adapter = HTTPAdapter(max_retries=retry)
-                session.mount('http://', adapter)
-                session.mount('https://', adapter)
-                return session
+            elif answer["type"] == 2:
+                results.append(
+                    {
+                        "fqdn": answer["name"][:-1],
+                        "type": "ns",
+                        "value": answer["data"][:-1],
+                    }
+                )
+            elif answer["type"] == 5:
+                results.append(
+                    {
+                        "fqdn": answer["name"][:-1],
+                        "type": "cname",
+                        "value": answer["data"][:-1],
+                    }
+                )
+            elif answer["type"] == 6:
+                results.append(
+                    {
+                        "fqdn": answer["name"][:-1],
+                        "type": "soa",
+                        "value": answer["data"],
+                    }
+                )
+            elif answer["type"] == 12:
+                results.append(
+                    {
+                        "fqdn": answer["name"][:-1],
+                        "type": "ptr",
+                        "value": answer["data"][:-1],
+                    }
+                )
+            elif answer["type"] == 13:
+                results.append(
+                    {
+                        "fqdn": answer["name"][:-1],
+                        "type": "hinfo",
+                        "value": answer["data"],
+                    }
+                )
+            elif answer["type"] == 15:
+                results.append(
+                    {"fqdn": answer["name"][:-1], "type": "mx", "value": answer["data"]}
+                )
+            elif answer["type"] == 16:
+                results.append(
+                    {
+                        "fqdn": answer["name"][:-1],
+                        "type": "txt",
+                        "value": answer["data"],
+                    }
+                )
+            elif answer["type"] == 28:
+                results.append(
+                    {
+                        "fqdn": answer["name"][:-1],
+                        "type": "aaaa",
+                        "value": answer["data"],
+                    }
+                )
+            elif answer["type"] == 33:
+                results.append(
+                    {
+                        "fqdn": answer["name"][:-1],
+                        "type": "srv",
+                        "value": answer["data"],
+                    }
+                )
+            elif answer["type"] == 35:
+                results.append(
+                    {
+                        "fqdn": answer["name"][:-1],
+                        "type": "naptr",
+                        "value": answer["data"],
+                    }
+                )
+            elif answer["type"] == 43:
+                results.append(
+                    {"fqdn": answer["name"][:-1], "type": "ds", "value": answer["data"]}
+                )
+            elif answer["type"] == 46:
+                results.append(
+                    {
+                        "fqdn": answer["name"][:-1],
+                        "type": "rrsig",
+                        "value": answer["data"],
+                    }
+                )
+            else:
+                logger.warning("Unrecognized type: " + str(answer["type"]))
 
-            if host is None or host == "":
-                return []
-
-            url = "https://dns.google.com/resolve?name=" + host
-
-            if dns_type is not None:
-                url = url + "&type=" + str(dns_type)
-
-            logger = logging.getLogger(__name__)
-
-            try:
-                req = _requests_retry_session().get(url, timeout=120)
-            except Exception as ex:
-                logger.error("Google DNS request attempts failed!")
-                logger.error(str(ex))
-                return []
-
-            if req.status_code != 200:
-                logger.error("Error looking up: " + host)
-                return []
-
-            nslookup_results = json.loads(req.text)
-
-            if nslookup_results['Status'] != 0:
-                logger.error("Status error looking up: " + host)
-                return []
-
-            if "Answer" not in nslookup_results:
-                logger.warning("Could not find Answer in DNS result for " + host)
-                # logger.debug (req.text)
-                return []
-
-            results = []
-            for answer in nslookup_results['Answer']:
-                if answer['type'] == 1:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'a', 'value': answer['data']})
-                elif answer['type'] == 2:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'ns', 'value': answer['data'][:-1]})
-                elif answer['type'] == 5:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'cname', 'value': answer['data'][:-1]})
-                elif answer['type'] == 6:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'soa', 'value': answer['data']})
-                elif answer['type'] == 12:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'ptr', 'value': answer['data'][:-1]})
-                elif answer['type'] == 13:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'hinfo', 'value': answer['data']})
-                elif answer['type'] == 15:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'mx', 'value': answer['data']})
-                elif answer['type'] == 16:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'txt', 'value': answer['data']})
-                elif answer['type'] == 28:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'aaaa', 'value': answer['data']})
-                elif answer['type'] == 33:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'srv', 'value': answer['data']})
-                elif answer['type'] == 35:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'naptr', 'value': answer['data']})
-                elif answer['type'] == 43:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'ds', 'value': answer['data']})
-                elif answer['type'] == 46:
-                    results.append({'fqdn': answer['name'][:-1], 'type': 'rrsig', 'value': answer['data']})
-                else:
-                    logger.warning("Unrecognized type: " + str(answer['type']))
-
-            return results
+        return results

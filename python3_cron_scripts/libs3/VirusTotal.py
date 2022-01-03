@@ -17,6 +17,7 @@ This module is for interacting with the VirusTotal service.
 import configparser
 import json
 import logging
+
 import requests
 
 from libs3.ConnectorUtil import ConnectorUtil
@@ -28,13 +29,12 @@ class VirusTotal(object):
     It currently supports fetching domain reports.
     """
 
-    virustotal_config_file = 'connector.config'
+    virustotal_config_file = "connector.config"
     PRIVATE_APIKEY = None
     PUBLIC_APIKEY = None
     APIKEY = None
     URL = None
     _logger = None
-
 
     def _log(self):
         """
@@ -42,13 +42,16 @@ class VirusTotal(object):
         """
         return logging.getLogger(__name__)
 
-
     def _init_vt(self, config):
-        self.URL = ConnectorUtil.get_config_setting(self._logger, config, "VirusTotal", "virustotal.url")
-        self.PRIVATE_APIKEY = ConnectorUtil.get_config_setting(self._logger, config, "VirusTotal", "virustotal.apikey")
-        self.PUBLIC_APIKEY = ConnectorUtil.get_config_setting(self._logger, config, "VirusTotal",
-                                                      "virustotal.public_apikey")
-
+        self.URL = ConnectorUtil.get_config_setting(
+            self._logger, config, "VirusTotal", "virustotal.url"
+        )
+        self.PRIVATE_APIKEY = ConnectorUtil.get_config_setting(
+            self._logger, config, "VirusTotal", "virustotal.apikey"
+        )
+        self.PUBLIC_APIKEY = ConnectorUtil.get_config_setting(
+            self._logger, config, "VirusTotal", "virustotal.public_apikey"
+        )
 
     def __init__(self, config_file="", key="public", log_level=None):
         if config_file != "":
@@ -61,7 +64,7 @@ class VirusTotal(object):
         config = configparser.ConfigParser()
         list = config.read(self.virustotal_config_file)
         if len(list) == 0:
-            self._logger.error ('Error: Could not find the config file')
+            self._logger.error("Error: Could not find the config file")
             exit(1)
 
         self._init_vt(config)
@@ -71,7 +74,6 @@ class VirusTotal(object):
         else:
             self.APIKEY = self.PUBLIC_APIKEY
 
-
     def get_domain_report(self, domain):
         """
         Get The Virustotal report for the given domain.
@@ -79,10 +81,19 @@ class VirusTotal(object):
         :param domain: The name of the domain to search.
         :return: The JSON response or None if not found.
         """
-        req = requests.get((self.URL + "domain/report" +
-                            "?apikey=" + self.APIKEY + "&domain=" + domain), timeout=120)
+        req = requests.get(
+            (
+                self.URL
+                + "domain/report"
+                + "?apikey="
+                + self.APIKEY
+                + "&domain="
+                + domain
+            ),
+            timeout=120,
+        )
         if req.status_code != 200:
-            self._logger.error ("Error: " + str(req.status_code))
+            self._logger.error("Error: " + str(req.status_code))
             return None
         try:
             res = json.loads(req.text)

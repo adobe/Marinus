@@ -16,10 +16,9 @@ Having it centralized, means that the included and excluded status' can be manag
 """
 
 import logging
-
-from pymongo import MongoClient
 from datetime import datetime
 
+from pymongo import MongoClient
 from tld import get_fld
 
 
@@ -47,13 +46,11 @@ class ZoneManager(object):
     # The logger
     _logger = None
 
-
     def _log(self):
         """
         Get the log
         """
         return logging.getLogger(__name__)
-
 
     def __init__(self, mongo_connector):
         """
@@ -63,18 +60,20 @@ class ZoneManager(object):
         self.mongo_connector = mongo_connector
         self.zone_collection = mongo_connector.get_zone_connection()
 
-
     def _check_valid_status(self, status):
-        if status != ZoneManager.EXPIRED and status != ZoneManager.FALSE_POSITIVE and \
-           status != ZoneManager.CONFIRMED and status!= ZoneManager.UNCONFIRMED:
-           self._logger.error("ERROR: Bad status value")
-           return False
+        if (
+            status != ZoneManager.EXPIRED
+            and status != ZoneManager.FALSE_POSITIVE
+            and status != ZoneManager.CONFIRMED
+            and status != ZoneManager.UNCONFIRMED
+        ):
+            self._logger.error("ERROR: Bad status value")
+            return False
 
         return True
 
-
     @staticmethod
-    def get_distinct_zones(mongo_connector, includeAll = False):
+    def get_distinct_zones(mongo_connector, includeAll=False):
         """
         This is the most common usage of get zones where the caller wants just the list of
         active zones.
@@ -84,9 +83,13 @@ class ZoneManager(object):
         zones_collection = mongo_connector.get_zone_connection()
 
         if includeAll:
-            zone_results = mongo_connector.perform_distinct(zones_collection, 'zone')
+            zone_results = mongo_connector.perform_distinct(zones_collection, "zone")
         else:
-            zone_results = mongo_connector.perform_distinct(zones_collection, 'zone', {'status': {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
+            zone_results = mongo_connector.perform_distinct(
+                zones_collection,
+                "zone",
+                {"status": {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}},
+            )
 
         zones = []
         for zone in zone_results:
@@ -95,14 +98,17 @@ class ZoneManager(object):
 
         return zones
 
-
     @staticmethod
     def get_reversed_zones(mongo_connector):
         """
         Retrieve the list of active zones and then reverse them to match the Common Crawl format
         """
         zones_collection = mongo_connector.get_zone_connection()
-        zone_results = mongo_connector.perform_distinct(zones_collection, 'zone', {'status': {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
+        zone_results = mongo_connector.perform_distinct(
+            zones_collection,
+            "zone",
+            {"status": {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}},
+        )
 
         zones = []
         for zone in zone_results:
@@ -120,7 +126,6 @@ class ZoneManager(object):
 
         return zones
 
-
     @staticmethod
     def get_zones_by_source(mongo_connector, source, includeAll=False):
         """
@@ -129,15 +134,22 @@ class ZoneManager(object):
         zone_collection = mongo_connector.get_zone_connection()
 
         if includeAll:
-            zones = mongo_connector.perform_distinct(zone_collection, 'zone', {
-                'reporting_sources.source': source})
+            zones = mongo_connector.perform_distinct(
+                zone_collection, "zone", {"reporting_sources.source": source}
+            )
         else:
-            zones = mongo_connector.perform_distinct(zone_collection, 'zone', {
-                'reporting_sources.source': source,
-                'status': {'$nin': [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
+            zones = mongo_connector.perform_distinct(
+                zone_collection,
+                "zone",
+                {
+                    "reporting_sources.source": source,
+                    "status": {
+                        "$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]
+                    },
+                },
+            )
 
         return zones
-
 
     @staticmethod
     def get_zones(mongo_connector, includeAll=False):
@@ -151,15 +163,17 @@ class ZoneManager(object):
         if includeAll:
             zone_results = mongo_connector.perform_find(zones_collection, {})
         else:
-            zone_results = mongo_connector.perform_find(zones_collection, {'status': {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}})
+            zone_results = mongo_connector.perform_find(
+                zones_collection,
+                {"status": {"$nin": [ZoneManager.FALSE_POSITIVE, ZoneManager.EXPIRED]}},
+            )
 
         zones = []
         for zone in zone_results:
-            if zone['zone'].find(".") >= 0:
+            if zone["zone"].find(".") >= 0:
                 zones.append(zone)
 
         return zones
-
 
     @staticmethod
     def get_root_domain(value, zone=None):
@@ -172,15 +186,15 @@ class ZoneManager(object):
 
         return res
 
-
     def get_zone(self, zone):
         """
         Fetch the full individual zone record.
         This is not a static method since it would probably be called repeatedly.
         """
 
-        return self.mongo_connector.perform_find_one(self.zone_collection, {'zone': zone})
-
+        return self.mongo_connector.perform_find_one(
+            self.zone_collection, {"zone": zone}
+        )
 
     def get_zones_by_status(self, status):
         """
@@ -192,7 +206,9 @@ class ZoneManager(object):
         if not self._check_valid_status(status):
             return
 
-        zone_results = self.mongo_connector.perform_distinct(self.zone_collection, 'zone', {'status': status})
+        zone_results = self.mongo_connector.perform_distinct(
+            self.zone_collection, "zone", {"status": status}
+        )
 
         zones = []
         for zone in zone_results:
@@ -201,19 +217,22 @@ class ZoneManager(object):
 
         return zones
 
-
     def set_status(self, zone, status, caller):
         """
         Set a zone to expired.
         """
-        if self.zone_collection.find({'zone': zone}).count() == 0:
+        if self.zone_collection.find({"zone": zone}).count() == 0:
             self._logger.error("ERROR: Invalid zone!")
             return
 
-        if status != ZoneManager.EXPIRED and status != ZoneManager.FALSE_POSITIVE and \
-           status != ZoneManager.CONFIRMED and status!= ZoneManager.UNCONFIRMED:
-           self._logger.error("ERROR: Bad status value!")
-           return
+        if (
+            status != ZoneManager.EXPIRED
+            and status != ZoneManager.FALSE_POSITIVE
+            and status != ZoneManager.CONFIRMED
+            and status != ZoneManager.UNCONFIRMED
+        ):
+            self._logger.error("ERROR: Bad status value!")
+            return
 
         if caller is None or caller == "":
             self._logger.error("ERROR: Please provide a caller value!")
@@ -221,8 +240,10 @@ class ZoneManager(object):
 
         now = datetime.now()
         note = caller + " set to " + status + " on " + str(now)
-        self.zone_collection.update({"zone": zone}, {"$set": {"status": status, "updated": now}, "$addToSet": {"notes": note}})
-
+        self.zone_collection.update(
+            {"zone": zone},
+            {"$set": {"status": status, "updated": now}, "$addToSet": {"notes": note}},
+        )
 
     def add_note(self, zone, note):
         """

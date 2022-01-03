@@ -15,10 +15,11 @@ This module manages consolidating DNS records from various sources.
 """
 
 import logging
-
 from datetime import datetime
-from libs3 import MongoConnector, IPManager
+
 from bson.objectid import ObjectId
+
+from libs3 import IPManager, MongoConnector
 
 
 class DNSManager(object):
@@ -37,13 +38,11 @@ class DNSManager(object):
     mongo_connector = None
     _logger = None
 
-
     def _log(self):
         """
         Get the log
         """
         return logging.getLogger(__name__)
-
 
     def __init__(self, mongo_connector, alternative_collection=None):
         """
@@ -53,13 +52,14 @@ class DNSManager(object):
         self.mongo_connector = mongo_connector
         if alternative_collection is not None:
             try:
-                self.all_dns_collection = getattr(mongo_connector, alternative_collection)()
+                self.all_dns_collection = getattr(
+                    mongo_connector, alternative_collection
+                )()
             except:
                 self._logger.error("Could not fetch dynamic collection in DNS Manager")
                 exit(1)
         else:
             self.all_dns_collection = mongo_connector.get_all_dns_connection()
-
 
     @staticmethod
     def monthdelta(date, delta):
@@ -69,12 +69,27 @@ class DNSManager(object):
         :param date: The original date
         :param delta: The change from the original date that is to be calculated.
         """
-        m, y = (date.month+delta) % 12, date.year + ((date.month)+delta-1) // 12
+        m, y = (date.month + delta) % 12, date.year + ((date.month) + delta - 1) // 12
         if not m:
             m = 12
-        d = min(date.day, [31, 29 if y%4==0 and not y%400==0 else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m-1])
+        d = min(
+            date.day,
+            [
+                31,
+                29 if y % 4 == 0 and not y % 400 == 0 else 28,
+                31,
+                30,
+                31,
+                30,
+                31,
+                31,
+                30,
+                31,
+                30,
+                31,
+            ][m - 1],
+        )
         return date.replace(day=d, month=m, year=y)
-
 
     def insert_record(self, result, source_name):
         """
@@ -83,44 +98,51 @@ class DNSManager(object):
                        the fqdn, type, value, zone, and created values.
         :param source_name: The DNS record source ("ssl","virustotal","sonar_dns","common_crawl")
         """
-        query = {'fqdn': result['fqdn'],
-                 'type': result['type'],
-                 'value': result['value']}
+        query = {
+            "fqdn": result["fqdn"],
+            "type": result["type"],
+            "value": result["value"],
+        }
         check = self.mongo_connector.perform_find_one(self.all_dns_collection, query)
 
         if check is None:
-            result['sources'] = []
-            result['sources'].append({})
-            result['sources'][0]['source'] = source_name
-            result['sources'][0]['updated'] = datetime.now()
-            result['updated'] = datetime.now()
+            result["sources"] = []
+            result["sources"].append({})
+            result["sources"][0]["source"] = source_name
+            result["sources"][0]["updated"] = datetime.now()
+            result["updated"] = datetime.now()
             self.mongo_connector.perform_insert(self.all_dns_collection, result)
         else:
             source_index = -1
-            for i in range(0, len(check['sources'])):
-                if check['sources'][i]['source'] == source_name:
+            for i in range(0, len(check["sources"])):
+                if check["sources"][i]["source"] == source_name:
                     source_index = i
             if source_index != -1:
-                name = 'sources.' + str(source_index) + '.updated'
+                name = "sources." + str(source_index) + ".updated"
                 entry = {}
                 entry[name] = datetime.now()
-                self.all_dns_collection.update_one({'_id': ObjectId(check['_id'])},
-                                               {"$set": entry})
-                self.all_dns_collection.update_one({'_id': ObjectId(check['_id'])},
-                                               {"$set": {'updated': datetime.now()}})
+                self.all_dns_collection.update_one(
+                    {"_id": ObjectId(check["_id"])}, {"$set": entry}
+                )
+                self.all_dns_collection.update_one(
+                    {"_id": ObjectId(check["_id"])},
+                    {"$set": {"updated": datetime.now()}},
+                )
             else:
                 entry = {}
-                entry['source'] = source_name
-                entry['updated'] = datetime.now()
-                self.all_dns_collection.update_one({'_id': ObjectId(check['_id'])},
-                                               {'$push': {'sources': entry}})
-                self.all_dns_collection.update_one({'_id': ObjectId(check['_id'])},
-                                               {"$set": {'updated': datetime.now()}})
+                entry["source"] = source_name
+                entry["updated"] = datetime.now()
+                self.all_dns_collection.update_one(
+                    {"_id": ObjectId(check["_id"])}, {"$push": {"sources": entry}}
+                )
+                self.all_dns_collection.update_one(
+                    {"_id": ObjectId(check["_id"])},
+                    {"$set": {"updated": datetime.now()}},
+                )
 
-        if result['type'] == 'a' or result['type'] == 'aaaa':
+        if result["type"] == "a" or result["type"] == "aaaa":
             ip_manager = IPManager.IPManager(self.mongo_connector)
-            ip_manager.insert_record(result['value'], source_name)
-
+            ip_manager.insert_record(result["value"], source_name)
 
     def find_multiple(self, criteria, source):
         """
@@ -131,11 +153,10 @@ class DNSManager(object):
         :return: The cursor from the find operation
         """
         if source != None:
-            criteria['sources.source'] = source
+            criteria["sources.source"] = source
 
         check = self.mongo_connector.perform_find(self.all_dns_collection, criteria)
         return check
-
 
     def find_one(self, criteria, source):
         """
@@ -146,11 +167,10 @@ class DNSManager(object):
         :return: The cursor from the find operation
         """
         if source != None:
-            criteria['sources.source'] = source
+            criteria["sources.source"] = source
 
         check = self.mongo_connector.perform_find_one(self.all_dns_collection, criteria)
         return check
-
 
     def find_count(self, criteria, source):
         """
@@ -161,11 +181,10 @@ class DNSManager(object):
         :return: The cursor from the find operation
         """
         if source != None:
-            criteria['sources.source'] = source
+            criteria["sources.source"] = source
 
         check = self.mongo_connector.perform_count(self.all_dns_collection, criteria)
         return check
-
 
     def remove_by_domain_and_source(self, domain, dns_type, dns_value, source):
         """
@@ -178,21 +197,21 @@ class DNSManager(object):
         :param source: The source of the record that is to be removed.
         :return: A boolean indicating success or failure
         """
-        result = self.all_dns_collection.find_one({'fqdn':domain,
-                                                   'type': dns_type,
-                                                   'value': dns_value})
+        result = self.all_dns_collection.find_one(
+            {"fqdn": domain, "type": dns_type, "value": dns_value}
+        )
 
         if result is None:
             return False
 
-        if len(result['sources']) == 1:
-            self.all_dns_collection.delete_one({'fqdn': domain})
+        if len(result["sources"]) == 1:
+            self.all_dns_collection.delete_one({"fqdn": domain})
             return True
 
-        self.all_dns_collection.update_one({'_id': ObjectId(result['_id'])},
-                                       {"$pull": {"sources": {"source": source}}})
+        self.all_dns_collection.update_one(
+            {"_id": ObjectId(result["_id"])}, {"$pull": {"sources": {"source": source}}}
+        )
         return True
-
 
     def remove_by_object_id_and_source(self, object_id, source):
         """
@@ -204,19 +223,19 @@ class DNSManager(object):
         :param source: The source reference that is to be removed from the object_id.
         :return: A boolean indicating success or failure
         """
-        result = self.all_dns_collection.find_one({'_id': ObjectId(object_id)})
+        result = self.all_dns_collection.find_one({"_id": ObjectId(object_id)})
 
         if result is None:
             return False
 
-        if len(result['sources']) == 1:
-            self.all_dns_collection.delete_one({'_id': ObjectId(object_id)})
+        if len(result["sources"]) == 1:
+            self.all_dns_collection.delete_one({"_id": ObjectId(object_id)})
             return True
 
-        self.all_dns_collection.update_one({'_id': ObjectId(result['_id'])},
-                                       {"$pull": {"sources": {"source": source}}})
+        self.all_dns_collection.update_one(
+            {"_id": ObjectId(result["_id"])}, {"$pull": {"sources": {"source": source}}}
+        )
         return True
-
 
     def remove_all_by_source_and_date(self, source, month_delta=-2):
         """
@@ -229,19 +248,24 @@ class DNSManager(object):
         :return: A boolean indicating success or failure
         """
         d_minus_2m = self.monthdelta(datetime.now(), month_delta)
-        results = self.all_dns_collection.find({'sources': {"$elemMatch": {'source': source,
-                                                               'updated': {"$lt": d_minus_2m}}}}
-                                              ).batch_size(30)
+        results = self.all_dns_collection.find(
+            {
+                "sources": {
+                    "$elemMatch": {"source": source, "updated": {"$lt": d_minus_2m}}
+                }
+            }
+        ).batch_size(30)
 
         for result in results:
-            if len(result['sources']) > 1:
-                self.all_dns_collection.update_one({'_id': ObjectId(result['_id'])},
-                                               {"$pull": {"sources": {"source": source}}})
+            if len(result["sources"]) > 1:
+                self.all_dns_collection.update_one(
+                    {"_id": ObjectId(result["_id"])},
+                    {"$pull": {"sources": {"source": source}}},
+                )
             else:
-                self.all_dns_collection.delete_one({'_id': ObjectId(result['_id'])})
+                self.all_dns_collection.delete_one({"_id": ObjectId(result["_id"])})
 
         return True
-
 
     def remove_by_source(self, source):
         """
@@ -252,16 +276,17 @@ class DNSManager(object):
         :param source: The source references that are to be removed.
         :return: A boolean indicating success or failure
         """
-        results = self.all_dns_collection.find({'sources.source': source})
+        results = self.all_dns_collection.find({"sources.source": source})
 
         if results is None:
             return False
 
         for result in results:
-            if len(result['sources']) == 1:
-                self.all_dns_collection.delete_one({'_id': ObjectId(result['_id'])})
+            if len(result["sources"]) == 1:
+                self.all_dns_collection.delete_one({"_id": ObjectId(result["_id"])})
             else:
-                self.all_dns_collection.update_one({'_id': ObjectId(result['_id'])},
-                                               {"$pull": {"sources": {"source": source}}})
+                self.all_dns_collection.update_one(
+                    {"_id": ObjectId(result["_id"])},
+                    {"$pull": {"sources": {"source": source}}},
+                )
         return True
-

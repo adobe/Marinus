@@ -20,18 +20,19 @@ import json
 import logging
 import subprocess
 import time
-
-from libs3.ConnectorUtil import ConnectorUtil
+from html.parser import HTMLParser
 
 import requests
-from html.parser import HTMLParser
 from requests.auth import HTTPBasicAuth
+
+from libs3.ConnectorUtil import ConnectorUtil
 
 
 class MyHTMLParser(HTMLParser):
     """
     Create a subclass to find the files within the authenticated HTML page.
     """
+
     any_url = ""
     a_url = ""
     aaaa_url = ""
@@ -43,40 +44,74 @@ class MyHTMLParser(HTMLParser):
     rdns_url = ""
     base_url = ""
 
-
     def set_base_location(self, base_location):
         self.base_url = base_location
-
 
     def handle_starttag(self, tag, attrs):
         logger = logging.getLogger(__name__)
         if tag == "a":
             for attr in attrs:
-                if self.any_url == "" and attr[0] == "href" and attr[1].endswith("fdns_any.json.gz"):
+                if (
+                    self.any_url == ""
+                    and attr[0] == "href"
+                    and attr[1].endswith("fdns_any.json.gz")
+                ):
                     logger.info(attr[1])
-                    self.any_url =  self.base_url + attr[1]
-                elif self.a_url == "" and attr[0] == "href" and attr[1].endswith("fdns_a.json.gz"):
+                    self.any_url = self.base_url + attr[1]
+                elif (
+                    self.a_url == ""
+                    and attr[0] == "href"
+                    and attr[1].endswith("fdns_a.json.gz")
+                ):
                     logger.info(attr[1])
                     self.a_url = self.base_url + attr[1]
-                elif self.aaaa_url == "" and attr[0] == "href" and attr[1].endswith("fdns_aaaa.json.gz"):
+                elif (
+                    self.aaaa_url == ""
+                    and attr[0] == "href"
+                    and attr[1].endswith("fdns_aaaa.json.gz")
+                ):
                     logger.info(attr[1])
                     self.aaaa_url = self.base_url + attr[1]
-                elif self.mx_url == "" and attr[0] == "href" and attr[1].endswith("fdns_mx.json.gz"):
+                elif (
+                    self.mx_url == ""
+                    and attr[0] == "href"
+                    and attr[1].endswith("fdns_mx.json.gz")
+                ):
                     logger.info(attr[1])
                     self.mx_url = self.base_url + attr[1]
-                elif self.cname_url == "" and attr[0] == "href" and attr[1].endswith("fdns_cname.json.gz"):
+                elif (
+                    self.cname_url == ""
+                    and attr[0] == "href"
+                    and attr[1].endswith("fdns_cname.json.gz")
+                ):
                     logger.info(attr[1])
                     self.cname_url = self.base_url + attr[1]
-                elif self.txt_url == "" and attr[0] == "href" and attr[1].endswith("fdns_txt.json.gz"):
+                elif (
+                    self.txt_url == ""
+                    and attr[0] == "href"
+                    and attr[1].endswith("fdns_txt.json.gz")
+                ):
                     logger.info(attr[1])
                     self.txt_url = self.base_url + attr[1]
-                elif self.txt_mx_dmarc == "" and attr[0] == "href" and attr[1].endswith("fdns_txt_mx_dmarc.json.gz"):
+                elif (
+                    self.txt_mx_dmarc == ""
+                    and attr[0] == "href"
+                    and attr[1].endswith("fdns_txt_mx_dmarc.json.gz")
+                ):
                     logger.info(attr[1])
                     self.txt_mx_dmarc = self.base_url + attr[1]
-                elif self.txt_mx_mta_sts == "" and attr[0] == "href" and attr[1].endswith("fdns_txt_mx_mta-sts.json.gz"):
+                elif (
+                    self.txt_mx_mta_sts == ""
+                    and attr[0] == "href"
+                    and attr[1].endswith("fdns_txt_mx_mta-sts.json.gz")
+                ):
                     logger.info(attr[1])
                     self.txt_mx_mta_sts = self.base_url + attr[1]
-                elif self.rdns_url == "" and attr[0] == "href" and attr[1].endswith("rdns.json.gz"):
+                elif (
+                    self.rdns_url == ""
+                    and attr[0] == "href"
+                    and attr[1].endswith("rdns.json.gz")
+                ):
                     logger.info(attr[1])
                     self.rdns_url = self.base_url + attr[1]
 
@@ -85,6 +120,7 @@ class MySAMLParser(HTMLParser):
     """
     This sub-class searches an HTML response for the SAML data
     """
+
     saml_response = ""
     relay_state = ""
 
@@ -93,9 +129,17 @@ class MySAMLParser(HTMLParser):
             found_saml = False
             found_relay = False
             for attr in attrs:
-                if self.saml_response == "" and attr[0] == "name" and attr[1] == "SAMLResponse" :
+                if (
+                    self.saml_response == ""
+                    and attr[0] == "name"
+                    and attr[1] == "SAMLResponse"
+                ):
                     found_saml = True
-                elif self.relay_state == "" and attr[0] == "name" and attr[1] == "RelayState":
+                elif (
+                    self.relay_state == ""
+                    and attr[0] == "name"
+                    and attr[1] == "RelayState"
+                ):
                     found_relay = True
                 elif found_saml and attr[0] == "value":
                     self.saml_response = attr[1]
@@ -108,7 +152,7 @@ class Rapid7(object):
     This class is designed for interacting with Rapid7
     """
 
-    rapid7_config_file = 'connector.config'
+    rapid7_config_file = "connector.config"
     USERNAME = None
     PASSWORD = None
     AUTH_URL = None
@@ -118,21 +162,24 @@ class Rapid7(object):
     PID_FILE = None
     _logger = None
 
-
     def _log(self):
         """
         Get the log
         """
         return logging.getLogger(__name__)
 
-
     def _init_Rapid7(self, config):
-        self.AUTH_URL = ConnectorUtil.get_config_setting(self._logger, config, "Rapid7", "rapid7.auth_url")
-        self.USERNAME = ConnectorUtil.get_config_setting(self._logger, config, "Rapid7", "rapid7.username")
-        self.PASSWORD = ConnectorUtil.get_config_setting(self._logger, config, "Rapid7", "rapid7.password")
+        self.AUTH_URL = ConnectorUtil.get_config_setting(
+            self._logger, config, "Rapid7", "rapid7.auth_url"
+        )
+        self.USERNAME = ConnectorUtil.get_config_setting(
+            self._logger, config, "Rapid7", "rapid7.username"
+        )
+        self.PASSWORD = ConnectorUtil.get_config_setting(
+            self._logger, config, "Rapid7", "rapid7.password"
+        )
 
-
-    def __init__(self, config_file="", log_level = None):
+    def __init__(self, config_file="", log_level=None):
         if config_file != "":
             self.rapid7_config_file = config_file
 
@@ -143,11 +190,10 @@ class Rapid7(object):
         config = configparser.ConfigParser()
         list = config.read(self.rapid7_config_file)
         if len(list) == 0:
-            self._logger.error('Error: Could not find the config file')
+            self._logger.error("Error: Could not find the config file")
             exit(1)
 
         self._init_Rapid7(config)
-
 
     def find_file_locations(self, s, list_type, jobs_manager):
         """
@@ -158,16 +204,30 @@ class Rapid7(object):
         else:
             list_location = self.BASE_URL + self.FDNS_PATH
 
-
         # Assembled as a string because their site is extremely picky on the format.
-        auth_payload = '{"username":"' + self.USERNAME + '","password":"' + self.PASSWORD.replace('"','\\"') + '",'
-        auth_payload = auth_payload + '"options":{"warnBeforePasswordExpired":true,"multiOptionalFactorEnroll":true}}'
+        auth_payload = (
+            '{"username":"'
+            + self.USERNAME
+            + '","password":"'
+            + self.PASSWORD.replace('"', '\\"')
+            + '",'
+        )
+        auth_payload = (
+            auth_payload
+            + '"options":{"warnBeforePasswordExpired":true,"multiOptionalFactorEnroll":true}}'
+        )
 
-        res = requests.post(self.AUTH_URL, data=auth_payload, headers={"Accept": "application/json",
-                                                                    "Content-Type": "application/json",
-                                                                    "X-Okta-User-Agent-Extended": "okta-signin-widget-2.6.0",
-                                                                    "Host": "rapid7ipimseu.okta-emea.com",
-                                                                    "Origin": "https://insight.rapid7.com"})
+        res = requests.post(
+            self.AUTH_URL,
+            data=auth_payload,
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "X-Okta-User-Agent-Extended": "okta-signin-widget-2.6.0",
+                "Host": "rapid7ipimseu.okta-emea.com",
+                "Origin": "https://insight.rapid7.com",
+            },
+        )
 
         if res.status_code != 200:
             self._logger.error("Failed login")
@@ -177,10 +237,13 @@ class Rapid7(object):
 
         data = json.loads(res.text)
 
-
         # This URL is embedded in the JS from the login page. Should try to dynamically extract it in the next revision
         # view-source:https://insight.rapid7.com/login
-        res = s.get("https://rapid7ipimseu.okta-emea.com/login/sessionCookieRedirect?checkAccountSetupComplete=true&token=" + data['sessionToken'] + "&redirectUrl=https://rapid7ipimseu.okta-emea.com/home/template_saml_2_0/0oatgdg8ruitg9ZTr0i6/3079")
+        res = s.get(
+            "https://rapid7ipimseu.okta-emea.com/login/sessionCookieRedirect?checkAccountSetupComplete=true&token="
+            + data["sessionToken"]
+            + "&redirectUrl=https://rapid7ipimseu.okta-emea.com/home/template_saml_2_0/0oatgdg8ruitg9ZTr0i6/3079"
+        )
 
         if res.status_code != 200:
             self._logger.error("Unable to do cookie redirect")
@@ -188,11 +251,13 @@ class Rapid7(object):
             jobs_manager.record_job_error()
             exit(1)
 
-
         # Fetch the SAML Tokens for the Rapid7 site
         saml_parser = MySAMLParser()
         saml_parser.feed(res.text)
-        saml_data = {"RelayState": saml_parser.relay_state, "SAMLResponse": saml_parser.saml_response}
+        saml_data = {
+            "RelayState": saml_parser.relay_state,
+            "SAMLResponse": saml_parser.saml_response,
+        }
 
         res = s.post("https://insight.rapid7.com/saml/SSO", data=saml_data)
 
@@ -202,10 +267,8 @@ class Rapid7(object):
             jobs_manager.record_job_error()
             exit(1)
 
-
         # A final redirect step for the Open Data site
         res = s.get("https://insight.rapid7.com/redirect/doRedirect")
-
 
         # Finally download the list of files available to authenticated users.
         req = s.get(list_location)

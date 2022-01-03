@@ -19,12 +19,12 @@ A paid subscription is required.
 import configparser
 import json
 import logging
+
 import requests
-
-from libs3.ConnectorUtil import ConnectorUtil
-
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
+
+from libs3.ConnectorUtil import ConnectorUtil
 
 
 class Umbrella(object):
@@ -32,11 +32,10 @@ class Umbrella(object):
     This class is designed for interacting with Cisco Umbrella.
     """
 
-    umbrella_config_file = 'connector.config'
+    umbrella_config_file = "connector.config"
     TOKEN = None
     URL = "https://investigate.api.umbrella.com/"
     _logger = None
-
 
     def _log(self):
         """
@@ -44,14 +43,16 @@ class Umbrella(object):
         """
         return logging.getLogger(__name__)
 
-
     def _init_umbrella(self, config):
         """
         Obtain the configuration data
         """
-        self.URL = ConnectorUtil.get_config_setting(self._logger, config, "Cisco", "umbrella.url", 'str', self.URL)
-        self.TOKEN = ConnectorUtil.get_config_setting(self._logger, config, "Cisco", "umbrella.key")
-
+        self.URL = ConnectorUtil.get_config_setting(
+            self._logger, config, "Cisco", "umbrella.url", "str", self.URL
+        )
+        self.TOKEN = ConnectorUtil.get_config_setting(
+            self._logger, config, "Cisco", "umbrella.key"
+        )
 
     def __init__(self, config_file="", log_level=None):
         """
@@ -68,13 +69,18 @@ class Umbrella(object):
         config = configparser.ConfigParser()
         list = config.read(self.umbrella_config_file)
         if len(list) == 0:
-            self._logger.error('Error: Could not find the config file')
+            self._logger.error("Error: Could not find the config file")
             exit(1)
 
         self._init_umbrella(config)
 
-
-    def __requests_retry_session(self, retries=5, backoff_factor=7, status_forcelist=[408, 500, 502, 503, 504],session=None,):
+    def __requests_retry_session(
+        self,
+        retries=5,
+        backoff_factor=7,
+        status_forcelist=[408, 500, 502, 503, 504],
+        session=None,
+    ):
         """
         A Closure method for this static method.
         """
@@ -87,11 +93,10 @@ class Umbrella(object):
             status_forcelist=status_forcelist,
         )
         adapter = HTTPAdapter(max_retries=retry)
-        session.mount('http://', adapter)
-        session.mount('https://', adapter)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
 
         return session
-
 
     def search_by_name_server(self, name_server):
         """
@@ -100,11 +105,12 @@ class Umbrella(object):
         """
         path = self.URL + "whois/nameservers/" + name_server
 
-        headers = {'Authorization': 'Bearer ' + self.TOKEN}
+        headers = {"Authorization": "Bearer " + self.TOKEN}
         parameters = {}
 
-        req = self.__requests_retry_session().get(path, params=parameters,
-                           headers = headers, timeout=120)
+        req = self.__requests_retry_session().get(
+            path, params=parameters, headers=headers, timeout=120
+        )
 
         try:
             res = json.loads(req.text)
@@ -112,7 +118,6 @@ class Umbrella(object):
             return None
 
         return res
-
 
     def search_by_name_servers(self, name_server_list):
         """
@@ -121,11 +126,12 @@ class Umbrella(object):
         """
         path = self.URL + "whois/nameservers"
 
-        headers = {'Authorization': 'Bearer ' + self.TOKEN}
-        parameters = {'nameServerList', name_server_list}
+        headers = {"Authorization": "Bearer " + self.TOKEN}
+        parameters = {"nameServerList", name_server_list}
 
-        req = self.__requests_retry_session().get(path, params=parameters,
-                           headers = headers, timeout=120)
+        req = self.__requests_retry_session().get(
+            path, params=parameters, headers=headers, timeout=120
+        )
 
         try:
             res = json.loads(req.text)
@@ -133,7 +139,6 @@ class Umbrella(object):
             return None
 
         return res
-
 
     def search_by_email(self, email, offset=None):
         """
@@ -141,15 +146,16 @@ class Umbrella(object):
         @param email The email to search for in the whois records
         """
         path = self.URL + "whois/emails/" + email
-        headers = {'Authorization': 'Bearer ' + self.TOKEN}
+        headers = {"Authorization": "Bearer " + self.TOKEN}
 
         params = {}
 
         if offset is not None:
-            params['offset'] = offset
+            params["offset"] = offset
 
-        req = self.__requests_retry_session().get(path, params=params,
-                           headers = headers, timeout=120)
+        req = self.__requests_retry_session().get(
+            path, params=params, headers=headers, timeout=120
+        )
 
         try:
             res = json.loads(req.text)
@@ -157,7 +163,6 @@ class Umbrella(object):
             return None
 
         return res
-
 
     def search_by_emails(self, email_list, offset=None):
         """
@@ -165,16 +170,17 @@ class Umbrella(object):
         @param email_list The comma delimited email list to search for in the whois records
         """
         path = self.URL + "whois/emails"
-        headers = {'Authorization': 'Bearer ' + self.TOKEN}
+        headers = {"Authorization": "Bearer " + self.TOKEN}
 
         params = {}
-        params['emailList'] = email_list
+        params["emailList"] = email_list
 
         if offset is not None:
-            params['offset'] = offset
+            params["offset"] = offset
 
-        req = self.__requests_retry_session().get(path, params=params,
-                           headers = headers, timeout=120)
+        req = self.__requests_retry_session().get(
+            path, params=params, headers=headers, timeout=120
+        )
 
         try:
             res = json.loads(req.text)
@@ -183,22 +189,22 @@ class Umbrella(object):
 
         return res
 
-
     def search_by_domain(self, domain_name, include_history=False, limit=10):
         """
         Search Umbrella for a single DNS record
         """
         path = self.URL + "/whois/" + domain_name
-        headers = {'Authorization': 'Bearer ' + self.TOKEN}
+        headers = {"Authorization": "Bearer " + self.TOKEN}
 
         params = {}
 
         if include_history:
             path = path + "/history"
-            params['limit'] = limit
+            params["limit"] = limit
 
-        req = self.__requests_retry_session().get(path, params=params,
-                           headers = headers, timeout=120)
+        req = self.__requests_retry_session().get(
+            path, params=params, headers=headers, timeout=120
+        )
 
         try:
             res = json.loads(req.text)

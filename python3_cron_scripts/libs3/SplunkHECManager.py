@@ -19,40 +19,42 @@ Data is sent to the HEC in a JSON format. RAW support will be added in the futur
 import configparser
 import json
 import logging
-import requests
 import time
 
-from libs3.ConnectorUtil import ConnectorUtil
-
+import requests
 from bson import json_util
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
+
+from libs3.ConnectorUtil import ConnectorUtil
 
 
 class HECLogLevel(object):
     """
     A class to represent the Splunk log levels
     """
-    INFO = 'INFO'
-    WARN = 'WARN'
-    ERROR = 'ERROR'
+
+    INFO = "INFO"
+    WARN = "WARN"
+    ERROR = "ERROR"
 
 
 class HECEndpoint(object):
     """
     A class to represent the Splunk endpoints
     """
-    RAW = 'raw'
-    EVENT = 'event'
+
+    RAW = "raw"
+    EVENT = "event"
 
 
 class SplunkHECManager(object):
     """
     This class is for sending data to a Splunk HEC
     """
-    splunk_config_file = 'connector.config'
-    _logger = None
 
+    splunk_config_file = "connector.config"
+    _logger = None
 
     def _log(self):
         """
@@ -60,21 +62,29 @@ class SplunkHECManager(object):
         """
         return logging.getLogger(__name__)
 
-
     def _init_splunk_hec_connection(self, config):
         """
         Initialize the class members
         """
-        self.HOST = ConnectorUtil.get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.host')
-        self.PORT = ConnectorUtil.get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.port')
-        self.ACCESS_TOKEN = ConnectorUtil.get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.access_token')
-        self.HOSTNAME = ConnectorUtil.get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.hostname')
-        self.INDEX = ConnectorUtil.get_config_setting(self._logger, config, 'SplunkHEC', 'splunk.index')
+        self.HOST = ConnectorUtil.get_config_setting(
+            self._logger, config, "SplunkHEC", "splunk.host"
+        )
+        self.PORT = ConnectorUtil.get_config_setting(
+            self._logger, config, "SplunkHEC", "splunk.port"
+        )
+        self.ACCESS_TOKEN = ConnectorUtil.get_config_setting(
+            self._logger, config, "SplunkHEC", "splunk.access_token"
+        )
+        self.HOSTNAME = ConnectorUtil.get_config_setting(
+            self._logger, config, "SplunkHEC", "splunk.hostname"
+        )
+        self.INDEX = ConnectorUtil.get_config_setting(
+            self._logger, config, "SplunkHEC", "splunk.index"
+        )
         self.URL = "https://" + self.HOST + ":" + self.PORT + "/services/collector/"
-        self.HEADERS = { 'Authorization': "Splunk {}".format(self.ACCESS_TOKEN) }
+        self.HEADERS = {"Authorization": "Splunk {}".format(self.ACCESS_TOKEN)}
 
-
-    def __init__(self, log_level = None):
+    def __init__(self, log_level=None):
         """
         Class initialization
         """
@@ -85,17 +95,24 @@ class SplunkHECManager(object):
         config = configparser.ConfigParser()
         config_file = config.read(self.splunk_config_file)
         if len(config_file) == 0:
-            self._logger.error('Error: Could not find the config file')
+            self._logger.error("Error: Could not find the config file")
             exit(1)
 
         self._init_splunk_hec_connection(config)
 
-
-    def push_to_splunk_hec(self, source, message, endpoint=HECEndpoint.EVENT, level=HECLogLevel.INFO):
+    def push_to_splunk_hec(
+        self, source, message, endpoint=HECEndpoint.EVENT, level=HECLogLevel.INFO
+    ):
         """
         Create the HTTPS request and send the data as a JSON object.
         """
-        def _requests_retry_session(retries=5, backoff_factor=7, status_forcelist=[408, 500, 502, 503, 504],session=None,):
+
+        def _requests_retry_session(
+            retries=5,
+            backoff_factor=7,
+            status_forcelist=[408, 500, 502, 503, 504],
+            session=None,
+        ):
             """
             A Closure method for this static method.
             """
@@ -108,29 +125,40 @@ class SplunkHECManager(object):
                 status_forcelist=status_forcelist,
             )
             adapter = HTTPAdapter(max_retries=retry)
-            session.mount('http://', adapter)
-            session.mount('https://', adapter)
+            session.mount("http://", adapter)
+            session.mount("https://", adapter)
             return session
 
         data = {}
-        data['time'] = time.time()
-        data['source'] = source
-        data['sourcetype'] = '_json'
-        data['host'] = self.HOSTNAME
-        data['index'] = self.INDEX
+        data["time"] = time.time()
+        data["source"] = source
+        data["sourcetype"] = "_json"
+        data["host"] = self.HOSTNAME
+        data["index"] = self.INDEX
 
-        body = {'severity': level}
-        body['message'] = message
+        body = {"severity": level}
+        body["message"] = message
 
-        data['event'] = body
+        data["event"] = body
 
         message_body = json_util.dumps(data)
 
         try:
-            _requests_retry_session().post(self.URL + endpoint, data=message_body, headers=self.HEADERS, timeout=120)
+            _requests_retry_session().post(
+                self.URL + endpoint,
+                data=message_body,
+                headers=self.HEADERS,
+                timeout=120,
+            )
         except requests.exceptions.HTTPError as e:
-            self._logger.error("Error uploading record: " + json.dumps(message, default=json_util.default))
+            self._logger.error(
+                "Error uploading record: "
+                + json.dumps(message, default=json_util.default)
+            )
             self._logger.error(e)
         except Exception as ex:
-            self._logger.error("Error uploading record: " + json.dumps(message, default=json_util.default))
+            self._logger.error(
+                "Error uploading record: "
+                + json.dumps(message, default=json_util.default)
+            )
             self._logger.error(ex)

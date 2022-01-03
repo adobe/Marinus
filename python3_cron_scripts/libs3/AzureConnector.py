@@ -19,12 +19,12 @@ https://docs.microsoft.com/en-us/python/azure/python-sdk-azure-authenticate?view
 import configparser
 import json
 import logging
+
 import requests
-
-from libs3.ConnectorUtil import ConnectorUtil
-
 from azure.mgmt.dns import DnsManagementClient
 from azure.mgmt.resource import ResourceManagementClient
+
+from libs3.ConnectorUtil import ConnectorUtil
 
 
 class AzureConnector(object):
@@ -32,7 +32,7 @@ class AzureConnector(object):
     This class is designed for interacting with the Azure APIs
     """
 
-    azure_config_file = 'connector.config'
+    azure_config_file = "connector.config"
     TENANT_ID = None
     SUBSCRIPTION_ID = None
     KEY = None
@@ -40,23 +40,30 @@ class AzureConnector(object):
     FILE_PATH = None
     _logger = None
 
-
     def _log(self):
         """
         Get the log
         """
         return logging.getLogger(__name__)
 
-
     def _init_azure(self, config):
-        self.TENANT_ID = ConnectorUtil.get_config_setting(self._logger, config, "Azure", "az.tenant_id")
-        self.CLIENT_ID = ConnectorUtil.get_config_setting(self._logger, config, "Azure", "az.client_id")
-        self.KEY = ConnectorUtil.get_config_setting(self._logger, config, "Azure", "az.sp_password")
-        self.SUBSCRIPTION_ID = ConnectorUtil.get_config_setting(self._logger, config, "Azure", "az.subscription_id")
-        self.FILE_PATH = ConnectorUtil.get_config_setting(self._logger, config, "Azure", "az.file_path")
+        self.TENANT_ID = ConnectorUtil.get_config_setting(
+            self._logger, config, "Azure", "az.tenant_id"
+        )
+        self.CLIENT_ID = ConnectorUtil.get_config_setting(
+            self._logger, config, "Azure", "az.client_id"
+        )
+        self.KEY = ConnectorUtil.get_config_setting(
+            self._logger, config, "Azure", "az.sp_password"
+        )
+        self.SUBSCRIPTION_ID = ConnectorUtil.get_config_setting(
+            self._logger, config, "Azure", "az.subscription_id"
+        )
+        self.FILE_PATH = ConnectorUtil.get_config_setting(
+            self._logger, config, "Azure", "az.file_path"
+        )
 
-
-    def __init__(self, config_file="", log_level = None):
+    def __init__(self, config_file="", log_level=None):
         if config_file != "":
             self.azure_config_file = config_file
 
@@ -67,11 +74,10 @@ class AzureConnector(object):
         config = configparser.ConfigParser()
         list = config.read(self.azure_config_file)
         if len(list) == 0:
-            self._logger.error('Error: Could not find the config file')
+            self._logger.error("Error: Could not find the config file")
             exit(1)
 
         self._init_azure(config)
-
 
     def get_dns_client(self):
         """
@@ -79,24 +85,19 @@ class AzureConnector(object):
         """
         if self.FILE_PATH is not None and self.FILE_PATH != "":
             from azure.common.client_factory import get_client_from_auth_file
+
             return get_client_from_auth_file(DnsManagementClient)
 
         elif self.KEY is not None and self.KEY != "":
             from azure.common.credentials import ServicePrincipalCredentials
 
             credentials = ServicePrincipalCredentials(
-                client_id = self.CLIENT_ID,
-                secret = self.KEY,
-                tenant = self.TENANT_ID
+                client_id=self.CLIENT_ID, secret=self.KEY, tenant=self.TENANT_ID
             )
 
-            dns_client = DnsManagementClient(
-                credentials,
-                self.SUBSCRIPTION_ID
-            )
+            dns_client = DnsManagementClient(credentials, self.SUBSCRIPTION_ID)
 
             return dns_client
-
 
     def get_resources_client(self):
         """
@@ -104,20 +105,18 @@ class AzureConnector(object):
         """
         if self.FILE_PATH is not None and self.FILE_PATH != "":
             from azure.common.client_factory import get_client_from_auth_file
+
             return get_client_from_auth_file(ResourceManagementClient)
 
         elif self.KEY is not None and self.KEY != "":
             from azure.common.credentials import ServicePrincipalCredentials
 
             credentials = ServicePrincipalCredentials(
-                client_id = self.CLIENT_ID,
-                secret = self.KEY,
-                tenant = self.TENANT_ID
+                client_id=self.CLIENT_ID, secret=self.KEY, tenant=self.TENANT_ID
             )
 
             resources_client = ResourceManagementClient(
-                credentials,
-                self.SUBSCRIPTION_ID
+                credentials, self.SUBSCRIPTION_ID
             )
 
             return resources_client

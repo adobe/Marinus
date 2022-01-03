@@ -17,6 +17,7 @@ This module manages interactions with the Facebook Graph API.
 import configparser
 import json
 import logging
+
 import requests
 
 from libs3.ConnectorUtil import ConnectorUtil
@@ -27,13 +28,12 @@ class FacebookConnector(object):
     This class is designed for interacting with the Facebook Graph API
     """
 
-    fb_config_file = 'connector.config'
+    fb_config_file = "connector.config"
     KEY = None
     TOKEN = None
     BASE_URL = "https://graph.facebook.com/"
     VERSION = "v2.11"
     _logger = None
-
 
     def _log(self):
         """
@@ -41,13 +41,19 @@ class FacebookConnector(object):
         """
         return logging.getLogger(__name__)
 
-
     def _init_facebook(self, config):
-        self.BASE_URL = ConnectorUtil.get_config_setting(self._logger, config, "Facebook", "fb.url")
-        self.KEY = ConnectorUtil.get_config_setting(self._logger, config, "Facebook", "fb.app_id")
-        self.TOKEN = ConnectorUtil.get_config_setting(self._logger, config, "Facebook", "fb.app_secret")
-        self.VERSION = ConnectorUtil.get_config_setting(self._logger, config, "Facebook", "fb.graph_version")
-
+        self.BASE_URL = ConnectorUtil.get_config_setting(
+            self._logger, config, "Facebook", "fb.url"
+        )
+        self.KEY = ConnectorUtil.get_config_setting(
+            self._logger, config, "Facebook", "fb.app_id"
+        )
+        self.TOKEN = ConnectorUtil.get_config_setting(
+            self._logger, config, "Facebook", "fb.app_secret"
+        )
+        self.VERSION = ConnectorUtil.get_config_setting(
+            self._logger, config, "Facebook", "fb.graph_version"
+        )
 
     def __init__(self, config_file="", log_level=None):
         if config_file != "":
@@ -60,11 +66,10 @@ class FacebookConnector(object):
         config = configparser.ConfigParser()
         list = config.read(self.fb_config_file)
         if len(list) == 0:
-            self._logger.error('Error: Could not find the config file')
+            self._logger.error("Error: Could not find the config file")
             exit(1)
 
         self._init_facebook(config)
-
 
     def get_facebook_access_token(self):
         """
@@ -73,10 +78,16 @@ class FacebookConnector(object):
         Exit if there is an error
         """
         try:
-            req = requests.get(self.BASE_URL + self.VERSION + \
-                            "/oauth/access_token?client_id=" + self.KEY + \
-                            "&client_secret=" + self.TOKEN + \
-                            "&grant_type=client_credentials", timeout=120)
+            req = requests.get(
+                self.BASE_URL
+                + self.VERSION
+                + "/oauth/access_token?client_id="
+                + self.KEY
+                + "&client_secret="
+                + self.TOKEN
+                + "&grant_type=client_credentials",
+                timeout=120,
+            )
             req.raise_for_status()
 
         except requests.exceptions.ConnectionError:
@@ -96,4 +107,4 @@ class FacebookConnector(object):
 
         response = json.loads(req.text)
 
-        return response['access_token']
+        return response["access_token"]

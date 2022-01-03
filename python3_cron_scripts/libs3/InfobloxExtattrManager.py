@@ -22,15 +22,14 @@ encountered, the script sleeps for 10secs before re-trying the previous call.
 The script exits when request exceptions are encountered.
 """
 
+import logging
 from datetime import datetime
 
-import logging
-
+import backoff
 import requests
 from requests.auth import HTTPBasicAuth
 
-import backoff
-from libs3 import InfobloxHelper, MongoConnector, APIHelper
+from libs3 import APIHelper, InfobloxHelper, MongoConnector
 from libs3.ZoneManager import ZoneManager
 
 
@@ -46,13 +45,11 @@ class InfobloxExtattrManager(object):
     next_page_id = None
     _logger = None
 
-
     def _log(self):
         """
         Get the log
         """
         return logging.getLogger(__name__)
-
 
     def __get_record_type_url(self):
         """
@@ -62,13 +59,13 @@ class InfobloxExtattrManager(object):
         """
         paging_info = self.IH.get_pagination_params(self.next_page_id)
 
-        return_fields = '&_return_fields=extattrs,zone'
-        if self.record_type == 'a':
-            return_fields += ',ipv4addr'
-        elif self.record_type == 'aaaa':
-            return_fields += ',ipv6addr'
-        elif self.record_type == 'zone':
-            return_fields = '&_return_fields=extattrs'
+        return_fields = "&_return_fields=extattrs,zone"
+        if self.record_type == "a":
+            return_fields += ",ipv4addr"
+        elif self.record_type == "aaaa":
+            return_fields += ",ipv6addr"
+        elif self.record_type == "zone":
+            return_fields = "&_return_fields=extattrs"
 
         url = self.IH.get_infoblox_base_url(
             self.zone_queried,
@@ -85,17 +82,21 @@ class InfobloxExtattrManager(object):
         resource.
         :param insert_object: Dictionary containing the details of the resource.
         """
-        if not insert_object['_ref'] in self.previous_records:
-            insert_object['created'] = datetime.now()
-            insert_object['updated'] = datetime.now()
+        if not insert_object["_ref"] in self.previous_records:
+            insert_object["created"] = datetime.now()
+            insert_object["updated"] = datetime.now()
             self.iblox_extattr_collection.insert(insert_object)
         else:
-            self.previous_records.remove(insert_object['_ref'])
-            self.iblox_extattr_collection.update_one({'_ref': insert_object['_ref']},
-                                                    {"$set": {
-                                                        'updated': datetime.now(),
-                                                        'extattrs': insert_object['extattrs']
-                                                    }})
+            self.previous_records.remove(insert_object["_ref"])
+            self.iblox_extattr_collection.update_one(
+                {"_ref": insert_object["_ref"]},
+                {
+                    "$set": {
+                        "updated": datetime.now(),
+                        "extattrs": insert_object["extattrs"],
+                    }
+                },
+            )
 
     def __get_previous_records(self):
         """
@@ -104,11 +105,15 @@ class InfobloxExtattrManager(object):
         The data is stored as a list of _ref
         """
         self.previous_records = []
-        previous_records = self.iblox_extattr_collection.find({'zone': self.zone_queried,
-                                                              'record_type': self.record_type,
-                                                              }, {'_ref': 1})
+        previous_records = self.iblox_extattr_collection.find(
+            {
+                "zone": self.zone_queried,
+                "record_type": self.record_type,
+            },
+            {"_ref": 1},
+        )
         for record in previous_records:
-            self.previous_records.append(record['_ref'])
+            self.previous_records.append(record["_ref"])
 
     def __sanitise_response(self, response_object):
         """
@@ -120,24 +125,28 @@ class InfobloxExtattrManager(object):
         :param response_object: Value of 'result' key of response in JSON format.
         """
         insert_object = {
-            'record_type': self.record_type,
-            'zone': self.zone_queried,
+            "record_type": self.record_type,
+            "zone": self.zone_queried,
         }
 
-        if self.record_type == 'zone':
-            response_object['infoblox_zone'] = response_object['_ref'].split(':')[1].split('/')[0]
+        if self.record_type == "zone":
+            response_object["infoblox_zone"] = (
+                response_object["_ref"].split(":")[1].split("/")[0]
+            )
         else:
-            response_object['infoblox_zone'] = response_object['zone']
-            response_object.pop('zone')
+            response_object["infoblox_zone"] = response_object["zone"]
+            response_object.pop("zone")
 
-        if self.record_type == 'a':
-            response_object['value'] = response_object['ipv4addr']
-            response_object.pop('ipv4addr')
-        elif self.record_type == 'aaaa':
-            response_object['value'] = response_object['ipv6addr']
-            response_object.pop('ipv6addr')
+        if self.record_type == "a":
+            response_object["value"] = response_object["ipv4addr"]
+            response_object.pop("ipv4addr")
+        elif self.record_type == "aaaa":
+            response_object["value"] = response_object["ipv6addr"]
+            response_object.pop("ipv6addr")
         else:
-            response_object['value'] = response_object['_ref'].split('/')[1].split(':')[1]
+            response_object["value"] = (
+                response_object["_ref"].split("/")[1].split(":")[1]
+            )
 
         response_object.update(insert_object)
 
@@ -149,19 +158,21 @@ class InfobloxExtattrManager(object):
         """
         try:
             response_data = response.json()
-            response_result = response_data['result']
+            response_result = response_data["result"]
         except (ValueError, AttributeError) as err:
             if self.incorrect_response_json_allowed > 0:
-                self._logger.warning('Unable to parse response JSON for zone ' + self.zone_queried)
+                self._logger.warning(
+                    "Unable to parse response JSON for zone " + self.zone_queried
+                )
                 self.incorrect_response_json_allowed -= 1
             else:
                 self.APIH.handle_api_error(
-                    'Unable to parse response JSON for 20 zones: ' + repr(err),
-                    'get_infoblox_' + self.record_type.lower() + '_extattrs',
+                    "Unable to parse response JSON for 20 zones: " + repr(err),
+                    "get_infoblox_" + self.record_type.lower() + "_extattrs",
                 )
         else:
             for response_object in response_result:
-                if not response_object['extattrs']:
+                if not response_object["extattrs"]:
                     continue
 
                 # Adding the exception handling for the scenario when the '_ref' format
@@ -169,27 +180,34 @@ class InfobloxExtattrManager(object):
                 try:
                     self.__sanitise_response(response_object)
                 except IndexError as err:
-                    self.APIH.handle_api_error(err, 'get_infoblox_' + self.record_type.lower() + '_extattrs')
+                    self.APIH.handle_api_error(
+                        err, "get_infoblox_" + self.record_type.lower() + "_extattrs"
+                    )
                 else:
                     self.__insert_extattrs(response_object)
 
             if "next_page_id" in response_data:
-                self.next_page_id = response_data['next_page_id']
+                self.next_page_id = response_data["next_page_id"]
 
-    @backoff.on_exception(backoff.expo,
-                          requests.exceptions.ConnectionError,
-                          max_tries=4,
-                          factor=10,
-                          on_backoff=APIH.connection_error_retry)
+    @backoff.on_exception(
+        backoff.expo,
+        requests.exceptions.ConnectionError,
+        max_tries=4,
+        factor=10,
+        on_backoff=APIH.connection_error_retry,
+    )
     def __backoff_api_retry(self):
         """
         Makes API calls to Infoblox with exponential retry capabilities using 'backoff'. The API is
         retried 3 times in case of ConnectionError exception before the script exists.
         :return:
         """
-        return requests.get((self.__get_record_type_url()),
-                            auth=HTTPBasicAuth(self.IH.IBLOX_UNAME, self.IH.IBLOX_PASSWD),
-                            verify='/etc/ssl/certs/ca-bundle.crt', timeout=120)
+        return requests.get(
+            (self.__get_record_type_url()),
+            auth=HTTPBasicAuth(self.IH.IBLOX_UNAME, self.IH.IBLOX_PASSWD),
+            verify="/etc/ssl/certs/ca-bundle.crt",
+            timeout=120,
+        )
 
     def __infoblox_paginated_request(self):
         """
@@ -201,9 +219,13 @@ class InfobloxExtattrManager(object):
             response = self.__backoff_api_retry()
             response.raise_for_status()
         except requests.exceptions.HTTPError as herr:
-            self.APIH.handle_api_error(herr, 'get_infoblox_' + self.record_type.lower() + '_extattrs')
+            self.APIH.handle_api_error(
+                herr, "get_infoblox_" + self.record_type.lower() + "_extattrs"
+            )
         except requests.exceptions.RequestException as err:
-            self.APIH.handle_api_error(err, 'get_infoblox_' + self.record_type.lower() + '_extattrs')
+            self.APIH.handle_api_error(
+                err, "get_infoblox_" + self.record_type.lower() + "_extattrs"
+            )
         else:
             self.next_page_id = None
             self.__infoblox_response_handler(response)
@@ -214,7 +236,7 @@ class InfobloxExtattrManager(object):
         for the zone till the next_page_id is set to None indicating no new results to be fetched.
         Post the retrieval of all the data, the archaic data for a zone and record_type is purged.
         """
-        zones = ZoneManager.get_zones_by_source(self.MC, 'Infoblox')
+        zones = ZoneManager.get_zones_by_source(self.MC, "Infoblox")
         for zone in zones:
             self.zone_queried = zone
             self.next_page_id = None
@@ -222,8 +244,9 @@ class InfobloxExtattrManager(object):
             self.__infoblox_paginated_request()
             while self.next_page_id:
                 self.__infoblox_paginated_request()
-            self.IH.clean_collection(self.previous_records, self.iblox_extattr_collection)
-
+            self.IH.clean_collection(
+                self.previous_records, self.iblox_extattr_collection
+            )
 
     def __init__(self, record_type):
         self.record_type = record_type

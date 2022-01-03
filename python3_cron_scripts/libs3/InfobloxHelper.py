@@ -15,6 +15,7 @@ This helper class will provide the utility functions to the Infoblox scripts.
 """
 
 import re
+
 from libs3 import InfobloxConnector, MongoConnector
 
 
@@ -31,12 +32,12 @@ class InfobloxHelper(object):
     IBLOX_VERSION = IC.VERSION
 
     IBLOX_COLLECTIONS = {
-        'a': 'get_infoblox_address_connection',
-        'cname': 'get_infoblox_cname_connection',
-        'host': 'get_infoblox_host_connection',
-        'mx': 'get_infoblox_mx_connection',
-        'txt': 'get_infoblox_txt_connection',
-        'aaaa': 'get_infoblox_aaaa_connection'
+        "a": "get_infoblox_address_connection",
+        "cname": "get_infoblox_cname_connection",
+        "host": "get_infoblox_host_connection",
+        "mx": "get_infoblox_mx_connection",
+        "txt": "get_infoblox_txt_connection",
+        "aaaa": "get_infoblox_aaaa_connection",
     }
 
     @staticmethod
@@ -46,7 +47,7 @@ class InfobloxHelper(object):
         end with the zone value. This hence fetches values for sub-zones also.
         :return: regex object
         """
-        regex_string = '^(.*\\.)*' + re.escape(zone_queried) + '$'
+        regex_string = "^(.*\\.)*" + re.escape(zone_queried) + "$"
         return re.compile(regex_string)
 
     @staticmethod
@@ -56,9 +57,9 @@ class InfobloxHelper(object):
         for the first call. Post this, _next_page_id is used to retrieve the subsequent page
         data.
         """
-        paging_info = '&_paging=1&_return_as_object=1&_max_results=1500'
+        paging_info = "&_paging=1&_return_as_object=1&_max_results=1500"
         if next_page_id:
-            paging_info = '&_page_id=' + next_page_id
+            paging_info = "&_page_id=" + next_page_id
         return paging_info
 
     def get_infoblox_base_url(self, zone, record_type):
@@ -69,12 +70,28 @@ class InfobloxHelper(object):
         :return: string: Base URL.
         """
         zone_regex = self.__convert_zone_to_regex(zone)
-        url = 'https://' + self.IBLOX_HOST + '/wapi/v' + self.IBLOX_VERSION + \
-              '/record:' + record_type + '?view=External&name~=' + zone_regex.pattern + '{return_fields}{paging_info}'
+        url = (
+            "https://"
+            + self.IBLOX_HOST
+            + "/wapi/v"
+            + self.IBLOX_VERSION
+            + "/record:"
+            + record_type
+            + "?view=External&name~="
+            + zone_regex.pattern
+            + "{return_fields}{paging_info}"
+        )
 
-        if record_type == 'zone':
-            url = 'https://' + self.IBLOX_HOST + '/wapi/v' + self.IBLOX_VERSION + \
-                  '/zone_auth?view=External&fqdn~=' + zone_regex.pattern + '{return_fields}{paging_info}'
+        if record_type == "zone":
+            url = (
+                "https://"
+                + self.IBLOX_HOST
+                + "/wapi/v"
+                + self.IBLOX_VERSION
+                + "/zone_auth?view=External&fqdn~="
+                + zone_regex.pattern
+                + "{return_fields}{paging_info}"
+            )
 
         return url
 
@@ -84,4 +101,4 @@ class InfobloxHelper(object):
         Cleans the database of the records which are not seen again on the basis of the _ref value.
         """
         for previous_record in previous_records:
-            collection.delete_one({'_ref': previous_record})
+            collection.delete_one({"_ref": previous_record})

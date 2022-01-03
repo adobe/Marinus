@@ -16,6 +16,7 @@ This module is design to manage Adobe Infoblox connection data.
 
 import configparser
 import logging
+
 import requests
 
 from libs3.ConnectorUtil import ConnectorUtil
@@ -23,19 +24,18 @@ from libs3.ConnectorUtil import ConnectorUtil
 
 class InfobloxConnector(object):
     """
-      This class is designed to manage Infoblox connection data.
+    This class is designed to manage Infoblox connection data.
 
-      It is assumed that the requests to Infoblox will be done by
-      the individual scripts.
+    It is assumed that the requests to Infoblox will be done by
+    the individual scripts.
     """
 
-    iblox_config_file = 'connector.config'
+    iblox_config_file = "connector.config"
     _logger = None
     HOST = ""
     UNAME = ""
     PASSWD = ""
     VERSION = ""
-
 
     def _log(self):
         """
@@ -43,13 +43,19 @@ class InfobloxConnector(object):
         """
         return logging.getLogger(__name__)
 
-
     def __init_iblox_connection(self, config):
-        self.HOST = ConnectorUtil.get_config_setting(self._logger, config, "Infoblox", "infoblox.HOST")
-        self.UNAME = ConnectorUtil.get_config_setting(self._logger, config, "Infoblox", "infoblox.username")
-        self.PASSWD = ConnectorUtil.get_config_setting(self._logger, config, "Infoblox", "infoblox.passwd")
-        self.VERSION = ConnectorUtil.get_config_setting(self._logger, config, "Infoblox", "infoblox.version")
-
+        self.HOST = ConnectorUtil.get_config_setting(
+            self._logger, config, "Infoblox", "infoblox.HOST"
+        )
+        self.UNAME = ConnectorUtil.get_config_setting(
+            self._logger, config, "Infoblox", "infoblox.username"
+        )
+        self.PASSWD = ConnectorUtil.get_config_setting(
+            self._logger, config, "Infoblox", "infoblox.passwd"
+        )
+        self.VERSION = ConnectorUtil.get_config_setting(
+            self._logger, config, "Infoblox", "infoblox.version"
+        )
 
     def __init__(self, config_file="", log_level=None):
         if config_file != "":
@@ -62,7 +68,7 @@ class InfobloxConnector(object):
         config = configparser.ConfigParser()
         list = config.read(self.iblox_config_file)
         if len(list) == 0:
-            self._logger.error('Error: Could not find the config file')
+            self._logger.error("Error: Could not find the config file")
             exit(1)
 
         self.__init_iblox_connection(config)

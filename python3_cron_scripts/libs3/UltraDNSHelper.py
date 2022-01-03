@@ -18,11 +18,12 @@ query to fetch the access token post the initial expiration time is made with
 grant_type=refresh_token
 """
 
-import backoff
 import logging
+
+import backoff
 import requests
 
-from libs3 import APIHelper, MongoConnector, UltraDNSConnector, JobsManager
+from libs3 import APIHelper, JobsManager, MongoConnector, UltraDNSConnector
 
 
 class UltraDNSHelper(object):
@@ -32,9 +33,9 @@ class UltraDNSHelper(object):
     previous_zones = None
     jobs_manager = None
     offset = 0
-    source = 'UltraDNS'
+    source = "UltraDNS"
     # This is as required by the UltraDNS documentation.
-    access_token_expiration_error = 'invalid_grant:Token not found, expired or invalid.'
+    access_token_expiration_error = "invalid_grant:Token not found, expired or invalid."
 
     MC = MongoConnector.MongoConnector()
     APIH = APIHelper.APIHelper()
@@ -46,19 +47,19 @@ class UltraDNSHelper(object):
 
     _logger = None
 
-
     def _log(self):
         """
         Get the log
         """
         return logging.getLogger(__name__)
 
-
-    @backoff.on_exception(backoff.expo,
-                          requests.exceptions.ConnectionError,
-                          max_tries=4,
-                          factor=10,
-                          on_backoff=APIH.connection_error_retry)
+    @backoff.on_exception(
+        backoff.expo,
+        requests.exceptions.ConnectionError,
+        max_tries=4,
+        factor=10,
+        on_backoff=APIH.connection_error_retry,
+    )
     def backoff_api_retry(self, url, params, headers):
         """
         Makes API calls with exponential retry capabilities using 'backoff'. The API is
@@ -66,11 +67,13 @@ class UltraDNSHelper(object):
         """
         return requests.get(url, params, headers=headers, timeout=120)
 
-    @backoff.on_exception(backoff.expo,
-                          requests.exceptions.ConnectionError,
-                          max_tries=4,
-                          factor=10,
-                          on_backoff=APIH.connection_error_retry)
+    @backoff.on_exception(
+        backoff.expo,
+        requests.exceptions.ConnectionError,
+        max_tries=4,
+        factor=10,
+        on_backoff=APIH.connection_error_retry,
+    )
     def login(self, grant_type):
         """
         Retrieves the access and refresh token to login into UltraDNS.
@@ -80,23 +83,23 @@ class UltraDNSHelper(object):
         """
         login_url = self.ULTRACONNECT.LOGIN
         data = dict()
-        data['grant_type'] = grant_type
+        data["grant_type"] = grant_type
 
-        if grant_type == 'password':
-            data['username'] = self.ULTRACONNECT.USERNAME
-            data['password'] = self.ULTRACONNECT.PASSWORD
-        elif grant_type == 'refresh_token':
-            data['refresh_token'] = self.refresh_token
+        if grant_type == "password":
+            data["username"] = self.ULTRACONNECT.USERNAME
+            data["password"] = self.ULTRACONNECT.PASSWORD
+        elif grant_type == "refresh_token":
+            data["refresh_token"] = self.refresh_token
 
         try:
             res = requests.post(login_url, data, timeout=120)
             res.raise_for_status()
         except requests.exceptions.HTTPError as herr:
-            self.APIH.handle_api_error(str(herr) + ' : ' + res.text, self.jobs_manager)
+            self.APIH.handle_api_error(str(herr) + " : " + res.text, self.jobs_manager)
         else:
             token = res.json()
-            self.refresh_token = token['refreshToken']
-            self.access_token = token['accessToken']
+            self.refresh_token = token["refreshToken"]
+            self.access_token = token["accessToken"]
 
     def get_previous_zones(self):
         """
@@ -104,20 +107,23 @@ class UltraDNSHelper(object):
         The result is a dictionary with the zones as keys. The value of the key is True if the zone
         is sub_zone.
         """
-        zones = self.zones_collection.find({'$or': [{'reporting_sources.source': self.source},
-                                                    {'sub_zones.source': self.source}]},
-                                           {'reporting_sources': 1,
-                                            'zone': 1,
-                                            'sub_zones': 1
-                                            })
+        zones = self.zones_collection.find(
+            {
+                "$or": [
+                    {"reporting_sources.source": self.source},
+                    {"sub_zones.source": self.source},
+                ]
+            },
+            {"reporting_sources": 1, "zone": 1, "sub_zones": 1},
+        )
         self.previous_zones = {}
         for zone in zones:
-            for reporting_source in zone['reporting_sources']:
-                if reporting_source['source'] == self.source:
-                    self.previous_zones[zone['zone']] = False
-            for sub_zone in zone['sub_zones']:
-                if sub_zone['source'] == self.source:
-                    self.previous_zones[sub_zone['sub_zone']] = True
+            for reporting_source in zone["reporting_sources"]:
+                if reporting_source["source"] == self.source:
+                    self.previous_zones[zone["zone"]] = False
+            for sub_zone in zone["sub_zones"]:
+                if sub_zone["source"] == self.source:
+                    self.previous_zones[sub_zone["sub_zone"]] = True
 
     def set_offset(self, result_info):
         """
@@ -127,8 +133,8 @@ class UltraDNSHelper(object):
         # The 'returnedCount' is the number of entries returned in the current API call.
         # Add this to the previous offset to get the new offset. If the new offset value
         # equals the 'totalCount' of records, unset offset to 0 to symbolise end of records.
-        self.offset += result_info['returnedCount']
-        if self.offset == result_info['totalCount']:
+        self.offset += result_info["returnedCount"]
+        if self.offset == result_info["totalCount"]:
             self.offset = 0
 
     def __init__(self, invoking_job):
@@ -137,4 +143,4 @@ class UltraDNSHelper(object):
         self.incorrect_response_json_allowed = self.APIH.INCORRECT_RESPONSE_JSON_ALLOWED
         # invoking_job is the job accessing the helper.
         self.jobs_manager = JobsManager.JobsManager(self.MC, invoking_job)
-        self.login('password')
+        self.login("password")

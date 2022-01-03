@@ -1,4 +1,4 @@
- #!/usr/bin/python3
+#!/usr/bin/python3
 
 # Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
@@ -17,10 +17,9 @@ This class contains a helper function for parsing config files.
 import configparser
 
 
-class ConnectorUtil():
-
+class ConnectorUtil:
     @staticmethod
-    def get_config_setting(logger, config, section, key, type='str'):
+    def get_config_setting(logger, config, section, key, type="str"):
         """
         Retrieves the key value from inside the section the connector.config file.
 
@@ -35,28 +34,28 @@ class ConnectorUtil():
         :return: A string or boolean from the config file.
         """
         try:
-            if type == 'boolean':
+            if type == "boolean":
                 result = config.getboolean(section, key)
             else:
                 result = config.get(section, key)
         except configparser.NoSectionError:
-            logger.warning('Warning: ' + section + ' does not exist in config file')
-            if type == 'boolean':
+            logger.warning("Warning: " + section + " does not exist in config file")
+            if type == "boolean":
                 return 0
             else:
-                return ''
+                return ""
         except configparser.NoOptionError:
-            logger.warning('Warning: ' + key + ' does not exist in the config file')
-            if type == 'boolean':
+            logger.warning("Warning: " + key + " does not exist in the config file")
+            if type == "boolean":
                 return 0
             else:
-                return ''
+                return ""
         except configparser.Error as err:
-            logger.warning('Warning: Unexpected error with config file')
+            logger.warning("Warning: Unexpected error with config file")
             logger.warning(str(err))
-            if type == 'boolean':
+            if type == "boolean":
                 return 0
             else:
-                return ''
+                return ""
 
         return result

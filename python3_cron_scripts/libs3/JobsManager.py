@@ -11,7 +11,6 @@
 # governing permissions and limitations under the License.
 
 import logging
-
 from datetime import datetime
 
 
@@ -42,7 +41,6 @@ class JobsManager(object):
     # The job is no longer used
     RETIRED = "RETIRED"
 
-
     # Settings
     ###################
 
@@ -58,15 +56,13 @@ class JobsManager(object):
     # Job Name
     _job_name = ""
 
-
     def _log(self):
         """
         Get the log
         """
         return logging.getLogger(__name__)
 
-
-    def __init__(self, mongo_connector, job_name, log_level = None):
+    def __init__(self, mongo_connector, job_name, log_level=None):
         self._logger = self._log()
         if log_level is not None:
             self._logger.setLevel(log_level)
@@ -75,16 +71,21 @@ class JobsManager(object):
         self._jobs_collection = mongo_connector.get_jobs_connection()
         self._job_name = job_name
 
-
     def __check_job_exists(self, job_name):
         """
         Verify that the job name exists in the collection.
         If the job does not exist, this will create it.
         """
-        if self._mongo_connector.perform_count(self._jobs_collection, {'job_name': job_name}) == 0:
+        if (
+            self._mongo_connector.perform_count(
+                self._jobs_collection, {"job_name": job_name}
+            )
+            == 0
+        ):
             now = datetime.now()
-            self._jobs_collection.insert({"job_name": job_name, "status": self.NOT_RUN, "updated": now})
-
+            self._jobs_collection.insert(
+                {"job_name": job_name, "status": self.NOT_RUN, "updated": now}
+            )
 
     def create_job(self, job_name):
         """
@@ -92,33 +93,32 @@ class JobsManager(object):
         """
         self.__check_job_exists(job_name)
 
-
     def record_job_start(self):
         """
         This will record the job as having started processing.
         """
         self.__check_job_exists(self._job_name)
-        self._jobs_collection.update_one({'job_name': self._job_name},
-                                         {'$currentDate': {"updated": True},
-                                          "$set": {'status': self.RUNNING}})
-
+        self._jobs_collection.update_one(
+            {"job_name": self._job_name},
+            {"$currentDate": {"updated": True}, "$set": {"status": self.RUNNING}},
+        )
 
     def record_job_error(self):
         """
         This will record the job as having encountered an ERROR during its run.
         """
         self.__check_job_exists(self._job_name)
-        self._jobs_collection.update_one({'job_name': self._job_name},
-                                         {'$currentDate': {"updated": True},
-                                          "$set": {'status': self.ERROR}})
-
+        self._jobs_collection.update_one(
+            {"job_name": self._job_name},
+            {"$currentDate": {"updated": True}, "$set": {"status": self.ERROR}},
+        )
 
     def record_job_complete(self):
         """
         This will record the job as having successfully completed its run.
         """
         self.__check_job_exists(self._job_name)
-        self._jobs_collection.update_one({'job_name': self._job_name},
-                                         {'$currentDate': {"updated": True},
-                                          "$set": {'status': self.COMPLETE}})
-
+        self._jobs_collection.update_one(
+            {"job_name": self._job_name},
+            {"$currentDate": {"updated": True}, "$set": {"status": self.COMPLETE}},
+        )

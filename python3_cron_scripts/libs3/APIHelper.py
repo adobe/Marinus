@@ -12,7 +12,7 @@
 
 import logging
 
-from libs3 import MongoConnector, JobsManager
+from libs3 import JobsManager, MongoConnector
 
 
 class APIHelper(object):
@@ -30,7 +30,7 @@ class APIHelper(object):
         :param jobs_reference: A string with the job name or the JobsManager for the exiting script.
         """
         self._logger.error(err)
-        self._logger.error('Exiting script execution.')
+        self._logger.error("Exiting script execution.")
         if isinstance(jobs_reference, str):
             jobs_manager = JobsManager.JobsManager(self.MC, jobs_reference)
             jobs_manager.record_job_error()
@@ -40,4 +40,8 @@ class APIHelper(object):
         exit(1)
 
     def connection_error_retry(self, details):
-        self._logger.error('Connection Error encountered. Retrying in {wait:0.1f} seconds'.format(**details))
+        self._logger.error(
+            "Connection Error encountered. Retrying in {wait:0.1f} seconds".format(
+                **details
+            )
+        )

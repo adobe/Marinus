@@ -16,21 +16,19 @@ This module is intended to initialize the connection to the UltraDNS services.
 
 import configparser
 import logging
+from sys import exit
 
 from libs3.ConnectorUtil import ConnectorUtil
 
-from sys import exit
-
 
 class UltraDNSConnector(object):
-    ultra_config_file = 'connector.config'
+    ultra_config_file = "connector.config"
 
-    LOGIN = 'https://api.ultradns.com/authorization/token'
-    ZONES = 'https://api.ultradns.com/zones/'
-    ZONEINFO = 'https://api.ultradns.com/zones/{zone_queried}./rrsets'
+    LOGIN = "https://api.ultradns.com/authorization/token"
+    ZONES = "https://api.ultradns.com/zones/"
+    ZONEINFO = "https://api.ultradns.com/zones/{zone_queried}./rrsets"
 
     _logger = None
-
 
     def _log(self):
         """
@@ -38,14 +36,22 @@ class UltraDNSConnector(object):
         """
         return logging.getLogger(__name__)
 
-
     def _init_ultra_connection(self, config):
-        self.USERNAME = ConnectorUtil.get_config_setting(self._logger, config, 'UltraDNS', 'ultra.username')
-        self.PASSWORD = ConnectorUtil.get_config_setting(self._logger, config, 'UltraDNS', 'ultra.password')
-        self.LOGIN = ConnectorUtil.get_config_setting(self._logger, config, 'UltraDNS', 'ultra.login_url')
-        self.ZONES = ConnectorUtil.get_config_setting(self._logger, config, 'UltraDNS', 'ultra.zones_listing')
-        self.ZONEINFO = ConnectorUtil.get_config_setting(self._logger, config, 'UltraDNS', 'ultra.zones_dns')
-
+        self.USERNAME = ConnectorUtil.get_config_setting(
+            self._logger, config, "UltraDNS", "ultra.username"
+        )
+        self.PASSWORD = ConnectorUtil.get_config_setting(
+            self._logger, config, "UltraDNS", "ultra.password"
+        )
+        self.LOGIN = ConnectorUtil.get_config_setting(
+            self._logger, config, "UltraDNS", "ultra.login_url"
+        )
+        self.ZONES = ConnectorUtil.get_config_setting(
+            self._logger, config, "UltraDNS", "ultra.zones_listing"
+        )
+        self.ZONEINFO = ConnectorUtil.get_config_setting(
+            self._logger, config, "UltraDNS", "ultra.zones_dns"
+        )
 
     def __init__(self, log_level=None):
         self._logger = self._log()
@@ -55,7 +61,7 @@ class UltraDNSConnector(object):
         config = configparser.ConfigParser()
         config_file = config.read(self.ultra_config_file)
         if len(config_file) == 0:
-            self._logger.error('Error: Could not find the config file')
+            self._logger.error("Error: Could not find the config file")
             exit(1)
 
         self._init_ultra_connection(config)

@@ -19,12 +19,12 @@ for any custom integrations that you may want to make within your network.
 """
 
 import logging
+from datetime import datetime
 
 from bson.objectid import ObjectId
-from datetime import datetime
 from netaddr import IPAddress, IPNetwork
 
-from libs3 import MongoConnector, DNSManager, GoogleDNS
+from libs3 import DNSManager, GoogleDNS, MongoConnector
 from libs3.ZoneManager import ZoneManager
 
 
@@ -60,13 +60,11 @@ class IPManager(object):
 
     _logger = None
 
-
     def _log(self):
         """
         Get the log
         """
         return logging.getLogger(__name__)
-
 
     def __init__(self, mongo_connector, init_all=False):
         """
@@ -89,7 +87,6 @@ class IPManager(object):
             self.__get_tracked_cidrs()
             self.__get_tracked_ipv6_cidrs()
 
-
     def __get_akamai_ips(self):
         """
         Extract the list of Akamai Networks from the Mongo database.
@@ -102,9 +99,8 @@ class IPManager(object):
         results = self.mongo_connector.perform_find_one(akamai_collection, {})
 
         if results is not None:
-            for result in results['ranges']:
-                self.Akamai_IPs.append(IPNetwork(result['cidr']))
-
+            for result in results["ranges"]:
+                self.Akamai_IPs.append(IPNetwork(result["cidr"]))
 
     def __get_akamai_ipv6s(self):
         """
@@ -119,9 +115,8 @@ class IPManager(object):
         results = self.mongo_connector.perform_find_one(akamai_collection, {})
 
         if results is not None:
-            for result in results['ipv6_ranges']:
-                self.Akamai_IPs.append(IPNetwork(result['cidr']))
-
+            for result in results["ipv6_ranges"]:
+                self.Akamai_IPs.append(IPNetwork(result["cidr"]))
 
     def __get_aws_ips(self):
         """
@@ -133,9 +128,8 @@ class IPManager(object):
         results = self.mongo_connector.perform_find_one(aws_ips_collection, {})
 
         if results is not None:
-            for result in results['prefixes']:
-                self.AWS_IPs.append(IPNetwork(result['ip_prefix']))
-
+            for result in results["prefixes"]:
+                self.AWS_IPs.append(IPNetwork(result["ip_prefix"]))
 
     def __get_aws_ipv6s(self):
         """
@@ -149,9 +143,8 @@ class IPManager(object):
         results = self.mongo_connector.perform_find_one(aws_ips_collection, {})
 
         if results is not None:
-            for result in results['ipv6_prefixes']:
-                self.AWS_IPs.append(IPNetwork(result['ipv6_prefix']))
-
+            for result in results["ipv6_prefixes"]:
+                self.AWS_IPs.append(IPNetwork(result["ipv6_prefix"]))
 
     def __get_azure_ips(self):
         """
@@ -163,9 +156,8 @@ class IPManager(object):
         results = self.mongo_connector.perform_find_one(azure_ips_collection, {})
 
         if results is not None:
-            for result in results['prefixes']:
-                self.Azure_IPs.append(IPNetwork(result['ip_prefix']))
-
+            for result in results["prefixes"]:
+                self.Azure_IPs.append(IPNetwork(result["ip_prefix"]))
 
     def __get_gcp_ips(self):
         """
@@ -177,9 +169,8 @@ class IPManager(object):
         results = self.mongo_connector.perform_find_one(gcp_ips_collection, {})
 
         if results is not None:
-            for result in results['prefixes']:
-                self.GCP_IPs.append(IPNetwork(result['ip_prefix']))
-
+            for result in results["prefixes"]:
+                self.GCP_IPs.append(IPNetwork(result["ip_prefix"]))
 
     def __get_gcp_ipv6s(self):
         """
@@ -193,9 +184,8 @@ class IPManager(object):
         results = self.mongo_connector.perform_find_one(gcp_ips_collection, {})
 
         if results is not None:
-            for result in results['ipv6_prefixes']:
-                self.GCP_IPs.append(IPNetwork(result['ipv6_prefix']))
-
+            for result in results["ipv6_prefixes"]:
+                self.GCP_IPs.append(IPNetwork(result["ipv6_prefix"]))
 
     def __get_tracked_cidrs(self):
         """
@@ -206,10 +196,11 @@ class IPManager(object):
 
         ipzone_collection = self.mongo_connector.get_ipzone_connection()
 
-        results = self.mongo_connector.perform_find(ipzone_collection, {'status': {"$ne": "false_positive"}})
+        results = self.mongo_connector.perform_find(
+            ipzone_collection, {"status": {"$ne": "false_positive"}}
+        )
         for result in results:
-            self.Tracked_CIDRs.append(IPNetwork(result['zone']))
-
+            self.Tracked_CIDRs.append(IPNetwork(result["zone"]))
 
     def __get_tracked_ipv6_cidrs(self):
         """
@@ -221,10 +212,11 @@ class IPManager(object):
 
         ipzone_collection = self.mongo_connector.get_ipv6_zone_connection()
 
-        results = self.mongo_connector.perform_find(ipzone_collection, {'status': {"$ne": "false_positive"}})
+        results = self.mongo_connector.perform_find(
+            ipzone_collection, {"status": {"$ne": "false_positive"}}
+        )
         for result in results:
-            self.Tracked_CIDRs.append(IPNetwork(result['zone']))
-
+            self.Tracked_CIDRs.append(IPNetwork(result["zone"]))
 
     def check_in_cidr(self, ip, cidrs):
         """
@@ -245,7 +237,6 @@ class IPManager(object):
 
         return False
 
-
     def find_cidr(self, ip, cidrs):
         """
         Is the provided IP in one of the provided CIDRs?
@@ -265,7 +256,6 @@ class IPManager(object):
 
         return None
 
-
     def is_aws_ip(self, ip):
         """
         Is the provided IP within one of the AWS CIDRs?
@@ -281,7 +271,6 @@ class IPManager(object):
 
         return self.check_in_cidr(ip_addr, self.AWS_IPs)
 
-
     def is_azure_ip(self, ip):
         """
         Is the provided IP within one of the Azure CIDRs?
@@ -290,12 +279,11 @@ class IPManager(object):
             ip_addr = IPAddress(ip)
         else:
             ip_addr = ip
-        
+
         if self.Azure_IPs is None:
             self.__get_azure_ips()
-        
-        return self.check_in_cidr(ip_addr, self.Azure_IPs)
 
+        return self.check_in_cidr(ip_addr, self.Azure_IPs)
 
     def is_gcp_ip(self, ip):
         """
@@ -312,7 +300,6 @@ class IPManager(object):
 
         return self.check_in_cidr(ip_addr, self.GCP_IPs)
 
-
     def is_tracked_ip(self, ip):
         """
         Is the provided IP within one of the Tracked CIDRs?
@@ -325,9 +312,8 @@ class IPManager(object):
         if self.Tracked_CIDRs is None:
             self.__get_tracked_cidrs()
             self.__get_tracked_ipv6_cidrs()
-        
-        return self.check_in_cidr(ip_addr, self.Tracked_CIDRs)
 
+        return self.check_in_cidr(ip_addr, self.Tracked_CIDRs)
 
     def is_akamai_ip(self, ip):
         """
@@ -344,18 +330,26 @@ class IPManager(object):
 
         return self.check_in_cidr(ip_addr, self.Akamai_IPs)
 
-
     def is_local_ip(self, ip):
         """
         Returns true if the IP is in a local IP address range
         """
-        if self.check_in_cidr(ip, [IPNetwork("10.0.0.0/8"), IPNetwork("172.16.0.0/12"), IPNetwork("fd00::/8"),
-                                IPNetwork("192.168.0.0/16"), IPNetwork("127.0.0.0/8")]) or \
-                                    ip == "255.255.255.255":
+        if (
+            self.check_in_cidr(
+                ip,
+                [
+                    IPNetwork("10.0.0.0/8"),
+                    IPNetwork("172.16.0.0/12"),
+                    IPNetwork("fd00::/8"),
+                    IPNetwork("192.168.0.0/16"),
+                    IPNetwork("127.0.0.0/8"),
+                ],
+            )
+            or ip == "255.255.255.255"
+        ):
             return True
         return False
 
-    
     def find_partner_range(self, ip):
         """
         Find the CIDR range and partner for the provided IP
@@ -364,7 +358,7 @@ class IPManager(object):
             ip_addr = IPAddress(ip)
         else:
             ip_addr = ip
-        
+
         if self.Akamai_IPs is None:
             self.__get_akamai_ips()
             self.__get_akamai_ipv6s()
@@ -406,7 +400,6 @@ class IPManager(object):
 
         return self.UNKNOWN, None
 
-
     def find_partner_notes(self, cidr_value, partner):
         """
         Find the region and/or note information for the provided CIDR.
@@ -421,35 +414,45 @@ class IPManager(object):
             aws_ips_collection = self.mongo_connector.get_aws_ips_connection()
 
             if cidr.version == 4:
-                meta_result = self.mongo_connector.perform_find_one(aws_ips_collection, {"prefixes.ip_prefix": str(cidr)})
-                for result in meta_result['prefixes']:
-                    if result['ip_prefix'] == str(cidr):
-                        return result['region']
+                meta_result = self.mongo_connector.perform_find_one(
+                    aws_ips_collection, {"prefixes.ip_prefix": str(cidr)}
+                )
+                for result in meta_result["prefixes"]:
+                    if result["ip_prefix"] == str(cidr):
+                        return result["region"]
             else:
-                meta_result = self.mongo_connector.perform_find_one(aws_ips_collection, {"ipv6_prefixes.ipv6_prefix": str(cidr)})
-                for result in meta_result['ipv6_prefixes']:
-                    if result['ipv6_prefix'] == str(cidr):
-                        return result['region']
+                meta_result = self.mongo_connector.perform_find_one(
+                    aws_ips_collection, {"ipv6_prefixes.ipv6_prefix": str(cidr)}
+                )
+                for result in meta_result["ipv6_prefixes"]:
+                    if result["ipv6_prefix"] == str(cidr):
+                        return result["region"]
         elif partner == self.AZURE:
             azure_ips_collection = self.mongo_connector.get_azure_ips_connection()
 
-            meta_result = self.mongo_connector.perform_find_one(azure_ips_collection, {"prefixes.ip_prefix": str(cidr)})
-            for result in meta_result['prefixes']:
-                    if result['ip_prefix'] == str(cidr):
-                        return result['region']
+            meta_result = self.mongo_connector.perform_find_one(
+                azure_ips_collection, {"prefixes.ip_prefix": str(cidr)}
+            )
+            for result in meta_result["prefixes"]:
+                if result["ip_prefix"] == str(cidr):
+                    return result["region"]
         elif partner == self.TRACKED:
             if cidr.version == 4:
                 ip_zones_collection = self.mongo_connector.get_ipzone_connection()
 
-                meta_result = self.mongo_connector.perform_find_one(ip_zones_collection, {'zone': str(cidr)})
-                if meta_result is not None and 'notes' in meta_result:
-                    return meta_result['notes']
+                meta_result = self.mongo_connector.perform_find_one(
+                    ip_zones_collection, {"zone": str(cidr)}
+                )
+                if meta_result is not None and "notes" in meta_result:
+                    return meta_result["notes"]
             else:
                 ipv6_zone_collection = self.mongo_connector.get_ipv6_zone_connection()
 
-                meta_result = self.mongo_connector.perform_find_one(ipv6_zone_collection, {'zone': str(cidr)})
-                if meta_result is not None and 'notes' in meta_result:
-                    return meta_result['notes']
+                meta_result = self.mongo_connector.perform_find_one(
+                    ipv6_zone_collection, {"zone": str(cidr)}
+                )
+                if meta_result is not None and "notes" in meta_result:
+                    return meta_result["notes"]
         elif partner == self.AKAMAI:
             return ""
         elif partner == self.GCP:
@@ -458,7 +461,6 @@ class IPManager(object):
             return ""
 
         return ""
-
 
     def find_reverse_dns(self, ip):
         """
@@ -469,13 +471,14 @@ class IPManager(object):
 
         google_gns = GoogleDNS.GoogleDNS()
 
-        results = google_gns.fetch_DNS_records(ip_addr.reverse_dns, google_gns.DNS_TYPES["ptr"])
+        results = google_gns.fetch_DNS_records(
+            ip_addr.reverse_dns, google_gns.DNS_TYPES["ptr"]
+        )
 
         if len(results) > 0:
-            return results[0]['value']
+            return results[0]["value"]
 
         return None
-
 
     def find_splunk_data(self, ip, partner):
         """
@@ -492,13 +495,13 @@ class IPManager(object):
             Add your own logic here to determine if it is an AWS resource that you own
             """
             return None
- 
+
         elif partner == self.AZURE:
             """
             Add your own logic here to determine if it is an Azure resource that you own
             """
             return None
- 
+
         elif partner == self.AKAMAI:
             return None
         elif partner == self.GCP_IPs:
@@ -509,7 +512,6 @@ class IPManager(object):
             return None
 
         return None
-
 
     def find_dns_zones(self, ip):
         """
@@ -523,13 +525,12 @@ class IPManager(object):
         domains = []
 
         for result in results:
-            if result['zone'] not in zones and result['zone'] != '':
-                zones.append(result['zone'])
-            if result['fqdn'] not in domains and result['fqdn'] != ip:
-                domains.append(result['fqdn'])
-        
-        return zones, domains
+            if result["zone"] not in zones and result["zone"] != "":
+                zones.append(result["zone"])
+            if result["fqdn"] not in domains and result["fqdn"] != ip:
+                domains.append(result["fqdn"])
 
+        return zones, domains
 
     def extract_rdns_info(self, ip):
         """
@@ -546,7 +547,6 @@ class IPManager(object):
         rdns_zone = ZoneManager.get_root_domain(rnds_value, None)
 
         return rnds_value, rdns_zone
-
 
     def insert_record(self, ip, source=None):
         """
@@ -574,84 +574,97 @@ class IPManager(object):
             return
 
         record = {}
-        record['ip'] = ip
-        record['version'] = ip_addr.version
-        record['updated'] = datetime.now()
+        record["ip"] = ip
+        record["version"] = ip_addr.version
+        record["updated"] = datetime.now()
 
         # Check existance
-        result = self.mongo_connector.perform_find_one(self.all_ips_collection, {"ip": ip})
+        result = self.mongo_connector.perform_find_one(
+            self.all_ips_collection, {"ip": ip}
+        )
         if result is not None:
-            record['created'] = result['created']
+            record["created"] = result["created"]
         else:
-            record['created'] = datetime.now()
+            record["created"] = datetime.now()
 
         if source is not None:
-            if result is not None and 'sources' not in result:
-                record['sources'] = [{'source': source, 'updated': datetime.now()}]
+            if result is not None and "sources" not in result:
+                record["sources"] = [{"source": source, "updated": datetime.now()}]
             elif result is not None:
-                record['sources'] = []
-                for source_entry in result['sources']:
-                    if source_entry['source'] == source:
-                        record['sources'].append({'source': source, 'updated': datetime.now()})
+                record["sources"] = []
+                for source_entry in result["sources"]:
+                    if source_entry["source"] == source:
+                        record["sources"].append(
+                            {"source": source, "updated": datetime.now()}
+                        )
                     else:
-                        record['sources'].append(source_entry)
+                        record["sources"].append(source_entry)
 
-        record['zones'], record['domains'] = self.find_dns_zones(ip)
+        record["zones"], record["domains"] = self.find_dns_zones(ip)
 
         rdns_value, rdns_zone = self.extract_rdns_info(ip)
         if rdns_value != "":
-            record['reverse_dns'] = rdns_value
+            record["reverse_dns"] = rdns_value
 
-            if rdns_zone is not None and rdns_zone in self._ZONES and rdns_zone not in record['zones']:
-                record['zones'].append(rdns_zone)
+            if (
+                rdns_zone is not None
+                and rdns_zone in self._ZONES
+                and rdns_zone not in record["zones"]
+            ):
+                record["zones"].append(rdns_zone)
 
         partner, cidr = self.find_partner_range(ip_addr)
 
         if partner != self.UNKNOWN:
             notes = self.find_partner_notes(cidr, partner)
 
-            record['host'] = {}
-            record['host']['hosting_partner'] = partner
-            record['host']['host_cidr'] = str(cidr)
-            record['host']['notes'] = notes
-        
+            record["host"] = {}
+            record["host"]["hosting_partner"] = partner
+            record["host"]["host_cidr"] = str(cidr)
+            record["host"]["notes"] = notes
+
             if partner == self.AWS or partner == self.AZURE:
                 result = self.find_splunk_data(ip, partner)
                 if result is not None:
                     """
                     Add relevant data to the record
                     """
-                    record['host']['splunk'] = result
+                    record["host"]["splunk"] = result
 
         self.all_ips_collection.replace_one({"ip": ip}, record, upsert=True)
-
 
     def delete_records_by_date(self, expire_date):
         """
         Delete old records that have not been updated since the provided date
         """
 
-        results = self.mongo_connector.perform_find(self.all_ips_collection, {"updated": {"$lt": expire_date}}, batch_size=100)
+        results = self.mongo_connector.perform_find(
+            self.all_ips_collection, {"updated": {"$lt": expire_date}}, batch_size=100
+        )
 
         for result in results:
-            self.all_ips_collection.delete_one({"ip": result['ip']})
-
+            self.all_ips_collection.delete_one({"ip": result["ip"]})
 
     def delete_records_by_date_and_source(self, source, expire_date):
         """
         Delete old records by source and date
         """
 
-        results = self.all_ips_collection.find({'sources': {"$elemMatch": {'source': source,
-                                                               'updated': {"$lt": expire_date}}}}
-                                              ).batch_size(30)
+        results = self.all_ips_collection.find(
+            {
+                "sources": {
+                    "$elemMatch": {"source": source, "updated": {"$lt": expire_date}}
+                }
+            }
+        ).batch_size(30)
 
         for result in results:
-            if len(result['sources']) > 1:
-                self.all_ips_collection.update_one({'_id': ObjectId(result['_id'])},
-                                               {"$pull": {"sources": {"source": source}}})
+            if len(result["sources"]) > 1:
+                self.all_ips_collection.update_one(
+                    {"_id": ObjectId(result["_id"])},
+                    {"$pull": {"sources": {"source": source}}},
+                )
             else:
-                self.all_ips_collection.delete_one({'_id': ObjectId(result['_id'])})
+                self.all_ips_collection.delete_one({"_id": ObjectId(result["_id"])})
 
         return True
-

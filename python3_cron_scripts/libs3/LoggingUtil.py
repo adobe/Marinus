@@ -21,8 +21,7 @@ import logging.config
 import os.path
 
 
-class LoggingUtil():
-
+class LoggingUtil:
     @staticmethod
     def create_log(name, level=None, config_file=None):
         """
@@ -37,11 +36,13 @@ class LoggingUtil():
         """
         if config_file is not None:
             logging.config.fileConfig(config_file)
-        elif os.path.isfile('logging.conf'):
-            logging.config.fileConfig('logging.conf')
+        elif os.path.isfile("logging.conf"):
+            logging.config.fileConfig("logging.conf")
         else:
             # create formatter
-            logging.basicConfig(format='[%(asctime)s] %(name)s {%(funcName)s:%(lineno)d} : %(levelname)s : %(message)s')
+            logging.basicConfig(
+                format="[%(asctime)s] %(name)s {%(funcName)s:%(lineno)d} : %(levelname)s : %(message)s"
+            )
 
         logger = logging.getLogger(name)
 

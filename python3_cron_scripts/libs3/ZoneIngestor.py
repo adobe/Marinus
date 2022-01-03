@@ -20,10 +20,11 @@ It expects 3 inputs:
 """
 
 import logging
+from datetime import datetime
+
+from bson.objectid import ObjectId
 
 from libs3 import MongoConnector, ZoneManager
-from datetime import datetime
-from bson.objectid import ObjectId
 
 
 class ZoneIngestor(object):
@@ -41,15 +42,15 @@ class ZoneIngestor(object):
         :param zone: Zone for which parent record needs to be found.
         :return: Parent zone record found or None
         """
-        zones_present = list(self.zone_collection.find({}, {'zone': 1}))
-        zone_segments = zone.split('.')
+        zones_present = list(self.zone_collection.find({}, {"zone": 1}))
+        zone_segments = zone.split(".")
         segment_length = len(zone_segments)
         parent_zone = zone_segments[segment_length - 1]
 
-        for segment in zone_segments[segment_length-2:0:-1]:
-            parent_zone = segment + '.' + parent_zone
+        for segment in zone_segments[segment_length - 2 : 0 : -1]:
+            parent_zone = segment + "." + parent_zone
             for zone_present in zones_present:
-                if zone_present['zone'] == parent_zone:
+                if zone_present["zone"] == parent_zone:
                     return zone_present
         return None
 
@@ -59,11 +60,11 @@ class ZoneIngestor(object):
         :param zone: Zone for which sub-zones need to be found.
         :return: List of the sub-zones found.
         """
-        zones_present = list(self.zone_collection.find({}, {'_id': 0}))
-        zone = '.' + zone
+        zones_present = list(self.zone_collection.find({}, {"_id": 0}))
+        zone = "." + zone
         sub_zones_matched = []
         for zone_present in zones_present:
-            if zone_present['zone'].rfind(zone) > 0:
+            if zone_present["zone"].rfind(zone) > 0:
                 sub_zones_matched.append(zone_present)
         return sub_zones_matched
 
@@ -76,19 +77,19 @@ class ZoneIngestor(object):
         """
         temp_sub_zone_list = []
         temp_sub_zone = dict()
-        temp_sub_zone['sub_zone'] = sub_zone['zone']
-        temp_sub_zone['source'] = sub_zone['reporting_sources'][0]['source']
-        temp_sub_zone['created'] = sub_zone['created']
-        temp_sub_zone['updated'] = datetime.now()
-        temp_sub_zone['status'] = sub_zone['reporting_sources'][0]['status']
+        temp_sub_zone["sub_zone"] = sub_zone["zone"]
+        temp_sub_zone["source"] = sub_zone["reporting_sources"][0]["source"]
+        temp_sub_zone["created"] = sub_zone["created"]
+        temp_sub_zone["updated"] = datetime.now()
+        temp_sub_zone["status"] = sub_zone["reporting_sources"][0]["status"]
         temp_sub_zone_list.append(temp_sub_zone)
-        for sz in sub_zone['sub_zones']:
+        for sz in sub_zone["sub_zones"]:
             temp_sub_zone = dict()
-            temp_sub_zone['sub_zone'] = sz['sub_zone']
-            temp_sub_zone['source'] = sz['source']
-            temp_sub_zone['created'] = sz['created']
-            temp_sub_zone['updated'] = datetime.now()
-            temp_sub_zone['status'] = sz['status']
+            temp_sub_zone["sub_zone"] = sz["sub_zone"]
+            temp_sub_zone["source"] = sz["source"]
+            temp_sub_zone["created"] = sz["created"]
+            temp_sub_zone["updated"] = datetime.now()
+            temp_sub_zone["status"] = sz["status"]
             temp_sub_zone_list.append(temp_sub_zone)
         return temp_sub_zone_list
 
@@ -105,18 +106,20 @@ class ZoneIngestor(object):
             sub_zones.extend(self.__create_sub_zone_entries(sub_zone))
 
         insert_zone = dict()
-        insert_zone['zone'] = parent
-        insert_zone['reporting_sources'] = list()
-        insert_zone['reporting_sources'].append({
-            'created': datetime.now(),
-            'updated': datetime.now(),
-            'status': 'unconfirmed',
-            'source': source,
-        })
-        insert_zone['created'] = datetime.now()
-        insert_zone['updated'] = datetime.now()
-        insert_zone['status'] = 'unconfirmed'
-        insert_zone['sub_zones'] = sub_zones
+        insert_zone["zone"] = parent
+        insert_zone["reporting_sources"] = list()
+        insert_zone["reporting_sources"].append(
+            {
+                "created": datetime.now(),
+                "updated": datetime.now(),
+                "status": "unconfirmed",
+                "source": source,
+            }
+        )
+        insert_zone["created"] = datetime.now()
+        insert_zone["updated"] = datetime.now()
+        insert_zone["status"] = "unconfirmed"
+        insert_zone["sub_zones"] = sub_zones
         self.zone_collection.insert_one(insert_zone)
 
     def __add_sub_zone(self, zone, source, parent_record):
@@ -129,16 +132,16 @@ class ZoneIngestor(object):
         :param parent_record: Parent document to which the sub-zone needs to be added.
         """
         sub_zone = dict()
-        sub_zone['sub_zone'] = zone
-        sub_zone['source'] = source
-        sub_zone['created'] = datetime.now()
-        sub_zone['updated'] = datetime.now()
-        sub_zone['status'] = 'unconfirmed'
+        sub_zone["sub_zone"] = zone
+        sub_zone["source"] = source
+        sub_zone["created"] = datetime.now()
+        sub_zone["updated"] = datetime.now()
+        sub_zone["status"] = "unconfirmed"
 
-        self.zone_collection.update_one({'_id': ObjectId(parent_record['_id'])},
-                                        {'$push': {'sub_zones': sub_zone},
-                                         '$set': {'updated': datetime.now()}}
-                                        )
+        self.zone_collection.update_one(
+            {"_id": ObjectId(parent_record["_id"])},
+            {"$push": {"sub_zones": sub_zone}, "$set": {"updated": datetime.now()}},
+        )
 
     def __add_new_zone(self, zone, source, parent, custom_fields):
         """
@@ -153,31 +156,31 @@ class ZoneIngestor(object):
         # zone value can be None
         if zone:
             sub_zones.append({})
-            sub_zones[0]['sub_zone'] = zone
-            sub_zones[0]['source'] = source
-            sub_zones[0]['created'] = datetime.now()
-            sub_zones[0]['updated'] = datetime.now()
-            sub_zones[0]['status'] = 'unconfirmed'
+            sub_zones[0]["sub_zone"] = zone
+            sub_zones[0]["source"] = source
+            sub_zones[0]["created"] = datetime.now()
+            sub_zones[0]["updated"] = datetime.now()
+            sub_zones[0]["status"] = "unconfirmed"
 
         insert_zone = dict()
-        insert_zone['zone'] = parent
-        insert_zone['reporting_sources'] = list()
+        insert_zone["zone"] = parent
+        insert_zone["reporting_sources"] = list()
         sources_data = {
-            'created': datetime.now(),
-            'updated': datetime.now(),
-            'status': 'unconfirmed',
-            'source': source,
+            "created": datetime.now(),
+            "updated": datetime.now(),
+            "status": "unconfirmed",
+            "source": source,
         }
 
         if custom_fields is not None:
             for key_value in custom_fields.keys():
                 sources_data[key_value] = custom_fields[key_value]
 
-        insert_zone['reporting_sources'].append(sources_data)
-        insert_zone['created'] = datetime.now()
-        insert_zone['updated'] = datetime.now()
-        insert_zone['status'] = 'unconfirmed'
-        insert_zone['sub_zones'] = sub_zones
+        insert_zone["reporting_sources"].append(sources_data)
+        insert_zone["created"] = datetime.now()
+        insert_zone["updated"] = datetime.now()
+        insert_zone["status"] = "unconfirmed"
+        insert_zone["sub_zones"] = sub_zones
         self.zone_collection.insert_one(insert_zone)
 
     def __update_source_time(self, record, source, custom_fields):
@@ -188,42 +191,55 @@ class ZoneIngestor(object):
         :param source: Source value which needs to be added.
         """
         source_contained = False
-        for reporting_source in record['reporting_sources']:
-            if reporting_source['source'] == source:
+        for reporting_source in record["reporting_sources"]:
+            if reporting_source["source"] == source:
                 source_contained = True
 
         if not source_contained:
             # the source does not exist in the zone so push one.
             source_data = dict()
-            source_data['created'] = datetime.now()
-            source_data['updated'] = datetime.now()
-            source_data['status'] = 'unconfirmed'
-            source_data['source'] = source
+            source_data["created"] = datetime.now()
+            source_data["updated"] = datetime.now()
+            source_data["status"] = "unconfirmed"
+            source_data["source"] = source
 
             if custom_fields is not None:
                 for key_value in custom_fields.keys():
                     source_data[key_value] = custom_fields[key_value]
 
-            self.zone_collection.update_one({'_id': ObjectId(record['_id'])},
-                                            {'$push': {'reporting_sources': source_data},
-                                             '$set': {'updated': datetime.now()}}
-                                            )
+            self.zone_collection.update_one(
+                {"_id": ObjectId(record["_id"])},
+                {
+                    "$push": {"reporting_sources": source_data},
+                    "$set": {"updated": datetime.now()},
+                },
+            )
 
         else:
-            self.zone_collection.update_one({'_id': ObjectId(record['_id']),
-                                            'reporting_sources.source': source},
-                                            {'$set': {'reporting_sources.$.updated': datetime.now(),
-                                                      'updated': datetime.now()
-                                                      }}
-                                            )
+            self.zone_collection.update_one(
+                {"_id": ObjectId(record["_id"]), "reporting_sources.source": source},
+                {
+                    "$set": {
+                        "reporting_sources.$.updated": datetime.now(),
+                        "updated": datetime.now(),
+                    }
+                },
+            )
             if custom_fields is not None:
                 for key_value in custom_fields.keys():
-                    self.zone_collection.update_one({'_id': ObjectId(record['_id']),
-                                                    'reporting_sources.source': source},
-                                                    {'$set': {'reporting_sources.$.' + key_value: custom_fields[key_value],
-                                                            'updated': datetime.now()
-                                                            }}
-                                                    )
+                    self.zone_collection.update_one(
+                        {
+                            "_id": ObjectId(record["_id"]),
+                            "reporting_sources.source": source,
+                        },
+                        {
+                            "$set": {
+                                "reporting_sources.$."
+                                + key_value: custom_fields[key_value],
+                                "updated": datetime.now(),
+                            }
+                        },
+                    )
 
     def __update_time(self, record, zone, custom_fields=None):
         """
@@ -232,28 +248,34 @@ class ZoneIngestor(object):
         :param record: Document which needs to be updated.
         :param zone: Sub-zone value of document whose time needs to be updated.
         """
-        self.zone_collection.update_one({'_id': ObjectId(record['_id']),
-                                         'sub_zones.sub_zone': zone},
-                                        {'$set': {'sub_zones.$.updated': datetime.now(),
-                                                  'updated': datetime.now()
-                                                  }}
-                                        )
+        self.zone_collection.update_one(
+            {"_id": ObjectId(record["_id"]), "sub_zones.sub_zone": zone},
+            {
+                "$set": {
+                    "sub_zones.$.updated": datetime.now(),
+                    "updated": datetime.now(),
+                }
+            },
+        )
 
         if custom_fields is not None:
             for key_value in custom_fields.keys():
-                self.zone_collection.update_one({'_id': ObjectId(record['_id']),
-                                                 'sub_zones.sub_zone': zone},
-                                                {'$set': {'sub_zones.$.' + key_value: custom_fields[key_value],
-                                                          'updated': datetime.now()
-                                                        }}
-                                                )
+                self.zone_collection.update_one(
+                    {"_id": ObjectId(record["_id"]), "sub_zones.sub_zone": zone},
+                    {
+                        "$set": {
+                            "sub_zones.$." + key_value: custom_fields[key_value],
+                            "updated": datetime.now(),
+                        }
+                    },
+                )
 
     def __delete_zone(self, zone):
         """
         Delete the zone record.
         :param zone: Zone value to be deleted.
         """
-        self.zone_collection.remove({'zone': zone})
+        self.zone_collection.remove({"zone": zone})
 
     def __zone_previously_not_present(self, zone, source, parent, custom_fields):
         """
@@ -277,10 +299,14 @@ class ZoneIngestor(object):
             # check if the parent is present as zone.
             # If yes, add zone as sub-zone
             # If no, add zone and parent as new entry.
-            parent_record = self.zone_collection.find({'zone': parent})
+            parent_record = self.zone_collection.find({"zone": parent})
             if parent_record:
                 if parent_record.count() > 1:
-                    self._logger.error('Error: Too many records for the parent zone:{parent}.'.format(parent=parent))
+                    self._logger.error(
+                        "Error: Too many records for the parent zone:{parent}.".format(
+                            parent=parent
+                        )
+                    )
                     return False
                 self.__add_sub_zone(zone, source, parent_record[0])
             else:
@@ -303,7 +329,7 @@ class ZoneIngestor(object):
                     # call delete sub-zone also.
                     self.__update_parent_sub_zones(sub_zone_records, source, zone)
                     for sub_zone in sub_zone_records:
-                        self.__delete_zone(sub_zone['zone'])
+                        self.__delete_zone(sub_zone["zone"])
                 else:
                     self.__add_new_zone(None, source, zone, custom_fields)
 
@@ -330,7 +356,11 @@ class ZoneIngestor(object):
         """
 
         if cursor.count() > 1:
-            self._logger.error('Error: The zone:{zone} is present in multiple records. Rectify.'.format(zone=zone))
+            self._logger.error(
+                "Error: The zone:{zone} is present in multiple records. Rectify.".format(
+                    zone=zone
+                )
+            )
             return
 
         record = cursor[0]
@@ -338,43 +368,57 @@ class ZoneIngestor(object):
         #     self._logger.error('False positive encountered in collection for zone:{zone}. No action required.'.format(zone=zone))
         #     return
 
-        if record['zone'] == zone:
+        if record["zone"] == zone:
             if not parent:
                 self.__update_source_time(record, source, custom_fields)
 
-                if record['status'] == self.zone_manager.EXPIRED:
-                    self.zone_manager.set_status(zone, self.zone_manager.UNCONFIRMED, source)
+                if record["status"] == self.zone_manager.EXPIRED:
+                    self.zone_manager.set_status(
+                        zone, self.zone_manager.UNCONFIRMED, source
+                    )
             else:
                 # Return in case the zone is present with another source since sub-zones cannot have two sources.
-                if len(record['reporting_sources']) > 1 or not (record['reporting_sources'][0]['source'] == source):
-                    self._logger.error('Error: The zone:{zone} has multiple sources'.format(zone=zone))
+                if len(record["reporting_sources"]) > 1 or not (
+                    record["reporting_sources"][0]["source"] == source
+                ):
+                    self._logger.error(
+                        "Error: The zone:{zone} has multiple sources".format(zone=zone)
+                    )
                     return
 
                 self.__add_new_zone(zone, source, parent, custom_fields)
                 self.__delete_zone(zone)
         else:
             record_zone = None
-            for sub_zone in record['sub_zones']:
-                if sub_zone['sub_zone'] == zone:
+            for sub_zone in record["sub_zones"]:
+                if sub_zone["sub_zone"] == zone:
                     record_zone = sub_zone
             # if record_zone['status'] == 'false_positive':
             #     self._logger.error('False positive encountered in collection for zone:{zone}. No action required.'.format(zone=zone))
             #     return
-            if parent and (not record['zone'] == parent):
-                self._logger.error('Error: The zone:{zone} pre-exists as a sub-zone of another parent zone apart from parent:{parent}.'.
-                      format(zone=zone, parent=parent))
+            if parent and (not record["zone"] == parent):
+                self._logger.error(
+                    "Error: The zone:{zone} pre-exists as a sub-zone of another parent zone apart from parent:{parent}.".format(
+                        zone=zone, parent=parent
+                    )
+                )
                 return
-            if not record_zone['source'] == source:
-                self._logger.error('Error: The zone:{zone} pre-exists as a sub-zone from another source:{source}.'.
-                      format(zone=zone, source=source))
+            if not record_zone["source"] == source:
+                self._logger.error(
+                    "Error: The zone:{zone} pre-exists as a sub-zone from another source:{source}.".format(
+                        zone=zone, source=source
+                    )
+                )
                 return
 
             self.__update_time(record, zone, custom_fields)
 
-            if record['status'] == self.zone_manager.EXPIRED:
-                self.zone_manager.set_status(zone, self.zone_manager.UNCONFIRMED, source)
+            if record["status"] == self.zone_manager.EXPIRED:
+                self.zone_manager.set_status(
+                    zone, self.zone_manager.UNCONFIRMED, source
+                )
 
-    def add_zone(self, zone, source='Manual', parent=None, custom_fields=None):
+    def add_zone(self, zone, source="Manual", parent=None, custom_fields=None):
         """
         Publicly exposed function responsible to ingest the zone into zone collection
         :param zone: Zone value.
@@ -383,18 +427,17 @@ class ZoneIngestor(object):
         :param custom_fields: An optional dictionary of custom fields to add to the source record.
         """
         if not zone:
-            self._logger.error('Error: Provide zone value.')
+            self._logger.error("Error: Provide zone value.")
             return
 
         # Reject any zone which does not contain a TLD.
-        if '.' not in zone:
-            self._logger.error('Error: Invalid zone entry : ' + zone)
+        if "." not in zone:
+            self._logger.error("Error: Invalid zone entry : " + zone)
             return
 
-        cursor = self.zone_collection.find({'$or': [
-            {'sub_zones.sub_zone': zone},
-            {'zone': zone}]
-        })
+        cursor = self.zone_collection.find(
+            {"$or": [{"sub_zones.sub_zone": zone}, {"zone": zone}]}
+        )
 
         if cursor.count() == 0:
             self.__zone_previously_not_present(zone, source, parent, custom_fields)
