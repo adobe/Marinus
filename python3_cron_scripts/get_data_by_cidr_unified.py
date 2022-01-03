@@ -174,6 +174,9 @@ def update_rdns(logger, rdns_file, mongo_connection, dns_manager, ip_manager, zo
             except:
                 raise
 
+            if 'type' in data and data['type'] != 'ptr':
+                continue
+
             try:
                 ip_addr = data['name']
             except:
@@ -307,6 +310,7 @@ def main():
 
         try:
             html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
+
             if html_parser.any_url != "":
                 unzipped_dns = download_remote_files(logger, s, html_parser.any_url, save_directory, jobs_manager)
                 update_dns(logger, unzipped_dns, dns_manager, ip_manager, zones)
@@ -321,6 +325,8 @@ def main():
         jobs_manager.record_job_start()
 
         try:
+            html_parser = r7.find_file_locations(s, "fdns", jobs_manager)
+
             if html_parser.a_url != "":
                 unzipped_dns = download_remote_files(logger, s, html_parser.a_url, save_directory, jobs_manager)
                 update_dns(logger, unzipped_dns, dns_manager, ip_manager, zones)
