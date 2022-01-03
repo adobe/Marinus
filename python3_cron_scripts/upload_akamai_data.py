@@ -36,42 +36,60 @@ akamai_collection.delete_many({})
 AKAMAI_DATA = {}
 
 # Record the date that the data was updated.
-AKAMAI_DATA['created'] = datetime.now()
+AKAMAI_DATA["created"] = datetime.now()
 
 # Leave a note for those who query the database directly.
-AKAMAI_DATA['note'] = ("This does not cover all Akamai ranges. " +
-                       "It just covers the ones that the tracked organization appears to use as of the created date.")
+AKAMAI_DATA["note"] = (
+    "This does not cover all Akamai ranges. "
+    + "It just covers the ones that the tracked organization appears to use as of the created date."
+)
 
 # Create the list of known ranges.
-AKAMAI_DATA['ranges'] = []
-AKAMAI_DATA['ranges'].append({'cidr': '2.23.144.0/20',
-                              'ip_range': '2.23.144.0 - 2.23.159.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '104.64.0.0/10',
-                              'ip_range': '104.64.0.0 - 104.127.255.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '172.224.0.0/12',
-                              'ip_range': '172.224.0.0 - 172.239.255.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '173.222.0.0/15',
-                              'ip_range': '173.222.0.0 - 173.223.255.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '184.24.0.0/13',
-                              'ip_range': '184.24.0.0 - 184.31.255.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '184.50.0.0/15',
-                              'ip_range': '184.50.0.0 - 184.51.255.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '184.84.0.0/14',
-                              'ip_range': '184.84.0.0 - 184.87.255.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '23.0.0.0/12',
-                              'ip_range': '23.0.0.0 - 23.15.255.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '23.32.0.0/11',
-                              'ip_range': '23.32.0.0 - 23.63.255.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '23.64.0.0/14',
-                              'ip_range': '23.64.0.0 - 23.67.255.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '23.72.0.0/13',
-                              'ip_range': '23.72.0.0 - 23.79.255.255'})
-AKAMAI_DATA['ranges'].append({'cidr': '23.192.0.0/11',
-                              'ip_range': '23.192.0.0 - 23.223.255.255'})
+AKAMAI_DATA["ranges"] = []
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "2.23.144.0/20", "ip_range": "2.23.144.0 - 2.23.159.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "104.64.0.0/10", "ip_range": "104.64.0.0 - 104.127.255.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "172.224.0.0/12", "ip_range": "172.224.0.0 - 172.239.255.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "173.222.0.0/15", "ip_range": "173.222.0.0 - 173.223.255.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "184.24.0.0/13", "ip_range": "184.24.0.0 - 184.31.255.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "184.50.0.0/15", "ip_range": "184.50.0.0 - 184.51.255.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "184.84.0.0/14", "ip_range": "184.84.0.0 - 184.87.255.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "23.0.0.0/12", "ip_range": "23.0.0.0 - 23.15.255.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "23.32.0.0/11", "ip_range": "23.32.0.0 - 23.63.255.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "23.64.0.0/14", "ip_range": "23.64.0.0 - 23.67.255.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "23.72.0.0/13", "ip_range": "23.72.0.0 - 23.79.255.255"}
+)
+AKAMAI_DATA["ranges"].append(
+    {"cidr": "23.192.0.0/11", "ip_range": "23.192.0.0 - 23.223.255.255"}
+)
 
-AKAMAI_DATA['ipv6_ranges'] = []
-AKAMAI_DATA['ipv6_ranges'].append({'cidr': '2600:1400::/24',
-                                   'ipv6_range': '2600:1400:: - 2600:14FF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF'})
+AKAMAI_DATA["ipv6_ranges"] = []
+AKAMAI_DATA["ipv6_ranges"].append(
+    {
+        "cidr": "2600:1400::/24",
+        "ipv6_range": "2600:1400:: - 2600:14FF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF",
+    }
+)
 
 # Insert the data
 mongo_connector.perform_insert(akamai_collection, AKAMAI_DATA)

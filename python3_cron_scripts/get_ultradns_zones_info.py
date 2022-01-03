@@ -32,7 +32,7 @@ from libs3.ZoneManager import ZoneManager
 
 class UltraDNSZonesInfo(object):
 
-    UH = UltraDNSHelper.UltraDNSHelper('get_ultradns_zones_info')
+    UH = UltraDNSHelper.UltraDNSHelper("get_ultradns_zones_info")
     APIH = APIHelper.APIHelper()
     DNS_MGR = DNSManager.DNSManager(UH.MC)
     _logger = None
@@ -45,14 +45,16 @@ class UltraDNSZonesInfo(object):
         """
         try:
             response_data = response.json()
-            record_sets = response_data['rrSets']
+            record_sets = response_data["rrSets"]
         except (ValueError, AttributeError) as err:
             if self.UH.incorrect_response_json_allowed > 0:
-                self._logger.warning('Unable to parse response JSON for zone ' + self.zone_queried)
+                self._logger.warning(
+                    "Unable to parse response JSON for zone " + self.zone_queried
+                )
                 self.UH.incorrect_response_json_allowed -= 1
             else:
                 self.APIH.handle_api_error(
-                    'Unable to parse response JSON for 20 zones: ' + repr(err),
+                    "Unable to parse response JSON for 20 zones: " + repr(err),
                     self.UH.jobs_manager,
                 )
         else:
@@ -60,32 +62,34 @@ class UltraDNSZonesInfo(object):
                 dns_info = dict()
                 # The ownerName could be either the FQDN or a relative domain name.
                 # In case it is a FQDN it will end in '.'
-                fqdn = record['ownerName'] + '.' + self.zone_queried
-                if record['ownerName'].endswith('.'):
-                    fqdn = record['ownerName'][:-1]
+                fqdn = record["ownerName"] + "." + self.zone_queried
+                if record["ownerName"].endswith("."):
+                    fqdn = record["ownerName"][:-1]
 
                 # A get_root_domain lookup is performed because UDNS supports sub-zones
-                dns_info['zone'] = ZoneManager.get_root_domain(self.zone_queried)
-                dns_info['fqdn'] = fqdn
-                dns_info['type'] = record['rrtype'].split(' ')[0].lower()
-                dns_info['status'] = 'unknown'
+                dns_info["zone"] = ZoneManager.get_root_domain(self.zone_queried)
+                dns_info["fqdn"] = fqdn
+                dns_info["type"] = record["rrtype"].split(" ")[0].lower()
+                dns_info["status"] = "unknown"
 
-                for dns in record['rdata']:
-                    if dns_info['type'] in ['a', 'ptr']:
+                for dns in record["rdata"]:
+                    if dns_info["type"] in ["a", "ptr"]:
                         try:
                             if IPAddress(dns).is_private():
                                 continue
                         except AddrFormatError as err:
-                            self._logger.warning('For ' + fqdn + ' encountered: ' + str(err))
+                            self._logger.warning(
+                                "For " + fqdn + " encountered: " + str(err)
+                            )
                             continue
 
-                    if not(dns_info['type'] in ['soa', 'txt']) and dns.endswith('.'):
+                    if not (dns_info["type"] in ["soa", "txt"]) and dns.endswith("."):
                         dns = dns[:-1]
-                    dns_info['value'] = dns
-                    dns_info['created'] = datetime.now()
+                    dns_info["value"] = dns
+                    dns_info["created"] = datetime.now()
                     self.DNS_MGR.insert_record(dns_info.copy(), self.UH.source)
 
-            self.UH.set_offset(response_data['resultInfo'])
+            self.UH.set_offset(response_data["resultInfo"])
 
     def __paginated_ultradns_zones_info_request(self):
         """
@@ -100,25 +104,30 @@ class UltraDNSZonesInfo(object):
             response = self.UH.backoff_api_retry(
                 url,
                 {
-                    'q': 'kind:RECORDS',
-                    'limit': 2000,
-                    'offset': self.UH.offset,
+                    "q": "kind:RECORDS",
+                    "limit": 2000,
+                    "offset": self.UH.offset,
                 },
-                {'authorization': 'Bearer ' + self.UH.access_token}
+                {"authorization": "Bearer " + self.UH.access_token},
             )
             response.raise_for_status()
         except requests.exceptions.HTTPError as herr:
             message = json.loads(response.text)
             if isinstance(message, list):
-                err_msg = json.loads(response.text)[0]['errorMessage']
+                err_msg = json.loads(response.text)[0]["errorMessage"]
             else:
-                err_msg = json.loads(response.text)['errorMessage']
+                err_msg = json.loads(response.text)["errorMessage"]
 
-            if response.status_code == 401 and err_msg == self.UH.access_token_expiration_error:
-                self.UH.login('refresh_token')
+            if (
+                response.status_code == 401
+                and err_msg == self.UH.access_token_expiration_error
+            ):
+                self.UH.login("refresh_token")
                 self.__paginated_ultradns_zones_info_request()
             elif response.status_code == 404:
-                self._logger.warning("ERROR: Could not find data for: " + str(self.zone_queried))
+                self._logger.warning(
+                    "ERROR: Could not find data for: " + str(self.zone_queried)
+                )
             else:
                 self.APIH.handle_api_error(herr, self.UH.jobs_manager)
         except requests.exceptions.RequestException as err:
@@ -155,6 +164,6 @@ class UltraDNSZonesInfo(object):
         self.__get_ultradns_zones_info()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger = LoggingUtil.create_log(__name__)
     UltraDNSZonesInfo = UltraDNSZonesInfo()

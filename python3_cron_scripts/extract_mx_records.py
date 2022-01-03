@@ -73,12 +73,12 @@ def extract_mx_names(dns_names, dns_manager):
     Extract the domain names from MX DNS records.
     """
 
-    res = dns_manager.find_multiple({'type': 'mx'}, None)
+    res = dns_manager.find_multiple({"type": "mx"}, None)
 
     for result in res:
-        name = result['value']
-        if " " in result['value']:
-            parts = result['value'].split(" ")
+        name = result["value"]
+        if " " in result["value"]:
+            parts = result["value"].split(" ")
             name = parts[1]
             if name.endswith("."):
                 name = name[:-1]
@@ -98,7 +98,7 @@ def main():
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'extract_mx_domains')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "extract_mx_domains")
     google_dns = GoogleDNS.GoogleDNS()
 
     jobs_manager.record_job_start()
@@ -126,18 +126,20 @@ def main():
 
             if ips != []:
                 for ip_addr in ips:
-                    temp_zone = get_tracked_zone(ip_addr['fqdn'], zones)
+                    temp_zone = get_tracked_zone(ip_addr["fqdn"], zones)
                     if temp_zone is not None:
-                        record = {"fqdn": ip_addr['fqdn']}
-                        record['zone'] = temp_zone
-                        record['created'] = datetime.now()
-                        record['type'] = ip_addr['type']
-                        record['value'] = ip_addr['value']
-                        record['status'] = 'unknown'
+                        record = {"fqdn": ip_addr["fqdn"]}
+                        record["zone"] = temp_zone
+                        record["created"] = datetime.now()
+                        record["type"] = ip_addr["type"]
+                        record["value"] = ip_addr["value"]
+                        record["status"] = "unknown"
                         input_list.append(record)
 
-                    if ip_addr['type'] == "cname" and is_tracked_zone(ip_addr['value'], zones):
-                        add_to_round_two(ip_addr['value'], round_two)
+                    if ip_addr["type"] == "cname" and is_tracked_zone(
+                        ip_addr["value"], zones
+                    ):
+                        add_to_round_two(ip_addr["value"], round_two)
             else:
                 logger.warning("Failed IP Lookup for: " + hostname)
         else:
@@ -155,14 +157,14 @@ def main():
             time.sleep(1)
             if ips != []:
                 for ip_addr in ips:
-                    temp_zone = get_tracked_zone(ip_addr['fqdn'], zones)
+                    temp_zone = get_tracked_zone(ip_addr["fqdn"], zones)
                     if temp_zone is not None:
-                        record = {"fqdn": ip_addr['fqdn']}
-                        record['zone'] = temp_zone
-                        record['created'] = datetime.now()
-                        record['type'] = ip_addr['type']
-                        record['value'] = ip_addr['value']
-                        record['status'] = 'unknown'
+                        record = {"fqdn": ip_addr["fqdn"]}
+                        record["zone"] = temp_zone
+                        record["created"] = datetime.now()
+                        record["type"] = ip_addr["type"]
+                        record["value"] = ip_addr["value"]
+                        record["status"] = "unknown"
                         input_list.append(record)
             else:
                 logger.warning("Failed IP Lookup for: " + hostname)
@@ -172,7 +174,6 @@ def main():
                     dead_dns_collection.insert(original_record)
         else:
             logger.warning("Failed match on zone for: " + hostname)
-
 
     # Record all the results.
     dns_manager.remove_by_source("mx")
@@ -184,7 +185,7 @@ def main():
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Ending: " + str(now))
+    print("Ending: " + str(now))
     logger.info("Complete.")
 
 

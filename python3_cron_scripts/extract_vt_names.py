@@ -72,7 +72,7 @@ def main():
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'extract_vt_domains')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "extract_vt_domains")
 
     google_dns = GoogleDNS.GoogleDNS()
     jobs_manager.record_job_start()
@@ -82,7 +82,9 @@ def main():
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
     vt_collection = mongo_connector.get_virustotal_connection()
-    vt_results = vt_collection.find({'subdomains': {"$exists": True}}, {'zone': 1, 'subdomains': 1}).batch_size(30)
+    vt_results = vt_collection.find(
+        {"subdomains": {"$exists": True}}, {"zone": 1, "subdomains": 1}
+    ).batch_size(30)
 
     input_list = []
 
@@ -92,26 +94,27 @@ def main():
         # Pause to prevent DoS-ing of Google's HTTPS DNS Service
         time.sleep(1)
 
-        for hostname in result['subdomains']:
+        for hostname in result["subdomains"]:
             ips = google_dns.fetch_DNS_records(hostname)
 
             if ips != []:
                 for ip_addr in ips:
-                    temp_zone = get_tracked_zone(ip_addr['fqdn'], zones)
+                    temp_zone = get_tracked_zone(ip_addr["fqdn"], zones)
                     if temp_zone is not None:
-                        record = {"fqdn": ip_addr['fqdn']}
-                        record['zone'] = temp_zone
-                        record['created'] = datetime.now()
-                        record['type'] = ip_addr['type']
-                        record['value'] = ip_addr['value']
-                        record['status'] = 'unknown'
+                        record = {"fqdn": ip_addr["fqdn"]}
+                        record["zone"] = temp_zone
+                        record["created"] = datetime.now()
+                        record["type"] = ip_addr["type"]
+                        record["value"] = ip_addr["value"]
+                        record["status"] = "unknown"
                         input_list.append(record)
 
-                    if ip_addr['type'] == "cname" and is_tracked_zone(ip_addr['value'], zones):
-                        add_to_list(ip_addr['value'], round_two)
+                    if ip_addr["type"] == "cname" and is_tracked_zone(
+                        ip_addr["value"], zones
+                    ):
+                        add_to_list(ip_addr["value"], round_two)
             else:
                 logger.warning("Failed IP Lookup for: " + hostname)
-
 
     dead_dns_collection = mongo_connector.get_dead_dns_connection()
 
@@ -124,14 +127,14 @@ def main():
             time.sleep(1)
             if ips != []:
                 for ip_addr in ips:
-                    temp_zone = get_tracked_zone(ip_addr['fqdn'], zones)
+                    temp_zone = get_tracked_zone(ip_addr["fqdn"], zones)
                     if temp_zone is not None:
-                        record = {"fqdn": ip_addr['fqdn']}
-                        record['zone'] = temp_zone
-                        record['created'] = datetime.now()
-                        record['type'] = ip_addr['type']
-                        record['value'] = ip_addr['value']
-                        record['status'] = 'unknown'
+                        record = {"fqdn": ip_addr["fqdn"]}
+                        record["zone"] = temp_zone
+                        record["created"] = datetime.now()
+                        record["type"] = ip_addr["type"]
+                        record["value"] = ip_addr["value"]
+                        record["status"] = "unknown"
                         input_list.append(record)
             else:
                 original_record = dns_manager.find_one({"fqdn": hostname}, "virustotal")
@@ -141,7 +144,6 @@ def main():
                 logger.warning("Failed IP Lookup for: " + hostname)
         else:
             logger.warning("Failed match on zone for: " + hostname)
-
 
     # Update the database
     dns_manager.remove_by_source("virustotal")

@@ -38,12 +38,12 @@ def main():
     logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
-    print ("Starting: " + str(now))
+    print("Starting: " + str(now))
     logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dead_dns_collection = mongo_connector.get_dead_dns_connection()
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'dead_dns_cleanup')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "dead_dns_cleanup")
     jobs_manager.record_job_start()
 
     google_dns = GoogleDNS.GoogleDNS()
@@ -52,16 +52,16 @@ def main():
 
     for result in results:
         time.sleep(1)
-        lookup_result = google_dns.fetch_DNS_records(result['fqdn'])
+        lookup_result = google_dns.fetch_DNS_records(result["fqdn"])
         if lookup_result == []:
-            logger.info ("Removing " + result['fqdn'])
-            dead_dns_collection.delete_one({"_id":ObjectId(result['_id'])})
+            logger.info("Removing " + result["fqdn"])
+            dead_dns_collection.delete_one({"_id": ObjectId(result["_id"])})
 
     # Record status
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Ending: " + str(now))
+    print("Ending: " + str(now))
     logger.info("Complete.")
 
 

@@ -42,13 +42,15 @@ def get_zones(mongo_connector):
     Get all the zones
     """
     zone_collection = mongo_connector.get_zone_connection()
-    zone_results = zone_collection.distinct('zone', {'status': {"$ne": ZoneManager.FALSE_POSITIVE}})
+    zone_results = zone_collection.distinct(
+        "zone", {"status": {"$ne": ZoneManager.FALSE_POSITIVE}}
+    )
 
     zones = []
     for zone in zone_results:
         if zone.find(".") >= 0:
             # The encode-decode is silly but necessary due to a Latin-1 Python quirk when printing.
-            zones.append(zone.encode('utf-8').decode('utf-8'))
+            zones.append(zone.encode("utf-8").decode("utf-8"))
 
     return zones
 
@@ -74,29 +76,34 @@ def correct_name_servers(logger, result, zone):
         - "Organization_Name
     The problem with inconsistent types is that it makes database queries harder downstream.
     """
-    if result['name_servers'].startswith("Hostname"):
+    if result["name_servers"].startswith("Hostname"):
         new_list = []
-        parts = result['name_servers'].split("\n")
+        parts = result["name_servers"].split("\n")
         for part in parts:
             if part.startswith("Hostname"):
                 sub_parts = part.split()
                 new_list.append(sub_parts[1])
-        return(new_list)
-    elif result['name_servers'] == "No nameserver":
-        return([])
-    elif "." in result['name_servers']:
-        if " " in result['name_servers']:
+        return new_list
+    elif result["name_servers"] == "No nameserver":
+        return []
+    elif "." in result["name_servers"]:
+        if " " in result["name_servers"]:
             new_list = []
-            temp = result['name_servers'].split()
+            temp = result["name_servers"].split()
             new_list.append(temp[0])
-            return(new_list)
+            return new_list
         else:
             new_list = []
-            new_list.append(result['name_servers'])
-            return(new_list)
+            new_list.append(result["name_servers"])
+            return new_list
     else:
-        logger.warning("ERROR: " + zone + " had an unexpected name_servers response of " + result["name_servers"])
-        return([])
+        logger.warning(
+            "ERROR: "
+            + zone
+            + " had an unexpected name_servers response of "
+            + result["name_servers"]
+        )
+        return []
 
 
 def do_whois_lookup(logger, zone, whois_collection):
@@ -115,15 +122,16 @@ def do_whois_lookup(logger, zone, whois_collection):
     # Sometimes it returns an object and the phrase "NOT FOUND" can be seen in the text field.
     # Therefore, we have to do convoluted logic to make sure the result exists and that the
     # text field does not say "NOT FOUND"
-    if (result is not None and 'text' not in result) or \
-       (result is not None and 'text' in result and "NOT FOUND" not in result['text']):
+    if (result is not None and "text" not in result) or (
+        result is not None and "text" in result and "NOT FOUND" not in result["text"]
+    ):
         # Add the zone since the response doesn't include it.
-        result['zone'] = zone
+        result["zone"] = zone
         # Record the full text of the response. A property is not the same as a key.
-        result['text'] = result.text
-        result['updated'] = datetime.now()
+        result["text"] = result.text
+        result["updated"] = datetime.now()
 
-        if "name_servers" in result and isinstance(result['name_servers'], str):
+        if "name_servers" in result and isinstance(result["name_servers"], str):
             result["name_servers"] = correct_name_servers(logger, result, zone)
 
         name_server_groups = []
@@ -138,7 +146,7 @@ def do_whois_lookup(logger, zone, whois_collection):
         # Try to update the record, or insert if it doesn't exist
         success = True
         try:
-            whois_collection.replace_one({'zone': zone}, result, upsert=True)
+            whois_collection.replace_one({"zone": zone}, result, upsert=True)
         except Exception as exc:
             logger.warning("Insert exception for " + zone + ": " + repr(exc))
             success = False
@@ -163,7 +171,7 @@ def main():
     logger.info("Starting...")
 
     mongo_connector = RemoteMongoConnector.RemoteMongoConnector()
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'whois_lookups')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "whois_lookups")
     jobs_manager.record_job_start()
 
     # Collect the tracked zones...
@@ -176,7 +184,7 @@ def main():
         if zone.find(".") > 0:
 
             logger.debug(zone)
-            zone_result = whois_collection.find_one({'zone': zone})
+            zone_result = whois_collection.find_one({"zone": zone})
 
             # If we haven't done a lookup in the past, try to collect the data.
             # A limit exists on the number of whois lookups you can perform so limit to new domains.

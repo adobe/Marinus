@@ -52,7 +52,7 @@ def requests_retry_session(
         status_forcelist=status_forcelist,
     )
     adapter = HTTPAdapter(max_retries=retry)
-    session.mount('https://', adapter)
+    session.mount("https://", adapter)
     return session
 
 
@@ -101,14 +101,14 @@ def add_new_domain_names(hostnames, zones, mongo_connector):
 
         if results != []:
             for result in results:
-                temp_zone = get_tracked_zone(result['fqdn'], zones)
+                temp_zone = get_tracked_zone(result["fqdn"], zones)
                 if temp_zone is not None:
-                    new_record = {"fqdn": result['fqdn']}
-                    new_record['zone'] = temp_zone
-                    new_record['created'] = datetime.now()
-                    new_record['type'] = result['type']
-                    new_record['value'] = result['value']
-                    new_record['status'] = 'unknown'
+                    new_record = {"fqdn": result["fqdn"]}
+                    new_record["zone"] = temp_zone
+                    new_record["created"] = datetime.now()
+                    new_record["type"] = result["type"]
+                    new_record["value"] = result["value"]
+                    new_record["status"] = "unknown"
                     dns_manager.insert_record(new_record, "ssl")
 
 
@@ -118,11 +118,13 @@ def get_list_of_existing_certificates(ct_collection):
     Therefore, we get the list of known crt_sh_ids from the database.
     """
     existing_ids = []
-    results = ct_collection.find({'crt_sh_min_id': {"$exists": True}}, {'crt_sh_min_id': 1})
+    results = ct_collection.find(
+        {"crt_sh_min_id": {"$exists": True}}, {"crt_sh_min_id": 1}
+    )
 
     for result in results:
-        if result['crt_sh_min_id'] not in existing_ids:
-            existing_ids.append(result['crt_sh_min_id'])
+        if result["crt_sh_min_id"] not in existing_ids:
+            existing_ids.append(result["crt_sh_min_id"])
 
     return existing_ids
 
@@ -133,15 +135,15 @@ def get_cert_zones(cert, zones):
     """
     cert_zones = []
 
-    if 'subject_common_names' in cert:
-        for cn in cert['subject_common_names']:
+    if "subject_common_names" in cert:
+        for cn in cert["subject_common_names"]:
             for zone in zones:
                 if cn == zone or cn.endswith("." + zone):
                     if zone not in cert_zones:
                         cert_zones.append(zone)
 
-    if 'subject_dns_names' in cert:
-        for cn in cert['subject_dns_names']:
+    if "subject_dns_names" in cert:
+        for cn in cert["subject_dns_names"]:
             for zone in zones:
                 if cn == zone or cn.endswith("." + zone):
                     if zone not in cert_zones:
@@ -150,7 +152,9 @@ def get_cert_zones(cert, zones):
     return cert_zones
 
 
-def add_new_certificate_values(logger, jobs_manager, new_ids, ct_collection, zones, save_location=None):
+def add_new_certificate_values(
+    logger, jobs_manager, new_ids, ct_collection, zones, save_location=None
+):
     """
     Add new certificate values to the database.
     """
@@ -163,10 +167,15 @@ def add_new_certificate_values(logger, jobs_manager, new_ids, ct_collection, zon
             # Pace out certificate requests against their service
             time.sleep(2)
 
-            c_file = make_https_request(logger, "https://crt.sh/?d=" + str(min_cert_id), jobs_manager, True)
+            c_file = make_https_request(
+                logger, "https://crt.sh/?d=" + str(min_cert_id), jobs_manager, True
+            )
 
             if c_file is None:
-                logger.warning("ERROR: Failed communicating with crt.sh. Skipping cert_id: " + str(min_cert_id))
+                logger.warning(
+                    "ERROR: Failed communicating with crt.sh. Skipping cert_id: "
+                    + str(min_cert_id)
+                )
                 continue
 
             if save_location is not None:
@@ -174,19 +183,43 @@ def add_new_certificate_values(logger, jobs_manager, new_ids, ct_collection, zon
 
             cert = x509_parser.parse_data(c_file, "crt_sh")
             if cert is None:
-                logger.warning("ERROR: Could not parse certificate for: " + str(min_cert_id) + ". Skipping for now.")
+                logger.warning(
+                    "ERROR: Could not parse certificate for: "
+                    + str(min_cert_id)
+                    + ". Skipping for now."
+                )
                 continue
 
             cert_zones = get_cert_zones(cert, zones)
-            logger.info("Adding crt.sh id: " + str(min_cert_id) + " SHA256: " + cert['fingerprint_sha256'])
+            logger.info(
+                "Adding crt.sh id: "
+                + str(min_cert_id)
+                + " SHA256: "
+                + cert["fingerprint_sha256"]
+            )
 
-            if ct_collection.count_documents({"fingerprint_sha256": cert['fingerprint_sha256']}) != 0:
+            if (
+                ct_collection.count_documents(
+                    {"fingerprint_sha256": cert["fingerprint_sha256"]}
+                )
+                != 0
+            ):
                 # The certificate exists in the database but does not have crt_sh id and/or zones
-                ct_collection.update_one({"fingerprint_sha256": cert['fingerprint_sha256']}, {"$set": {"crt_sh_min_id": min_cert_id, "zones": cert_zones, 'marinus_updated': datetime.now()}, "$addToSet": {'sources': 'crt_sh'}})
+                ct_collection.update_one(
+                    {"fingerprint_sha256": cert["fingerprint_sha256"]},
+                    {
+                        "$set": {
+                            "crt_sh_min_id": min_cert_id,
+                            "zones": cert_zones,
+                            "marinus_updated": datetime.now(),
+                        },
+                        "$addToSet": {"sources": "crt_sh"},
+                    },
+                )
             else:
                 # Add the new certificate
-                cert['crt_sh_min_id'] = min_cert_id
-                cert['zones'] = cert_zones
+                cert["crt_sh_min_id"] = min_cert_id
+                cert["zones"] = cert_zones
                 ct_collection.insert_one(cert)
 
 
@@ -217,12 +250,28 @@ def main():
     jobs_manager.record_job_start()
 
     save_location = "/mnt/workspace/crt_sh"
-    download_method = 'dbAndSave'
+    download_method = "dbAndSave"
 
-    parser = argparse.ArgumentParser(description='Download DNS and/or certificate information from crt.sh.')
-    parser.add_argument('--fetch_dns_records', action='store_true', help='Indicates whether to add DNS entries to the database')
-    parser.add_argument('--download_methods', choices=['dbAndSave', 'dbOnly'], default=download_method, help='Indicates whether to download the raw files or just record in the database.')
-    parser.add_argument('--cert_save_location', required=False, default=save_location, help='Indicates where to save the certificates on disk when choosing dbAndSave')
+    parser = argparse.ArgumentParser(
+        description="Download DNS and/or certificate information from crt.sh."
+    )
+    parser.add_argument(
+        "--fetch_dns_records",
+        action="store_true",
+        help="Indicates whether to add DNS entries to the database",
+    )
+    parser.add_argument(
+        "--download_methods",
+        choices=["dbAndSave", "dbOnly"],
+        default=download_method,
+        help="Indicates whether to download the raw files or just record in the database.",
+    )
+    parser.add_argument(
+        "--cert_save_location",
+        required=False,
+        default=save_location,
+        help="Indicates where to save the certificates on disk when choosing dbAndSave",
+    )
     args = parser.parse_args()
 
     if args.cert_save_location:
@@ -230,7 +279,7 @@ def main():
         if not save_location.endswith("/"):
             save_location = save_location + "/"
 
-    if args.download_methods == 'dbAndSave':
+    if args.download_methods == "dbAndSave":
         check_save_location(save_location)
 
     for zone in zones:
@@ -238,7 +287,9 @@ def main():
         time.sleep(5)
 
         # This could be done with backoff but we don't want to be overly aggressive.
-        json_result = make_https_request(logger, "https://crt.sh/?q=%25." + zone + "&output=json", jobs_manager)
+        json_result = make_https_request(
+            logger, "https://crt.sh/?q=%25." + zone + "&output=json", jobs_manager
+        )
         if json_result is None:
             logger.warning("Can't find result for: " + zone)
             json_result = "{}"
@@ -248,8 +299,8 @@ def main():
         new_names = []
         new_ids = []
         for entry in json_data:
-            if entry['id'] not in new_ids:
-                new_ids.append(entry['id'])
+            if entry["id"] not in new_ids:
+                new_ids.append(entry["id"])
 
             if "*" not in entry["name_value"] and entry["name_value"] not in new_names:
                 new_names.append(entry["name_value"])
@@ -258,13 +309,19 @@ def main():
             add_new_domain_names(new_names, zones, mongo_connector)
 
         if args.download_methods == "dbAndSave":
-            add_new_certificate_values(logger, jobs_manager, new_ids, ct_collection, zones, save_location)
+            add_new_certificate_values(
+                logger, jobs_manager, new_ids, ct_collection, zones, save_location
+            )
         elif args.download_methods == "dbOnly":
-            add_new_certificate_values(logger, jobs_manager, new_ids, ct_collection, zones, None)
+            add_new_certificate_values(
+                logger, jobs_manager, new_ids, ct_collection, zones, None
+            )
 
     # Set isExpired for any entries that have recently expired.
-    ct_collection.update_many({"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
-                        {"$set": {"isExpired": True}})
+    ct_collection.update_many(
+        {"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
+        {"$set": {"isExpired": True}},
+    )
 
     jobs_manager.record_job_complete()
 

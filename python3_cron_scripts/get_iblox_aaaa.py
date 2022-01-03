@@ -34,10 +34,10 @@ def main():
 
     # Make database connections
     mc = MongoConnector.MongoConnector()
-    jobs_manager = JobsManager.JobsManager(mc, 'get_iblox_aaaa')
+    jobs_manager = JobsManager.JobsManager(mc, "get_iblox_aaaa")
     jobs_manager.record_job_start()
 
-    idm = InfobloxDNSManager.InfobloxDNSManager('aaaa')
+    idm = InfobloxDNSManager.InfobloxDNSManager("aaaa")
     idm.get_infoblox_dns()
 
     # Record status

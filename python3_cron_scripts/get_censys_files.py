@@ -55,13 +55,13 @@ def download_file(logger, url):
     Download the file from the provided URL.
     Use the filename in the URL as the name of the outputed file.
     """
-    local_filename = url.split('/')[-1]
+    local_filename = url.split("/")[-1]
     logger.debug(local_filename)
     # NOTE the stream=True parameter
     req = requests.get(url, stream=True)
-    with open(local_filename, 'wb') as out_f:
+    with open(local_filename, "wb") as out_f:
         for chunk in req.iter_content(chunk_size=1024):
-            if chunk: # filter out keep-alive new chunks
+            if chunk:  # filter out keep-alive new chunks
                 out_f.write(chunk)
     out_f.close()
     return local_filename
@@ -97,15 +97,20 @@ def main():
         last_timestamp = "0"
 
     # Get the meta data for the currently available file.
-    req = requests.get(CENSYS_API + "data/ipv4", auth=HTTPBasicAuth(CENSYS_APP_ID, CENSYS_SECRET))
+    req = requests.get(
+        CENSYS_API + "data/ipv4", auth=HTTPBasicAuth(CENSYS_APP_ID, CENSYS_SECRET)
+    )
 
     if req.status_code != 200:
-        logger.warning("Error " + str(req.status_code) + ": Unable to query Censys Data API\n")
+        logger.warning(
+            "Error " + str(req.status_code) + ": Unable to query Censys Data API\n"
+        )
         logger.warning(req.text)
 
         time.sleep(60)
-        req = requests.get(CENSYS_API + "data/ipv4",
-                           auth=HTTPBasicAuth(CENSYS_APP_ID, CENSYS_SECRET))
+        req = requests.get(
+            CENSYS_API + "data/ipv4", auth=HTTPBasicAuth(CENSYS_APP_ID, CENSYS_SECRET)
+        )
         if req.status_code != 200:
             logger.error("Error on IPv4 retry. Giving up...")
             exit(1)
@@ -113,8 +118,7 @@ def main():
     data_json = json.loads(req.text)
 
     # Get the timestamp for the currently available file
-    timestamp = data_json['results']['latest']['timestamp']
-
+    timestamp = data_json["results"]["latest"]["timestamp"]
 
     # If it is the same file as last time, then don't download again.
     if last_timestamp == timestamp:
@@ -124,25 +128,28 @@ def main():
         logger.info("Old timestamp: " + last_timestamp)
         logger.info("New timestamp: " + timestamp)
 
-
     # Get the location of the details for the new file
-    details_url = data_json['results']['latest']['details_url']
+    details_url = data_json["results"]["latest"]["details_url"]
 
     req = requests.get(details_url, auth=HTTPBasicAuth(CENSYS_APP_ID, CENSYS_SECRET))
 
     if req.status_code != 200:
-        logger.warning("Error " + str(req.status_code) + ": Unable to query Censys Details API\n")
+        logger.warning(
+            "Error " + str(req.status_code) + ": Unable to query Censys Details API\n"
+        )
         logger.warning(req.text)
 
         time.sleep(60)
-        req = requests.get(details_url, auth=HTTPBasicAuth(CENSYS_APP_ID, CENSYS_SECRET))
+        req = requests.get(
+            details_url, auth=HTTPBasicAuth(CENSYS_APP_ID, CENSYS_SECRET)
+        )
         if req.status_code != 200:
             logger.error("Error on details retry. Giving up...")
             exit(0)
 
     data_json = json.loads(req.text)
 
-    compressed_path = data_json['primary_file']['compressed_download_path']
+    compressed_path = data_json["primary_file"]["compressed_download_path"]
     logger.info(compressed_path)
 
     # Record the timestamp of the file that we are about to download.
@@ -166,9 +173,10 @@ def main():
     dec_f.close()
 
     # Record that we successfully downloaded the file and that search files can start.
-    jobs_collection.update_one({'job_name': 'censys'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'DOWNLOADED'}})
+    jobs_collection.update_one(
+        {"job_name": "censys"},
+        {"$currentDate": {"updated": True}, "$set": {"status": "DOWNLOADED"}},
+    )
 
     now = datetime.now()
     print("Complete: " + str(now))

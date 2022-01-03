@@ -34,7 +34,7 @@ def parse_splunk_results(logger, results, dns_manager, splunk_collection):
     """
     for result in results:
         if isinstance(result, dict):
-            my_data = result['my_field']
+            my_data = result["my_field"]
             logger.debug(str(my_data))
             # Do what is appropriate for your data here.
 
@@ -57,14 +57,14 @@ def main():
     jobs_manager = JobsManager.JobsManager(mongo_connector, "get_splunk_data")
     jobs_manager.record_job_start()
 
-    logger.info ("Starting Splunk Query")
+    logger.info("Starting Splunk Query")
 
     results_per_page = 100
 
     # Put your custom Splunk search query here.
-    results = splunk_query_manager.do_search('search index=...', results_per_page)
+    results = splunk_query_manager.do_search("search index=...", results_per_page)
 
-    logger.info ("Processing " + str(splunk_query_manager.RESULTCOUNT) + " results")
+    logger.info("Processing " + str(splunk_query_manager.RESULTCOUNT) + " results")
 
     parse_splunk_results(logger, results, dns_manager, splunk_collection)
 
@@ -73,7 +73,6 @@ def main():
         if results is None:
             break
         parse_splunk_results(logger, results, dns_manager, splunk_collection)
-
 
     jobs_manager.record_job_complete()
 

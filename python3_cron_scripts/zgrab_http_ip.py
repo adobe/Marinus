@@ -59,7 +59,9 @@ def is_running(process):
     """
     proc_list = subprocess.Popen(["pgrep", "-f", process], stdout=subprocess.PIPE)
     for proc in proc_list.stdout:
-        if proc.decode('utf-8').rstrip() != str(os.getpid()) and proc.decode('utf-8').rstrip() != str(os.getppid()):
+        if proc.decode("utf-8").rstrip() != str(os.getpid()) and proc.decode(
+            "utf-8"
+        ).rstrip() != str(os.getppid()):
             return True
     return False
 
@@ -71,12 +73,18 @@ def get_ips(ip_manager, all_dns_collection):
     ips = set([])
     ip_context = []
 
-    domain_results = all_dns_collection.find({'type': 'a', 'zone': {"$ne": ""}})
+    domain_results = all_dns_collection.find({"type": "a", "zone": {"$ne": ""}})
     for result in domain_results:
-        if not ip_manager.is_local_ip(result['value']):
-            ips.add(result['value'])
-            ip_context.append({'ip': result['value'], 'domain': result['fqdn'], 'source':'all_dns', 'zone': result['zone']})
-
+        if not ip_manager.is_local_ip(result["value"]):
+            ips.add(result["value"])
+            ip_context.append(
+                {
+                    "ip": result["value"],
+                    "domain": result["fqdn"],
+                    "source": "all_dns",
+                    "zone": result["zone"],
+                }
+            )
 
     for ipz in ip_manager.Tracked_CIDRs:
         if ipz.version == 4:
@@ -84,7 +92,6 @@ def get_ips(ip_manager, all_dns_collection):
                 if ip != ipz.network and ip != ipz.broadcast:
                     ips.add(str(ip))
                     # ip_context.append({'ip': str(ip), 'source': 'ip_zone'})
-
 
     # Don't want to look like a network scan
     # Set doesn't support random.shuffle
@@ -101,8 +108,8 @@ def check_ip_context(ip, ip_context):
     matches = []
 
     for entry in ip_context:
-        if entry['ip'] == ip:
-             matches.append(entry)
+        if entry["ip"] == ip:
+            matches.append(entry)
 
     return matches
 
@@ -124,26 +131,36 @@ def check_in_zone(entry, zones):
     Return the matched zone.
     """
 
-    if 'zgrab2' in global_zgrab_path:
-        if "redirect_response_chain" in entry['data']['http']['result']:
+    if "zgrab2" in global_zgrab_path:
+        if "redirect_response_chain" in entry["data"]["http"]["result"]:
             try:
-                certificate = entry['data']['http']['result']['redirect_response_chain'][0]['request']['tls_log']['handshake_log']['server_certificates']['certificate']
+                certificate = entry["data"]["http"]["result"][
+                    "redirect_response_chain"
+                ][0]["request"]["tls_log"]["handshake_log"]["server_certificates"][
+                    "certificate"
+                ]
             except:
                 return []
         else:
             try:
-                certificate = entry['data']['http']['result']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']
+                certificate = entry["data"]["http"]["result"]["response"]["request"][
+                    "tls_log"
+                ]["handshake_log"]["server_certificates"]["certificate"]
             except:
                 return []
     else:
-        if "redirect_response_chain" in entry['data']['http']:
+        if "redirect_response_chain" in entry["data"]["http"]:
             try:
-                certificate = entry['data']['http']['redirect_response_chain'][0]['request']['tls_handshake']['server_certificates']['certificate']
+                certificate = entry["data"]["http"]["redirect_response_chain"][0][
+                    "request"
+                ]["tls_handshake"]["server_certificates"]["certificate"]
             except:
                 return []
         else:
             try:
-                certificate = entry['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']
+                certificate = entry["data"]["http"]["response"]["request"][
+                    "tls_handshake"
+                ]["server_certificates"]["certificate"]
             except:
                 return []
 
@@ -171,34 +188,34 @@ def insert_result(entry, port, ip_context, zones, results_collection):
     """
     Insert the matched domain into the collection of positive results.
     """
-    if 'zgrab2' in global_zgrab_path:
-        temp_date = entry['data']['http']['timestamp']
+    if "zgrab2" in global_zgrab_path:
+        temp_date = entry["data"]["http"]["timestamp"]
         new_date = parse(temp_date)
         entry["timestamp"] = new_date
-        entry['data']['http']['timestamp'] = new_date
+        entry["data"]["http"]["timestamp"] = new_date
     else:
         temp_date = entry["timestamp"]
         new_date = parse(temp_date)
         entry["timestamp"] = new_date
 
-    entry['domain'] = "<nil>"
+    entry["domain"] = "<nil>"
 
-    matches = check_ip_context(entry['ip'], ip_context)
+    matches = check_ip_context(entry["ip"], ip_context)
 
     zones = []
     if len(matches) > 0:
         for match in matches:
-            if match['zone'] not in zones:
-                zones.append(match['zone'])
+            if match["zone"] not in zones:
+                zones.append(match["zone"])
     if port == "443":
         cert_zones = check_in_zone(entry, zones)
         for zone in cert_zones:
             if zone not in zones:
                 zones.append(zone)
 
-    entry['zones'] = zones
+    entry["zones"] = zones
 
-    results_collection.replace_one({"ip": entry['ip']}, entry, upsert=True)
+    results_collection.replace_one({"ip": entry["ip"]}, entry, upsert=True)
 
 
 def run_port_80_command(target_list, tnum):
@@ -207,8 +224,21 @@ def run_port_80_command(target_list, tnum):
         targets = targets + ip + "\\n"
     targets = targets[:-2]
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    if 'zgrab2' in global_zgrab_path:
-        p2 = subprocess.Popen([global_zgrab_path, "http", "--port=80", "--max-redirects=10", "--user-agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'", "--timeout=30", "--output-file=./json_p80/p80-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if "zgrab2" in global_zgrab_path:
+        p2 = subprocess.Popen(
+            [
+                global_zgrab_path,
+                "http",
+                "--port=80",
+                "--max-redirects=10",
+                "--user-agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'",
+                "--timeout=30",
+                "--output-file=./json_p80/p80-" + str(tnum) + ".json",
+            ],
+            stdin=p1.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         p1.stdout.close()
         output, _ = p2.communicate()
         parts = _.decode("utf-8").split("\n")
@@ -218,7 +248,19 @@ def run_port_80_command(target_list, tnum):
                 return json_output
         return json.loads("{}")
     else:
-        p2 = subprocess.Popen([global_zgrab_path, "--port=80", "--http=/", "--http-max-redirects=10", "--http-user-agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'", "--timeout=30", "--output-file=./json_p80/p80-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(
+            [
+                global_zgrab_path,
+                "--port=80",
+                "--http=/",
+                "--http-max-redirects=10",
+                "--http-user-agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'",
+                "--timeout=30",
+                "--output-file=./json_p80/p80-" + str(tnum) + ".json",
+            ],
+            stdin=p1.stdout,
+            stdout=subprocess.PIPE,
+        )
         p1.stdout.close()
         output, _ = p2.communicate()
         json_output = json.loads(output.decode("utf-8"))
@@ -231,8 +273,22 @@ def run_port_443_command(target_list, tnum):
         targets = targets + ip + "\\n"
     targets = targets[:-2]
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    if 'zgrab2' in global_zgrab_path:
-        p2 = subprocess.Popen([global_zgrab_path, "http", "--port=443", "--use-https", "--max-redirects=10", "--user-agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'", "--timeout=30", "--output-file=./json_p443/p443-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if "zgrab2" in global_zgrab_path:
+        p2 = subprocess.Popen(
+            [
+                global_zgrab_path,
+                "http",
+                "--port=443",
+                "--use-https",
+                "--max-redirects=10",
+                "--user-agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'",
+                "--timeout=30",
+                "--output-file=./json_p443/p443-" + str(tnum) + ".json",
+            ],
+            stdin=p1.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         p1.stdout.close()
         output, _ = p2.communicate()
         parts = _.decode("utf-8").split("\n")
@@ -242,36 +298,64 @@ def run_port_443_command(target_list, tnum):
                 return json_output
         return json.loads("{}")
     else:
-        p2 = subprocess.Popen([global_zgrab_path, "--port=443", "--tls", "--chrome-ciphers", "--http=/", "--http-max-redirects=10", "--http-user-agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'", "--timeout=30", "--output-file=./json_p443/p443-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(
+            [
+                global_zgrab_path,
+                "--port=443",
+                "--tls",
+                "--chrome-ciphers",
+                "--http=/",
+                "--http-max-redirects=10",
+                "--http-user-agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36'",
+                "--timeout=30",
+                "--output-file=./json_p443/p443-" + str(tnum) + ".json",
+            ],
+            stdin=p1.stdout,
+            stdout=subprocess.PIPE,
+        )
         p1.stdout.close()
         output, _ = p2.communicate()
         json_output = json.loads(output.decode("utf-8"))
         return json_output
 
 
-def process_thread(logger, ips, port, run_command, zones_struct, zgrab_collection, tnum):
+def process_thread(
+    logger, ips, port, run_command, zones_struct, zgrab_collection, tnum
+):
     """
     Runs zgrab and stores the result if necessary
     """
     json_output = run_command(ips, tnum)
-    if ('success_count' in json_output and json_output['success_count'] > 0) or \
-        ('statuses' in json_output and json_output['statuses']['http']['successes'] > 0):
-        result_file = open("./json_p" + port + "/p" + port + "-" + str(tnum) + ".json", "r")
-        results=[]
+    if ("success_count" in json_output and json_output["success_count"] > 0) or (
+        "statuses" in json_output and json_output["statuses"]["http"]["successes"] > 0
+    ):
+        result_file = open(
+            "./json_p" + port + "/p" + port + "-" + str(tnum) + ".json", "r"
+        )
+        results = []
         for result in result_file:
             results.append(json.loads(result))
         result_file.close()
         for result in results:
-            if ('zgrab2' in global_zgrab_path and "error" in result['data']['http']) or \
-                'error' in result:
-                logger.warning("Failed " + port + ": " + str(result['ip']))
+            if (
+                "zgrab2" in global_zgrab_path and "error" in result["data"]["http"]
+            ) or "error" in result:
+                logger.warning("Failed " + port + ": " + str(result["ip"]))
             else:
-                result['aws'] = zones_struct['ip_manager'].is_aws_ip(result['ip'])
-                result['azure'] = zones_struct['ip_manager'].is_azure_ip(result['ip'])
-                result['gcp'] = zones_struct['ip_manager'].is_gcp_ip(result['ip'])
-                result['tracked'] = zones_struct['ip_manager'].is_tracked_ip(result['ip'])
-                insert_result(result, port, zones_struct['ip_context'], zones_struct['zones'], zgrab_collection)
-                logger.debug("Inserted " + port + ": " + result['ip'])
+                result["aws"] = zones_struct["ip_manager"].is_aws_ip(result["ip"])
+                result["azure"] = zones_struct["ip_manager"].is_azure_ip(result["ip"])
+                result["gcp"] = zones_struct["ip_manager"].is_gcp_ip(result["ip"])
+                result["tracked"] = zones_struct["ip_manager"].is_tracked_ip(
+                    result["ip"]
+                )
+                insert_result(
+                    result,
+                    port,
+                    zones_struct["ip_context"],
+                    zones_struct["zones"],
+                    zgrab_collection,
+                )
+                logger.debug("Inserted " + port + ": " + result["ip"])
     else:
         logger.warning("Failed " + port + ": " + str(ips))
 
@@ -291,23 +375,26 @@ def process_data(logger, tnum, q, port, command, zones_struct, zgrab_collection)
                 if global_work_queue.empty():
                     break
             global_queue_lock.release()
-            logger.debug ("Thread %s processing %s" % (str(tnum), data))
+            logger.debug("Thread %s processing %s" % (str(tnum), data))
             try:
-                process_thread(logger, data, port, command, zones_struct, zgrab_collection, tnum)
+                process_thread(
+                    logger, data, port, command, zones_struct, zgrab_collection, tnum
+                )
             except Exception as ex:
                 logger.warning("Thread error processing: " + str(data))
                 logger.warning(str(ex))
-            for _ in range(0,i):
+            for _ in range(0, i):
                 q.task_done()
         else:
             global_queue_lock.release()
             time.sleep(1)
 
 
-class ZgrabThread (threading.Thread):
+class ZgrabThread(threading.Thread):
     """
     The thread class which stores the constants for each thread.
     """
+
     def __init__(self, thread_id, q, port, command, zones_struct, zgrab_collection):
         threading.Thread.__init__(self)
         self.thread_id = thread_id
@@ -317,10 +404,19 @@ class ZgrabThread (threading.Thread):
         self.run_command = command
         self.q = q
         self.logger = LoggingUtil.create_log(__name__)
+
     def run(self):
-        self.logger.debug ("Starting Thread-" + str(self.thread_id))
-        process_data(self.logger, self.thread_id, self.q, self.port, self.run_command, self.zones_struct, self.zgrab_collection)
-        self.logger.debug ("Exiting Thread-" + str(self.thread_id))
+        self.logger.debug("Starting Thread-" + str(self.thread_id))
+        process_data(
+            self.logger,
+            self.thread_id,
+            self.q,
+            self.port,
+            self.run_command,
+            self.zones_struct,
+            self.zgrab_collection,
+        )
+        self.logger.debug("Exiting Thread-" + str(self.thread_id))
 
 
 def check_save_location(save_location):
@@ -341,15 +437,26 @@ def main():
 
     logger = LoggingUtil.create_log(__name__)
 
-    parser = argparse.ArgumentParser(description='Launch zgrab against IPs using port 80 or 443.')
-    parser.add_argument('-p',  choices=['443', '80'], metavar="port", help='The web port: 80 or 443')
-    parser.add_argument('-t',  default=5, type=int, metavar="threadCount", help='The number of threads')
-    parser.add_argument('--zgrab_path', default=global_zgrab_path, metavar='zgrabVersion', help='The version of ZGrab to use')
+    parser = argparse.ArgumentParser(
+        description="Launch zgrab against IPs using port 80 or 443."
+    )
+    parser.add_argument(
+        "-p", choices=["443", "80"], metavar="port", help="The web port: 80 or 443"
+    )
+    parser.add_argument(
+        "-t", default=5, type=int, metavar="threadCount", help="The number of threads"
+    )
+    parser.add_argument(
+        "--zgrab_path",
+        default=global_zgrab_path,
+        metavar="zgrabVersion",
+        help="The version of ZGrab to use",
+    )
     args = parser.parse_args()
 
     if args.p == None:
-       logger.error("A port value (80 or 443) must be provided.")
-       exit(1)
+        logger.error("A port value (80 or 443) must be provided.")
+        exit(1)
 
     if is_running(os.path.basename(__file__)):
         """
@@ -371,14 +478,14 @@ def main():
     jobs_manager.record_job_start()
 
     zones_struct = {}
-    zones_struct['zones'] = ZoneManager.get_distinct_zones(rm_connector)
+    zones_struct["zones"] = ZoneManager.get_distinct_zones(rm_connector)
 
     # Not pretty but cleaner than previous method
-    zones_struct['ip_manager'] = ip_manager
+    zones_struct["ip_manager"] = ip_manager
 
     (ips, ip_context) = get_ips(ip_manager, all_dns_collection)
     logger.info("Got IPs: " + str(len(ips)))
-    zones_struct['ip_context'] = ip_context
+    zones_struct["ip_context"] = ip_context
 
     if args.p == "443":
         zgrab_collection = rm_connector.get_zgrab_443_data_connection()
@@ -394,8 +501,15 @@ def main():
     threads = []
 
     logger.debug("Creating " + str(args.t) + " threads")
-    for thread_id in range (1, args.t + 1):
-        thread = ZgrabThread(thread_id, global_work_queue, args.p, run_command, zones_struct, zgrab_collection)
+    for thread_id in range(1, args.t + 1):
+        thread = ZgrabThread(
+            thread_id,
+            global_work_queue,
+            args.p,
+            run_command,
+            zones_struct,
+            zgrab_collection,
+        )
         thread.start()
         threads.append(thread)
         thread_id += 1
@@ -417,11 +531,13 @@ def main():
     for t in threads:
         t.join()
 
-    logger.info ("Exiting Main Thread")
+    logger.info("Exiting Main Thread")
 
     # Remove last week's old entries
     lastweek = datetime.now() - timedelta(days=7)
-    zgrab_collection.delete_many({'ip': {"$ne": "<nil>"}, 'timestamp': {"$lt": lastweek}})
+    zgrab_collection.delete_many(
+        {"ip": {"$ne": "<nil>"}, "timestamp": {"$lt": lastweek}}
+    )
 
     jobs_manager.record_job_complete()
 

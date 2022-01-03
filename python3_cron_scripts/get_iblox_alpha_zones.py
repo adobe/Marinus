@@ -53,15 +53,20 @@ class InfobloxZone(object):
     ZI = ZoneIngestor.ZoneIngestor()
 
     next_page_id = None
-    source = 'Infoblox'
-
+    source = "Infoblox"
 
     def __get_base_url(self):
         """
         Returns the Infoblox zone API URL
         :return: Infoblox zone API URL
         """
-        return 'https://' + self.IH.IBLOX_HOST + '/wapi/v' + self.IH.IBLOX_VERSION + '/zone_auth'
+        return (
+            "https://"
+            + self.IH.IBLOX_HOST
+            + "/wapi/v"
+            + self.IH.IBLOX_VERSION
+            + "/zone_auth"
+        )
 
     def __get_previous_zones(self):
         """
@@ -69,20 +74,23 @@ class InfobloxZone(object):
         The result is a dictionary with the zones as keys. The value of the key is True if the zone
         is sub_zone.
         """
-        zones = self.zone_collection.find({'$or': [{'reporting_sources.source': self.source},
-                                                   {'sub_zones.source': self.source}]},
-                                          {'reporting_sources': 1,
-                                           'zone': 1,
-                                           'sub_zones': 1
-                                           })
+        zones = self.zone_collection.find(
+            {
+                "$or": [
+                    {"reporting_sources.source": self.source},
+                    {"sub_zones.source": self.source},
+                ]
+            },
+            {"reporting_sources": 1, "zone": 1, "sub_zones": 1},
+        )
         self.previous_zones = {}
         for zone in zones:
-            for reporting_source in zone['reporting_sources']:
-                if reporting_source['source'] == self.source:
-                    self.previous_zones[zone['zone']] = False
-            for sub_zone in zone['sub_zones']:
-                if sub_zone['source'] == self.source:
-                    self.previous_zones[sub_zone['sub_zone']] = True
+            for reporting_source in zone["reporting_sources"]:
+                if reporting_source["source"] == self.source:
+                    self.previous_zones[zone["zone"]] = False
+            for sub_zone in zone["sub_zones"]:
+                if sub_zone["source"] == self.source:
+                    self.previous_zones[sub_zone["sub_zone"]] = True
 
     def __clean_collection(self):
         """
@@ -99,18 +107,20 @@ class InfobloxZone(object):
 
         # Update the sub_zones from 'Infoblox' to 'Infoblox-Retired'
         self.zone_collection.update_many(
-            {'sub_zones': {'$elemMatch': {
-                'sub_zone': {'$in': sub_zones},
-                'source': self.source
-            }}},
-            {'$set': {'sub_zones.$.source': 'Infoblox-Retired'}}
+            {
+                "sub_zones": {
+                    "$elemMatch": {
+                        "sub_zone": {"$in": sub_zones},
+                        "source": self.source,
+                    }
+                }
+            },
+            {"$set": {"sub_zones.$.source": "Infoblox-Retired"}},
         )
 
         self.zone_collection.update_many(
-            {'zone': {'$in': parent_zones},
-             'reporting_sources.source': self.source
-             },
-            {'$set': {'reporting_sources.$.source': 'Infoblox-Retired'}}
+            {"zone": {"$in": parent_zones}, "reporting_sources.source": self.source},
+            {"$set": {"reporting_sources.$.source": "Infoblox-Retired"}},
         )
 
     def __insert_zone(self, zone):
@@ -123,29 +133,30 @@ class InfobloxZone(object):
         # Some zones are actually IP addresses.
         # If the IP address is new, add it.
         # Change the update date if it already exists
-        utf8_zone = zone['fqdn'].encode('utf-8').decode('utf8')
+        utf8_zone = zone["fqdn"].encode("utf-8").decode("utf8")
         if re.match(r"^([0-9]{1,3}\.){3}[0-9]{1,3}\/\d\d$", utf8_zone) is not None:
-            cursor = self.ip_collection.find({"zone": zone['fqdn']})
+            cursor = self.ip_collection.find({"zone": zone["fqdn"]})
             if cursor.count() == 0:
                 insert_text = dict()
-                insert_text['zone'] = utf8_zone
-                insert_text['source'] = 'Infoblox'
-                insert_text['status'] = 'unconfirmed'
-                insert_text['created'] = datetime.now()
-                insert_text['updated'] = datetime.now()
+                insert_text["zone"] = utf8_zone
+                insert_text["source"] = "Infoblox"
+                insert_text["status"] = "unconfirmed"
+                insert_text["created"] = datetime.now()
+                insert_text["updated"] = datetime.now()
                 self.ip_collection.insert_one(insert_text)
                 self._logger.info("Added IP: " + utf8_zone)
             else:
                 for _ in cursor:
-                    self.ip_collection.update_one({'zone': zone['fqdn']},
-                                                  {'$currentDate': {"updated": True}})
+                    self.ip_collection.update_one(
+                        {"zone": zone["fqdn"]}, {"$currentDate": {"updated": True}}
+                    )
                     self._logger.info("Updated IP: " + utf8_zone)
         else:
             # cleaning the values from the previous zones found. The resultant set
             # will need to be cleared of the source value 'Infoblox'.
-            if zone['fqdn'] in self.previous_zones:
-                del self.previous_zones[zone['fqdn']]
-            self.ZI.add_zone(zone['fqdn'], self.source, zone['parent'])
+            if zone["fqdn"] in self.previous_zones:
+                del self.previous_zones[zone["fqdn"]]
+            self.ZI.add_zone(zone["fqdn"], self.source, zone["parent"])
 
     def __infoblox_response_handler(self, response):
         """
@@ -156,31 +167,36 @@ class InfobloxZone(object):
         """
         try:
             response_data = response.json()
-            response_result = response_data['result']
+            response_result = response_data["result"]
         except (ValueError, AttributeError) as err:
             if self.incorrect_response_json_allowed > 0:
-                self._logger.warning('Unable to parse response JSON for alphabet ' + self.alphabet_queried)
+                self._logger.warning(
+                    "Unable to parse response JSON for alphabet "
+                    + self.alphabet_queried
+                )
                 self.incorrect_response_json_allowed -= 1
             else:
                 self.APIH.handle_api_error(
-                    'Unable to parse response JSON for 20 alphabets: ' + repr(err),
+                    "Unable to parse response JSON for 20 alphabets: " + repr(err),
                     self.job_manager,
                 )
         else:
             for entry in response_result:
                 zone = dict()
-                zone['fqdn'] = entry['fqdn']
-                zone['parent'] = entry['parent']
+                zone["fqdn"] = entry["fqdn"]
+                zone["parent"] = entry["parent"]
                 self.__insert_zone(zone)
 
-            if 'next_page_id' in response_data:
-                self.next_page_id = response_data['next_page_id']
+            if "next_page_id" in response_data:
+                self.next_page_id = response_data["next_page_id"]
 
-    @backoff.on_exception(backoff.expo,
-                          requests.exceptions.ConnectionError,
-                          max_tries=4,
-                          factor=10,
-                          on_backoff=APIH.connection_error_retry)
+    @backoff.on_exception(
+        backoff.expo,
+        requests.exceptions.ConnectionError,
+        max_tries=4,
+        factor=10,
+        on_backoff=APIH.connection_error_retry,
+    )
     def __backoff_api_retry(self):
         """
         Makes API calls to Infoblox with exponential retry capabilities using 'backoff'. The API is
@@ -188,23 +204,22 @@ class InfobloxZone(object):
         """
         url = self.__get_base_url()
         params = {
-            'view': 'External',
-            'fqdn~': '.*' + self.alphabet_queried + '$',
-            '_return_fields': 'parent,fqdn',
+            "view": "External",
+            "fqdn~": ".*" + self.alphabet_queried + "$",
+            "_return_fields": "parent,fqdn",
         }
         if not self.next_page_id:
-            params.update({
-                '_paging': '1',
-                '_return_as_object': '1',
-                '_max_results': '1500'
-            })
+            params.update(
+                {"_paging": "1", "_return_as_object": "1", "_max_results": "1500"}
+            )
         else:
-            params.update({'_page_id': self.next_page_id})
+            params.update({"_page_id": self.next_page_id})
 
         return requests.get(
             url,
             params,
-            auth=HTTPBasicAuth(self.IH.IBLOX_UNAME, self.IH.IBLOX_PASSWD), verify=False
+            auth=HTTPBasicAuth(self.IH.IBLOX_UNAME, self.IH.IBLOX_PASSWD),
+            verify=False,
         )
 
     def __infoblox_paginated_request(self):
@@ -230,7 +245,7 @@ class InfobloxZone(object):
         """
         print("Starting: " + str(datetime.now()))
         self._logger.info("Starting....")
-        self.job_manager = JobsManager.JobsManager(self.MC, 'get_iblox_alpha_zones')
+        self.job_manager = JobsManager.JobsManager(self.MC, "get_iblox_alpha_zones")
         self.job_manager.record_job_start()
 
         self.__get_previous_zones()
@@ -255,6 +270,6 @@ class InfobloxZone(object):
         self.get_infoblox_zones()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger = LoggingUtil.create_log(__name__)
     IZ = InfobloxZone()

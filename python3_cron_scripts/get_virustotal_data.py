@@ -43,7 +43,7 @@ def main():
     mongo_connector = MongoConnector.MongoConnector()
     vt_collection = mongo_connector.get_virustotal_connection()
 
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_virustotal_data')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "get_virustotal_data")
     jobs_manager.record_job_start()
 
     # Collect the list of tracked TLDs
@@ -56,37 +56,44 @@ def main():
 
         if results is None:
             logger.warning("Error querying zone " + zone)
-        elif results['response_code'] == -1:
+        elif results["response_code"] == -1:
             logger.warning("VT unhappy with " + zone)
-        elif results['response_code'] == 0:
+        elif results["response_code"] == 0:
             logger.warning("VT doesn't have " + zone)
         else:
             logger.debug("Matched " + zone)
 
-            results['zone'] = zone
-            results['created'] = datetime.now()
+            results["zone"] = zone
+            results["created"] = datetime.now()
 
             # Mongo doesn't allow key names with periods in them
             # Re-assign to an undotted key name
             if "Dr.Web category" in results:
-                results['Dr Web category'] = results.pop("Dr.Web category")
+                results["Dr Web category"] = results.pop("Dr.Web category")
             elif "alphaMountain.ai category" in results:
-                results['alphaMountain_ai category'] = results.pop("alphaMountain.ai category")
+                results["alphaMountain_ai category"] = results.pop(
+                    "alphaMountain.ai category"
+                )
 
             vt_collection.delete_one({"zone": zone})
 
-            if 'last_https_certificate' in results:
-               if 'extensions' in results['last_https_certificate']:
-                  if '1.3.6.1.4.1.11129.2.4.2' in results['last_https_certificate']['extensions']:
-                     results['last_https_certificate']['extensions']['sct_list'] = results['last_https_certificate']['extensions'].pop('1.3.6.1.4.1.11129.2.4.2')
+            if "last_https_certificate" in results:
+                if "extensions" in results["last_https_certificate"]:
+                    if (
+                        "1.3.6.1.4.1.11129.2.4.2"
+                        in results["last_https_certificate"]["extensions"]
+                    ):
+                        results["last_https_certificate"]["extensions"][
+                            "sct_list"
+                        ] = results["last_https_certificate"]["extensions"].pop(
+                            "1.3.6.1.4.1.11129.2.4.2"
+                        )
 
             mongo_connector.perform_insert(vt_collection, results)
-
 
         # This sleep command is so that we don't exceed the daily limit on the free API
         # This setting results in this script taking several days to complete
         time.sleep(25)
-
 
     # Record status
     jobs_manager.record_job_complete()

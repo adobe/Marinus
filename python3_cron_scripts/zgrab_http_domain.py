@@ -60,7 +60,9 @@ def is_running(process):
     """
     proc_list = subprocess.Popen(["pgrep", "-f", process], stdout=subprocess.PIPE)
     for proc in proc_list.stdout:
-        if proc.decode('utf-8').rstrip() != str(os.getpid()) and proc.decode('utf-8').rstrip() != str(os.getppid()):
+        if proc.decode("utf-8").rstrip() != str(os.getpid()) and proc.decode(
+            "utf-8"
+        ).rstrip() != str(os.getppid()):
             return True
     return False
 
@@ -69,13 +71,14 @@ def get_domains(all_dns_collection, ip_manager, zone):
     """
     Get the list of domains based on zones
     """
-    zone_results = all_dns_collection.find({'zone': zone, 'type': 'a'})
+    zone_results = all_dns_collection.find({"zone": zone, "type": "a"})
 
     domains = []
     for result in zone_results:
-        if result['fqdn'] not in domains \
-            and not ip_manager.is_local_ip(result['value']):
-                    domains.append(result['fqdn'])
+        if result["fqdn"] not in domains and not ip_manager.is_local_ip(
+            result["value"]
+        ):
+            domains.append(result["fqdn"])
 
     random.shuffle(domains)
     return domains
@@ -85,18 +88,18 @@ def insert_result(entry, results_collection):
     """
     Insert the matched domain into the collection of positive results.
     """
-    if 'zgrab2' in global_zgrab_path:
-        temp_date = entry['data']['http']['timestamp']
+    if "zgrab2" in global_zgrab_path:
+        temp_date = entry["data"]["http"]["timestamp"]
         new_date = parse(temp_date)
         entry["timestamp"] = new_date
-        entry['data']['http']['timestamp'] = new_date
-        entry['ip'] = "<nil>"
+        entry["data"]["http"]["timestamp"] = new_date
+        entry["ip"] = "<nil>"
     else:
         temp_date = entry["timestamp"]
         new_date = parse(temp_date)
         entry["timestamp"] = new_date
 
-    results_collection.replace_one({"domain": entry['domain']}, entry, upsert=True)
+    results_collection.replace_one({"domain": entry["domain"]}, entry, upsert=True)
 
 
 def run_port_80_command(target_list, tnum):
@@ -109,8 +112,20 @@ def run_port_80_command(target_list, tnum):
     targets = targets[:-2]
 
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    if 'zgrab2' in global_zgrab_path:
-        p2 = subprocess.Popen([global_zgrab_path, "http", "--port=80", "--max-redirects=10", "--timeout=30", "--output-file=./json_p80/p80-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if "zgrab2" in global_zgrab_path:
+        p2 = subprocess.Popen(
+            [
+                global_zgrab_path,
+                "http",
+                "--port=80",
+                "--max-redirects=10",
+                "--timeout=30",
+                "--output-file=./json_p80/p80-" + str(tnum) + ".json",
+            ],
+            stdin=p1.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         p1.stdout.close()
         output, _ = p2.communicate()
         parts = _.decode("utf-8").split("\n")
@@ -120,7 +135,19 @@ def run_port_80_command(target_list, tnum):
                 return json_output
         return json.loads("{}")
     else:
-        p2 = subprocess.Popen([global_zgrab_path, "--port=80", "--http=/", "--http-max-redirects=10", "--lookup-domain", "--timeout=30", "--output-file=./json_p80/p80-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(
+            [
+                global_zgrab_path,
+                "--port=80",
+                "--http=/",
+                "--http-max-redirects=10",
+                "--lookup-domain",
+                "--timeout=30",
+                "--output-file=./json_p80/p80-" + str(tnum) + ".json",
+            ],
+            stdin=p1.stdout,
+            stdout=subprocess.PIPE,
+        )
         p1.stdout.close()
         output, _ = p2.communicate()
         json_output = json.loads(output.decode("utf-8"))
@@ -137,8 +164,21 @@ def run_port_443_command(target_list, tnum):
     targets = targets[:-2]
 
     p1 = subprocess.Popen(["echo", "-e", targets], stdout=subprocess.PIPE)
-    if 'zgrab2' in global_zgrab_path:
-        p2 = subprocess.Popen([global_zgrab_path, "http", "--port=443", "--use-https", "--max-redirects=10", "--timeout=30", "--output-file=./json_p443/p443-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if "zgrab2" in global_zgrab_path:
+        p2 = subprocess.Popen(
+            [
+                global_zgrab_path,
+                "http",
+                "--port=443",
+                "--use-https",
+                "--max-redirects=10",
+                "--timeout=30",
+                "--output-file=./json_p443/p443-" + str(tnum) + ".json",
+            ],
+            stdin=p1.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         p1.stdout.close()
         output, _ = p2.communicate()
         parts = _.decode("utf-8").split("\n")
@@ -148,7 +188,21 @@ def run_port_443_command(target_list, tnum):
                 return json_output
         return json.loads("{}")
     else:
-        p2 = subprocess.Popen([global_zgrab_path, "--port=443", "--tls", "--chrome-ciphers", "--http=/", "--http-max-redirects=10", "--lookup-domain", "--timeout=30", "--output-file=./json_p443/p443-" + str(tnum) + ".json"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(
+            [
+                global_zgrab_path,
+                "--port=443",
+                "--tls",
+                "--chrome-ciphers",
+                "--http=/",
+                "--http-max-redirects=10",
+                "--lookup-domain",
+                "--timeout=30",
+                "--output-file=./json_p443/p443-" + str(tnum) + ".json",
+            ],
+            stdin=p1.stdout,
+            stdout=subprocess.PIPE,
+        )
         p1.stdout.close()
         output, _ = p2.communicate()
         json_output = json.loads(output.decode("utf-8"))
@@ -160,21 +214,25 @@ def process_thread(logger, domains, port, run_command, zone, zgrab_collection, t
     Runs zgrab and stores the result if necessary
     """
     json_output = run_command(domains, tnum)
-    if ('success_count' in json_output and json_output['success_count'] > 0) or \
-        ('statuses' in json_output and json_output['statuses']['http']['successes'] > 0):
-        result_file = open("./json_p" + port + "/p" + port + "-" + str(tnum) + ".json", "r")
-        results=[]
+    if ("success_count" in json_output and json_output["success_count"] > 0) or (
+        "statuses" in json_output and json_output["statuses"]["http"]["successes"] > 0
+    ):
+        result_file = open(
+            "./json_p" + port + "/p" + port + "-" + str(tnum) + ".json", "r"
+        )
+        results = []
         for result in result_file:
             results.append(json.loads(result))
         result_file.close()
         for result in results:
-            if ('zgrab2' in global_zgrab_path and "error" in result['data']['http']) or \
-                'error' in result:
-                logger.warning("Failed " + port + ": " + str(result['domain']))
+            if (
+                "zgrab2" in global_zgrab_path and "error" in result["data"]["http"]
+            ) or "error" in result:
+                logger.warning("Failed " + port + ": " + str(result["domain"]))
             else:
-                result['zones'] = [zone]
+                result["zones"] = [zone]
                 insert_result(result, zgrab_collection)
-                logger.debug("Inserted " + port + ": " + result['domain'])
+                logger.debug("Inserted " + port + ": " + result["domain"])
     else:
         logger.warning("Failed " + port + ": " + str(domains))
 
@@ -196,21 +254,24 @@ def process_data(logger, tnum, q, port, command, zone, zgrab_collection):
             global_queue_lock.release()
             logger.debug("Thread %s processing %s" % (str(tnum), str(data)))
             try:
-                process_thread(logger, data, port, command, zone, zgrab_collection, tnum)
+                process_thread(
+                    logger, data, port, command, zone, zgrab_collection, tnum
+                )
             except Exception as ex:
                 logger.error("Thread error processing: " + str(data))
                 logger.error(str(ex))
-            for _ in range(0,i):
+            for _ in range(0, i):
                 q.task_done()
         else:
             global_queue_lock.release()
             time.sleep(1)
 
 
-class ZgrabThread (threading.Thread):
+class ZgrabThread(threading.Thread):
     """
     The thread class which stores the constants for each thread.
     """
+
     def __init__(self, thread_id, q, port, command, zone, zgrab_collection):
         threading.Thread.__init__(self)
         self.thread_id = thread_id
@@ -220,9 +281,18 @@ class ZgrabThread (threading.Thread):
         self.run_command = command
         self.q = q
         self.logger = LoggingUtil.create_log(__name__)
+
     def run(self):
         self.logger.debug("Starting Thread-" + str(self.thread_id))
-        process_data(self.logger, self.thread_id, self.q, self.port, self.run_command, self.zone, self.zgrab_collection)
+        process_data(
+            self.logger,
+            self.thread_id,
+            self.q,
+            self.port,
+            self.run_command,
+            self.zone,
+            self.zgrab_collection,
+        )
         self.logger.debug("Exiting Thread-" + str(self.thread_id))
 
 
@@ -244,15 +314,26 @@ def main():
 
     logger = LoggingUtil.create_log(__name__)
 
-    parser = argparse.ArgumentParser(description='Launch zgrab against domains using port 80 or 443.')
-    parser.add_argument('-p',  choices=['443', '80'], metavar="port", help='The web port: 80 or 443')
-    parser.add_argument('-t',  default=5, type=int, metavar="threadCount", help='The number of threads')
-    parser.add_argument('--zgrab_path', default=global_zgrab_path, metavar='zgrabVersion', help='The version of ZGrab to use')
+    parser = argparse.ArgumentParser(
+        description="Launch zgrab against domains using port 80 or 443."
+    )
+    parser.add_argument(
+        "-p", choices=["443", "80"], metavar="port", help="The web port: 80 or 443"
+    )
+    parser.add_argument(
+        "-t", default=5, type=int, metavar="threadCount", help="The number of threads"
+    )
+    parser.add_argument(
+        "--zgrab_path",
+        default=global_zgrab_path,
+        metavar="zgrabVersion",
+        help="The version of ZGrab to use",
+    )
     args = parser.parse_args()
 
     if args.p == None:
-       logger.error("A port value (80 or 443) must be provided.")
-       exit(1)
+        logger.error("A port value (80 or 443) must be provided.")
+        exit(1)
 
     if is_running(os.path.basename(__file__)):
         """
@@ -295,18 +376,25 @@ def main():
 
         num_threads = args.t
         if len(domains) < args.t:
-           num_threads = len(domains)
+            num_threads = len(domains)
 
-        logger.debug ("Creating " + str(num_threads) + " threads")
+        logger.debug("Creating " + str(num_threads) + " threads")
 
         threads = []
-        for thread_id in range (1, num_threads + 1):
-            thread = ZgrabThread(thread_id, global_work_queue, args.p, run_command, zone, zgrab_collection)
+        for thread_id in range(1, num_threads + 1):
+            thread = ZgrabThread(
+                thread_id,
+                global_work_queue,
+                args.p,
+                run_command,
+                zone,
+                zgrab_collection,
+            )
             thread.start()
             threads.append(thread)
             thread_id += 1
 
-        logger.debug (zone + " length: " + str(len(domains)))
+        logger.debug(zone + " length: " + str(len(domains)))
 
         logger.info("Populating Queue")
         global_queue_lock.acquire()
@@ -328,7 +416,9 @@ def main():
 
     # Remove last week's old entries
     lastweek = datetime.now() - timedelta(days=7)
-    zgrab_collection.delete_many({'domain': {"$ne": "<nil>"}, 'timestamp': {"$lt": lastweek}})
+    zgrab_collection.delete_many(
+        {"domain": {"$ne": "<nil>"}, "timestamp": {"$lt": lastweek}}
+    )
 
     jobs_manager.record_job_complete()
 

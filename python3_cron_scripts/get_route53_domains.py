@@ -35,26 +35,28 @@ def update_records(r53_client, dns_manager, zone_data, r53_source):
     """
     Update DNS records for the given zone_data
     """
-    response = r53_client.list_resource_record_sets(HostedZoneId=zone_data['Id'])
+    response = r53_client.list_resource_record_sets(HostedZoneId=zone_data["Id"])
     while response != {}:
-        for record in response['ResourceRecordSets']:
+        for record in response["ResourceRecordSets"]:
             new_entry = {}
-            new_entry['fqdn'] = record['Name'][:-1]
-            new_entry['zone'] = zone_data['Name'][:-1]
-            new_entry['type'] = record['Type'].lower()
-            new_entry['created'] = datetime.now()
-            new_entry['status'] = 'confirmed'
-            for entry in record['ResourceRecords']:
+            new_entry["fqdn"] = record["Name"][:-1]
+            new_entry["zone"] = zone_data["Name"][:-1]
+            new_entry["type"] = record["Type"].lower()
+            new_entry["created"] = datetime.now()
+            new_entry["status"] = "confirmed"
+            for entry in record["ResourceRecords"]:
                 temp_value = copy.deepcopy(new_entry)
-                temp_value['value'] = entry['Value']
+                temp_value["value"] = entry["Value"]
                 dns_manager.insert_record(temp_value, r53_source)
 
-        if response['IsTruncated'] == False:
+        if response["IsTruncated"] == False:
             response = {}
         else:
-            response = r53_client.list_resource_record_sets(HostedZoneId=zone_data['Id'],
-                                                            NextRecordName = response['NextRecordName'],
-                                                            NextRecordType = response['NextRecordType'])
+            response = r53_client.list_resource_record_sets(
+                HostedZoneId=zone_data["Id"],
+                NextRecordName=response["NextRecordName"],
+                NextRecordType=response["NextRecordType"],
+            )
 
 
 def main():
@@ -64,55 +66,53 @@ def main():
     logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
-    print ("Starting: " + str(now))
+    print("Starting: " + str(now))
     logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
     zone_ingestor = ZoneIngestor.ZoneIngestor()
 
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_route53')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "get_route53")
     jobs_manager.record_job_start()
 
     current_zones = ZoneManager.get_distinct_zones(mongo_connector)
 
     # For cases with multiple R53 accounts, include the account id for reference
-    sts = boto3.client('sts')
-    account_id = sts.get_caller_identity()["Arn"].split(':')[4]
+    sts = boto3.client("sts")
+    account_id = sts.get_caller_identity()["Arn"].split(":")[4]
     r53_source = "R53:" + str(account_id)
 
-    r53_client = boto3.client('route53')
+    r53_client = boto3.client("route53")
 
     r53_domains = r53_client.list_hosted_zones()
     r53_zone_list = []
     while r53_domains != {}:
-        for zone_data in r53_domains['HostedZones']:
+        for zone_data in r53_domains["HostedZones"]:
             # Only add public zones
-            if zone_data['Config']['PrivateZone'] == False:
+            if zone_data["Config"]["PrivateZone"] == False:
                 r53_zone_list.append(zone_data)
 
-        if r53_domains['IsTruncated'] == True:
-            r53_domains = r53_client.list_domains(Marker=r53_domains['NextMarker'])
+        if r53_domains["IsTruncated"] == True:
+            r53_domains = r53_client.list_domains(Marker=r53_domains["NextMarker"])
         else:
             r53_domains = {}
 
-
     for zone_data in r53_zone_list:
         # Double check that this is not a new zone
-        zone_name = zone_data['Name'][:-1]
+        zone_name = zone_data["Name"][:-1]
         if zone_name not in current_zones:
             logger.info("Creating zone: " + zone_name)
-            zone_ingestor.add_zone(zone_data['Name'], r53_source)
+            zone_ingestor.add_zone(zone_data["Name"], r53_source)
 
         # Add hosts to the zone
         update_records(r53_client, dns_manager, zone_data, r53_source)
-
 
     # Record status
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Ending: " + str(now))
+    print("Ending: " + str(now))
     logger.info("Complete.")
 
 

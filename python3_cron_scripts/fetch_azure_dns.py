@@ -36,7 +36,7 @@ def split_id(url_id):
     """
     parts = url_id.split("/")
     data = {}
-    for i in range(1,len(parts)-1,2):
+    for i in range(1, len(parts) - 1, 2):
         data[parts[i]] = parts[i + 1]
     return data
 
@@ -53,10 +53,10 @@ def process_soa_record(logger, entry):
     value += " " + str(soa.retry_time)
     value += " " + str(soa.expire_time)
     value += " " + str(soa.minimum_ttl)
-    logger.debug ("SOA: " + value)
+    logger.debug("SOA: " + value)
 
     results = []
-    results.append({'fqdn': entry.fqdn[:-1], 'type': 'soa', 'value': value})
+    results.append({"fqdn": entry.fqdn[:-1], "type": "soa", "value": value})
 
     return results
 
@@ -68,7 +68,9 @@ def process_arecords(logger, entry):
     results = []
     for arecord in entry.arecords:
         logger.debug("A: " + entry.fqdn[:-1] + " : " + arecord.ipv4_address)
-        results.append({'fqdn': entry.fqdn[:-1], 'type': 'a', 'value': arecord.ipv4_address})
+        results.append(
+            {"fqdn": entry.fqdn[:-1], "type": "a", "value": arecord.ipv4_address}
+        )
 
     return results
 
@@ -80,7 +82,9 @@ def process_ns_records(logger, entry):
     results = []
     for ns_record in entry.ns_records:
         logger.debug("NS: " + entry.fqdn[:-1] + " : " + ns_record.nsdname)
-        results.append({'fqdn': entry.fqdn[:-1], 'type': 'ns', 'value': ns_record.nsdname[:-1]})
+        results.append(
+            {"fqdn": entry.fqdn[:-1], "type": "ns", "value": ns_record.nsdname[:-1]}
+        )
 
     return results
 
@@ -92,8 +96,8 @@ def process_mx_records(logger, entry):
     results = []
     for mx_record in entry.mx_records:
         value = str(mx_record.preference) + " " + mx_record.exchange
-        logger.debug ("MX: " + entry.fqdn[:-1] + " : " + value)
-        results.append({'fqdn': entry.fqdn[:-1], 'type': 'mx', 'value': value})
+        logger.debug("MX: " + entry.fqdn[:-1] + " : " + value)
+        results.append({"fqdn": entry.fqdn[:-1], "type": "mx", "value": value})
 
     return results
 
@@ -104,7 +108,9 @@ def process_cname_record(logger, entry):
     """
     logger.debug("CNAME: " + entry.fqdn[:-1] + " : " + entry.cname_record.cname)
     results = []
-    results.append({'fqdn': entry.fqdn[:-1], 'type': 'cname', 'value': entry.cname_record.cname})
+    results.append(
+        {"fqdn": entry.fqdn[:-1], "type": "cname", "value": entry.cname_record.cname}
+    )
     return results
 
 
@@ -115,7 +121,9 @@ def process_aaaa_records(logger, entry):
     results = []
     for aaaa_record in entry.aaaa_records:
         logger.debug("AAAA: " + entry.fqdn[:-1] + " : " + aaaa_record.ipv6_address)
-        results.append({'fqdn': entry.fqdn[:-1], 'type': 'aaaa', 'value': aaaa_record.ipv6_address})
+        results.append(
+            {"fqdn": entry.fqdn[:-1], "type": "aaaa", "value": aaaa_record.ipv6_address}
+        )
 
     return results
 
@@ -130,7 +138,7 @@ def process_txt_records(logger, entry):
         for txt in txt_record.value:
             text_value += txt
         logger.debug("TXT: " + entry.fqdn[:-1] + " : " + text_value)
-        results.append({'fqdn': entry.fqdn[:-1], 'type': 'txt', 'value': text_value})
+        results.append({"fqdn": entry.fqdn[:-1], "type": "txt", "value": text_value})
 
     return results
 
@@ -142,7 +150,9 @@ def process_ptr_records(logger, entry):
     results = []
     for ptr_record in entry.ptr_records:
         logger.debug("PTR: " + entry.fqdn + " : " + ptr_record.ptrdname)
-        results.append({'fqdn': entry.fqdn[:-1], 'type': 'ptr', 'value': ptr_record.ptrdname})
+        results.append(
+            {"fqdn": entry.fqdn[:-1], "type": "ptr", "value": ptr_record.ptrdname}
+        )
 
     return results
 
@@ -153,9 +163,17 @@ def process_srv_records(logger, entry):
     """
     results = []
     for srv_record in entry.srv_records:
-        value = str(srv_record.priority) + " " + str(srv_record.weight) + " " + str(srv_record.port) + " " + srv_record.target
+        value = (
+            str(srv_record.priority)
+            + " "
+            + str(srv_record.weight)
+            + " "
+            + str(srv_record.port)
+            + " "
+            + srv_record.target
+        )
         logger.debug("SRV: " + value)
-        results.append({'fqdn': entry.fqdn[:-1], 'type': 'srv', 'value': value})
+        results.append({"fqdn": entry.fqdn[:-1], "type": "srv", "value": value})
 
     return results
 
@@ -164,24 +182,24 @@ def extract_record_set_value(logger, field, entry):
     """
     Call the approprite function for the given field type.
     """
-    if field == 'A':
+    if field == "A":
         # The missing underscore is intentional. MS was inconsistent.
         return process_arecords(logger, entry)
-    elif field == 'AAAA':
+    elif field == "AAAA":
         return process_aaaa_records(logger, entry)
-    elif field == 'MX':
+    elif field == "MX":
         return process_mx_records(logger, entry)
-    elif field == 'NS':
+    elif field == "NS":
         return process_ns_records(logger, entry)
-    elif field == 'PTR':
+    elif field == "PTR":
         return process_ptr_records(logger, entry)
-    elif field == 'SRV':
+    elif field == "SRV":
         return process_srv_records(logger, entry)
-    elif field == 'TXT':
+    elif field == "TXT":
         return process_txt_records(logger, entry)
-    elif field == 'CNAME':
+    elif field == "CNAME":
         return process_cname_record(logger, entry)
-    elif field == 'SOA':
+    elif field == "SOA":
         return process_soa_record(logger, entry)
     else:
         logger.warning("Unknown Record Set Type")
@@ -194,14 +212,14 @@ def main():
     logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
-    print ("Starting: " + str(now))
+    print("Starting: " + str(now))
     logger.info("Starting...")
 
     azure_connector = AzureConnector.AzureConnector()
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
     zone_ingestor = ZoneIngestor.ZoneIngestor()
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'fetch_azure_dns')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "fetch_azure_dns")
     jobs_manager.record_job_start()
 
     current_zones = ZoneManager.get_distinct_zones(mongo_connector)
@@ -218,23 +236,24 @@ def main():
     zones = dns_client.zones.list()
 
     # The type of records the Azure DNS will let you configure
-    record_types = {'A': 'arecords',
-                    'AAAA': 'aaaa_records',
-                    'MX': 'mx_records',
-                    'NS': 'ns_records',
-                    'PTR': 'ptr_records',
-                    'SRV': 'srv_records',
-                    'TXT': 'txt_records',
-                    'CNAME': 'cname_record',
-                    'SOA': 'soa_record'}
-
+    record_types = {
+        "A": "arecords",
+        "AAAA": "aaaa_records",
+        "MX": "mx_records",
+        "NS": "ns_records",
+        "PTR": "ptr_records",
+        "SRV": "srv_records",
+        "TXT": "txt_records",
+        "CNAME": "cname_record",
+        "SOA": "soa_record",
+    }
 
     for zone in zones:
         logger.info("Zone: " + zone.name)
         data = split_id(zone.id)
 
         if zone.zone_type == ZoneType.public:
-            logger.info (zone.name + " is public:")
+            logger.info(zone.name + " is public:")
 
             if zone.name not in current_zones:
                 logger.debug("Creating zone: " + zone.name)
@@ -242,7 +261,9 @@ def main():
 
             try:
                 logger.info("ResourceGroup: " + data["resourceGroups"])
-                records = dns_client.record_sets.list_all_by_dns_zone(data["resourceGroups"], zone.name)
+                records = dns_client.record_sets.list_all_by_dns_zone(
+                    data["resourceGroups"], zone.name
+                )
                 for entry in records:
                     # The record_data id value ends in rtype/rvalue so you must guess the rtype
                     record_data = split_id(entry.id)
@@ -250,17 +271,19 @@ def main():
                         if rtype in record_data:
                             results = extract_record_set_value(logger, rtype, entry)
                             for result in results:
-                                result['zone'] = zone.name
-                                result['created'] = datetime.now()
-                                result['status'] = 'confirmed'
-                                dns_manager.insert_record(result, "azure:" + data["resourceGroups"])
+                                result["zone"] = zone.name
+                                result["created"] = datetime.now()
+                                result["status"] = "confirmed"
+                                dns_manager.insert_record(
+                                    result, "azure:" + data["resourceGroups"]
+                                )
             except:
                 logger.warning("No records found")
 
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Complete: " + str(now))
+    print("Complete: " + str(now))
     logger.info("Complete.")
 
 

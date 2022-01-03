@@ -64,13 +64,13 @@ def download_file(logger, url):
     Download the file from the provided URL.
     Use the filename in the URL as the name of the outputed file.
     """
-    local_filename = url.split('/')[-1]
+    local_filename = url.split("/")[-1]
     logger.debug(local_filename)
     # NOTE the stream=True parameter
     req = requests.get(url, stream=True)
-    with open(local_filename, 'wb') as out_f:
+    with open(local_filename, "wb") as out_f:
         for chunk in req.iter_content(chunk_size=1024):
-            if chunk: # filter out keep-alive new chunks
+            if chunk:  # filter out keep-alive new chunks
                 out_f.write(chunk)
     out_f.close()
     return local_filename
@@ -120,11 +120,14 @@ def parse_file(logger, vertices_file, reversed_zones, dns_manager):
 
                 results = google_dns.fetch_DNS_records(matched_domain)
                 for result in results:
-                    if result['fqdn'].endswith("." + matched_zone) or result['fqdn'] == matched_zone:
+                    if (
+                        result["fqdn"].endswith("." + matched_zone)
+                        or result["fqdn"] == matched_zone
+                    ):
                         logger.debug("Inserting: " + matched_domain)
-                        result['created'] = datetime.now()
-                        result['status'] = 'confirmed'
-                        result['zone'] = matched_zone
+                        result["created"] = datetime.now()
+                        result["status"] = "confirmed"
+                        result["zone"] = matched_zone
                         dns_manager.insert_record(result, "common_crawl")
 
 
@@ -138,18 +141,18 @@ def get_first_and_last_line(fname):
     :param fname: The filename to examine for the first and last lines
     :return: Two strings representing the first and last lines, respectively.
     """
-    with open(fname, 'rb') as fh:
+    with open(fname, "rb") as fh:
         first = next(fh)
         offs = -10
         while True:
             fh.seek(offs, 2)
             lines = fh.readlines()
-            if len(lines)>1:
+            if len(lines) > 1:
                 last = lines[-1]
                 break
             offs *= 2
         # Return lines by converting bytes back to strings
-        return(first.decode("utf-8"),last.decode("utf-8"))
+        return (first.decode("utf-8"), last.decode("utf-8"))
 
 
 def get_zone_sublist(logger, fc, lc, grouped_zones):
@@ -174,7 +177,7 @@ def get_zone_sublist(logger, fc, lc, grouped_zones):
     :return: A list of zones limited to those between the first and last character.
     """
     if fc == lc:
-       return (grouped_zones[fc])
+        return grouped_zones[fc]
 
     chars = list(string.digits + string.ascii_lowercase)
     first_pos = chars.index(fc)
@@ -196,8 +199,12 @@ def main():
     """
     logger = LoggingUtil.create_log(__name__)
 
-    parser = argparse.ArgumentParser(description='Search the Common Crawl graph dataset for new domains')
-    parser.add_argument('--url', metavar="URL", help='The URL for the latest vertices file')
+    parser = argparse.ArgumentParser(
+        description="Search the Common Crawl graph dataset for new domains"
+    )
+    parser.add_argument(
+        "--url", metavar="URL", help="The URL for the latest vertices file"
+    )
     args = parser.parse_args()
 
     CURRENT_FILE = CURRENT_FILE_LIST
@@ -211,7 +218,7 @@ def main():
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'common_crawl_graph')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "common_crawl_graph")
     jobs_manager.record_job_start()
 
     reversed_zones = ZoneManager.get_reversed_zones(mongo_connector)
@@ -259,7 +266,9 @@ def main():
         last_char = last_domain[0]
 
         # Get the list of zones relevant to that range
-        searchable_zones = get_zone_sublist(logger, first_char, last_char, grouped_zones)
+        searchable_zones = get_zone_sublist(
+            logger, first_char, last_char, grouped_zones
+        )
 
         # Parse file and insert matches
         parse_file(logger, vertices_file, searchable_zones, dns_manager)

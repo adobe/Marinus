@@ -58,7 +58,12 @@ from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
 
 
-def requests_retry_session(retries=5, backoff_factor=7, status_forcelist=[408, 500, 502, 503, 504], session=None,):
+def requests_retry_session(
+    retries=5,
+    backoff_factor=7,
+    status_forcelist=[408, 500, 502, 503, 504],
+    session=None,
+):
     session = session or requests.Session()
     retry = Retry(
         total=retries,
@@ -68,7 +73,7 @@ def requests_retry_session(retries=5, backoff_factor=7, status_forcelist=[408, 5
         status_forcelist=status_forcelist,
     )
     adapter = HTTPAdapter(max_retries=retry)
-    session.mount('https://', adapter)
+    session.mount("https://", adapter)
     return session
 
 
@@ -96,7 +101,9 @@ def make_https_request(logger, url, jobs_manager, download=False, timeout_attemp
     except Timeout:
         if timeout_attempt == 0:
             logger.warning("Timeout occurred. Attempting again...")
-            result = make_https_request(logger, url, jobs_manager, download, timeout_attempt=1)
+            result = make_https_request(
+                logger, url, jobs_manager, download, timeout_attempt=1
+            )
             return result
         else:
             logger.error("Too many timeouts. Exiting")
@@ -108,7 +115,7 @@ def make_https_request(logger, url, jobs_manager, download=False, timeout_attemp
         exit(1)
 
     if req.status_code != 200:
-        logger.error('ERROR: Status code ' + str(req.status_code))
+        logger.error("ERROR: Status code " + str(req.status_code))
         return None
 
     if download:
@@ -131,12 +138,33 @@ def fetch_certificate_batch(logger, url, starting_index, ending_index, jobs_mana
     Each log has its own limits on the number of records returned which means
     that the ending_index may be ignored.
     """
-    result = make_https_request(logger, url + "/ct/v1/get-entries?start=" + str(starting_index) + "&end=" + str(ending_index), jobs_manager)
+    result = make_https_request(
+        logger,
+        url
+        + "/ct/v1/get-entries?start="
+        + str(starting_index)
+        + "&end="
+        + str(ending_index),
+        jobs_manager,
+    )
 
     if result is None:
-        logger.error('ERROR on request with starting index ' + str(starting_index) + ' and ending index ' + str(ending_index))
+        logger.error(
+            "ERROR on request with starting index "
+            + str(starting_index)
+            + " and ending index "
+            + str(ending_index)
+        )
         time.sleep(600)
-        result = make_https_request(logger, url + "/ct/v1/get-entries?start=" + str(starting_index) + "&end=" + str(ending_index), jobs_manager)
+        result = make_https_request(
+            logger,
+            url
+            + "/ct/v1/get-entries?start="
+            + str(starting_index)
+            + "&end="
+            + str(ending_index),
+            jobs_manager,
+        )
 
     if result is None:
         jobs_manager.record_job_error()
@@ -151,7 +179,13 @@ def fetch_starting_index(ct_collection, source):
     This will allow us to limit log searches to only those records that
     have been added since the last matched certificate ID.
     """
-    result = ct_collection.find({source + "_id": {"$exists": True}}, {source + "_id": 1, "_id": 0}).sort([(source + "_id",-1)]).limit(1)
+    result = (
+        ct_collection.find(
+            {source + "_id": {"$exists": True}}, {source + "_id": 1, "_id": 0}
+        )
+        .sort([(source + "_id", -1)])
+        .limit(1)
+    )
 
     if result.count() == 0:
         return 0
@@ -165,11 +199,11 @@ def read_leaf_header(leaf):
     Parse the leaf header
     """
     header = {}
-    header['version'] = int(leaf[0])
-    header['merkle_leaf_type'] = int(leaf[1])
-    header['timestamp'] = int.from_bytes(leaf[2:10], 'big')
-    header['LogEntryType'] = int.from_bytes(leaf[10:12], 'big')
-    header['Entry'] = leaf[12:]
+    header["version"] = int(leaf[0])
+    header["merkle_leaf_type"] = int(leaf[1])
+    header["timestamp"] = int.from_bytes(leaf[2:10], "big")
+    header["LogEntryType"] = int.from_bytes(leaf[10:12], "big")
+    header["Entry"] = leaf[12:]
     return header
 
 
@@ -179,17 +213,19 @@ def get_cert_from_leaf(logger, leaf):
     """
     header = read_leaf_header(base64.b64decode(leaf))
 
-    cert_type = header['LogEntryType']
+    cert_type = header["LogEntryType"]
     if cert_type == 1:
         # Precertificates processed separately
         return None, cert_type
 
-    cert_length =  int.from_bytes(header['Entry'][0:3], 'big')
-    cert = header['Entry'][3:]
+    cert_length = int.from_bytes(header["Entry"][0:3], "big")
+    cert = header["Entry"][3:]
 
     if cert_length != len(cert) - 2:
         logger.warning("Error processing leaf: Length mismatch.")
-        logger.warning("CERT_LENGTH: " + str(cert_length) + " LENGTH: " + str(len(cert)))
+        logger.warning(
+            "CERT_LENGTH: " + str(cert_length) + " LENGTH: " + str(len(cert))
+        )
         return None, cert_type
 
     return cert, cert_type
@@ -200,8 +236,8 @@ def get_cert_from_extra_data(extra_data):
     The certificate is located in the extra data field for pre-certificates
     """
     data = base64.b64decode(extra_data)
-    cert_length =  int.from_bytes(data[0:3], 'big')
-    cert = data[3:cert_length + 4]
+    cert_length = int.from_bytes(data[0:3], "big")
+    cert = data[3 : cert_length + 4]
 
     return cert
 
@@ -210,8 +246,8 @@ def check_org_relevancy(cert, ssl_orgs):
     """
     Check to see if the certificate is relevant to our organization.
     """
-    if 'subject_organization_name' in cert:
-        for org in cert['subject_organization_name']:
+    if "subject_organization_name" in cert:
+        for org in cert["subject_organization_name"]:
             if org in ssl_orgs:
                 return True
 
@@ -222,15 +258,15 @@ def check_zone_relevancy(cert, zones):
     """
     cert_zones = []
 
-    if 'subject_common_names' in cert:
-        for cn in cert['subject_common_names']:
+    if "subject_common_names" in cert:
+        for cn in cert["subject_common_names"]:
             for zone in zones:
                 if cn == zone or cn.endswith("." + zone):
                     if zone not in cert_zones:
                         cert_zones.append(zone)
 
-    if 'subject_dns_names' in cert:
-        for cn in cert['subject_dns_names']:
+    if "subject_dns_names" in cert:
+        for cn in cert["subject_dns_names"]:
             for zone in zones:
                 if cn == zone or cn.endswith("." + zone):
                     if zone not in cert_zones:
@@ -244,10 +280,24 @@ def insert_certificate(cert, source, ct_collection, cert_zones):
     Insert or update the record in the database as needed.
     """
 
-    if ct_collection.find({'fingerprint_sha256': cert['fingerprint_sha256']}).count() == 0:
+    if (
+        ct_collection.find({"fingerprint_sha256": cert["fingerprint_sha256"]}).count()
+        == 0
+    ):
         ct_collection.insert_one(cert)
     else:
-        ct_collection.update_many({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {source + "_id": cert[source + "_id"], 'ct_log_type': cert['ct_log_type'], 'zones': cert_zones, 'marinus_updated': datetime.now()}, "$addToSet": {"sources": source}})
+        ct_collection.update_many(
+            {"fingerprint_sha256": cert["fingerprint_sha256"]},
+            {
+                "$set": {
+                    source + "_id": cert[source + "_id"],
+                    "ct_log_type": cert["ct_log_type"],
+                    "zones": cert_zones,
+                    "marinus_updated": datetime.now(),
+                },
+                "$addToSet": {"sources": source},
+            },
+        )
 
 
 def write_file(logger, cert, save_location, save_type, source):
@@ -255,23 +305,38 @@ def write_file(logger, cert, save_location, save_type, source):
     Write the file to disk.
     """
     try:
-        c_file = crypto.load_certificate(crypto.FILETYPE_PEM, "-----BEGIN CERTIFICATE-----\n" + cert['raw'] + "\n-----END CERTIFICATE-----")
+        c_file = crypto.load_certificate(
+            crypto.FILETYPE_PEM,
+            "-----BEGIN CERTIFICATE-----\n"
+            + cert["raw"]
+            + "\n-----END CERTIFICATE-----",
+        )
     except:
         # Once in awhile, it won't decode as PEM. Trying ASN1...
         try:
-            c_file = crypto.load_certificate(crypto.FILETYPE_ASN1, base64.b64decode(cert['raw']))
+            c_file = crypto.load_certificate(
+                crypto.FILETYPE_ASN1, base64.b64decode(cert["raw"])
+            )
         except:
-            logger.error("ERROR: Couldn't write the file but it is saved in the DB. Skipping the write to disk operation.")
+            logger.error(
+                "ERROR: Couldn't write the file but it is saved in the DB. Skipping the write to disk operation."
+            )
             return
 
     if save_type == "PEM":
         new_file = crypto.dump_certificate(crypto.FILETYPE_PEM, c_file)
-        fh = open(save_location + "ct_" + source + "/" + str(cert[source + "_id"]) + ".pem", "wb")
+        fh = open(
+            save_location + "ct_" + source + "/" + str(cert[source + "_id"]) + ".pem",
+            "wb",
+        )
         fh.write(new_file)
         fh.close()
     else:
         new_file = crypto.dump_certificate(crypto.FILETYPE_ASN1, c_file)
-        fh = open(save_location + "ct_" + source + "/" + str(cert[source + "_id"]) + ".der", "wb")
+        fh = open(
+            save_location + "ct_" + source + "/" + str(cert[source + "_id"]) + ".der",
+            "wb",
+        )
         fh.write(new_file)
         fh.close()
 
@@ -302,21 +367,52 @@ def main():
     x509parser = X509Parser.X509Parser()
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
-    result = config_collection.find_one({}, {'SSL_Orgs': 1, "_id": 0})
-    ssl_orgs = result['SSL_Orgs']
+    result = config_collection.find_one({}, {"SSL_Orgs": 1, "_id": 0})
+    ssl_orgs = result["SSL_Orgs"]
 
     # Defaults
-    save_location = '/mnt/workspace/'
-    download_method = 'dbAndSave'
+    save_location = "/mnt/workspace/"
+    download_method = "dbAndSave"
     save_type = "PEM"
 
-    parser = argparse.ArgumentParser(description='Download certificate information from the provide CT Log.')
-    parser.add_argument('--log_source', required=True, help='Indicates which log to query based on values in the x509Parser library')
-    parser.add_argument('--include_precerts', action="store_true", help='Include pre-certificates which are not finalized')
-    parser.add_argument('--download_methods', choices=['dbAndSave', 'dbOnly'], default=download_method, help='Indicates whether to download the raw files or just save to the database')
-    parser.add_argument('--starting_index', required=False, default=-1, type=int, help='Force the script to start at specific index within the log.')
-    parser.add_argument('--cert_save_location', required=False, default=save_location, help='Indicates where to save the certificates on disk when choosing dbAndSave')
-    parser.add_argument('--save_type', choices=['PEM', 'ASN1'], default=save_type, help='Indicates which format to use for the data. The default is PEM')
+    parser = argparse.ArgumentParser(
+        description="Download certificate information from the provide CT Log."
+    )
+    parser.add_argument(
+        "--log_source",
+        required=True,
+        help="Indicates which log to query based on values in the x509Parser library",
+    )
+    parser.add_argument(
+        "--include_precerts",
+        action="store_true",
+        help="Include pre-certificates which are not finalized",
+    )
+    parser.add_argument(
+        "--download_methods",
+        choices=["dbAndSave", "dbOnly"],
+        default=download_method,
+        help="Indicates whether to download the raw files or just save to the database",
+    )
+    parser.add_argument(
+        "--starting_index",
+        required=False,
+        default=-1,
+        type=int,
+        help="Force the script to start at specific index within the log.",
+    )
+    parser.add_argument(
+        "--cert_save_location",
+        required=False,
+        default=save_location,
+        help="Indicates where to save the certificates on disk when choosing dbAndSave",
+    )
+    parser.add_argument(
+        "--save_type",
+        choices=["PEM", "ASN1"],
+        default=save_type,
+        help="Indicates which format to use for the data. The default is PEM",
+    )
     args = parser.parse_args()
 
     source = args.log_source
@@ -341,27 +437,37 @@ def main():
     jobs_manager = JobsManager.JobsManager(mongo_connector, "ct_log-" + source)
     jobs_manager.record_job_start()
 
-
     if args.starting_index == -1:
         starting_index = fetch_starting_index(ct_collection, source)
     else:
         starting_index = args.starting_index
     logger.info("Starting Index: " + str(starting_index))
 
-    sth_data = fetch_sth(logger, "https://" + ct_log_map['url'], jobs_manager)
-    logger.info("Tree size: " + str(sth_data['tree_size']))
+    sth_data = fetch_sth(logger, "https://" + ct_log_map["url"], jobs_manager)
+    logger.info("Tree size: " + str(sth_data["tree_size"]))
 
     current_index = starting_index
-    while current_index < sth_data['tree_size']:
+    while current_index < sth_data["tree_size"]:
         ending_index = current_index + 256
-        if ending_index > sth_data['tree_size']:
-            ending_index = sth_data['tree_size']
+        if ending_index > sth_data["tree_size"]:
+            ending_index = sth_data["tree_size"]
 
-        logger.debug("Checking from index: " + str(current_index) + " to index " + str(ending_index))
-        certs = fetch_certificate_batch(logger, "https://" + ct_log_map['url'], current_index, ending_index, jobs_manager)
+        logger.debug(
+            "Checking from index: "
+            + str(current_index)
+            + " to index "
+            + str(ending_index)
+        )
+        certs = fetch_certificate_batch(
+            logger,
+            "https://" + ct_log_map["url"],
+            current_index,
+            ending_index,
+            jobs_manager,
+        )
 
-        for entry in certs['entries']:
-            der_cert, cert_type = get_cert_from_leaf(logger, entry['leaf_input'])
+        for entry in certs["entries"]:
+            der_cert, cert_type = get_cert_from_leaf(logger, entry["leaf_input"])
             if der_cert is None and cert_type == 1 and not args.include_precerts:
                 current_index = current_index + 1
                 continue
@@ -369,7 +475,7 @@ def main():
                 current_index = current_index + 1
                 continue
             elif der_cert is None and cert_type == 1:
-                der_cert = get_cert_from_extra_data(entry['extra_data'])
+                der_cert = get_cert_from_extra_data(entry["extra_data"])
 
             cert = x509parser.parse_data(der_cert, source)
             if cert is None:
@@ -378,26 +484,35 @@ def main():
                 continue
 
             if cert_type == 1:
-                cert['ct_log_type'] = "PRE-CERTIFICATE"
+                cert["ct_log_type"] = "PRE-CERTIFICATE"
             else:
-                cert['ct_log_type'] = "CERTIFICATE"
+                cert["ct_log_type"] = "CERTIFICATE"
 
             cert_zones = check_zone_relevancy(cert, zones)
 
             if check_org_relevancy(cert, ssl_orgs) or cert_zones != []:
                 cert[source + "_id"] = current_index
-                cert['zones'] = cert_zones
-                logger.info("Adding " + source + " id: " + str(current_index) + " SHA256: " + cert['fingerprint_sha256'])
+                cert["zones"] = cert_zones
+                logger.info(
+                    "Adding "
+                    + source
+                    + " id: "
+                    + str(current_index)
+                    + " SHA256: "
+                    + cert["fingerprint_sha256"]
+                )
                 insert_certificate(cert, source, ct_collection, cert_zones)
 
-                if download_method == 'dbAndSave':
+                if download_method == "dbAndSave":
                     write_file(logger, cert, save_location, save_type, source)
 
             current_index = current_index + 1
 
     # Set isExpired for any entries that have recently expired.
-    ct_collection.update_many({"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
-                    {"$set": {"isExpired": True}})
+    ct_collection.update_many(
+        {"not_after": {"$lt": datetime.utcnow()}, "isExpired": False},
+        {"$set": {"isExpired": True}},
+    )
 
     jobs_manager.record_job_complete()
 

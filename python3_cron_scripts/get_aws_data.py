@@ -37,10 +37,10 @@ def main():
     mongo_connector = MongoConnector.MongoConnector()
 
     now = datetime.now()
-    print ("Starting: " + str(now))
+    print("Starting: " + str(now))
     logger.info("Starting...")
 
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_aws_data')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "get_aws_data")
     jobs_manager.record_job_start()
 
     # Download the JSON file
@@ -50,7 +50,6 @@ def main():
         logger.error("Bad Request")
         jobs_manager.record_job_error()
         exit(1)
-
 
     # Convert the response to JSON
     json_data = json.loads(req.text)
@@ -64,7 +63,7 @@ def main():
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Complete: " + str(now))
+    print("Complete: " + str(now))
     logger.info("Complete.")
 
 

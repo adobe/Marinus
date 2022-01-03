@@ -53,43 +53,45 @@ def add_to_list(str_to_add, host, target, zone, groups):
     We associate the 3rd-party TLD with the tracked zone.
     The tracked zone is associated with the host and target
     """
-    recs = {'host': host, 'target': target}
-    new_data = {'zone': zone, 'records': [recs]}
+    recs = {"host": host, "target": target}
+    new_data = {"zone": zone, "records": [recs]}
 
     # If this 3rd-party hasn't been seen before, create a new record.
     if str_to_add not in groups.keys():
         groups[str_to_add] = {}
-        groups[str_to_add]['tld'] = str_to_add
-        groups[str_to_add]['zones'] = []
-        groups[str_to_add]['zones'].append(new_data)
-        groups[str_to_add]['total'] = 1
+        groups[str_to_add]["tld"] = str_to_add
+        groups[str_to_add]["zones"] = []
+        groups[str_to_add]["zones"].append(new_data)
+        groups[str_to_add]["total"] = 1
         return
     else:
         # The 3rd-party exists.
         # Let's see if the zone has been associated with the 3rd-party before.
         index = -1
-        for i in range(0, len(groups[str_to_add]['zones'])):
-            if groups[str_to_add]['zones'][i]['zone'] == zone:
+        for i in range(0, len(groups[str_to_add]["zones"])):
+            if groups[str_to_add]["zones"][i]["zone"] == zone:
                 index = i
 
         # The tracked zone has not been associated with the 3rd-party before.
         # Add the new zone data to the 3rd-party and return.
         if index == -1:
-            groups[str_to_add]['zones'].append(new_data)
-            groups[str_to_add]['total'] = groups[str_to_add]['total'] + 1
+            groups[str_to_add]["zones"].append(new_data)
+            groups[str_to_add]["total"] = groups[str_to_add]["total"] + 1
             return
 
         # The zone has been associated with the 3rd-party before.
         # Check to see if the host-target map has been added before.
-        for j in range(0, len(groups[str_to_add]['zones'][index]['records'])):
-            if groups[str_to_add]['zones'][index]['records'][j]['host'] == host \
-                and groups[str_to_add]['zones'][index]['records'][j]['target'] == target:
-                    return
+        for j in range(0, len(groups[str_to_add]["zones"][index]["records"])):
+            if (
+                groups[str_to_add]["zones"][index]["records"][j]["host"] == host
+                and groups[str_to_add]["zones"][index]["records"][j]["target"] == target
+            ):
+                return
 
         # The host & target have been associated with the tracked zone before.
         # Add the new host & target and return.
-        groups[str_to_add]['zones'][index]['records'].append(recs)
-        groups[str_to_add]['total'] = groups[str_to_add]['total'] + 1
+        groups[str_to_add]["zones"][index]["records"].append(recs)
+        groups[str_to_add]["total"] = groups[str_to_add]["total"] + 1
 
     return
 
@@ -112,12 +114,12 @@ def main():
     logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
-    print ("Starting: " + str(now))
+    print("Starting: " + str(now))
     logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_external_cnames')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "get_external_cnames")
     jobs_manager.record_job_start()
 
     groups = {}
@@ -130,15 +132,19 @@ def main():
         if zone.find(".") >= 0:
             zones.append(zone)
 
-
     # Collect the all_dns cnames.
-    logger.info ("Starting All DNS...")
-    all_dns_recs = dns_manager.find_multiple({'type':'cname'}, None)
+    logger.info("Starting All DNS...")
+    all_dns_recs = dns_manager.find_multiple({"type": "cname"}, None)
 
     for srec in all_dns_recs:
-        if not is_tracked_zone(srec['value'], zones):
-            add_to_list(get_fld_from_value(srec['value'], srec['zone']), srec['fqdn'],
-                        srec['value'], srec['zone'], groups)
+        if not is_tracked_zone(srec["value"], zones):
+            add_to_list(
+                get_fld_from_value(srec["value"], srec["zone"]),
+                srec["fqdn"],
+                srec["value"],
+                srec["zone"],
+                groups,
+            )
 
     # Update the database
     tpds_collection = mongo_connector.get_tpds_connection()
@@ -151,7 +157,7 @@ def main():
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Ending: " + str(now))
+    print("Ending: " + str(now))
     logger.info("Complete.")
 
 

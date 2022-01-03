@@ -77,12 +77,12 @@ def fetch_domain(logger, jobs_manager, fbc, access_token, zone):
     """
     Fetch the results for the specified zone.
     """
-    fb_url = (fbc.BASE_URL + fbc.VERSION + \
-             "/certificates?query=") + zone + \
-             ("&access_token=" + access_token + \
-             "&limit=500" + \
-             "")
-             # "&fields=cert_hash_sha256,domains,issuer_name,certificate_pem"
+    fb_url = (
+        (fbc.BASE_URL + fbc.VERSION + "/certificates?query=")
+        + zone
+        + ("&access_token=" + access_token + "&limit=500" + "")
+    )
+    # "&fields=cert_hash_sha256,domains,issuer_name,certificate_pem"
 
     cert_results = []
 
@@ -93,11 +93,11 @@ def fetch_domain(logger, jobs_manager, fbc, access_token, zone):
             logger.warning("Error querying: " + zone)
             return None
 
-        cert_results = cert_results + result['data']
+        cert_results = cert_results + result["data"]
 
         try:
-            paging = result['paging']
-            fb_url = paging['next']
+            paging = result["paging"]
+            fb_url = paging["next"]
         except:
             fb_url = None
 
@@ -138,9 +138,21 @@ def main():
     zones = ZoneManager.get_distinct_zones(mongo_connector)
     x509_parser = X509Parser.X509Parser()
 
-    parser = argparse.ArgumentParser(description='Download DNS and/or certificate information from crt.sh.')
-    parser.add_argument('--fetch_cert_records', choices=['dbAndSave', 'dbOnly'], default="dbAndSave", help='Indicates whether to download the raw files or just record in the database')
-    parser.add_argument('--cert_save_location', required=False, default=file_path, help='Indicates where to save the certificates on disk when choosing dbAndSave')
+    parser = argparse.ArgumentParser(
+        description="Download DNS and/or certificate information from crt.sh."
+    )
+    parser.add_argument(
+        "--fetch_cert_records",
+        choices=["dbAndSave", "dbOnly"],
+        default="dbAndSave",
+        help="Indicates whether to download the raw files or just record in the database",
+    )
+    parser.add_argument(
+        "--cert_save_location",
+        required=False,
+        default=file_path,
+        help="Indicates where to save the certificates on disk when choosing dbAndSave",
+    )
     args = parser.parse_args()
 
     check_save_location(args.cert_save_location)
@@ -161,18 +173,41 @@ def main():
 
         for result in results:
             if args.fetch_cert_records == "dbAndSave":
-                cert_f = open(save_location + zone + "_" + result['id'] + ".pem", "w")
-                cert_f.write(result['certificate_pem'])
+                cert_f = open(save_location + zone + "_" + result["id"] + ".pem", "w")
+                cert_f.write(result["certificate_pem"])
                 cert_f.close()
 
-            cert = x509_parser.parse_data(result['certificate_pem'], "facebook")
-            cert['facebook_id'] = result['id']
+            cert = x509_parser.parse_data(result["certificate_pem"], "facebook")
+            cert["facebook_id"] = result["id"]
 
-            if ct_collection.count_documents({'fingerprint_sha256': cert['fingerprint_sha256']}) == 0:
-                mongo_connector.perform_insert(ct_collection,cert)
+            if (
+                ct_collection.count_documents(
+                    {"fingerprint_sha256": cert["fingerprint_sha256"]}
+                )
+                == 0
+            ):
+                mongo_connector.perform_insert(ct_collection, cert)
             else:
-                if ct_collection.count_documents({'fingerprint_sha256': cert['fingerprint_sha256'], 'facebook_id': result['id'], 'zones': zone}) == 0:
-                    ct_collection.update_one({'fingerprint_sha256': cert['fingerprint_sha256']}, {"$set": {'marinus_updated': datetime.now(), 'facebook_id': result['id']}, "$addToSet": {'zones': zone}})
+                if (
+                    ct_collection.count_documents(
+                        {
+                            "fingerprint_sha256": cert["fingerprint_sha256"],
+                            "facebook_id": result["id"],
+                            "zones": zone,
+                        }
+                    )
+                    == 0
+                ):
+                    ct_collection.update_one(
+                        {"fingerprint_sha256": cert["fingerprint_sha256"]},
+                        {
+                            "$set": {
+                                "marinus_updated": datetime.now(),
+                                "facebook_id": result["id"],
+                            },
+                            "$addToSet": {"zones": zone},
+                        },
+                    )
 
     jobs_manager.record_job_complete()
 
@@ -183,4 +218,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

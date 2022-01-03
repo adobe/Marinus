@@ -36,10 +36,10 @@ def main():
 
     # Make database connections
     mc = MongoConnector.MongoConnector()
-    jobs_manager = JobsManager.JobsManager(mc, 'get_infoblox_zone_extattrs')
+    jobs_manager = JobsManager.JobsManager(mc, "get_infoblox_zone_extattrs")
     jobs_manager.record_job_start()
 
-    iem = InfobloxExtattrManager.InfobloxExtattrManager('zone')
+    iem = InfobloxExtattrManager.InfobloxExtattrManager("zone")
     iem.get_infoblox_extattr()
 
     # Record status

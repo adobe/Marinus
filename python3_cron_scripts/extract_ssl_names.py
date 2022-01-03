@@ -54,7 +54,7 @@ def is_tracked_zone(cname, zones):
     """
 
     for zone in zones:
-        if cname.endswith("." + zone) or cname== zone:
+        if cname.endswith("." + zone) or cname == zone:
             return True
     return False
 
@@ -75,16 +75,16 @@ def extract_ct_certificate_names(dns_names, mongo_connector):
     """
     ct_collection = mongo_connector.get_certificate_transparency_connection()
 
-    res = ct_collection.find({'isExpired': False}, {"subject_dns_names": 1})
+    res = ct_collection.find({"isExpired": False}, {"subject_dns_names": 1})
 
     for result in res:
-        for dns_name in result['subject_dns_names']:
+        for dns_name in result["subject_dns_names"]:
             add_to_list(dns_name, dns_names)
 
-    res = ct_collection.find({'isExpired': False}, {"subject_common_names": 1})
+    res = ct_collection.find({"isExpired": False}, {"subject_common_names": 1})
 
     for result in res:
-        for dns_name in result['subject_common_names']:
+        for dns_name in result["subject_common_names"]:
             add_to_list(dns_name, dns_names)
 
 
@@ -94,21 +94,40 @@ def extract_censys_certificate_names(logger, dns_names, mongo_connector):
     """
     censys_collection = mongo_connector.get_censys_connection()
 
-    res = censys_collection.find({"$or":[{'p443.https.tls.certificate.parsed.subject.common_name': {"$exists": True}},
-        {'p443.https.tls.certificate.parsed.extensions.subject_alt_name.dns_names': {"$exists": True}}]},
-        {"p443.https.tls.certificate.parsed.subject.common_name":1,
-         "p443.https.tls.certificate.parsed.extensions.subject_alt_name.dns_names":1})
-
+    res = censys_collection.find(
+        {
+            "$or": [
+                {
+                    "p443.https.tls.certificate.parsed.subject.common_name": {
+                        "$exists": True
+                    }
+                },
+                {
+                    "p443.https.tls.certificate.parsed.extensions.subject_alt_name.dns_names": {
+                        "$exists": True
+                    }
+                },
+            ]
+        },
+        {
+            "p443.https.tls.certificate.parsed.subject.common_name": 1,
+            "p443.https.tls.certificate.parsed.extensions.subject_alt_name.dns_names": 1,
+        },
+    )
 
     for ssl_res in res:
         try:
-            for dns_name in ssl_res["p443"]["https"]["tls"]["certificate"]["parsed"]["subject"]["common_name"]:
+            for dns_name in ssl_res["p443"]["https"]["tls"]["certificate"]["parsed"][
+                "subject"
+            ]["common_name"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
             logger.debug("Censys: Common Name key not found.")
 
         try:
-            for dns_name in ssl_res["p443"]["https"]["tls"]["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
+            for dns_name in ssl_res["p443"]["https"]["tls"]["certificate"]["parsed"][
+                "extensions"
+            ]["subject_alt_name"]["dns_names"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
             logger.debug("Censys: DNS Name key not found.")
@@ -120,21 +139,40 @@ def extract_zgrab_certificate_names(logger, dns_names, mongo_connector):
     """
     zgrab_port_collection = mongo_connector.get_zgrab_port_data_connection()
 
-    res = zgrab_port_collection.find({"$or":[{'data.tls.server_certificates.certificate.parsed.subject.common_name': {"$exists": True}},
-        {'data.tls.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': {"$exists": True}}]},
-        {"data.tls.server_certificates.certificate.parsed.subject.common_name":1,
-         "data.tls.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names":1})
-
+    res = zgrab_port_collection.find(
+        {
+            "$or": [
+                {
+                    "data.tls.server_certificates.certificate.parsed.subject.common_name": {
+                        "$exists": True
+                    }
+                },
+                {
+                    "data.tls.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names": {
+                        "$exists": True
+                    }
+                },
+            ]
+        },
+        {
+            "data.tls.server_certificates.certificate.parsed.subject.common_name": 1,
+            "data.tls.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names": 1,
+        },
+    )
 
     for ssl_res in res:
         try:
-            for dns_name in ssl_res["data"]["tls"]["server_certificates"]["certificate"]["parsed"]["subject"]["common_name"]:
+            for dns_name in ssl_res["data"]["tls"]["server_certificates"][
+                "certificate"
+            ]["parsed"]["subject"]["common_name"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
             logger.debug("Zgrab: Common Name key not found.")
 
         try:
-            for dns_name in ssl_res["data"]["tls"]["server_certificates"]["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
+            for dns_name in ssl_res["data"]["tls"]["server_certificates"][
+                "certificate"
+            ]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
             logger.debug("Zgrab: DNS Name key not found.")
@@ -146,21 +184,40 @@ def extract_zgrab2_certificate_names(logger, dns_names, mongo_connector):
     """
     zgrab_port_collection = mongo_connector.get_zgrab_port_data_connection()
 
-    res = zgrab_port_collection.find({"$or":[{'data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name': {"$exists": True}},
-        {'data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': {"$exists": True}}]},
-        {"data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name":1,
-         "data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names":1})
-
+    res = zgrab_port_collection.find(
+        {
+            "$or": [
+                {
+                    "data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name": {
+                        "$exists": True
+                    }
+                },
+                {
+                    "data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names": {
+                        "$exists": True
+                    }
+                },
+            ]
+        },
+        {
+            "data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name": 1,
+            "data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names": 1,
+        },
+    )
 
     for ssl_res in res:
         try:
-            for dns_name in ssl_res["data"]["tls"]['result']['handshake_log']["server_certificates"]["certificate"]["parsed"]["subject"]["common_name"]:
+            for dns_name in ssl_res["data"]["tls"]["result"]["handshake_log"][
+                "server_certificates"
+            ]["certificate"]["parsed"]["subject"]["common_name"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
             logger.debug("ZGrab2: Common Name key not found.")
 
         try:
-            for dns_name in ssl_res["data"]["tls"]['result']['handshake_log']["server_certificates"]["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
+            for dns_name in ssl_res["data"]["tls"]["result"]["handshake_log"][
+                "server_certificates"
+            ]["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]:
                 add_to_list(dns_name, dns_names)
         except KeyError:
             logger.debug("ZGrab2: DNS Name key not found.")
@@ -179,11 +236,20 @@ def main():
     mongo_connector = MongoConnector.MongoConnector()
     dns_manager = DNSManager.DNSManager(mongo_connector)
     google_dns = GoogleDNS.GoogleDNS()
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'extract_ssl_domains')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "extract_ssl_domains")
     jobs_manager.record_job_start()
 
-    parser = argparse.ArgumentParser(description='Search TLS certificates for additional DNS names')
-    parser.add_argument('--zgrab_version', default=2, type=int, choices=[1, 2], metavar="version", help='The version of ZGrab used to collect data')
+    parser = argparse.ArgumentParser(
+        description="Search TLS certificates for additional DNS names"
+    )
+    parser.add_argument(
+        "--zgrab_version",
+        default=2,
+        type=int,
+        choices=[1, 2],
+        metavar="version",
+        help="The version of ZGrab used to collect data",
+    )
     args = parser.parse_args()
 
     dns_names = []
@@ -216,18 +282,20 @@ def main():
 
                 if ips != []:
                     for ip_addr in ips:
-                        temp_zone = get_tracked_zone(ip_addr['fqdn'], zones)
+                        temp_zone = get_tracked_zone(ip_addr["fqdn"], zones)
                         if temp_zone is not None:
-                            record = {"fqdn": ip_addr['fqdn']}
-                            record['zone'] = temp_zone
-                            record['created'] = datetime.now()
-                            record['type'] = ip_addr['type']
-                            record['value'] = ip_addr['value']
-                            record['status'] = 'unknown'
+                            record = {"fqdn": ip_addr["fqdn"]}
+                            record["zone"] = temp_zone
+                            record["created"] = datetime.now()
+                            record["type"] = ip_addr["type"]
+                            record["value"] = ip_addr["value"]
+                            record["status"] = "unknown"
                             input_list.append(record)
 
-                        if ip_addr['type'] == "cname" and is_tracked_zone(ip_addr['value'], zones):
-                            add_to_round_two(ip_addr['value'], round_two)
+                        if ip_addr["type"] == "cname" and is_tracked_zone(
+                            ip_addr["value"], zones
+                        ):
+                            add_to_round_two(ip_addr["value"], round_two)
 
                 else:
                     logger.warning("Failed IP Lookup for: " + hostname)
@@ -248,14 +316,14 @@ def main():
             time.sleep(1)
             if ips != []:
                 for ip_addr in ips:
-                    temp_zone = get_tracked_zone(ip_addr['fqdn'], zones)
+                    temp_zone = get_tracked_zone(ip_addr["fqdn"], zones)
                     if temp_zone is not None:
-                        record = {"fqdn": ip_addr['fqdn']}
-                        record['zone'] = temp_zone
-                        record['created'] = datetime.now()
-                        record['type'] = ip_addr['type']
-                        record['value'] = ip_addr['value']
-                        record['status'] = 'unknown'
+                        record = {"fqdn": ip_addr["fqdn"]}
+                        record["zone"] = temp_zone
+                        record["created"] = datetime.now()
+                        record["type"] = ip_addr["type"]
+                        record["value"] = ip_addr["value"]
+                        record["status"] = "unknown"
                         input_list.append(record)
             else:
                 logger.warning("Failed IP Lookup for: " + hostname)
@@ -265,7 +333,6 @@ def main():
                     dead_dns_collection.insert(original_record)
         else:
             logger.warning("Failed match on zone for: " + hostname)
-
 
     # Record all the results.
     dns_manager.remove_by_source("ssl")
@@ -277,7 +344,7 @@ def main():
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Ending: " + str(now))
+    print("Ending: " + str(now))
     logger.info("Complete")
 
 

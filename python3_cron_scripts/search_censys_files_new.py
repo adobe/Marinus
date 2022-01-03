@@ -58,7 +58,9 @@ def check_in_org(entry, orgs):
     """
     if "p443" in entry:
         try:
-            value = entry["p443"]["https"]["tls"]["certificate"]["parsed"]["subject"]["organization"]
+            value = entry["p443"]["https"]["tls"]["certificate"]["parsed"]["subject"][
+                "organization"
+            ]
         except KeyError:
             return False
 
@@ -67,6 +69,7 @@ def check_in_org(entry, orgs):
                 return True
 
     return False
+
 
 def zone_compare(value, zones):
     utf_val = value
@@ -86,12 +89,16 @@ def check_in_zone(entry, zones):
 
     if "p443" in entry:
         try:
-            temp1 = entry["p443"]["https"]["tls"]["certificate"]["parsed"]["subject"]["common_name"]
+            temp1 = entry["p443"]["https"]["tls"]["certificate"]["parsed"]["subject"][
+                "common_name"
+            ]
         except KeyError:
             temp1 = []
 
         try:
-            temp2 = entry["p443"]["https"]["tls"]["certificate"]["parsed"]["extensions"]["subject_alt_name"]["dns_names"]
+            temp2 = entry["p443"]["https"]["tls"]["certificate"]["parsed"][
+                "extensions"
+            ]["subject_alt_name"]["dns_names"]
         except KeyError:
             temp2 = []
 
@@ -110,12 +117,12 @@ def lookup_domain(entry, zones, all_dns_collection):
     """
     This tries to determine if the IP is known in the all_dns_collection.
     """
-    domain_result = all_dns_collection.find({'value': entry['ip']})
+    domain_result = all_dns_collection.find({"value": entry["ip"]})
     domains = []
     domain_zones = []
     if domain_result is not None:
         for result in domain_result:
-            domains.append(result['fqdn'])
+            domains.append(result["fqdn"])
 
     if len(domains) > 0:
         for domain in domains:
@@ -132,7 +139,7 @@ def insert_result(entry, results_collection):
     This was done as an update because it was clear whether Censys would de-duplicate.
     """
     entry["createdAt"] = datetime.utcnow()
-    results_collection.update_one({"ip": entry['ip']}, entry, upsert=True)
+    results_collection.update_one({"ip": entry["ip"]}, entry, upsert=True)
 
 
 def main():
@@ -147,7 +154,6 @@ def main():
         """
         logger.warning("Can't run due to get_files running. Goodbye!")
         exit(0)
-
 
     if is_running(os.path.basename(__file__)):
         """
@@ -164,11 +170,10 @@ def main():
     # Verify that the get_files script has a recent file in need of parsing.
     jobs_collection = RMC.get_jobs_connection()
 
-    status = jobs_collection.find_one({'job_name':'censys'})
-    if status['status'] != "DOWNLOADED":
+    status = jobs_collection.find_one({"job_name": "censys"})
+    if status["status"] != "DOWNLOADED":
         logger.warning("The status is not set to DOWNLOADED. Goodbye!")
         exit(0)
-
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -184,7 +189,7 @@ def main():
 
     configs = config_collection.find({})
     orgs = []
-    for org in configs[0]['SSL_Orgs']:
+    for org in configs[0]["SSL_Orgs"]:
         orgs.append(org)
 
     logger.info("Orgs: " + str(len(orgs)))
@@ -214,21 +219,25 @@ def main():
                     Is the IP address in a known CIDR?
                     Is the IP address recorded in Splunk?
                     """
-                    if check_in_org(entry, orgs) or \
-                      ip_manager.is_tracked_ip(entry['ip']) or \
-                        ip_manager.find_splunk_data(entry['ip'], "AWS") is not None or \
-                          ip_manager.find_splunk_data(entry['ip'], "AZURE") is not None:
-                            entry['zones'] = check_in_zone(entry, zones)
-                            entry['aws'] = ip_manager.is_aws_ip(entry['ip'])
-                            entry['azure'] = ip_manager.is_azure_ip(entry['ip'])
-                            (domains, zones) = lookup_domain(entry, zones, all_dns_collection)
-                            if len(domains) > 0:
-                                entry['domains'] = domains
-                                if len(zones) > 0:
-                                    for zone in zones:
-                                        if zone not in entry['zones']:
-                                            entry['zones'].append(zone)
-                            insert_result(entry, results_collection)
+                    if (
+                        check_in_org(entry, orgs)
+                        or ip_manager.is_tracked_ip(entry["ip"])
+                        or ip_manager.find_splunk_data(entry["ip"], "AWS") is not None
+                        or ip_manager.find_splunk_data(entry["ip"], "AZURE") is not None
+                    ):
+                        entry["zones"] = check_in_zone(entry, zones)
+                        entry["aws"] = ip_manager.is_aws_ip(entry["ip"])
+                        entry["azure"] = ip_manager.is_azure_ip(entry["ip"])
+                        (domains, zones) = lookup_domain(
+                            entry, zones, all_dns_collection
+                        )
+                        if len(domains) > 0:
+                            entry["domains"] = domains
+                            if len(zones) > 0:
+                                for zone in zones:
+                                    if zone not in entry["zones"]:
+                                        entry["zones"].append(zone)
+                        insert_result(entry, results_collection)
                     # else:
                     #     #This will add days to the amount of time necessary to scan the file.
                     #     matched_zones = check_in_zone(entry, zones)
@@ -252,10 +261,10 @@ def main():
         exit(1)
 
     # Indicate that the processing of the job is complete and ready for download to Marinus
-    jobs_collection.update_one({'job_name': 'censys'},
-                               {'$currentDate': {"updated": True},
-                                "$set": {'status': 'COMPLETE'}})
-
+    jobs_collection.update_one(
+        {"job_name": "censys"},
+        {"$currentDate": {"updated": True}, "$set": {"status": "COMPLETE"}},
+    )
 
     now = datetime.now()
     print("Ending: " + str(now))

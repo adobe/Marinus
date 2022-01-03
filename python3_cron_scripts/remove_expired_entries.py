@@ -46,10 +46,26 @@ def monthdelta(date, delta):
     """
     Get the date relevant to the delta from today's date
     """
-    m, y = (date.month+delta) % 12, date.year + ((date.month)+delta-1) // 12
+    m, y = (date.month + delta) % 12, date.year + ((date.month) + delta - 1) // 12
     if not m:
         m = 12
-    d = min(date.day, [31, 29 if y%4==0 and not y%400==0 else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m-1])
+    d = min(
+        date.day,
+        [
+            31,
+            29 if y % 4 == 0 and not y % 400 == 0 else 28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        ][m - 1],
+    )
     return date.replace(day=d, month=m, year=y)
 
 
@@ -83,19 +99,19 @@ def get_lookup_int(logger, result, GDNS):
     """
     Get the DNS Type integer for the Google DNS query
     """
-    if result['type'].startswith("unk_in_"):
+    if result["type"].startswith("unk_in_"):
         # Sonar didn't know what it was.
 
-        new_type = fix_unk_types(logger, result['type'], GDNS)
+        new_type = fix_unk_types(logger, result["type"], GDNS)
         if new_type.startswith("unk_in"):
             # Marinus doesn't know what it is either.
-            lookup_int = get_int_for_unk_type(result['type'])
+            lookup_int = get_int_for_unk_type(result["type"])
         else:
             # Marinus was able to translate it.
             lookup_int = GDNS.DNS_TYPES[new_type]
     else:
         # Normal type
-        lookup_int = GDNS.DNS_TYPES[result['type']]
+        lookup_int = GDNS.DNS_TYPES[result["type"]]
 
     return lookup_int
 
@@ -105,21 +121,21 @@ def insert_current_results(dns_result, dns_manager, zones, result, source):
     Insert results so that their entries are current
     """
     for dns_entry in dns_result:
-        if is_tracked_zone(dns_entry['fqdn'], zones):
-            new_entry={}
-            new_entry['updated'] = datetime.now()
-            new_entry['zone'] = result['zone']
-            new_entry['fqdn'] = dns_entry['fqdn']
-            if 'created' in result:
-                new_entry['created'] = result['created']
+        if is_tracked_zone(dns_entry["fqdn"], zones):
+            new_entry = {}
+            new_entry["updated"] = datetime.now()
+            new_entry["zone"] = result["zone"]
+            new_entry["fqdn"] = dns_entry["fqdn"]
+            if "created" in result:
+                new_entry["created"] = result["created"]
             else:
-                new_entry['created'] = datetime.now()
-            new_entry['value'] = dns_entry['value']
-            new_entry['type'] = dns_entry['type']
-            new_entry['status'] = 'confirmed'
+                new_entry["created"] = datetime.now()
+            new_entry["value"] = dns_entry["value"]
+            new_entry["type"] = dns_entry["type"]
+            new_entry["status"] = "confirmed"
 
-            if 'sonar_timestamp' in result:
-                new_entry['sonar_timestamp'] = result['sonar_timestamp']
+            if "sonar_timestamp" in result:
+                new_entry["sonar_timestamp"] = result["sonar_timestamp"]
 
             if source.endswith("_saved"):
                 dns_manager.insert_record(new_entry, source)
@@ -134,7 +150,7 @@ def main():
     logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
-    print ("Starting: " + str(now))
+    print("Starting: " + str(now))
     logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
@@ -143,57 +159,63 @@ def main():
     GDNS = GoogleDNS.GoogleDNS()
     ip_manager = IPManager.IPManager(mongo_connector)
 
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'remove_expired_entries')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "remove_expired_entries")
     jobs_manager.record_job_start()
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
     # The sources for which to remove expired entries
-    results = mongo_connector.perform_distinct(all_dns_collection, 'sources.source')
+    results = mongo_connector.perform_distinct(all_dns_collection, "sources.source")
 
     sources = []
     for source in results:
         temp = {}
-        temp['name'] = source
+        temp["name"] = source
         if "common_crawl" in source:
-            temp['diff'] = -4
+            temp["diff"] = -4
         else:
-            temp['diff'] = -2
+            temp["diff"] = -2
 
         sources.append(temp)
-
 
     # Before completely removing old entries, make an attempt to see if they are still valid.
     # Occasionally, a host name will still be valid but, for whatever reason, is no longer tracked by a source.
     # Rather than throw away valid information, this will archive it.
     for entry in sources:
-        removal_date = monthdelta(datetime.now(), entry['diff'])
-        source = entry['name']
+        removal_date = monthdelta(datetime.now(), entry["diff"])
+        source = entry["name"]
         logger.debug("Removing " + source + " as of: " + str(removal_date))
 
         last_domain = ""
-        results = all_dns_collection.find({'sources': {"$size": 1}, 'sources.source': source, 'sources.updated': {"$lt": removal_date}})
+        results = all_dns_collection.find(
+            {
+                "sources": {"$size": 1},
+                "sources.source": source,
+                "sources.updated": {"$lt": removal_date},
+            }
+        )
         for result in results:
-            if result['fqdn'] != last_domain:
-                last_domain = result['fqdn']
+            if result["fqdn"] != last_domain:
+                last_domain = result["fqdn"]
 
                 lookup_int = get_lookup_int(logger, result, GDNS)
-                dns_result = GDNS.fetch_DNS_records(result['fqdn'], lookup_int)
+                dns_result = GDNS.fetch_DNS_records(result["fqdn"], lookup_int)
 
                 if dns_result != []:
-                    insert_current_results(dns_result, dns_manager, zones, result, source)
+                    insert_current_results(
+                        dns_result, dns_manager, zones, result, source
+                    )
 
-        dns_manager.remove_all_by_source_and_date(source, entry['diff'])
+        dns_manager.remove_all_by_source_and_date(source, entry["diff"])
 
-
-   # Get the date for today minus two months
+    # Get the date for today minus two months
     d_minus_2m = monthdelta(datetime.now(), -2)
 
     logger.info("Removing SRDNS as of: " + str(d_minus_2m))
 
     # Remove the old records
     srdns_collection = mongo_connector.get_sonar_reverse_dns_connection()
-    srdns_collection.delete_many({'updated': {"$lt": d_minus_2m}})
+    srdns_collection.delete_many({"updated": {"$lt": d_minus_2m}})
 
     ip_manager.delete_records_by_date(d_minus_2m)
 
@@ -207,4 +229,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

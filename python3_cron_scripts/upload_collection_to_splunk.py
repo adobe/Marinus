@@ -44,28 +44,36 @@ def upload_zgrab_443(logger, splunk_manager, mongo_connector):
     """
     zgrab_443_collection = mongo_connector.get_zgrab_443_data_connection()
 
-    results = mongo_connector.perform_find(zgrab_443_collection, {'domain': {"$ne": "<nil>"}}, batch_size=100)
+    results = mongo_connector.perform_find(
+        zgrab_443_collection, {"domain": {"$ne": "<nil>"}}, batch_size=100
+    )
 
     for result in results:
         data = {}
-        data['zones'] = result['zones']
-        data['timestamp'] = result['timestamp']
-        data['domain'] = result['domain']
+        data["zones"] = result["zones"]
+        data["timestamp"] = result["timestamp"]
+        data["domain"] = result["domain"]
 
         try:
-            data['host'] = result['data']['http']['result']['response']['request']['host']
+            data["host"] = result["data"]["http"]["result"]["response"]["request"][
+                "host"
+            ]
         except:
             logger.debug("Passing on host")
             pass
 
         try:
-            data['response_headers'] = result['data']['http']['result']['response']['headers']
+            data["response_headers"] = result["data"]["http"]["result"]["response"][
+                "headers"
+            ]
         except:
             logger.debug("Skipping on headers")
             continue
 
         try:
-            data['status_code'] = result['data']['http']['result']['response']['status_code']
+            data["status_code"] = result["data"]["http"]["result"]["response"][
+                "status_code"
+            ]
         except:
             logger.debug("Passing on status_code")
             pass
@@ -82,28 +90,36 @@ def upload_zgrab_80(logger, splunk_manager, mongo_connector):
     """
     zgrab_80_collection = mongo_connector.get_zgrab_80_data_connection()
 
-    results = mongo_connector.perform_find(zgrab_80_collection, {'domain': {"$ne": "<nil>"}}, batch_size=100)
+    results = mongo_connector.perform_find(
+        zgrab_80_collection, {"domain": {"$ne": "<nil>"}}, batch_size=100
+    )
 
     for result in results:
         data = {}
-        data['zones'] = result['zones']
-        data['timestamp'] = result['timestamp']
-        data['domain'] = result['domain']
+        data["zones"] = result["zones"]
+        data["timestamp"] = result["timestamp"]
+        data["domain"] = result["domain"]
 
         try:
-            data['host'] = result['data']['http']['result']['response']['request']['host']
+            data["host"] = result["data"]["http"]["result"]["response"]["request"][
+                "host"
+            ]
         except:
             logger.debug("Passing on host")
             pass
 
         try:
-            data['response_headers'] = result['data']['http']['result']['response']['headers']
+            data["response_headers"] = result["data"]["http"]["result"]["response"][
+                "headers"
+            ]
         except:
             logger.debug("Skipping on headers")
             continue
 
         try:
-            data['status_code'] = result['data']['http']['result']['response']['status_code']
+            data["status_code"] = result["data"]["http"]["result"]["response"][
+                "status_code"
+            ]
         except:
             logger.debug("Passing on status_code")
             pass
@@ -120,8 +136,14 @@ def main():
     now = datetime.now()
     print("Starting: " + str(now))
 
-    parser = argparse.ArgumentParser(description='Search Splunk logs for IP address')
-    parser.add_argument('--collection_name', choices=["http_80", "http_443"],  metavar="COLLECTION", required=True, help='The collection to upload to Splunk')
+    parser = argparse.ArgumentParser(description="Search Splunk logs for IP address")
+    parser.add_argument(
+        "--collection_name",
+        choices=["http_80", "http_443"],
+        metavar="COLLECTION",
+        required=True,
+        help="The collection to upload to Splunk",
+    )
     args = parser.parse_args()
 
     mongo_connector = MongoConnector.MongoConnector()
@@ -138,7 +160,7 @@ def main():
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Complete: " + str(now))
+    print("Complete: " + str(now))
     logger.info("Complete.")
 
 

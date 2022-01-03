@@ -29,7 +29,7 @@ from libs3.LoggingUtil import LoggingUtil
 
 class UltraDNSZone(object):
 
-    UH = UltraDNSHelper.UltraDNSHelper('get_ultradns_zones')
+    UH = UltraDNSHelper.UltraDNSHelper("get_ultradns_zones")
     APIH = APIHelper.APIHelper()
     ZI = ZoneIngestor.ZoneIngestor()
     _logger = None
@@ -44,32 +44,37 @@ class UltraDNSZone(object):
             response = response.json()
         except (ValueError, AttributeError) as err:
             if self.UH.incorrect_response_json_allowed > 0:
-                self._logger.warning('Unable to parse response JSON for retrieving UltraDNS zones for the offset' + self.UH.offset)
+                self._logger.warning(
+                    "Unable to parse response JSON for retrieving UltraDNS zones for the offset"
+                    + self.UH.offset
+                )
                 self.UH.incorrect_response_json_allowed -= 1
             else:
                 self.APIH.handle_api_error(
-                    'Unable to parse response JSON for 20 zones: ' + repr(err),
+                    "Unable to parse response JSON for 20 zones: " + repr(err),
                     self.UH.jobs_manager,
                 )
         else:
             # the zone names end in '.'. Removing that before ingesting into collection.
-            for zone in response['zones']:
-                zone_name = zone['properties']['name'][:-1]
+            for zone in response["zones"]:
+                zone_name = zone["properties"]["name"][:-1]
 
-                if not zone_name.endswith('in-addr.arpa'):
+                if not zone_name.endswith("in-addr.arpa"):
                     # Part of clean_collection code.
                     # if zone_name in self.UH.previous_zones:
                     #     del self.UH.previous_zones[zone_name]
 
                     custom_fields = {}
-                    custom_fields['accountName'] = zone['properties']['accountName']
-                    if 'owner' in zone['properties']:
-                        custom_fields['owner'] = zone['properties']['owner']
+                    custom_fields["accountName"] = zone["properties"]["accountName"]
+                    if "owner" in zone["properties"]:
+                        custom_fields["owner"] = zone["properties"]["owner"]
 
                     # Add the zone to the zones collection
-                    self.ZI.add_zone(zone_name, self.UH.source, custom_fields=custom_fields)
+                    self.ZI.add_zone(
+                        zone_name, self.UH.source, custom_fields=custom_fields
+                    )
 
-            self.UH.set_offset(response['resultInfo'])
+            self.UH.set_offset(response["resultInfo"])
 
     def __paginated_ultradns_zones_request(self):
         """
@@ -84,18 +89,17 @@ class UltraDNSZone(object):
         try:
             res = self.UH.backoff_api_retry(
                 url,
-                {
-                    'limit': 1000,
-                    'offset': self.UH.offset,
-                    'q': 'zone_type:PRIMARY'
-                },
-                {'authorization': 'Bearer ' + self.UH.access_token},
+                {"limit": 1000, "offset": self.UH.offset, "q": "zone_type:PRIMARY"},
+                {"authorization": "Bearer " + self.UH.access_token},
             )
             res.raise_for_status()
         except requests.exceptions.HTTPError as herr:
-            err_msg = json.loads(res.text)['errorMessage']
-            if res.status_code == 401 and err_msg == self.UH.access_token_expiration_error:
-                self.UH.login('refresh_token')
+            err_msg = json.loads(res.text)["errorMessage"]
+            if (
+                res.status_code == 401
+                and err_msg == self.UH.access_token_expiration_error
+            ):
+                self.UH.login("refresh_token")
                 self.__paginated_ultradns_zones_request()
             else:
                 self.APIH.handle_api_error(herr, self.UH.jobs_manager)
@@ -131,6 +135,6 @@ class UltraDNSZone(object):
         self.get_ultradns_zones()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logger = LoggingUtil.create_log(__name__)
     UltraDNSZone = UltraDNSZone()

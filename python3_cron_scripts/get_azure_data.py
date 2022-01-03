@@ -41,6 +41,7 @@ class MyHTMLParser(HTMLParser):
     """
     Create a subclass and override the handler methods.
     """
+
     URL = ""
     logger = LoggingUtil.create_log(__name__)
 
@@ -65,11 +66,11 @@ def main():
     logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
-    print ("Starting: " + str(now))
+    print("Starting: " + str(now))
     logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_azure_data')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "get_azure_data")
     jobs_manager.record_job_start()
 
     # Download the XML file
@@ -98,14 +99,14 @@ def main():
     root = ET.fromstring(req.text)
 
     insert_json = {}
-    insert_json['created'] = datetime.now()
-    insert_json['prefixes'] = []
+    insert_json["created"] = datetime.now()
+    insert_json["prefixes"] = []
 
-    for region in root.findall('Region'):
+    for region in root.findall("Region"):
         region_name = region.get("Name")
-        for iprange in region.findall('IpRange'):
+        for iprange in region.findall("IpRange"):
             cidr = iprange.get("Subnet")
-            insert_json['prefixes'].append({'region': region_name, 'ip_prefix': cidr})
+            insert_json["prefixes"].append({"region": region_name, "ip_prefix": cidr})
 
     azure_ips = mongo_connector.get_azure_ips_connection()
     azure_ips.delete_many({})

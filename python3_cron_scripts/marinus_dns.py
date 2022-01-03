@@ -51,11 +51,11 @@ def find_sub_zones(all_dns):
     """
     dns_regex = re.compile(r".+\\..+\\..+\\..+")
 
-    sub_zone_results = all_dns.find({'fqdn': {"$regex": dns_regex}}, {'fqdn': 1})
+    sub_zone_results = all_dns.find({"fqdn": {"$regex": dns_regex}}, {"fqdn": 1})
 
     qualifiers = []
     for domain in sub_zone_results:
-        parts = domain['fqdn'].split(".")
+        parts = domain["fqdn"].split(".")
         result = ""
         for i in reversed(range(len(parts))):
             if i == len(parts) - 1:
@@ -66,7 +66,7 @@ def find_sub_zones(all_dns):
                 result = parts[i] + "." + result
                 if result not in qualifiers:
                     qualifiers.append(result)
-    return (qualifiers)
+    return qualifiers
 
 
 def main():
@@ -76,14 +76,29 @@ def main():
     logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
-    print ("Starting: " + str(now))
+    print("Starting: " + str(now))
     logger.info("Starting...")
 
-    dns_types = {"a":1, "ns":2, "cname":5, "soa":6, "ptr":12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33, "naptr": 35, "ds": 43, "rrsig": 46, "dnskey": 48}
+    dns_types = {
+        "a": 1,
+        "ns": 2,
+        "cname": 5,
+        "soa": 6,
+        "ptr": 12,
+        "hinfo": 13,
+        "mx": 15,
+        "txt": 16,
+        "aaaa": 28,
+        "srv": 33,
+        "naptr": 35,
+        "ds": 43,
+        "rrsig": 46,
+        "dnskey": 48,
+    }
 
     mongo_connector = MongoConnector.MongoConnector()
     all_dns_collection = mongo_connector.get_all_dns_connection()
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'marinus_dns')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "marinus_dns")
     jobs_manager.record_job_start()
 
     dns_manager = DNSManager.DNSManager(mongo_connector)
@@ -101,10 +116,10 @@ def main():
                 logger.debug("No records found for " + zone)
             else:
                 new_record = result[0]
-                new_record['status'] = 'confirmed'
-                new_record['zone'] = zone
-                new_record['created'] = datetime.now()
-                logger.debug ("Found " + dtype + " for: " + zone)
+                new_record["status"] = "confirmed"
+                new_record["zone"] = zone
+                new_record["created"] = datetime.now()
+                logger.debug("Found " + dtype + " for: " + zone)
                 dns_manager.insert_record(new_record, "marinus")
 
     logger.info("Starting SOA Search")
@@ -112,20 +127,20 @@ def main():
     soa_searches = find_sub_zones(all_dns_collection)
     for entry in soa_searches:
         time.sleep(1)
-        result = google_dns.fetch_DNS_records(zone, dns_types['soa'])
+        result = google_dns.fetch_DNS_records(zone, dns_types["soa"])
         if result != []:
             new_record = result[0]
-            new_record['status'] = 'confirmed'
-            new_record['zone'] = get_fld_from_value(entry, '')
-            new_record['created'] = datetime.now()
-            logger.debug ("Found SOA: " + entry)
-            if new_record['zone'] != '':
+            new_record["status"] = "confirmed"
+            new_record["zone"] = get_fld_from_value(entry, "")
+            new_record["created"] = datetime.now()
+            logger.debug("Found SOA: " + entry)
+            if new_record["zone"] != "":
                 dns_manager.insert_record(new_record, "marinus")
 
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Complete: " + str(now))
+    print("Complete: " + str(now))
     logger.info("Complete.")
 
 

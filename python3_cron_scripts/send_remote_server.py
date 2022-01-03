@@ -46,13 +46,13 @@ def update_zones(logger, mongo_connector, rm_connector, update_zone_list):
     if update_zone_list:
         remote_zones_collection.delete_many({})
         for zone in zones:
-                remote_zones_collection.insert_one(zone)
-                zone_list.append(zone['zone'])
+            remote_zones_collection.insert_one(zone)
+            zone_list.append(zone["zone"])
     else:
         for zone in zones:
-                zone_list.append(zone['zone'])
+            zone_list.append(zone["zone"])
 
-    return (zone_list)
+    return zone_list
 
 
 def update_ip_zones(logger, mongo_connector, rm_connector):
@@ -166,14 +166,16 @@ def update_all_dns(logger, mongo_connector, rm_connector, zone_list):
     remote_all_dns_collection = rm_connector.get_all_dns_connection()
 
     for zone in zone_list:
-        all_dns = all_dns_collection.find({'zone': zone}, {"_id": 0}).batch_size(50)
+        all_dns = all_dns_collection.find({"zone": zone}, {"_id": 0}).batch_size(50)
 
-        remote_all_dns_collection.delete_many({'zone': zone})
+        remote_all_dns_collection.delete_many({"zone": zone})
         for ip_addr in all_dns:
             remote_all_dns_collection.insert_one(ip_addr)
 
 
-def update_all_dns_diff_mode(logger, mongo_connector, rm_connector, zone_list, date_diff):
+def update_all_dns_diff_mode(
+    logger, mongo_connector, rm_connector, zone_list, date_diff
+):
     """
     Only upload records if the number of records changed or if there has been a recent update
 
@@ -186,28 +188,40 @@ def update_all_dns_diff_mode(logger, mongo_connector, rm_connector, zone_list, d
 
     for zone in zone_list:
 
-        all_dns_count = mongo_connector.perform_count(all_dns_collection, {'zone': zone})
-        remote_dns_count = rm_connector.perform_count(remote_all_dns_collection, {'zone': zone})
+        all_dns_count = mongo_connector.perform_count(
+            all_dns_collection, {"zone": zone}
+        )
+        remote_dns_count = rm_connector.perform_count(
+            remote_all_dns_collection, {"zone": zone}
+        )
 
         # Perform a full update
         if all_dns_count != remote_dns_count:
             logger.info("Performing a full update for zone: " + str(zone))
-            all_dns = all_dns_collection.find({'zone': zone}, {"_id": 0}).batch_size(50)
+            all_dns = all_dns_collection.find({"zone": zone}, {"_id": 0}).batch_size(50)
 
-            remote_all_dns_collection.delete_many({'zone': zone})
+            remote_all_dns_collection.delete_many({"zone": zone})
             for ip_addr in all_dns:
                 rm_connector.perform_insert(remote_all_dns_collection, ip_addr)
         else:
             update_date = datetime.now() - timedelta(days=date_diff)
-            new_entries = all_dns_collection.find({'zone': zone, 'updated': {"$gt": update_date}}, {"_id": 0}).batch_size(50)
+            new_entries = all_dns_collection.find(
+                {"zone": zone, "updated": {"$gt": update_date}}, {"_id": 0}
+            ).batch_size(50)
 
             i = 0
             for entry in new_entries:
-                remote_all_dns_collection.delete_one({'fqdn': entry['fqdn']})
+                remote_all_dns_collection.delete_one({"fqdn": entry["fqdn"]})
                 rm_connector.perform_insert(remote_all_dns_collection, entry)
                 i = i + 1
 
-            logger.info("Performed a partial update for zone: " + str(zone) + " with " + str(i) + " records")
+            logger.info(
+                "Performed a partial update for zone: "
+                + str(zone)
+                + " with "
+                + str(i)
+                + " records"
+            )
 
 
 def main():
@@ -220,14 +234,42 @@ def main():
     print("Starting: " + str(now))
     logger.info("Starting...")
 
-    parser = argparse.ArgumentParser(description='Send specific collections to the remote MongoDB. If no arguments are provided, then all data is mirrored.')
-    parser.add_argument('--send_zones', action="store_true", required=False, help='Send IP zones')
-    parser.add_argument('--send_ip_zones', action="store_true", required=False, help='Send IP zones')
-    parser.add_argument('--send_third_party_zones', action="store_true", required=False, help='Send AWS, Azure, etc.')
-    parser.add_argument('--send_config', action="store_true", required=False, help='Send configs')
-    parser.add_argument('--send_dns_records', action="store_true", required=False, help='Replace all DNS records')
-    parser.add_argument('--send_dns_diff', action="store_true", required=False, help='Send new DNS records')
-    parser.add_argument('--date_diff', default=2, type=int, help='The number of days used for identifying new records in send_dns_diff')
+    parser = argparse.ArgumentParser(
+        description="Send specific collections to the remote MongoDB. If no arguments are provided, then all data is mirrored."
+    )
+    parser.add_argument(
+        "--send_zones", action="store_true", required=False, help="Send IP zones"
+    )
+    parser.add_argument(
+        "--send_ip_zones", action="store_true", required=False, help="Send IP zones"
+    )
+    parser.add_argument(
+        "--send_third_party_zones",
+        action="store_true",
+        required=False,
+        help="Send AWS, Azure, etc.",
+    )
+    parser.add_argument(
+        "--send_config", action="store_true", required=False, help="Send configs"
+    )
+    parser.add_argument(
+        "--send_dns_records",
+        action="store_true",
+        required=False,
+        help="Replace all DNS records",
+    )
+    parser.add_argument(
+        "--send_dns_diff",
+        action="store_true",
+        required=False,
+        help="Send new DNS records",
+    )
+    parser.add_argument(
+        "--date_diff",
+        default=2,
+        type=int,
+        help="The number of days used for identifying new records in send_dns_diff",
+    )
     args = parser.parse_args()
 
     send_all = False
@@ -237,15 +279,18 @@ def main():
     mongo_connector = MongoConnector.MongoConnector()
     remote_mongo_connector = RemoteMongoConnector.RemoteMongoConnector()
 
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'send_remote_server')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "send_remote_server")
     jobs_manager.record_job_start()
-
 
     if send_all or args.send_zones:
         try:
-            zone_list = update_zones(logger, mongo_connector, remote_mongo_connector, True)
+            zone_list = update_zones(
+                logger, mongo_connector, remote_mongo_connector, True
+            )
         except:
-            logger.error("Could not communicate with the remote database when sending zones")
+            logger.error(
+                "Could not communicate with the remote database when sending zones"
+            )
             jobs_manager.record_job_error()
             exit(1)
     else:
@@ -255,7 +300,9 @@ def main():
         try:
             update_ip_zones(logger, mongo_connector, remote_mongo_connector)
         except:
-            logger.error("Could not communicate with the remote database when sending IP zones")
+            logger.error(
+                "Could not communicate with the remote database when sending IP zones"
+            )
             jobs_manager.record_job_error()
             exit(1)
 
@@ -266,7 +313,9 @@ def main():
             update_akamai_cidrs(logger, mongo_connector, remote_mongo_connector)
             update_gcp_cidrs(logger, mongo_connector, remote_mongo_connector)
         except:
-            logger.error("Could not communicate with the remote database when sending third-party zones")
+            logger.error(
+                "Could not communicate with the remote database when sending third-party zones"
+            )
             jobs_manager.record_job_error()
             exit(1)
 
@@ -274,7 +323,9 @@ def main():
         try:
             update_config(logger, mongo_connector, remote_mongo_connector)
         except:
-            logger.error("Could not communicate with the remote database when sending config data")
+            logger.error(
+                "Could not communicate with the remote database when sending config data"
+            )
             jobs_manager.record_job_error()
             exit(1)
 
@@ -283,16 +334,26 @@ def main():
         try:
             update_all_dns(logger, mongo_connector, remote_mongo_connector, zone_list)
         except:
-            logger.error("Could not communicate with the remote database when sending DNS records")
+            logger.error(
+                "Could not communicate with the remote database when sending DNS records"
+            )
             jobs_manager.record_job_error()
             exit(1)
 
     # If you have a large data set, then you may only want to send updated records
     if send_all or args.send_dns_diff:
         try:
-            update_all_dns_diff_mode(logger, mongo_connector, remote_mongo_connector, zone_list, args.date_diff)
+            update_all_dns_diff_mode(
+                logger,
+                mongo_connector,
+                remote_mongo_connector,
+                zone_list,
+                args.date_diff,
+            )
         except:
-            logger.error("Could not communicate with the remote database when sending DNS diff records")
+            logger.error(
+                "Could not communicate with the remote database when sending DNS diff records"
+            )
             jobs_manager.record_job_error()
             exit(1)
 
@@ -300,7 +361,7 @@ def main():
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Complete: " + str(now))
+    print("Complete: " + str(now))
     logger.info("Complete.")
 
 

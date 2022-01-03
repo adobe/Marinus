@@ -33,13 +33,13 @@ def recursive_search(logger, target, google_dns):
     ranges = []
 
     for result in results:
-        values = result['value'].split(" ")
+        values = result["value"].split(" ")
         for value in values:
             if "spf" in value or "?all" in value:
                 continue
             elif "include" in value:
                 parts = value.split(":")
-                logger.debug ("Checking: " + parts[1])
+                logger.debug("Checking: " + parts[1])
                 temp = recursive_search(logger, parts[1], google_dns)
                 for entry in temp:
                     if entry not in ranges:
@@ -61,16 +61,18 @@ def main():
     logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
-    print ("Starting: " + str(now))
+    print("Starting: " + str(now))
     logger.info("Starting...")
 
     mongo_connector = MongoConnector.MongoConnector()
     gcp_collection = mongo_connector.get_gcp_ips_connection()
     google_dns = GoogleDNS.GoogleDNS()
-    jobs_manager = JobsManager.JobsManager(mongo_connector, 'get_gcp_ranges')
+    jobs_manager = JobsManager.JobsManager(mongo_connector, "get_gcp_ranges")
     jobs_manager.record_job_start()
 
-    ip_ranges = recursive_search(logger, "_cloud-netblocks.googleusercontent.com", google_dns)
+    ip_ranges = recursive_search(
+        logger, "_cloud-netblocks.googleusercontent.com", google_dns
+    )
 
     ipv4_ranges = []
     ipv6_ranges = []
@@ -85,9 +87,9 @@ def main():
             logger.warning("Unrecognized data: " + entry)
 
     new_data = {}
-    new_data['prefixes'] = ipv4_ranges
-    new_data['ipv6_prefixes'] = ipv6_ranges
-    new_data['created'] = now
+    new_data["prefixes"] = ipv4_ranges
+    new_data["ipv6_prefixes"] = ipv6_ranges
+    new_data["created"] = now
 
     gcp_collection.delete_many({})
     mongo_connector.perform_insert(gcp_collection, new_data)
@@ -95,7 +97,7 @@ def main():
     jobs_manager.record_job_complete()
 
     now = datetime.now()
-    print ("Ending: " + str(now))
+    print("Ending: " + str(now))
     logger.info("Complete.")
 
 
