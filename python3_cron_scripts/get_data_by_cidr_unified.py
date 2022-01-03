@@ -27,17 +27,18 @@ import time
 from datetime import datetime
 
 import requests
+
 from libs3 import (
     DNSManager,
-    MongoConnector,
-    RemoteMongoConnector,
-    Rapid7,
-    JobsManager,
     GoogleDNS,
     IPManager,
+    JobsManager,
+    MongoConnector,
+    Rapid7,
+    RemoteMongoConnector,
 )
-from libs3.ZoneManager import ZoneManager
 from libs3.LoggingUtil import LoggingUtil
+from libs3.ZoneManager import ZoneManager
 
 
 def is_running(process):
