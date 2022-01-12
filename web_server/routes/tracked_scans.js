@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -19,7 +19,7 @@ var zgrab443 = require('../config/models/zgrab_443_data');
 var zgrab80 = require('../config/models/zgrab_80_data');
 var zgrabPort = require('../config/models/zgrab_port');
 
-function reformatResponse(results){
+function reformatResponse(results) {
     /**
      * Handles recursive searches where a MongoDB project command was necessary
      */
@@ -35,7 +35,7 @@ function reformatResponse(results){
         new_data['data']['http']['response'] = results[i]['data']['http'][0];
         new_response.push(new_data);
     }
-    return(new_response);
+    return (new_response);
 }
 
 /**
@@ -198,7 +198,7 @@ function reformatResponse(results){
  *
  */
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
 
     // Zgrab 2.0 support
     if (envConfig.hasOwnProperty("zgrabVersion") && envConfig.zgrabVersion == 2) {
@@ -208,122 +208,122 @@ module.exports = function(envConfig) {
     }
 
 
-   /**
-     * @swagger
-     *
-     * security:
-     *   - APIKeyHeader: []
-     *
-     * tags:
-     *   - name: Port scans - Fetch IP port data
-     *     description: Fetch data for a specific IP address.
-     *   - name: Port scans - Count IP port data
-     *     description: Count data for a specific IP address.
-     *
-     * /api/v1.0/zgrab/ip:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Returns the port data for the provided IP.
-     *     tags: [Port scans - Fetch IP port data]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: ip
-     *         type: string
-     *         required: true
-     *         description: The IP for this request.
-     *         in: query
-     *       - name: port
-     *         type: int
-     *         required: false
-     *         description: The port for this request.
-     *         in: query
-     *       - name: use_port_data
-     *         type: int
-     *         required: false
-     *         description: Set to 1 to override the use zgrab_(443|80) collections
-     *         in: query
-     *     responses:
-     *       200:
-     *         description: Returns the relevant set or subset of IPs.
-     *         type: array
-     *         items:
-     *           type: object
-     *           properties:
-     *             ip:
-     *               type: string
-     *               example: "8.8.8.8"
-     *             data:
-     *               type: object
-     *               description: Data on known ports for the IP. See the schema.
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       404:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/ResultsNotFound'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     *
-     * /api/v1.0/zgrab/ip?count=1:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Returns whether there is port data for the provided IP and port.
-     *     tags: [Port scans - Count IP port data]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: count
-     *         type: int
-     *         required: true
-     *         description: Set to 1 for this request.
-     *         in: query
-     *       - name: ip
-     *         type: string
-     *         required: true
-     *         description: The IP for this request.
-     *         in: query
-     *       - name: port
-     *         type: int
-     *         required: false
-     *         description: The port for this request.
-     *         in: query
-     *       - name: use_port_data
-     *         type: int
-     *         required: false
-     *         description: Set to 1 to override the use zgrab port specific collections
-     *         in: query
-     *     responses:
-     *       200:
-     *         description: Returns the relevant set or subset of IPs.
-     *         schema:
-     *           $ref: '#/definitions/CountResponse'
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       404:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/ResultsNotFound'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     */
+    /**
+      * @swagger
+      *
+      * security:
+      *   - APIKeyHeader: []
+      *
+      * tags:
+      *   - name: Port scans - Fetch IP port data
+      *     description: Fetch data for a specific IP address.
+      *   - name: Port scans - Count IP port data
+      *     description: Count data for a specific IP address.
+      *
+      * /api/v1.0/zgrab/ip:
+      *   get:
+      *   # Operation-specific security:
+      *     security:
+      *       - APIKeyHeader: []
+      *     description: Returns the port data for the provided IP.
+      *     tags: [Port scans - Fetch IP port data]
+      *     produces:
+      *       - application/json
+      *     parameters:
+      *       - name: ip
+      *         type: string
+      *         required: true
+      *         description: The IP for this request.
+      *         in: query
+      *       - name: port
+      *         type: int
+      *         required: false
+      *         description: The port for this request.
+      *         in: query
+      *       - name: use_port_data
+      *         type: int
+      *         required: false
+      *         description: Set to 1 to override the use zgrab_(443|80) collections
+      *         in: query
+      *     responses:
+      *       200:
+      *         description: Returns the relevant set or subset of IPs.
+      *         type: array
+      *         items:
+      *           type: object
+      *           properties:
+      *             ip:
+      *               type: string
+      *               example: "8.8.8.8"
+      *             data:
+      *               type: object
+      *               description: Data on known ports for the IP. See the schema.
+      *       400:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/BadInputError'
+      *       404:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/ResultsNotFound'
+      *       500:
+      *         description: Server error.
+      *         schema:
+      *           $ref: '#/definitions/ServerError'
+      *
+      * /api/v1.0/zgrab/ip?count=1:
+      *   get:
+      *   # Operation-specific security:
+      *     security:
+      *       - APIKeyHeader: []
+      *     description: Returns whether there is port data for the provided IP and port.
+      *     tags: [Port scans - Count IP port data]
+      *     produces:
+      *       - application/json
+      *     parameters:
+      *       - name: count
+      *         type: int
+      *         required: true
+      *         description: Set to 1 for this request.
+      *         in: query
+      *       - name: ip
+      *         type: string
+      *         required: true
+      *         description: The IP for this request.
+      *         in: query
+      *       - name: port
+      *         type: int
+      *         required: false
+      *         description: The port for this request.
+      *         in: query
+      *       - name: use_port_data
+      *         type: int
+      *         required: false
+      *         description: Set to 1 to override the use zgrab port specific collections
+      *         in: query
+      *     responses:
+      *       200:
+      *         description: Returns the relevant set or subset of IPs.
+      *         schema:
+      *           $ref: '#/definitions/CountResponse'
+      *       400:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/BadInputError'
+      *       404:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/ResultsNotFound'
+      *       500:
+      *         description: Server error.
+      *         schema:
+      *           $ref: '#/definitions/ServerError'
+      */
     router.route('/zgrab/ip')
         // get the port data for the provided IP.
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('ip'))) {
-                res.status(400).json({'message': 'An IP must be provided'});
+                res.status(400).json({ 'message': 'An IP must be provided' });
                 return;
             }
 
@@ -350,16 +350,16 @@ module.exports = function(envConfig) {
                 promise = zgrabPort.getRecordByIPPromise(req.query.ip, null, count);
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (count && (port === "22" || port === "25" || port === "465")) {
-                    res.status(200).json({'count': data.length});
+                    res.status(200).json({ 'count': data.length });
                 } else if (count && port === "443" && req.query.use_port_data === "1") {
-                    res.status(200).json({'count': data.length});
+                    res.status(200).json({ 'count': data.length });
                 } else if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     if (!data) {
-                        res.status(404).json({'message': 'IP not found'});
+                        res.status(404).json({ 'message': 'IP not found' });
                         return;
                     }
                     res.status(200).json(data);
@@ -368,122 +368,122 @@ module.exports = function(envConfig) {
             });
         });
 
-   /**
-     * @swagger
-     *
-     * security:
-     *   - APIKeyHeader: []
-     *
-     * tags:
-     *   - name: Port scans - Fetch domain port data
-     *     description: Fetch data for a specific domain name.
-     *   - name: Port scans - Count domain port data
-     *     description: Count data for a specific domain name.
-     *
-     * /api/v1.0/zgrab/domain:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Returns the port data for the provided domain.
-     *     tags: [Port scans - Fetch domain port data]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: domain
-     *         type: string
-     *         required: true
-     *         description: The domain for this request.
-     *         in: query
-     *       - name: port
-     *         type: int
-     *         required: false
-     *         description: The port for this request.
-     *         in: query
-     *       - name: use_port_data
-     *         type: int
-     *         required: false
-     *         description: Set to 1 to override the use zgrab port specific collections
-     *         in: query
-     *     responses:
-     *       200:
-     *         description: Returns the relevant set or subset of domains.
-     *         type: array
-     *         items:
-     *           type: object
-     *           properties:
-     *             domain:
-     *               type: string
-     *               example: "www.example.org"
-     *             data:
-     *               type: object
-     *               description: Data on known ports for the domain. See the schema.
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       404:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/ResultsNotFound'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     *
-     * /api/v1.0/zgrab/domain?count=1:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Returns whether there is port data for the provided domain and port.
-     *     tags: [Port scans - Count domain port data]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: count
-     *         type: int
-     *         required: true
-     *         description: Set to 1 for this request.
-     *         in: query
-     *       - name: domain
-     *         type: string
-     *         required: true
-     *         description: The domain for this request.
-     *         in: query
-     *       - name: port
-     *         type: int
-     *         required: false
-     *         description: The port for this request.
-     *         in: query
-     *       - name: use_port_data
-     *         type: int
-     *         required: false
-     *         description: Set to 1 to override the use zgrab_(443|80) collections
-     *         in: query
-     *     responses:
-     *       200:
-     *         description: Returns the relevant domains.
-     *         schema:
-     *           $ref: '#/definitions/CountResponse'
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       404:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/ResultsNotFound'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     */
+    /**
+      * @swagger
+      *
+      * security:
+      *   - APIKeyHeader: []
+      *
+      * tags:
+      *   - name: Port scans - Fetch domain port data
+      *     description: Fetch data for a specific domain name.
+      *   - name: Port scans - Count domain port data
+      *     description: Count data for a specific domain name.
+      *
+      * /api/v1.0/zgrab/domain:
+      *   get:
+      *   # Operation-specific security:
+      *     security:
+      *       - APIKeyHeader: []
+      *     description: Returns the port data for the provided domain.
+      *     tags: [Port scans - Fetch domain port data]
+      *     produces:
+      *       - application/json
+      *     parameters:
+      *       - name: domain
+      *         type: string
+      *         required: true
+      *         description: The domain for this request.
+      *         in: query
+      *       - name: port
+      *         type: int
+      *         required: false
+      *         description: The port for this request.
+      *         in: query
+      *       - name: use_port_data
+      *         type: int
+      *         required: false
+      *         description: Set to 1 to override the use zgrab port specific collections
+      *         in: query
+      *     responses:
+      *       200:
+      *         description: Returns the relevant set or subset of domains.
+      *         type: array
+      *         items:
+      *           type: object
+      *           properties:
+      *             domain:
+      *               type: string
+      *               example: "www.example.org"
+      *             data:
+      *               type: object
+      *               description: Data on known ports for the domain. See the schema.
+      *       400:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/BadInputError'
+      *       404:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/ResultsNotFound'
+      *       500:
+      *         description: Server error.
+      *         schema:
+      *           $ref: '#/definitions/ServerError'
+      *
+      * /api/v1.0/zgrab/domain?count=1:
+      *   get:
+      *   # Operation-specific security:
+      *     security:
+      *       - APIKeyHeader: []
+      *     description: Returns whether there is port data for the provided domain and port.
+      *     tags: [Port scans - Count domain port data]
+      *     produces:
+      *       - application/json
+      *     parameters:
+      *       - name: count
+      *         type: int
+      *         required: true
+      *         description: Set to 1 for this request.
+      *         in: query
+      *       - name: domain
+      *         type: string
+      *         required: true
+      *         description: The domain for this request.
+      *         in: query
+      *       - name: port
+      *         type: int
+      *         required: false
+      *         description: The port for this request.
+      *         in: query
+      *       - name: use_port_data
+      *         type: int
+      *         required: false
+      *         description: Set to 1 to override the use zgrab_(443|80) collections
+      *         in: query
+      *     responses:
+      *       200:
+      *         description: Returns the relevant domains.
+      *         schema:
+      *           $ref: '#/definitions/CountResponse'
+      *       400:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/BadInputError'
+      *       404:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/ResultsNotFound'
+      *       500:
+      *         description: Server error.
+      *         schema:
+      *           $ref: '#/definitions/ServerError'
+      */
     router.route('/zgrab/domain')
         // get the port data for the provided IP.
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('domain'))) {
-                res.status(400).json({'message': 'A domain must be provided'});
+                res.status(400).json({ 'message': 'A domain must be provided' });
                 return;
             }
 
@@ -493,7 +493,7 @@ module.exports = function(envConfig) {
             }
 
             if (port != null && !(["22", "25", "80", "443", "465"].includes(port))) {
-                res.status(400).json({'message': 'Only ports 22, 25, 80, 443, and 465 are supported.'});
+                res.status(400).json({ 'message': 'Only ports 22, 25, 80, 443, and 465 are supported.' });
                 return;
             }
 
@@ -515,14 +515,14 @@ module.exports = function(envConfig) {
                 promise = zgrabPort.getRecordByDomainPromise(req.query.domain, null, count);
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (count && port === "443" && req.query.use_port_data !== "1") {
-                    res.status(200).json({'count': data.length});
+                    res.status(200).json({ 'count': data.length });
                 } else if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     if (!data) {
-                        res.status(404).json({'message': 'Domain not found'});
+                        res.status(404).json({ 'message': 'Domain not found' });
                         return;
                     }
                     res.status(200).json(data);
@@ -644,9 +644,9 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/zone')
         // get the port data for the provided zone
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('zone'))) {
-                res.status(400).json({'message': 'A zone must be provided'});
+                res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
             }
 
@@ -656,7 +656,7 @@ module.exports = function(envConfig) {
             }
 
             if (port != null && !(["22", "25", "80", "443", "465"].includes(port))) {
-                res.status(400).json({'message': 'Only ports 22, 25, 443, and 465 are supported.'});
+                res.status(400).json({ 'message': 'Only ports 22, 25, 443, and 465 are supported.' });
                 return;
             }
 
@@ -678,16 +678,16 @@ module.exports = function(envConfig) {
                 promise = zgrabPort.getRecordByZonePromise(req.query.zone, null, count);
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (count && (port === "22" || port === "25" || port === "465")) {
-                    res.status(200).json({'count': data.length});
+                    res.status(200).json({ 'count': data.length });
                 } else if (port === "443" && count && req.query.use_port_data === "1") {
-                    res.status(200).json({'count': data.length});
+                    res.status(200).json({ 'count': data.length });
                 } else if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     if (!data) {
-                        res.status(404).json({'message': 'Zone not found'});
+                        res.status(404).json({ 'message': 'Zone not found' });
                         return;
                     }
                     res.status(200).json(data);
@@ -696,99 +696,99 @@ module.exports = function(envConfig) {
             });
         });
 
-   /**
-     * @swagger
-     *
-     * security:
-     *   - APIKeyHeader: []
-     *
-     * tags:
-     *   - name: Port 22 scans - Fetch IPs list
-     *     description: Returns the list of IPs that responded to a port 22 SSH request.
-     *   - name: Port 22 scans - Count IPs list
-     *     description: Returns the count of IPs that responded to a port 22 SSH request.
-     *
-     * /api/v1.0/zgrab/22/ips:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Returns the list of IPs that responded to a port 22 SSH request.
-     *     tags: [Port 22 scans - Fetch IPs list]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: limit
-     *         type: number
-     *         required: false
-     *         description: Limit the number of IPs per page.
-     *         in: query
-     *       - name: page
-     *         type: number
-     *         required: false
-     *         description: The page to request. This must be set in conjunction with the limit parameter. The default is 1.
-     *         in: query
-     *     responses:
-     *       200:
-     *         description: Returns the relevant set or subset of IPs.
-     *         type: array
-     *         items:
-     *           type: object
-     *           properties:
-     *             ip:
-     *               type: string
-     *               example: "8.8.8.8"
-     *             azure:
-     *               type: Boolean
-     *             aws:
-     *               type: Boolean
-     *             tracked:
-     *               type: Boolean
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       404:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/ResultsNotFound'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     *
-     * /api/v1.0/zgrab/22/ips?count=1:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Counts the list of IPs that responded to a port 22 SSH requests.
-     *     tags: [Port 22 scans - Count IPs list]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: count
-     *         type: string
-     *         required: true
-     *         description: Set to 1 in order to retrieve the count of matching records
-     *         in: query
-     *     responses:
-     *       200:
-     *         description: Returns the number of relevant scans.
-     *         schema:
-     *           $ref: '#/definitions/CountResponse'
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     */
+    /**
+      * @swagger
+      *
+      * security:
+      *   - APIKeyHeader: []
+      *
+      * tags:
+      *   - name: Port 22 scans - Fetch IPs list
+      *     description: Returns the list of IPs that responded to a port 22 SSH request.
+      *   - name: Port 22 scans - Count IPs list
+      *     description: Returns the count of IPs that responded to a port 22 SSH request.
+      *
+      * /api/v1.0/zgrab/22/ips:
+      *   get:
+      *   # Operation-specific security:
+      *     security:
+      *       - APIKeyHeader: []
+      *     description: Returns the list of IPs that responded to a port 22 SSH request.
+      *     tags: [Port 22 scans - Fetch IPs list]
+      *     produces:
+      *       - application/json
+      *     parameters:
+      *       - name: limit
+      *         type: number
+      *         required: false
+      *         description: Limit the number of IPs per page.
+      *         in: query
+      *       - name: page
+      *         type: number
+      *         required: false
+      *         description: The page to request. This must be set in conjunction with the limit parameter. The default is 1.
+      *         in: query
+      *     responses:
+      *       200:
+      *         description: Returns the relevant set or subset of IPs.
+      *         type: array
+      *         items:
+      *           type: object
+      *           properties:
+      *             ip:
+      *               type: string
+      *               example: "8.8.8.8"
+      *             azure:
+      *               type: Boolean
+      *             aws:
+      *               type: Boolean
+      *             tracked:
+      *               type: Boolean
+      *       400:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/BadInputError'
+      *       404:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/ResultsNotFound'
+      *       500:
+      *         description: Server error.
+      *         schema:
+      *           $ref: '#/definitions/ServerError'
+      *
+      * /api/v1.0/zgrab/22/ips?count=1:
+      *   get:
+      *   # Operation-specific security:
+      *     security:
+      *       - APIKeyHeader: []
+      *     description: Counts the list of IPs that responded to a port 22 SSH requests.
+      *     tags: [Port 22 scans - Count IPs list]
+      *     produces:
+      *       - application/json
+      *     parameters:
+      *       - name: count
+      *         type: string
+      *         required: true
+      *         description: Set to 1 in order to retrieve the count of matching records
+      *         in: query
+      *     responses:
+      *       200:
+      *         description: Returns the number of relevant scans.
+      *         schema:
+      *           $ref: '#/definitions/CountResponse'
+      *       400:
+      *         description: Bad request parameters.
+      *         schema:
+      *           $ref: '#/definitions/BadInputError'
+      *       500:
+      *         description: Server error.
+      *         schema:
+      *           $ref: '#/definitions/ServerError'
+      */
     router.route('/zgrab/22/ips')
         // get list of IPs that respond to port 22
-        .get(function(req, res) {
+        .get(function (req, res) {
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
@@ -798,7 +798,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit < 0) {
@@ -810,7 +810,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -820,12 +820,12 @@ module.exports = function(envConfig) {
 
             let promise = zgrabPort.getXSSHIPListPromise(count, limit, page);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     if (!data) {
-                        res.status(500).json({'message': 'Error retrieving list'});
+                        res.status(500).json({ 'message': 'Error retrieving list' });
                         return;
                     }
                     res.status(200).json(data);
@@ -926,7 +926,7 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/25/ips')
         // get list of IPs that respond to port 25
-        .get(function(req, res) {
+        .get(function (req, res) {
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
@@ -936,7 +936,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit < 0) {
@@ -948,7 +948,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -958,12 +958,12 @@ module.exports = function(envConfig) {
 
             let promise = zgrabPort.getSMTPIPListPromise(count, limit, page);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     if (!data) {
-                        res.status(500).json({'message': 'Error retrieving list'});
+                        res.status(500).json({ 'message': 'Error retrieving list' });
                         return;
                     }
                     res.status(200).json(data);
@@ -1065,7 +1065,7 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/465/ips')
         // get list of IPs that respond to port 465
-        .get(function(req, res) {
+        .get(function (req, res) {
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
@@ -1075,7 +1075,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit < 0) {
@@ -1087,7 +1087,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -1097,12 +1097,12 @@ module.exports = function(envConfig) {
 
             let promise = zgrabPort.getSMTPSIPListPromise(count, limit, page);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     if (!data) {
-                        res.status(500).json({'message': 'Error retrieving list'});
+                        res.status(500).json({ 'message': 'Error retrieving list' });
                         return;
                     }
                     res.status(200).json(data);
@@ -1207,9 +1207,9 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/443/zones/:zone')
         // get info on a specific zones
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.params.hasOwnProperty('zone'))) {
-                res.status(400).json({'message': 'A zone must be provided.'});
+                res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
             }
             let zone = req.params.zone;
@@ -1223,7 +1223,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit < 0) {
@@ -1235,7 +1235,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -1245,13 +1245,13 @@ module.exports = function(envConfig) {
 
             let promise = zgrab443.getRecordsByZonePromise(zone, count, limit, page);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Zone not found'});
+                    res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 }
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -1343,7 +1343,7 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/443/domains')
         // get list of domains that respond to 443
-        .get(function(req, res) {
+        .get(function (req, res) {
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
@@ -1353,7 +1353,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit < 0) {
@@ -1365,7 +1365,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -1375,12 +1375,12 @@ module.exports = function(envConfig) {
 
             let promise = zgrab443.getDomainListPromise(count, limit, page);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     if (!data) {
-                        res.status(500).json({'message': 'Error retrieving list'});
+                        res.status(500).json({ 'message': 'Error retrieving list' });
                         return;
                     }
                     res.status(200).json(data);
@@ -1481,7 +1481,7 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/443/ips')
         // get list of IPs that respond to port 443
-        .get(function(req, res) {
+        .get(function (req, res) {
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
@@ -1491,7 +1491,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit < 0) {
@@ -1503,7 +1503,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -1513,12 +1513,12 @@ module.exports = function(envConfig) {
 
             let promise = zgrab443.getIPListPromise(count, limit, page);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     if (!data) {
-                        res.status(404).json({'message': 'Error retrieving list'});
+                        res.status(404).json({ 'message': 'Error retrieving list' });
                         return;
                     }
                     res.status(200).json(data);
@@ -1716,7 +1716,7 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zgrab/443/headers/:header')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.params.hasOwnProperty('header'))) {
                 res.status(400).json({
                     'message': 'A header value must be provided.',
@@ -1737,7 +1737,7 @@ module.exports = function(envConfig) {
                 promise = zgrab443.getHttpHeaderPromise(header, zone, true);
                 count = true;
             } else if (req.query.hasOwnProperty('distinct') &&
-                        req.query.distinct === '1') {
+                req.query.distinct === '1') {
                 promise = zgrab443.getDistinctHttpHeaderPromise(header, zone);
             } else if (req.query.hasOwnProperty('value')) {
                 promise = zgrab443.getHttpHeaderByValuePromise(header, req.query.value, zone);
@@ -1745,17 +1745,17 @@ module.exports = function(envConfig) {
                 promise = zgrab443.getHttpHeaderPromise(header, zone, false);
             }
 
-            promise.then(function(data) {
-            if (!data || data.length === 0) {
-                res.status(404).json({'message': 'Header not found'});
+            promise.then(function (data) {
+                if (!data || data.length === 0) {
+                    res.status(404).json({ 'message': 'Header not found' });
+                    return;
+                }
+                if (count) {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
+                }
                 return;
-            }
-            if (count) {
-                res.status(200).json({'count': data});
-            } else {
-                res.status(200).json(data);
-            }
-            return;
             });
         });
 
@@ -1877,10 +1877,10 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/443/algorithm/:algorithm')
         // get info on a specific algorithm
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.params.hasOwnProperty('algorithm')) ||
                 req.params.algorithm.length === 0) {
-                res.status(400).json({'message': 'An algorithm must be provided.'});
+                res.status(400).json({ 'message': 'An algorithm must be provided.' });
                 return;
             }
             let count = false;
@@ -1897,7 +1897,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit <= 0) {
@@ -1909,7 +1909,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -1924,17 +1924,17 @@ module.exports = function(envConfig) {
                 promise = zgrab443.getSSLAlgorithmPromise(req.params.algorithm, count, recursive, limit, page);
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Algorithm not found'});
+                    res.status(404).json({ 'message': 'Algorithm not found' });
                     return;
                 }
                 if (count) {
                     if (recursive === true) {
-                        res.status(200).json({'count': data});
+                        res.status(200).json({ 'count': data });
                     } else {
                         if (data.length === 0) {
-                            res.status(200).json({'count': 0});
+                            res.status(200).json({ 'count': 0 });
                         } else {
                             res.status(200).json(data[0]);
                         }
@@ -2100,10 +2100,10 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/443/certs')
         // get info on a specific certificate
-        .get(function(req, res) {
+        .get(function (req, res) {
 
             let recursive = false;
-            if (req.query.hasOwnProperty('recursive')  && req.query.recursive === "1") {
+            if (req.query.hasOwnProperty('recursive') && req.query.recursive === "1") {
                 recursive = true;
             }
 
@@ -2112,7 +2112,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit <= 0) {
@@ -2124,7 +2124,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -2170,21 +2170,21 @@ module.exports = function(envConfig) {
                 }
             } else {
                 res.status(400);
-                res.json({'message': 'An org, zone, fingerprint_sha1, fingerprint_sha256, or a common_name must be provided'});
+                res.json({ 'message': 'An org, zone, fingerprint_sha1, fingerprint_sha256, or a common_name must be provided' });
                 return;
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Cert not found'});
+                    res.status(404).json({ 'message': 'Cert not found' });
                     return;
                 }
                 if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                     if (recursive === true) {
-                        res.status(200).json({'count': data});
+                        res.status(200).json({ 'count': data });
                     } else {
                         if (data.length === 0) {
-                            res.status(200).json({'count': 0});
+                            res.status(200).json({ 'count': 0 });
                         } else {
                             res.status(200).json(data[0]);
                         }
@@ -2256,7 +2256,7 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/443/cert_ca')
         // Get unique CA values from chain[0]
-        .get(function(req, res) {
+        .get(function (req, res) {
             let recursive = false;
             if (req.query.hasOwnProperty('recursive') && req.query.recursive === "1") {
                 recursive = true;
@@ -2264,9 +2264,9 @@ module.exports = function(envConfig) {
 
             let promise = zgrab443.getCAIssuersListPromise(recursive);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(500).json({'message': 'Error retrieving CA List'});
+                    res.status(500).json({ 'message': 'Error retrieving CA List' });
                     return;
                 }
 
@@ -2385,9 +2385,9 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/443/cert_ca/:ca')
         // Get records for an individual CA
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.params.hasOwnProperty('ca'))) {
-                res.status(400).json({'message': 'A CA value must be provided.'});
+                res.status(400).json({ 'message': 'A CA value must be provided.' });
                 return;
             }
 
@@ -2399,7 +2399,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit < 0) {
@@ -2411,7 +2411,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -2431,20 +2431,21 @@ module.exports = function(envConfig) {
                 promise = zgrab443.getRecordsBySSLCAPromise(ca, false, page, limit, recursive);
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'CA not found'});
+                    res.status(404).json({ 'message': 'CA not found' });
                     return;
                 }
                 if (count) {
                     if (recursive === true) {
-                        res.status(200).json({'count': data});
+                        res.status(200).json({ 'count': data });
                     } else {
                         if (data.length === 0) {
-                            res.status(200).json({'count': 0});
+                            res.status(200).json({ 'count': 0 });
                         } else {
                             res.status(200).json(data[0]);
-                        }                    }
+                        }
+                    }
                 } else {
                     if (recursive === true) {
                         res.status(200).json(data);
@@ -2493,14 +2494,14 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/443/expired_certs_2k')
         // get info on expired certs
-        .get(function(req, res) {
+        .get(function (req, res) {
             let recursive = false;
 
             let promise = zgrab443.getSSLByValidity2kPromise(recursive);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
 
@@ -2561,22 +2562,22 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/443/expired_certs_by_year')
         // get info on expired certs
-        .get(function(req, res) {
+        .get(function (req, res) {
             let recursive = false;
 
             if (!(req.query.hasOwnProperty('year'))) {
-                res.status(400).json({'message': 'A year must be provided.'});
+                res.status(400).json({ 'message': 'A year must be provided.' });
                 return;
             } else if (req.query.year.match(/^[0-9\-]+$/) == null) {
-                res.status(400).json({'message': 'A valid year must be provided.'});
+                res.status(400).json({ 'message': 'A valid year must be provided.' });
                 return;
             }
 
             let promise = zgrab443.getSSLByValidityYearPromise(req.query.year, recursive);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data || data.length === 0) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
 
@@ -2593,7 +2594,7 @@ module.exports = function(envConfig) {
                 } else {
                     test = data[0]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end'].startsWith(thisYear);
                 }
-                for (let i=0; i<data.length; i++) {
+                for (let i = 0; i < data.length; i++) {
                     if (test) {
                         let tempDate;
                         if (data[0]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
@@ -2695,7 +2696,7 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/443/corp_certs')
         // get info on corporate certs
-        .get(function(req, res) {
+        .get(function (req, res) {
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true
@@ -2703,13 +2704,13 @@ module.exports = function(envConfig) {
 
             let promise = zgrabPort.getSSLByCorpNamePromise(envConfig.internalDomain, count);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Records not found'});
+                    res.status(404).json({ 'message': 'Records not found' });
                     return;
                 }
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -2801,9 +2802,9 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/80/zones/:zone')
         // get info on a specific zones
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.params.hasOwnProperty('zone'))) {
-                res.status(400).json({'message': 'A zone must be provided.'});
+                res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
             }
 
@@ -2814,13 +2815,13 @@ module.exports = function(envConfig) {
 
             let promise = zgrab80.getRecordsByZonePromise(zone, count);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Zone not found'});
+                    res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 }
                 if (req.query.type === 'count') {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -2912,7 +2913,7 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/80/domains')
         // get list of domains that respond to port 80
-        .get(function(req, res) {
+        .get(function (req, res) {
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
@@ -2922,7 +2923,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit < 0) {
@@ -2934,7 +2935,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -2944,13 +2945,13 @@ module.exports = function(envConfig) {
 
             let promise = zgrab80.getDomainListPromise(count, limit, page);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(500).json({'message': 'Error retrieving list'});
+                    res.status(500).json({ 'message': 'Error retrieving list' });
                     return;
                 }
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -3042,7 +3043,7 @@ module.exports = function(envConfig) {
      */
     router.route('/zgrab/80/ips')
         // get list of IPs that respond to Port 80
-        .get(function(req, res) {
+        .get(function (req, res) {
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
@@ -3052,7 +3053,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit < 0) {
@@ -3064,7 +3065,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -3074,13 +3075,13 @@ module.exports = function(envConfig) {
 
             let promise = zgrab80.getIPListPromise(count, limit, page);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(500).json({'message': 'Error retrieving list'});
+                    res.status(500).json({ 'message': 'Error retrieving list' });
                     return;
                 }
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -3276,7 +3277,7 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zgrab/80/headers/:header')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.params.hasOwnProperty('header'))) {
                 res.status(400).json({
                     'message': 'A header value must be provided.',
@@ -3296,20 +3297,20 @@ module.exports = function(envConfig) {
                 promise = zgrab80.getHttpHeaderPromise(header, zone, true);
                 count = true;
             } else if (req.query.hasOwnProperty('distinct') &&
-                        req.query.distinct === '1') {
+                req.query.distinct === '1') {
                 promise = zgrab80.getDistinctHttpHeaderPromise(header, zone);
             } else if (req.query.hasOwnProperty('value')) {
                 promise = zgrab80.getHttpHeaderByValuePromise(header, req.query.value, zone);
             } else {
                 promise = zgrab80.getHttpHeaderPromise(header, zone, false);
             }
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data || data.length === 0) {
-                    res.status(404).json({'message': 'Header not found'});
+                    res.status(404).json({ 'message': 'Header not found' });
                     return;
                 }
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -3363,7 +3364,7 @@ module.exports = function(envConfig) {
      */
 
     router.route('/zgrab/counts')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('collection'))) {
                 res.status(400).json({
                     'message': 'A collection value must be provided.',
@@ -3382,17 +3383,17 @@ module.exports = function(envConfig) {
             } else if (collection === "zgrabPort") {
                 promise = zgrabPort.getFullCountPromise();
             } else {
-                res.status(400).json({'message': 'Unknown collection value'});
+                res.status(400).json({ 'message': 'Unknown collection value' });
                 return;
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data || data.length === 0) {
-                    res.status(500).json({'message': 'Error retrieving count'});
+                    res.status(500).json({ 'message': 'Error retrieving count' });
                     return;
                 }
 
-                res.status(200).json({'count': data});
+                res.status(200).json({ 'count': data });
                 return;
             });
         });

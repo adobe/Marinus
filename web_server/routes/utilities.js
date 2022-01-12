@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -17,18 +17,18 @@ const router = express.Router();
 const dns = require('dns');
 const htmlEscape = require('secure-filters').html;
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
   router.route('/utilities/whois')
-   /**
-    * Do a local Whois loookup.
-    */
-    .get(function(req, res) {
+    /**
+     * Do a local Whois loookup.
+     */
+    .get(function (req, res) {
       res.setHeader('Content-Type', 'application/json');
 
       let domain = req.query.domain;
       if (!domain) {
-          res.status(400).send("{'Error': 'Please send a domain!'}");
-          return;
+        res.status(400).send("{'Error': 'Please send a domain!'}");
+        return;
       }
 
       const whois = require('whois');
@@ -39,85 +39,85 @@ module.exports = function(envConfig) {
         'verbose': false, // setting this to true returns an array of responses from all servers
       };
 
-      whois.lookup(domain, whoisObject, function(err, data) {
-          if (!err) {
-            let myEscapedJSONString = data.replace(/[\\]/g, '\\\\')
-                                          .replace(/[\"]/g, '\\\"')
-                                          .replace(/[\/]/g, '\\/')
-                                          .replace(/[\b]/g, '\\b')
-                                          .replace(/[\f]/g, '\\f')
-                                          .replace(/[\n]/g, '\\n')
-                                          .replace(/[\r]/g, '\\r')
-                                          .replace(/[\t]/g, '\\t');
-            res.status(200).json({'result': myEscapedJSONString});
-          } else {
-            res.status(500).send(err);
-          }
+      whois.lookup(domain, whoisObject, function (err, data) {
+        if (!err) {
+          let myEscapedJSONString = data.replace(/[\\]/g, '\\\\')
+            .replace(/[\"]/g, '\\\"')
+            .replace(/[\/]/g, '\\/')
+            .replace(/[\b]/g, '\\b')
+            .replace(/[\f]/g, '\\f')
+            .replace(/[\n]/g, '\\n')
+            .replace(/[\r]/g, '\\r')
+            .replace(/[\t]/g, '\\t');
+          res.status(200).json({ 'result': myEscapedJSONString });
+        } else {
+          res.status(500).send(err);
+        }
       });
-  });
+    });
 
   router.route('/utilities/nslookup')
-   /**
-    * Do a local nslookup.
-    * This should be upgraded to use Google DNS over HTTPS.
-    */
-    .get(function(req, res) {
+    /**
+     * Do a local nslookup.
+     * This should be upgraded to use Google DNS over HTTPS.
+     */
+    .get(function (req, res) {
       let domain = req.query.target;
       if (!domain) {
-          res.status(400).json({'Error': 'Please send a target!'});
-          return;
+        res.status(400).json({ 'Error': 'Please send a target!' });
+        return;
       }
 
       if (req.query.hasOwnProperty('dnsServer')
-          && req.query.dnsServer.length > 0) {
-          let dnsServer = req.query.dnsServer;
-          dns.setServers([dnsServer]);
+        && req.query.dnsServer.length > 0) {
+        let dnsServer = req.query.dnsServer;
+        dns.setServers([dnsServer]);
       }
 
       if (req.query.hasOwnProperty('dnsType') && req.query.dnsType.length > 0) {
-          dns.resolve(domain, recordType, function(err, hostnames) {
-            if (err && err.code === dns.NOTFOUND) {
-                res.status(404).json({'Error': htmlEscape(err)});
-                return;
-            } else if (err) {
-                res.status(500).json({'Error': htmlEscape(err)});
-                return;
-            }
-            res.status(200).json({'results': hostnames});
+        dns.resolve(domain, recordType, function (err, hostnames) {
+          if (err && err.code === dns.NOTFOUND) {
+            res.status(404).json({ 'Error': htmlEscape(err) });
             return;
-          }.bind(res));
+          } else if (err) {
+            res.status(500).json({ 'Error': htmlEscape(err) });
+            return;
+          }
+          res.status(200).json({ 'results': hostnames });
+          return;
+        }.bind(res));
       } else {
         let ipv4 = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
         let ipv6 = /^[0-9a-zA-z\:]+$/;
         if (domain.match(ipv4) || domain.match(ipv6)) {
           try {
-            dns.reverse(domain, function(err, hostnames) {
+            dns.reverse(domain, function (err, hostnames) {
               if (err && err.code === dns.NOTFOUND) {
-                  res.status(404).json({'Error': htmlEscape(err)});
-                  return;
+                res.status(404).json({ 'Error': htmlEscape(err) });
+                return;
               } else if (err) {
-                  res.status(500).json({'Error': htmlEscape(err)});
-                  return;
+                res.status(500).json({ 'Error': htmlEscape(err) });
+                return;
               }
-              res.status(200).json({'domains': hostnames});
+              res.status(200).json({ 'domains': hostnames });
               return;
             }.bind(res));
           } catch (err) {
-            res.status(500).json({'Error': htmlEscape(err.message)});
+            res.status(500).json({ 'Error': htmlEscape(err.message) });
             return;
           }
         } else {
-          dns.lookup(domain, {all: true}, function(err, addresses) {
+          dns.lookup(domain, { all: true }, function (err, addresses) {
             if (err) {
-                res.status(500).json({'Error': htmlEscape(err)});
-                return;
+              res.status(500).json({ 'Error': htmlEscape(err) });
+              return;
             }
-            res.status(200).json({'ips': addresses});
+            res.status(200).json({ 'ips': addresses });
             return;
           }.bind(res));
         }
       }
-  });
+    });
 
   return (router);
 };

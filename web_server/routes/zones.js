@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -162,7 +162,7 @@ const rangeCheck = require('range_check');
  *
  */
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
     /**
      * @swagger
      *
@@ -207,28 +207,28 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zones/stats')
-     .get(function(req, res) {
-        let source = '';
-        let status = '';
-        if (req.query.hasOwnProperty('source')) {
-            source = req.query.source;
-        }
-        if (req.query.hasOwnProperty('status')) {
-            status = req.query.status;
-        }
-        let zonePromise = zones.getZoneCount(source, status);
-        zonePromise.then(
-            function(stats) {
-                if (!stats) {
-                    res.status(500).json({
-                        'message': 'Error retrieving zone stats',
-                    });
+        .get(function (req, res) {
+            let source = '';
+            let status = '';
+            if (req.query.hasOwnProperty('source')) {
+                source = req.query.source;
+            }
+            if (req.query.hasOwnProperty('status')) {
+                status = req.query.status;
+            }
+            let zonePromise = zones.getZoneCount(source, status);
+            zonePromise.then(
+                function (stats) {
+                    if (!stats) {
+                        res.status(500).json({
+                            'message': 'Error retrieving zone stats',
+                        });
+                        return;
+                    }
+                    res.status(200).json({ 'count': stats });
                     return;
-                }
-                res.status(200).json({'count': stats});
-                return;
-            });
-    });
+                });
+        });
 
     /**
      * @swagger
@@ -275,21 +275,21 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zones/zone/:zone')
-      .get(function(req, res) {
-        if (!(req.params.hasOwnProperty('zone'))) {
-            res.status(400).json({'message': 'A zone must be provided.'});
-            return;
-        }
-        let zonePromise = zones.getZoneByNamePromise(req.params.zone);
-        zonePromise.then(function(zone) {
-            if (!zone) {
-                res.status(404).json({'message': 'Zone not found'});
+        .get(function (req, res) {
+            if (!(req.params.hasOwnProperty('zone'))) {
+                res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
             }
-            res.status(200).json(zone);
-            return;
+            let zonePromise = zones.getZoneByNamePromise(req.params.zone);
+            zonePromise.then(function (zone) {
+                if (!zone) {
+                    res.status(404).json({ 'message': 'Zone not found' });
+                    return;
+                }
+                res.status(200).json(zone);
+                return;
+            });
         });
-      });
 
     /**
      * @swagger
@@ -336,28 +336,28 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-     router.route('/zones/list')
-      .get(function(req, res) {
-        let includeAll = false;
-        if (req.query.hasOwnProperty('include_all')
-            && req.query.include_all === '1') {
-            includeAll = true;
-        }
-        let pattern = null;
-        if (req.query.hasOwnProperty('pattern')
-            && req.query.pattern.length > 0) {
-            pattern = req.query.pattern;
-        }
-        let zonePromise = zones.getAllZones(pattern, includeAll);
-        zonePromise.then(function(zones) {
-            if (!zones) {
-                res.status(404).json({'message': 'Zone not found'});
-                return;
+    router.route('/zones/list')
+        .get(function (req, res) {
+            let includeAll = false;
+            if (req.query.hasOwnProperty('include_all')
+                && req.query.include_all === '1') {
+                includeAll = true;
             }
-            res.status(200).json(zones);
-            return;
+            let pattern = null;
+            if (req.query.hasOwnProperty('pattern')
+                && req.query.pattern.length > 0) {
+                pattern = req.query.pattern;
+            }
+            let zonePromise = zones.getAllZones(pattern, includeAll);
+            zonePromise.then(function (zones) {
+                if (!zones) {
+                    res.status(404).json({ 'message': 'Zone not found' });
+                    return;
+                }
+                res.status(200).json(zones);
+                return;
+            });
         });
-      });
 
 
     /**
@@ -391,18 +391,18 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zones/sources')
-      .get(function(req, res) {
-        let zonePromise = zones.getUniqueSources();
-        zonePromise.then(function(sources) {
-            if (!sources) {
-                res.status(500).json({'message': 'Error retrieving sources'});
+        .get(function (req, res) {
+            let zonePromise = zones.getUniqueSources();
+            zonePromise.then(function (sources) {
+                if (!sources) {
+                    res.status(500).json({ 'message': 'Error retrieving sources' });
+                    return;
+                }
+                let jsonRes = { 'sources': sources };
+                res.status(200).json(jsonRes);
                 return;
-            }
-            let jsonRes = {'sources': sources};
-            res.status(200).json(jsonRes);
-            return;
+            });
         });
-    });
 
     /**
      * @swagger
@@ -449,21 +449,21 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zones/ipzone/:zone')
-      .get(function(req, res) {
-        if (!(req.params.hasOwnProperty('zone'))) {
-            res.status(400).json({'message': 'An IP zone must be provided.'});
-            return;
-        }
-        let zonePromise = ipZones.getZoneByNamePromise(req.params.zone);
-        zonePromise.then(function(zone) {
-            if (!zone) {
-                res.status(404).json({'message': 'IP zone not found'});
+        .get(function (req, res) {
+            if (!(req.params.hasOwnProperty('zone'))) {
+                res.status(400).json({ 'message': 'An IP zone must be provided.' });
                 return;
             }
-            res.status(200).json(zone);
-            return;
+            let zonePromise = ipZones.getZoneByNamePromise(req.params.zone);
+            zonePromise.then(function (zone) {
+                if (!zone) {
+                    res.status(404).json({ 'message': 'IP zone not found' });
+                    return;
+                }
+                res.status(200).json(zone);
+                return;
+            });
         });
-      });
 
     /**
      * @swagger
@@ -510,21 +510,21 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zones/ipv6zone/:zone')
-      .get(function(req, res) {
-        if (!(req.params.hasOwnProperty('zone'))) {
-            res.status(400).json({'message': 'An IPv6 zone must be provided.'});
-            return;
-        }
-        let zonePromise = ipv6Zones.getZoneByNamePromise(req.params.zone);
-        zonePromise.then(function(zone) {
-            if (!zone) {
-                res.status(404).json({'message': 'IPv6 zone not found'});
+        .get(function (req, res) {
+            if (!(req.params.hasOwnProperty('zone'))) {
+                res.status(400).json({ 'message': 'An IPv6 zone must be provided.' });
                 return;
             }
-            res.status(200).json(zone);
-            return;
+            let zonePromise = ipv6Zones.getZoneByNamePromise(req.params.zone);
+            zonePromise.then(function (zone) {
+                if (!zone) {
+                    res.status(404).json({ 'message': 'IPv6 zone not found' });
+                    return;
+                }
+                res.status(200).json(zone);
+                return;
+            });
         });
-      });
 
     /**
      * @swagger
@@ -564,22 +564,22 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zones/ip_list')
-      .get(function(req, res) {
-        let includeFalsePositives = false;
-        if (req.query.hasOwnProperty('include_fp')
-            && req.query.include_fp === '1') {
-            includeFalsePositives = true;
-        }
-        let zonePromise = ipZones.getAllZones(includeFalsePositives);
-        zonePromise.then(function(ipzones) {
-            if (!ipzones) {
-                res.status(500).json({'message': 'Error retrieving IP zones'});
-                return;
+        .get(function (req, res) {
+            let includeFalsePositives = false;
+            if (req.query.hasOwnProperty('include_fp')
+                && req.query.include_fp === '1') {
+                includeFalsePositives = true;
             }
-            res.status(200).json(ipzones);
-            return;
+            let zonePromise = ipZones.getAllZones(includeFalsePositives);
+            zonePromise.then(function (ipzones) {
+                if (!ipzones) {
+                    res.status(500).json({ 'message': 'Error retrieving IP zones' });
+                    return;
+                }
+                res.status(200).json(ipzones);
+                return;
+            });
         });
-    });
 
 
     /**
@@ -620,22 +620,22 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zones/ipv6_list')
-      .get(function(req, res) {
-        let includeFalsePositives = false;
-        if (req.query.hasOwnProperty('include_fp')
-            && req.query.include_fp === '1') {
-            includeFalsePositives = true;
-        }
-        let zonePromise = ipv6Zones.getAllZones(includeFalsePositives);
-        zonePromise.then(function(ipzones) {
-            if (!ipzones) {
-                res.status(500).json({'message': 'Error retrieving IPv6 zones'});
-                return;
+        .get(function (req, res) {
+            let includeFalsePositives = false;
+            if (req.query.hasOwnProperty('include_fp')
+                && req.query.include_fp === '1') {
+                includeFalsePositives = true;
             }
-            res.status(200).json(ipzones);
-            return;
+            let zonePromise = ipv6Zones.getAllZones(includeFalsePositives);
+            zonePromise.then(function (ipzones) {
+                if (!ipzones) {
+                    res.status(500).json({ 'message': 'Error retrieving IPv6 zones' });
+                    return;
+                }
+                res.status(200).json(ipzones);
+                return;
+            });
         });
-    });
 
     /**
      * @swagger
@@ -679,37 +679,39 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zones/ip_zone_check')
-      .get(function(req, res) {
-        if (!(req.query.hasOwnProperty('ip'))) {
-            res.status(400).json({'message': 'An IP must be provided.'});
-            return;
-        }
-        let includeFalsePositives = false;
-        if (req.query.hasOwnProperty('include_fp')
-            && req.query.include_fp === '1') {
-            includeFalsePositives = true;
-        }
-        let zonePromise = ipZones.getAllZones(includeFalsePositives);
-        zonePromise.then(function(ipzones) {
-            if (!ipzones) {
-                res.status(500).json({'message': 'Error retrieving sources'});
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('ip'))) {
+                res.status(400).json({ 'message': 'An IP must be provided.' });
                 return;
             }
-            for (let i=0; i < ipzones.length; i++) {
-                let matcher = new CIDRMatcher();
-                matcher.addNetworkClass(ipzones[i]['zone']);
-
-                if (matcher.contains(req.query.ip)) {
-                    res.status(200).json({'result': true,
-                          'zone': ipzones[i]['zone'],
-                          'notes': ipzones[i]['notes']});
+            let includeFalsePositives = false;
+            if (req.query.hasOwnProperty('include_fp')
+                && req.query.include_fp === '1') {
+                includeFalsePositives = true;
+            }
+            let zonePromise = ipZones.getAllZones(includeFalsePositives);
+            zonePromise.then(function (ipzones) {
+                if (!ipzones) {
+                    res.status(500).json({ 'message': 'Error retrieving sources' });
                     return;
                 }
-            }
-            res.status(200).json({'result': false});
-            return;
+                for (let i = 0; i < ipzones.length; i++) {
+                    let matcher = new CIDRMatcher();
+                    matcher.addNetworkClass(ipzones[i]['zone']);
+
+                    if (matcher.contains(req.query.ip)) {
+                        res.status(200).json({
+                            'result': true,
+                            'zone': ipzones[i]['zone'],
+                            'notes': ipzones[i]['notes']
+                        });
+                        return;
+                    }
+                }
+                res.status(200).json({ 'result': false });
+                return;
+            });
         });
-    });
 
     /**
      * @swagger
@@ -752,35 +754,37 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-router.route('/zones/ipv6_zone_check')
-    .get(function(req, res) {
-      if (!(req.query.hasOwnProperty('ip'))) {
-          res.status(400).json({'message': 'An IPv6 address must be provided.'});
-          return;
-      }
-      let includeFalsePositives = false;
-      if (req.query.hasOwnProperty('include_fp')
-          && req.query.include_fp === '1') {
-          includeFalsePositives = true;
-      }
-      let zonePromise = ipv6Zones.getAllZones(includeFalsePositives);
-      zonePromise.then(function(ipzones) {
-          if (!ipzones) {
-              res.status(500).json({'message': 'Error retrieving sources'});
-              return;
-          }
-          for (let i=0; i < ipzones.length; i++) {
-              if (rangeCheck.inRange(req.query.ip, ipzones[i]['zone'])) {
-                  res.status(200).json({'result': true,
-                        'zone': ipzones[i]['zone'],
-                        'notes': ipzones[i]['notes']});
-                  return;
-              }
-          }
-          res.status(200).json({'result': false});
-          return;
-      });
-    });
+    router.route('/zones/ipv6_zone_check')
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('ip'))) {
+                res.status(400).json({ 'message': 'An IPv6 address must be provided.' });
+                return;
+            }
+            let includeFalsePositives = false;
+            if (req.query.hasOwnProperty('include_fp')
+                && req.query.include_fp === '1') {
+                includeFalsePositives = true;
+            }
+            let zonePromise = ipv6Zones.getAllZones(includeFalsePositives);
+            zonePromise.then(function (ipzones) {
+                if (!ipzones) {
+                    res.status(500).json({ 'message': 'Error retrieving sources' });
+                    return;
+                }
+                for (let i = 0; i < ipzones.length; i++) {
+                    if (rangeCheck.inRange(req.query.ip, ipzones[i]['zone'])) {
+                        res.status(200).json({
+                            'result': true,
+                            'zone': ipzones[i]['zone'],
+                            'notes': ipzones[i]['notes']
+                        });
+                        return;
+                    }
+                }
+                res.status(200).json({ 'result': false });
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -826,28 +830,28 @@ router.route('/zones/ipv6_zone_check')
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zones/ip_stats')
-     .get(function(req, res) {
-        let source = '';
-        let status = '';
-        if (req.query.hasOwnProperty('source')) {
-            source = req.query.source;
-        }
-        if (req.query.hasOwnProperty('status')) {
-            status = req.query.status;
-        }
-        let zonePromise = ipZones.getZoneCount(source, status);
-        zonePromise.then(
-            function(stats) {
-                if (!stats) {
-                    res.status(500).json({
-                        'message': 'Error retrieving zone stats',
-                    });
+        .get(function (req, res) {
+            let source = '';
+            let status = '';
+            if (req.query.hasOwnProperty('source')) {
+                source = req.query.source;
+            }
+            if (req.query.hasOwnProperty('status')) {
+                status = req.query.status;
+            }
+            let zonePromise = ipZones.getZoneCount(source, status);
+            zonePromise.then(
+                function (stats) {
+                    if (!stats) {
+                        res.status(500).json({
+                            'message': 'Error retrieving zone stats',
+                        });
+                        return;
+                    }
+                    res.status(200).json({ 'count': stats });
                     return;
-                }
-                res.status(200).json({'count': stats});
-                return;
-            });
-    });
+                });
+        });
 
     /**
      * @swagger
@@ -893,28 +897,28 @@ router.route('/zones/ipv6_zone_check')
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/zones/ipv6_stats')
-     .get(function(req, res) {
-        let source = '';
-        let status = '';
-        if (req.query.hasOwnProperty('source')) {
-            source = req.query.source;
-        }
-        if (req.query.hasOwnProperty('status')) {
-            status = req.query.status;
-        }
-        let zonePromise = ipv6Zones.getZoneCount(source, status);
-        zonePromise.then(
-            function(stats) {
-                if (!stats) {
-                    res.status(500).json({
-                        'message': 'Error retrieving IPv6 zone stats',
-                    });
+        .get(function (req, res) {
+            let source = '';
+            let status = '';
+            if (req.query.hasOwnProperty('source')) {
+                source = req.query.source;
+            }
+            if (req.query.hasOwnProperty('status')) {
+                status = req.query.status;
+            }
+            let zonePromise = ipv6Zones.getZoneCount(source, status);
+            zonePromise.then(
+                function (stats) {
+                    if (!stats) {
+                        res.status(500).json({
+                            'message': 'Error retrieving IPv6 zone stats',
+                        });
+                        return;
+                    }
+                    res.status(200).json({ 'count': stats });
                     return;
-                }
-                res.status(200).json({'count': stats});
-                return;
-            });
-    });
+                });
+        });
 
-  return (router);
+    return (router);
 };

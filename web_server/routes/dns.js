@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -114,7 +114,7 @@ function createRange(range) {
  *
  */
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
 
     /**
      * @swagger
@@ -344,149 +344,149 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/dns')
-     .get(function(req, res) {
-        let promise;
-        let source = null;
-        if (req.query.hasOwnProperty('source')) {
-            source = req.query.source;
-        }
-        if (req.query.hasOwnProperty('range')) {
-            let searchRange = createRange(req.query.range);
-            if (searchRange.startsWith('Error')) {
-                res.status(400).json({'message': htmlEscape(searchRange)});
-                return;
+        .get(function (req, res) {
+            let promise;
+            let source = null;
+            if (req.query.hasOwnProperty('source')) {
+                source = req.query.source;
             }
-            promise = allDNS.getAllDNSByIPRangePromise(searchRange, source);
-            promise.then(function(data) {
-                if (!data) {
-                    res.status(404).json({'message': 'Info not found'});
+            if (req.query.hasOwnProperty('range')) {
+                let searchRange = createRange(req.query.range);
+                if (searchRange.startsWith('Error')) {
+                    res.status(400).json({ 'message': htmlEscape(searchRange) });
                     return;
                 }
-                let matcher = new CIDRMatcher();
-                matcher.addNetworkClass(req.query.range);
-                let returnData = [];
-                for (let i=0; i < data.length; i++) {
-                    if (matcher.contains(data[i]['value'])) {
-                        returnData.push(data[i]);
-                    }
-                }
-                if (req.query.hasOwnProperty('count')) {
-                    res.status(200).json({'count': returnData.length});
-                } else {
-                    res.status(200).json(returnData);
-                }
-                return;
-            });
-            return;
-        } else if (req.query.hasOwnProperty('ipv6_range')) {
-                if (!rangeCheck.isRange(req.query.ipv6_range)) {
-                    res.status(400).json({'message': 'A valid IPv6 range must be provided'});
-                    return;
-                }
-                let searchRange = req.query.ipv6_range.split(":")[0];
-                promise = allDNS.getAllDNSByIPv6RangePromise(searchRange, source);
-                promise.then(function(data) {
+                promise = allDNS.getAllDNSByIPRangePromise(searchRange, source);
+                promise.then(function (data) {
                     if (!data) {
-                        res.status(404).json({'message': 'Info not found'});
+                        res.status(404).json({ 'message': 'Info not found' });
                         return;
                     }
+                    let matcher = new CIDRMatcher();
+                    matcher.addNetworkClass(req.query.range);
                     let returnData = [];
-                    for (let i=0; i < data.length; i++) {
-                        if (rangeCheck.inRange(data[i]['value'], req.query.ipv6_range)) {
+                    for (let i = 0; i < data.length; i++) {
+                        if (matcher.contains(data[i]['value'])) {
                             returnData.push(data[i]);
                         }
                     }
                     if (req.query.hasOwnProperty('count')) {
-                        res.status(200).json({'count': returnData.length});
+                        res.status(200).json({ 'count': returnData.length });
                     } else {
                         res.status(200).json(returnData);
                     }
                     return;
                 });
                 return;
-        } else if (req.query.hasOwnProperty('domain')) {
-            promise = allDNS.getAllDNSByDomainPromise(req.query.domain, source);
-        } else if (req.query.hasOwnProperty('ip')) {
-            promise = allDNS.getAllDNSByIPPromise(req.query.ip, source);
-        } else if (req.query.hasOwnProperty('ipv6')) {
-            promise = allDNS.getAllDNSByIPv6Promise(req.query.ipv6, source);
-        } else if (req.query.hasOwnProperty('amazonSearch')) {
-            promise = allDNS.getAllDNSAmazonEntriesPromise(req.query.amazonSearch, source);
-        } else if (req.query.hasOwnProperty('txtSearch')) {
-            let zone = null;
-            let count = false;
-            if (req.query.hasOwnProperty('zone')) {
-                zone = req.query.zone;
-            }
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                count = true;
-            }
-            if (req.query.txtSearch === 'spf') {
-                if (req.query.hasOwnProperty('list') && req.query.list === '1') {
-                    promise = allDNS.getAllDNSTxtByZoneCountPromise('spf', source);
-                } else {
-                    promise = allDNS.getAllDNSByTxtSearchPromise('spf', zone, source, count);
+            } else if (req.query.hasOwnProperty('ipv6_range')) {
+                if (!rangeCheck.isRange(req.query.ipv6_range)) {
+                    res.status(400).json({ 'message': 'A valid IPv6 range must be provided' });
+                    return;
                 }
-            } else if (req.query.txtSearch === 'dkim') {
-                if (req.query.hasOwnProperty('list') && req.query.list === '1') {
-                    promise = allDNS.getAllDNSTxtByZoneCountPromise('dkim', source);
-                } else {
-                    promise = allDNS.getAllDNSByTxtSearchPromise('dkim', zone, source, count);
+                let searchRange = req.query.ipv6_range.split(":")[0];
+                promise = allDNS.getAllDNSByIPv6RangePromise(searchRange, source);
+                promise.then(function (data) {
+                    if (!data) {
+                        res.status(404).json({ 'message': 'Info not found' });
+                        return;
+                    }
+                    let returnData = [];
+                    for (let i = 0; i < data.length; i++) {
+                        if (rangeCheck.inRange(data[i]['value'], req.query.ipv6_range)) {
+                            returnData.push(data[i]);
+                        }
+                    }
+                    if (req.query.hasOwnProperty('count')) {
+                        res.status(200).json({ 'count': returnData.length });
+                    } else {
+                        res.status(200).json(returnData);
+                    }
+                    return;
+                });
+                return;
+            } else if (req.query.hasOwnProperty('domain')) {
+                promise = allDNS.getAllDNSByDomainPromise(req.query.domain, source);
+            } else if (req.query.hasOwnProperty('ip')) {
+                promise = allDNS.getAllDNSByIPPromise(req.query.ip, source);
+            } else if (req.query.hasOwnProperty('ipv6')) {
+                promise = allDNS.getAllDNSByIPv6Promise(req.query.ipv6, source);
+            } else if (req.query.hasOwnProperty('amazonSearch')) {
+                promise = allDNS.getAllDNSAmazonEntriesPromise(req.query.amazonSearch, source);
+            } else if (req.query.hasOwnProperty('txtSearch')) {
+                let zone = null;
+                let count = false;
+                if (req.query.hasOwnProperty('zone')) {
+                    zone = req.query.zone;
                 }
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    count = true;
+                }
+                if (req.query.txtSearch === 'spf') {
+                    if (req.query.hasOwnProperty('list') && req.query.list === '1') {
+                        promise = allDNS.getAllDNSTxtByZoneCountPromise('spf', source);
+                    } else {
+                        promise = allDNS.getAllDNSByTxtSearchPromise('spf', zone, source, count);
+                    }
+                } else if (req.query.txtSearch === 'dkim') {
+                    if (req.query.hasOwnProperty('list') && req.query.list === '1') {
+                        promise = allDNS.getAllDNSTxtByZoneCountPromise('dkim', source);
+                    } else {
+                        promise = allDNS.getAllDNSByTxtSearchPromise('dkim', zone, source, count);
+                    }
+                } else {
+                    res.status(400).json({ 'message': 'Unknown text search type.' });
+                    return;
+                }
+            } else if (req.query.hasOwnProperty('dnsType')) {
+                let zone = null;
+                let count = false;
+                if (req.query.hasOwnProperty('zone')) {
+                    zone = req.query.zone;
+                }
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    count = true;
+                }
+                if (req.query.hasOwnProperty('list') && req.query.list === '1') {
+                    promise = allDNS.getAllDNSTypeByZoneCountPromise(req.query.dnsType, source);
+                } else {
+                    promise = allDNS.getAllDNSByTypePromise(req.query.dnsType, zone, source, count);
+                }
+            } else if (req.query.hasOwnProperty('cnameTLD')) {
+                if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
+                    promise = allDNS.getAllDNSByCanonicalSearch(req.query.cnameTLD, req.query.zone, source);
+                } else {
+                    promise = allDNS.getAllDNSByCanonicalSearch(req.query.cnameTLD, null, source);
+                }
+            } else if ((req.query.hasOwnProperty('count')) &&
+                (req.query.count === '1')) {
+                if (req.query.hasOwnProperty('zone')) {
+                    promise = allDNS.getAllDNSCount(req.query.zone, source);
+                } else {
+                    promise = allDNS.getAllDNSCount(null, source);
+                }
+            } else if (req.query.hasOwnProperty('zone')) {
+                promise = allDNS.getAllDNSByZonePromise(req.query.zone, source);
+            } else if (req.query.hasOwnProperty('accountInfoValue')) {
+                promise = allDNS.getByAccountInfo(req.query.accountInfoValue);
             } else {
-                res.status(400).json({'message': 'Unknown text search type.'});
+                res.status(400).json({
+                    'message': 'A domain, ip, or zone must be provided',
+                });
                 return;
             }
-        } else if (req.query.hasOwnProperty('dnsType')) {
-            let zone = null;
-            let count = false;
-            if (req.query.hasOwnProperty('zone')) {
-                zone = req.query.zone;
-            }
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                count = true;
-            }
-            if (req.query.hasOwnProperty('list') && req.query.list === '1') {
-                promise = allDNS.getAllDNSTypeByZoneCountPromise(req.query.dnsType, source);
-            } else {
-                promise = allDNS.getAllDNSByTypePromise(req.query.dnsType, zone, source, count);
-            }
-        } else if (req.query.hasOwnProperty('cnameTLD')) {
-            if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
-                promise = allDNS.getAllDNSByCanonicalSearch(req.query.cnameTLD, req.query.zone, source);
-            } else {
-                promise = allDNS.getAllDNSByCanonicalSearch(req.query.cnameTLD, null, source);
-            }
-        } else if ((req.query.hasOwnProperty('count')) &&
-                   (req.query.count === '1')) {
-            if (req.query.hasOwnProperty('zone')) {
-               promise = allDNS.getAllDNSCount(req.query.zone, source);
-            } else {
-               promise = allDNS.getAllDNSCount(null, source);
-            }
-        } else if (req.query.hasOwnProperty('zone')) {
-            promise = allDNS.getAllDNSByZonePromise(req.query.zone, source);
-        } else if (req.query.hasOwnProperty('accountInfoValue')) {
-            promise = allDNS.getByAccountInfo(req.query.accountInfoValue);
-        } else {
-            res.status(400).json({
-                'message': 'A domain, ip, or zone must be provided',
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Info not found' });
+                    return;
+                }
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
+                }
+                return;
             });
-            return;
-        }
-        promise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'Info not found'});
-                return;
-            }
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                res.status(200).json({'count': data});
-            } else {
-                res.status(200).json(data);
-            }
-            return;
         });
-     });
 
 
     /**
@@ -674,92 +674,92 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-   router.route('/dead_dns')
-     .get(function(req, res) {
-        let promise;
-        let source = null;
-        if (req.query.hasOwnProperty('source')) {
-            source = req.query.source;
-        }
-        if (req.query.hasOwnProperty('range')) {
-            let searchRange = createRange(req.query.range);
-            if (searchRange.startsWith('Error')) {
-                res.status(500).json({'message': htmlEscape(searchRange)});
-                return;
+    router.route('/dead_dns')
+        .get(function (req, res) {
+            let promise;
+            let source = null;
+            if (req.query.hasOwnProperty('source')) {
+                source = req.query.source;
             }
-            promise = deadDNS.getDeadDNSByIPRangePromise(searchRange, source);
-            promise.then(function(data) {
-                if (!data) {
-                    res.status(404).json({'message': 'Info not found'});
+            if (req.query.hasOwnProperty('range')) {
+                let searchRange = createRange(req.query.range);
+                if (searchRange.startsWith('Error')) {
+                    res.status(500).json({ 'message': htmlEscape(searchRange) });
                     return;
                 }
-                let matcher = new CIDRMatcher();
-                matcher.addNetworkClass(req.query.range);
-                let returnData = [];
-                for (let i=0; i < data.length; i++) {
-                    if (matcher.contains(data[i]['value'])) {
-                        returnData.push(data[i]);
+                promise = deadDNS.getDeadDNSByIPRangePromise(searchRange, source);
+                promise.then(function (data) {
+                    if (!data) {
+                        res.status(404).json({ 'message': 'Info not found' });
+                        return;
                     }
+                    let matcher = new CIDRMatcher();
+                    matcher.addNetworkClass(req.query.range);
+                    let returnData = [];
+                    for (let i = 0; i < data.length; i++) {
+                        if (matcher.contains(data[i]['value'])) {
+                            returnData.push(data[i]);
+                        }
+                    }
+                    if (req.query.hasOwnProperty('count')) {
+                        res.status(200).json({ 'count': returnData.length });
+                    } else {
+                        res.status(200).json(returnData);
+                    }
+                    return;
+                });
+                return;
+            } else if (req.query.hasOwnProperty('domain')) {
+                promise = deadDNS.getDeadDNSByDomainPromise(req.query.domain, source);
+            } else if (req.query.hasOwnProperty('ip')) {
+                promise = deadDNS.getDeadDNSByIPPromise(req.query.ip, source);
+            } else if (req.query.hasOwnProperty('amazonSearch')) {
+                promise = deadDNS.getDeadDNSAmazonEntriesPromise(req.query.amazonSearch, source);
+            } else if (req.query.hasOwnProperty('dnsType')) {
+                let zone = null;
+                let count = false;
+                if (req.query.hasOwnProperty('zone')) {
+                    zone = req.query.zone;
                 }
-                if (req.query.hasOwnProperty('count')) {
-                    res.status(200).json({'count': returnData.length});
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    count = true;
+                }
+                if (req.query.hasOwnProperty('list') && req.query.list === '1') {
+                    promise = deadDNS.getDeadDNSTypeByZoneCountPromise(req.query.dnsType, source);
                 } else {
-                    res.status(200).json(returnData);
+                    promise = deadDNS.getDeadDNSByTypePromise(req.query.dnsType, zone, source, count);
+                }
+            } else if (req.query.hasOwnProperty('cnameTLD')) {
+                if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
+                    promise = deadDNS.getDeadDNSByCanonicalSearch(req.query.cnameTLD, req.query.zone, source);
+                } else {
+                    promise = deadDNS.getDeadDNSByCanonicalSearch(req.query.cnameTLD, null, source);
+                }
+            } else if ((req.query.hasOwnProperty('count')) &&
+                (req.query.count === '1')) {
+                if (req.query.hasOwnProperty('zone')) {
+                    promise = deadDNS.getDeadDNSCount(req.query.zone, source);
+                } else {
+                    promise = deadDNS.getDeadDNSCount(null, source);
+                }
+            } else if (req.query.hasOwnProperty('zone')) {
+                promise = deadDNS.getDeadDNSByZonePromise(req.query.zone, source);
+            } else {
+                promise = deadDNS.getAllDeadDNSPromise();
+            }
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Info not found' });
+                    return;
+                }
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
                 }
                 return;
             });
-            return;
-        } else if (req.query.hasOwnProperty('domain')) {
-            promise = deadDNS.getDeadDNSByDomainPromise(req.query.domain, source);
-        } else if (req.query.hasOwnProperty('ip')) {
-            promise = deadDNS.getDeadDNSByIPPromise(req.query.ip, source);
-        } else if (req.query.hasOwnProperty('amazonSearch')) {
-            promise = deadDNS.getDeadDNSAmazonEntriesPromise(req.query.amazonSearch, source);
-        } else if (req.query.hasOwnProperty('dnsType')) {
-            let zone = null;
-            let count = false;
-            if (req.query.hasOwnProperty('zone')) {
-                zone = req.query.zone;
-            }
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                count = true;
-            }
-            if (req.query.hasOwnProperty('list') && req.query.list === '1') {
-                promise = deadDNS.getDeadDNSTypeByZoneCountPromise(req.query.dnsType, source);
-            } else {
-                promise = deadDNS.getDeadDNSByTypePromise(req.query.dnsType, zone, source, count);
-            }
-        } else if (req.query.hasOwnProperty('cnameTLD')) {
-            if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
-                promise = deadDNS.getDeadDNSByCanonicalSearch(req.query.cnameTLD, req.query.zone, source);
-            } else {
-                promise = deadDNS.getDeadDNSByCanonicalSearch(req.query.cnameTLD, null, source);
-            }
-        } else if ((req.query.hasOwnProperty('count')) &&
-                   (req.query.count === '1')) {
-            if (req.query.hasOwnProperty('zone')) {
-               promise = deadDNS.getDeadDNSCount(req.query.zone, source);
-            } else {
-               promise = deadDNS.getDeadDNSCount(null, source);
-            }
-        } else if (req.query.hasOwnProperty('zone')) {
-            promise = deadDNS.getDeadDNSByZonePromise(req.query.zone, source);
-        } else {
-            promise = deadDNS.getAllDeadDNSPromise();
-        }
-        promise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'Info not found'});
-                return;
-            }
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                res.status(200).json({'count': data});
-            } else {
-                res.status(200).json(data);
-            }
-            return;
         });
-     });
 
     /**
      * @swagger
@@ -792,18 +792,18 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/dns/sources')
-      .get(function(req, res) {
-        let sourcePromise = allDNS.getDistinctDNSSources();
-        sourcePromise.then(function(sources) {
-            if (!sources) {
-                res.status(500).json({'message': 'Error retrieving sources'});
+        .get(function (req, res) {
+            let sourcePromise = allDNS.getDistinctDNSSources();
+            sourcePromise.then(function (sources) {
+                if (!sources) {
+                    res.status(500).json({ 'message': 'Error retrieving sources' });
+                    return;
+                }
+                let jsonRes = { 'sources': sources };
+                res.status(200).json(jsonRes);
                 return;
-            }
-            let jsonRes = {'sources': sources};
-            res.status(200).json(jsonRes);
-            return;
+            });
         });
-    });
 
-   return (router);
+    return (router);
 };

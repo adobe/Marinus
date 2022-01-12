@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2019 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -174,7 +174,7 @@ function isValidDate(d_string) {
  *
  */
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
     /**
      * @swagger
      *
@@ -256,32 +256,32 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/org')
-    .get(function(req, res) {
-       if (!(req.query.hasOwnProperty('org'))) {
-           res.status(400).json({'message': 'An org must be provided.'});
-           return;
-       }
-       let org = req.query.org;
-       let promise;
-       if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-           promise = ct.getSSLOrgCountPromise(org);
-       } else {
-           promise = ct.getCertTransOrgPromise(org);
-       }
-       promise.then(function(data) {
-           if (data === null) {
-               res.status(404).json({'message': 'Org not found'});
-               return;
-           }
-           if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-             res.status(200).json({'count': data});
-           } else {
-             res.status(200).json(data);
-           }
-           return;
-       });
-  });
+    router.route('/ct/org')
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('org'))) {
+                res.status(400).json({ 'message': 'An org must be provided.' });
+                return;
+            }
+            let org = req.query.org;
+            let promise;
+            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                promise = ct.getSSLOrgCountPromise(org);
+            } else {
+                promise = ct.getCertTransOrgPromise(org);
+            }
+            promise.then(function (data) {
+                if (data === null) {
+                    res.status(404).json({ 'message': 'Org not found' });
+                    return;
+                }
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
+                }
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -364,31 +364,31 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/zone')
-    .get(function(req, res) {
-       if (!(req.query.hasOwnProperty('zone'))) {
-           res.status(400).json({'message': 'A zone name must be provided.'});
-           return;
-       }
-       let count = false;
-       if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-           count = true;
-       }
-       let promise = ct.getCertTransZonePromise(req.query.zone, count);
+    router.route('/ct/zone')
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('zone'))) {
+                res.status(400).json({ 'message': 'A zone name must be provided.' });
+                return;
+            }
+            let count = false;
+            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                count = true;
+            }
+            let promise = ct.getCertTransZonePromise(req.query.zone, count);
 
-       promise.then(function(data) {
-           if (data === null) {
-               res.status(404).json({'message': 'Zone not found'});
-               return;
-           }
-           if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-               res.status(200).json({'count': data});
-           } else {
-               res.status(200).json(data);
-           }
-           return;
-       });
-  });
+            promise.then(function (data) {
+                if (data === null) {
+                    res.status(404).json({ 'message': 'Zone not found' });
+                    return;
+                }
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
+                }
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -434,23 +434,23 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/common_name')
-    .get(function(req, res) {
-       if (!(req.query.hasOwnProperty('cn'))) {
-           res.status(400).json({'message': 'A CN/DNS name must be provided.'});
-           return;
-       }
-       let promise = ct.getCertTransCNPromise(req.query.cn);
+    router.route('/ct/common_name')
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('cn'))) {
+                res.status(400).json({ 'message': 'A CN/DNS name must be provided.' });
+                return;
+            }
+            let promise = ct.getCertTransCNPromise(req.query.cn);
 
-       promise.then(function(data) {
-           if (data === null) {
-               res.status(404).json({'message': 'CN not found'});
-               return;
-           }
-           res.status(200).json(data);
-           return;
-       });
-  });
+            promise.then(function (data) {
+                if (data === null) {
+                    res.status(404).json({ 'message': 'CN not found' });
+                    return;
+                }
+                res.status(200).json(data);
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -497,24 +497,24 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/ip')
-    .get(function(req, res) {
-       if (!(req.query.hasOwnProperty('ip'))) {
-           res.status(400).json({'message': 'An IP address must be provided.'});
-           return;
-       }
-       let promise = ct.getCertTransCNPromise(req.query.ip);
+    router.route('/ct/ip')
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('ip'))) {
+                res.status(400).json({ 'message': 'An IP address must be provided.' });
+                return;
+            }
+            let promise = ct.getCertTransCNPromise(req.query.ip);
 
-       promise.then(function(data) {
-           if (data === null) {
-               res.status(404).json({'message': 'IP not found'});
-               return;
-           }
-           res.status(200);
-           res.json(data);
-           return;
-       });
-    });
+            promise.then(function (data) {
+                if (data === null) {
+                    res.status(404).json({ 'message': 'IP not found' });
+                    return;
+                }
+                res.status(200);
+                res.json(data);
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -600,33 +600,33 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/ct/serial_number/:sn')
-    .get(function(req, res) {
-       if (!(req.params.hasOwnProperty('sn'))) {
-           res.status(400).json({'message': 'A serial_number name must be provided.'});
-           return;
-        }
-
-        let count = false;
-        if (req.query.hasOwnProperty('count') && req.query.count == "1") {
-            count = true;
-        }
-
-       let promise = ct.getCertTransBySerialNumberPromise(req.params.sn.toLowerCase(), count);
-
-       promise.then(function(data) {
-            if (data === null) {
-                res.status(404).json({'message': 'Serial number not found'});
+        .get(function (req, res) {
+            if (!(req.params.hasOwnProperty('sn'))) {
+                res.status(400).json({ 'message': 'A serial_number name must be provided.' });
                 return;
             }
-            if (count) {
-                res.status(200).json({'count': data});
-                return;
-            } else {
-                res.status(200).json(data);
+
+            let count = false;
+            if (req.query.hasOwnProperty('count') && req.query.count == "1") {
+                count = true;
             }
-            return;
-       });
-    });
+
+            let promise = ct.getCertTransBySerialNumberPromise(req.params.sn.toLowerCase(), count);
+
+            promise.then(function (data) {
+                if (data === null) {
+                    res.status(404).json({ 'message': 'Serial number not found' });
+                    return;
+                }
+                if (count) {
+                    res.status(200).json({ 'count': data });
+                    return;
+                } else {
+                    res.status(200).json(data);
+                }
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -711,266 +711,266 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/fingerprint/:fingerprint')
-    .get(function(req, res) {
-       if (!(req.params.hasOwnProperty('fingerprint'))) {
-           res.status(400).json({
-               'message': 'An fingerprint value must be provided.',
-            });
-           return;
-       }
-
-       var count = false;
-       if (req.query.hasOwnProperty('count') && req.query.count === "1") {
-           count = true;
-       }
-
-       let promise;
-       if (req.params.fingerprint.length === 64) {
-           promise = ct.getCTCertByFingerprintSHA256(req.params.fingerprint, count);
-       } else if (req.params.fingerprint.length === 40) {
-           promise = ct.getCTCertByFingerprintSHA1(req.params.fingerprint, count);
-       } else {
-           res.status(400).json({'message': 'Invalid fingerprint value.'});
-           return;
-       }
-
-       promise.then(function(data) {
-           if (data === null) {
-               res.status(404).json({'message': 'Fingerprint not found'});
-               return;
-           }
-
-           if (count) {
-              res.status(200).json({'count': data});
-              return;
-           } else {
-              res.status(200).json(data);
-           }
-
-           return;
-       });
-  });
-
-
-      /**
-     * @swagger
-     *
-     * security:
-     *   - APIKeyHeader: []
-     *
-     * tags:
-     *   - name: CT - Marinus date search
-     *     description: Check for certificates based on when they were recorded or updated within Marinus.
-     *   - name: CT - Marinus date search count
-     *     description: Count certificates based on when they were recorded or updated within Marinus.
-     *
-     * /api/v1.0/ct/marinus_dates:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Check for certificates based on when they were recorded within Marinus. The Marinus creation date and/or update date is not the same as the certificate creation date.
-     *     tags: [CT - Marinus date search]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: search_type
-     *         type: string
-     *         required: true
-     *         description: Only "gt", "lt", and "range" is allowed
-     *         in: query
-     *         enum: ["gt", "lt", "range"]
-     *       - name: marinus_date
-     *         type: string
-     *         example: '1564970118000'
-     *         required: true
-     *         description: This is the default date for 'lt' and 'gt' searches. It is a Unix timestamp with milliseconds. It is used for the 'gt' value in a range check.
-     *         in: query
-     *       - name: end_date
-     *         type: string
-     *         example: '1564970118000'
-     *         description: The 'lt' value in a range search. It is a Unix timestamp with milliseconds.
-     *         required: false
-     *         in: query
-     *       - name: date_type
-     *         type: string
-     *         required: false
-     *         description: Only "created", and "updated" are allowed. The default is "created."
-     *         in: query
-     *         enum: ["created", "updated"]
-     *     responses:
-     *       200:
-     *         description: Returns a JSON array object with the matched certificates.
-     *         schema:
-     *           $ref: '#/definitions/CT-LogResponse'
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       404:
-     *         description: No matching records found.
-     *         schema:
-     *           $ref: '#/definitions/ResultsNotFound'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     *
-     * /api/v1.0/ct/marinus_dates?count=1:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Count certificates based on when they were recorded or updated within Marinus. The Marinus creation date and/or update date is not the same as the certificate creation date.
-     *     tags: [CT - Marinus date search count]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: search_type
-     *         type: string
-     *         required: true
-     *         description: Only "gt", "lt", and "range" is allowed
-     *         in: query
-     *         enum: ["gt", "lt", "range"]
-     *       - name: date_type
-     *         type: string
-     *         required: false
-     *         description: Only "created", and "updated" are allowed. The default is "created."
-     *         in: query
-     *         enum: ["created", "updated"]
-     *       - name: marinus_date
-     *         type: string
-     *         example: '1564970118000'
-     *         required: true
-     *         description: This is the default date for 'lt' and 'gt' searches. It is a Unix timestamp with milliseconds. It is used for the 'gt' value in a range check.
-     *         in: query
-     *       - name: end_date
-     *         type: string
-     *         example: '1564970118000'
-     *         description: The 'lt' value in a range search. It is a Unix timestamp with milliseconds.
-     *         required: false
-     *         in: query
-     *       - name: count
-     *         type: integer
-     *         required: true
-     *         description: Set to 1 to count the number of matching results
-     *         in: query
-     *     responses:
-     *       200:
-     *         description: Returns a JSON object with the number of matched certificates.
-     *         schema:
-     *           $ref: '#/definitions/CountResponse'
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       404:
-     *         description: No matching records found.
-     *         schema:
-     *           $ref: '#/definitions/ResultsNotFound'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     */
-    router.route('/ct/marinus_dates')
-    .get(function(req, res) {
-        if (!(req.query.hasOwnProperty('search_type'))) {
-            res.status(400).json({
-                'message': 'A search type must be provided.',
+    router.route('/ct/fingerprint/:fingerprint')
+        .get(function (req, res) {
+            if (!(req.params.hasOwnProperty('fingerprint'))) {
+                res.status(400).json({
+                    'message': 'An fingerprint value must be provided.',
                 });
-            return;
-        }
+                return;
+            }
 
-        let search_type = req.query.search_type;
+            var count = false;
+            if (req.query.hasOwnProperty('count') && req.query.count === "1") {
+                count = true;
+            }
 
-        if (search_type !== "gt" && search_type !== "lt" && search_type !== "range") {
-            res.status(400).json({
-                'message': 'An invalid search type was be provided.',
+            let promise;
+            if (req.params.fingerprint.length === 64) {
+                promise = ct.getCTCertByFingerprintSHA256(req.params.fingerprint, count);
+            } else if (req.params.fingerprint.length === 40) {
+                promise = ct.getCTCertByFingerprintSHA1(req.params.fingerprint, count);
+            } else {
+                res.status(400).json({ 'message': 'Invalid fingerprint value.' });
+                return;
+            }
+
+            promise.then(function (data) {
+                if (data === null) {
+                    res.status(404).json({ 'message': 'Fingerprint not found' });
+                    return;
+                }
+
+                if (count) {
+                    res.status(200).json({ 'count': data });
+                    return;
+                } else {
+                    res.status(200).json(data);
+                }
+
+                return;
             });
-            return;
-        }
-
-        if (!(req.query.hasOwnProperty('marinus_date'))) {
-            res.status(400).json({
-                'message': 'A Marinus date must be provided.',
-             });
-            return;
-        }
-
-        if (isValidDate(req.query.marinus_date) === false) {
-            res.status(400).json({
-                'message': 'A Marinus date must be in a Unix timestamp format.',
-             });
-            return;
-        }
-
-        let timestamp = parseInt(req.query.marinus_date);
-
-        var date_type = "created";
-        if (req.query.hasOwnProperty('date_type') && req.query.count === "updated") {
-            date_type = "updated";
-        }
-
-        var count = false;
-        if (req.query.hasOwnProperty('count') && req.query.count === "1") {
-            count = true;
-        }
-
-        let promise;
-        if (search_type === "gt") {
-            if (date_type == "created") {
-                promise = ct.getCTCertByGTMarinusUpdated(timestamp, count);
-            } else {
-                promise = ct.getCTCertByGTMarinusCreate(timestamp, count);
-            }
-        } else if (search_type === "lt") {
-            if (date_type == "created") {
-                promise = ct.getCTCertByLTMarinusUpdated(timestamp, count);
-            } else {
-                promise = ct.getCTCertByLTMarinusCreate(timestamp, count);
-            }
-        } else {
-            if (!(req.query.hasOwnProperty('end_date'))) {
-                res.status(400).json({
-                    'message': 'An end_date must be provided for range searches.',
-                 });
-                return;
-            }
-
-            if (isValidDate(req.query.end_date) === false) {
-                res.status(400).json({
-                    'message': 'The end date must be in a JavaScript Date supported format.',
-                 });
-                return;
-            }
-
-            let end_timestamp = parseInt(req.query.end_date);
-
-            if (date_type == "created") {
-                promise = ct.getCTCertByMarinusCreateRange(timestamp, end_timestamp, count);
-            } else {
-                promise = ct.getCTCertByMarinusUpdateRange(timestamp, end_timestamp, count);
-            }
-        }
-
-        promise.then(function(data) {
-            if (data === null) {
-                res.status(404).json({'message': 'Records not found'});
-                return;
-            }
-
-            if (count) {
-                res.status(200).json({'count': data});
-                return;
-            } else {
-                res.status(200).json(data);
-            }
-
-            return;
         });
-  });
+
+
+    /**
+   * @swagger
+   *
+   * security:
+   *   - APIKeyHeader: []
+   *
+   * tags:
+   *   - name: CT - Marinus date search
+   *     description: Check for certificates based on when they were recorded or updated within Marinus.
+   *   - name: CT - Marinus date search count
+   *     description: Count certificates based on when they were recorded or updated within Marinus.
+   *
+   * /api/v1.0/ct/marinus_dates:
+   *   get:
+   *   # Operation-specific security:
+   *     security:
+   *       - APIKeyHeader: []
+   *     description: Check for certificates based on when they were recorded within Marinus. The Marinus creation date and/or update date is not the same as the certificate creation date.
+   *     tags: [CT - Marinus date search]
+   *     produces:
+   *       - application/json
+   *     parameters:
+   *       - name: search_type
+   *         type: string
+   *         required: true
+   *         description: Only "gt", "lt", and "range" is allowed
+   *         in: query
+   *         enum: ["gt", "lt", "range"]
+   *       - name: marinus_date
+   *         type: string
+   *         example: '1564970118000'
+   *         required: true
+   *         description: This is the default date for 'lt' and 'gt' searches. It is a Unix timestamp with milliseconds. It is used for the 'gt' value in a range check.
+   *         in: query
+   *       - name: end_date
+   *         type: string
+   *         example: '1564970118000'
+   *         description: The 'lt' value in a range search. It is a Unix timestamp with milliseconds.
+   *         required: false
+   *         in: query
+   *       - name: date_type
+   *         type: string
+   *         required: false
+   *         description: Only "created", and "updated" are allowed. The default is "created."
+   *         in: query
+   *         enum: ["created", "updated"]
+   *     responses:
+   *       200:
+   *         description: Returns a JSON array object with the matched certificates.
+   *         schema:
+   *           $ref: '#/definitions/CT-LogResponse'
+   *       400:
+   *         description: Bad request parameters.
+   *         schema:
+   *           $ref: '#/definitions/BadInputError'
+   *       404:
+   *         description: No matching records found.
+   *         schema:
+   *           $ref: '#/definitions/ResultsNotFound'
+   *       500:
+   *         description: Server error.
+   *         schema:
+   *           $ref: '#/definitions/ServerError'
+   *
+   * /api/v1.0/ct/marinus_dates?count=1:
+   *   get:
+   *   # Operation-specific security:
+   *     security:
+   *       - APIKeyHeader: []
+   *     description: Count certificates based on when they were recorded or updated within Marinus. The Marinus creation date and/or update date is not the same as the certificate creation date.
+   *     tags: [CT - Marinus date search count]
+   *     produces:
+   *       - application/json
+   *     parameters:
+   *       - name: search_type
+   *         type: string
+   *         required: true
+   *         description: Only "gt", "lt", and "range" is allowed
+   *         in: query
+   *         enum: ["gt", "lt", "range"]
+   *       - name: date_type
+   *         type: string
+   *         required: false
+   *         description: Only "created", and "updated" are allowed. The default is "created."
+   *         in: query
+   *         enum: ["created", "updated"]
+   *       - name: marinus_date
+   *         type: string
+   *         example: '1564970118000'
+   *         required: true
+   *         description: This is the default date for 'lt' and 'gt' searches. It is a Unix timestamp with milliseconds. It is used for the 'gt' value in a range check.
+   *         in: query
+   *       - name: end_date
+   *         type: string
+   *         example: '1564970118000'
+   *         description: The 'lt' value in a range search. It is a Unix timestamp with milliseconds.
+   *         required: false
+   *         in: query
+   *       - name: count
+   *         type: integer
+   *         required: true
+   *         description: Set to 1 to count the number of matching results
+   *         in: query
+   *     responses:
+   *       200:
+   *         description: Returns a JSON object with the number of matched certificates.
+   *         schema:
+   *           $ref: '#/definitions/CountResponse'
+   *       400:
+   *         description: Bad request parameters.
+   *         schema:
+   *           $ref: '#/definitions/BadInputError'
+   *       404:
+   *         description: No matching records found.
+   *         schema:
+   *           $ref: '#/definitions/ResultsNotFound'
+   *       500:
+   *         description: Server error.
+   *         schema:
+   *           $ref: '#/definitions/ServerError'
+   */
+    router.route('/ct/marinus_dates')
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('search_type'))) {
+                res.status(400).json({
+                    'message': 'A search type must be provided.',
+                });
+                return;
+            }
+
+            let search_type = req.query.search_type;
+
+            if (search_type !== "gt" && search_type !== "lt" && search_type !== "range") {
+                res.status(400).json({
+                    'message': 'An invalid search type was be provided.',
+                });
+                return;
+            }
+
+            if (!(req.query.hasOwnProperty('marinus_date'))) {
+                res.status(400).json({
+                    'message': 'A Marinus date must be provided.',
+                });
+                return;
+            }
+
+            if (isValidDate(req.query.marinus_date) === false) {
+                res.status(400).json({
+                    'message': 'A Marinus date must be in a Unix timestamp format.',
+                });
+                return;
+            }
+
+            let timestamp = parseInt(req.query.marinus_date);
+
+            var date_type = "created";
+            if (req.query.hasOwnProperty('date_type') && req.query.count === "updated") {
+                date_type = "updated";
+            }
+
+            var count = false;
+            if (req.query.hasOwnProperty('count') && req.query.count === "1") {
+                count = true;
+            }
+
+            let promise;
+            if (search_type === "gt") {
+                if (date_type == "created") {
+                    promise = ct.getCTCertByGTMarinusUpdated(timestamp, count);
+                } else {
+                    promise = ct.getCTCertByGTMarinusCreate(timestamp, count);
+                }
+            } else if (search_type === "lt") {
+                if (date_type == "created") {
+                    promise = ct.getCTCertByLTMarinusUpdated(timestamp, count);
+                } else {
+                    promise = ct.getCTCertByLTMarinusCreate(timestamp, count);
+                }
+            } else {
+                if (!(req.query.hasOwnProperty('end_date'))) {
+                    res.status(400).json({
+                        'message': 'An end_date must be provided for range searches.',
+                    });
+                    return;
+                }
+
+                if (isValidDate(req.query.end_date) === false) {
+                    res.status(400).json({
+                        'message': 'The end date must be in a JavaScript Date supported format.',
+                    });
+                    return;
+                }
+
+                let end_timestamp = parseInt(req.query.end_date);
+
+                if (date_type == "created") {
+                    promise = ct.getCTCertByMarinusCreateRange(timestamp, end_timestamp, count);
+                } else {
+                    promise = ct.getCTCertByMarinusUpdateRange(timestamp, end_timestamp, count);
+                }
+            }
+
+            promise.then(function (data) {
+                if (data === null) {
+                    res.status(404).json({ 'message': 'Records not found' });
+                    return;
+                }
+
+                if (count) {
+                    res.status(200).json({ 'count': data });
+                    return;
+                } else {
+                    res.status(200).json(data);
+                }
+
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -1002,18 +1002,18 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/issuers')
-    .get(function(req, res) {
-      let promise = ct.getDistinctIssuers(true);
-      promise.then(function(data) {
-          if (data === null) {
-              res.status(500).json({'message': 'Error with query'});
-              return;
-          }
-          res.status(200).json(data);
-          return;
-      });
-  });
+    router.route('/ct/issuers')
+        .get(function (req, res) {
+            let promise = ct.getDistinctIssuers(true);
+            promise.then(function (data) {
+                if (data === null) {
+                    res.status(500).json({ 'message': 'Error with query' });
+                    return;
+                }
+                res.status(200).json(data);
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -1088,26 +1088,26 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/issuers/:issuer')
-    .get(function(req, res) {
-      let count = false;
-      if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-          count = true;
-      }
-      let promise = ct.getCertTransIssuers(req.params.issuer, count, true);
-      promise.then(function(data) {
-          if (data == null) {
-              res.status(404).json({'message': 'Issuer not found'});
-              return;
-          }
-          if (count) {
-              res.status(200).json({'count': data});
-              return;
-          } else {
-              res.status(200).json(data);
-          }
-      });
-  });
+    router.route('/ct/issuers/:issuer')
+        .get(function (req, res) {
+            let count = false;
+            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                count = true;
+            }
+            let promise = ct.getCertTransIssuers(req.params.issuer, count, true);
+            promise.then(function (data) {
+                if (data == null) {
+                    res.status(404).json({ 'message': 'Issuer not found' });
+                    return;
+                }
+                if (count) {
+                    res.status(200).json({ 'count': data });
+                    return;
+                } else {
+                    res.status(200).json(data);
+                }
+            });
+        });
 
     /**
      * @swagger
@@ -1148,20 +1148,20 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/id/:id')
-    .get(function(req, res) {
-       let promise = ct.getCertTransById(req.params.id);
+    router.route('/ct/id/:id')
+        .get(function (req, res) {
+            let promise = ct.getCertTransById(req.params.id);
 
-       promise.then(function(data) {
-           if (data == null) {
-               res.status(404).json({'message': 'ID not found'});
-               return;
-           }
+            promise.then(function (data) {
+                if (data == null) {
+                    res.status(404).json({ 'message': 'ID not found' });
+                    return;
+                }
 
-           res.status(200).json(data);
-           return;
-       });
-  });
+                res.status(200).json(data);
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -1208,34 +1208,34 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/download/:id')
-    .get(function(req, res) {
-       let promise;
-       if (req.params.id.length === 24) {
-         promise = ct.getCertTransById(req.params.id);
-       } else if (req.params.id.length === 40) {
-         promise = ct.getCTCertByFingerprintSHA1(req.params.id);
-       } else if (req.params.id.length === 64) {
-         promise = ct.getCTCertByFingerprintSHA256(req.params.id);
-       } else {
-           res.status(400);
-           res.res.json({'message': 'Unrecognized ID'});
-           return;
-       }
+    router.route('/ct/download/:id')
+        .get(function (req, res) {
+            let promise;
+            if (req.params.id.length === 24) {
+                promise = ct.getCertTransById(req.params.id);
+            } else if (req.params.id.length === 40) {
+                promise = ct.getCTCertByFingerprintSHA1(req.params.id);
+            } else if (req.params.id.length === 64) {
+                promise = ct.getCTCertByFingerprintSHA256(req.params.id);
+            } else {
+                res.status(400);
+                res.res.json({ 'message': 'Unrecognized ID' });
+                return;
+            }
 
-       promise.then(function(data) {
-           if (data === null) {
-               res.status(404).json({'message': 'ID not found'});
-               return;
-           }
-           res.setHeader('Content-disposition', 'attachment; filename=' + data['_id'] + '.der');
-           res.setHeader('Content-type', 'application/octet-stream');
-           let b64string = data['raw'];
-           let buf = new Buffer(b64string, 'base64');
-           res.status(200).send(buf);
-           return;
-       });
-  });
+            promise.then(function (data) {
+                if (data === null) {
+                    res.status(404).json({ 'message': 'ID not found' });
+                    return;
+                }
+                res.setHeader('Content-disposition', 'attachment; filename=' + data['_id'] + '.der');
+                res.setHeader('Content-type', 'application/octet-stream');
+                let b64string = data['raw'];
+                let buf = new Buffer(b64string, 'base64');
+                res.status(200).send(buf);
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -1315,32 +1315,32 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/corp_certs')
-    .get(function(req, res) {
-       let count = false;
-       if (req.query.hasOwnProperty("count") && req.query.count === "1") {
-           count = true;
-       }
-       let promise;
-       if (req.query.hasOwnProperty('exclude_expired') && req.query.exclude_expired === "1") {
-           promise = ct.getCertTransCorpPromise(envConfig.internalDomain, true, count);
-       } else {
-           promise = ct.getCertTransCorpPromise(envConfig.internalDomain, false, count);
-       }
+    router.route('/ct/corp_certs')
+        .get(function (req, res) {
+            let count = false;
+            if (req.query.hasOwnProperty("count") && req.query.count === "1") {
+                count = true;
+            }
+            let promise;
+            if (req.query.hasOwnProperty('exclude_expired') && req.query.exclude_expired === "1") {
+                promise = ct.getCertTransCorpPromise(envConfig.internalDomain, true, count);
+            } else {
+                promise = ct.getCertTransCorpPromise(envConfig.internalDomain, false, count);
+            }
 
-       promise.then(function(data) {
-           if (data === null) {
-               res.status(404).json({'message': 'CN not found'});
-               return;
-           }
-           if (count) {
-               res.status(200).json({'count': data});
-               return;
-           }
-           res.status(200).json(data);
-           return;
-       });
-  });
+            promise.then(function (data) {
+                if (data === null) {
+                    res.status(404).json({ 'message': 'CN not found' });
+                    return;
+                }
+                if (count) {
+                    res.status(200).json({ 'count': data });
+                    return;
+                }
+                res.status(200).json(data);
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -1418,28 +1418,28 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/signature_algorithm')
-    .get(function(req, res) {
-      let alg = 'RSA-SHA1';
-      if (req.query.hasOwnProperty('algorithm')) {
-          alg = req.query.algorithm;
-      }
+    router.route('/ct/signature_algorithm')
+        .get(function (req, res) {
+            let alg = 'RSA-SHA1';
+            if (req.query.hasOwnProperty('algorithm')) {
+                alg = req.query.algorithm;
+            }
 
-      let count = false;
-      if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-          count = true;
-      }
+            let count = false;
+            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                count = true;
+            }
 
-      let promise = ct.getUnexpiredSigAlg(alg, count);
-      promise.then(function(data) {
-          if (!data) {
-              res.status(500).json({'message': 'Error during query'});
-              return;
-          }
-          res.status(200).json({'count': data});
-          return;
-      });
-  });
+            let promise = ct.getUnexpiredSigAlg(alg, count);
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(500).json({ 'message': 'Error during query' });
+                    return;
+                }
+                res.status(200).json({ 'count': data });
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -1481,18 +1481,18 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/corp_count')
-    .get(function(req, res) {
-      let promise = ct.getCorpCount(envConfig.internalDomain);
-      promise.then(function(data) {
-            if (!data) {
-              res.status(500).json({'message': 'Error during query'});
-              return;
-          }
-          res.status(200).json({'count': data});
-          return;
-      });
-  });
+    router.route('/ct/corp_count')
+        .get(function (req, res) {
+            let promise = ct.getCorpCount(envConfig.internalDomain);
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(500).json({ 'message': 'Error during query' });
+                    return;
+                }
+                res.status(200).json({ 'count': data });
+                return;
+            });
+        });
 
     /**
      * @swagger
@@ -1523,18 +1523,18 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/ct/total_count')
-    .get(function(req, res) {
-      let promise = ct.getCertCount();
-      promise.then(function(data) {
-            if (!data) {
-              res.status(500).json({'message': 'Error during query'});
-              return;
-          }
-          res.status(200).json({'count': data});
-          return;
-      });
-  });
+    router.route('/ct/total_count')
+        .get(function (req, res) {
+            let promise = ct.getCertCount();
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(500).json({ 'message': 'Error during query' });
+                    return;
+                }
+                res.status(200).json({ 'count': data });
+                return;
+            });
+        });
 
-  return (router);
+    return (router);
 };

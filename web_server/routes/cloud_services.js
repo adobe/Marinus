@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -24,7 +24,7 @@ const azureiIPs = require('../config/models/azure_ips');
 const gcpIPs = require('../config/models/gcp_ips');
 const custom_errors = require('../config/error');
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
     /**
      * @swagger
      *
@@ -79,7 +79,7 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/aws/ip_check')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({
                     'message': 'An IP must be provided',
@@ -88,33 +88,33 @@ module.exports = function(envConfig) {
             }
 
             let promise = awsIPs.getAwsIpZonesPromise();
-            promise.then(function(results) {
-               if (!results) {
-                   res.status(500).json({
-                       'message': 'Error fetching AWS information!',
+            promise.then(function (results) {
+                if (!results) {
+                    res.status(500).json({
+                        'message': 'Error fetching AWS information!',
                     });
-                   return;
-               }
-               let matcher;
-               for (let i =0; i < results[0]['prefixes'].length; i++) {
-                   /**
-                    * This is inefficient since you could add all the prefixes
-                    * to a single CIDRMatcher, and then check once.
-                    * However, then you would not know which record was matched.
-                    */
-                   matcher = new CIDRMatcher();
-                   matcher.addNetworkClass(results[0]['prefixes'][i]['ip_prefix']);
-                   if (matcher.contains(req.query.ip)) {
-                       res.status(200).json({
+                    return;
+                }
+                let matcher;
+                for (let i = 0; i < results[0]['prefixes'].length; i++) {
+                    /**
+                     * This is inefficient since you could add all the prefixes
+                     * to a single CIDRMatcher, and then check once.
+                     * However, then you would not know which record was matched.
+                     */
+                    matcher = new CIDRMatcher();
+                    matcher.addNetworkClass(results[0]['prefixes'][i]['ip_prefix']);
+                    if (matcher.contains(req.query.ip)) {
+                        res.status(200).json({
                             'result': true,
                             'record': results[0]['prefixes'][i],
                         });
-                       return;
-                   }
-               }
+                        return;
+                    }
+                }
 
-               res.status(200).json({'result': false});
-               return;
+                res.status(200).json({ 'result': false });
+                return;
             });
         });
 
@@ -172,7 +172,7 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/aws/ipv6_check')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({
                     'message': 'An IPv6 IP must be provided',
@@ -181,31 +181,31 @@ module.exports = function(envConfig) {
             }
 
             let promise = awsIPs.getAwsIpv6ZonesPromise();
-            promise.then(function(results) {
-               if (!results) {
-                   res.status(500).json({
-                       'message': 'Error fetching AWS information!',
+            promise.then(function (results) {
+                if (!results) {
+                    res.status(500).json({
+                        'message': 'Error fetching AWS information!',
                     });
-                   return;
+                    return;
                 }
 
-               for (let i =0; i < results[0]['ipv6_prefixes'].length; i++) {
-                   /**
-                    * This is inefficient since you could add all the prefixes
-                    * to a single rangecheck call.
-                    * However, then you would not know which record was matched.
-                    */
-                   if (rangeCheck.inRange(req.query.ip, results[0]['ipv6_prefixes'][i]['ipv6_prefix'])) {
-                       res.status(200).json({
+                for (let i = 0; i < results[0]['ipv6_prefixes'].length; i++) {
+                    /**
+                     * This is inefficient since you could add all the prefixes
+                     * to a single rangecheck call.
+                     * However, then you would not know which record was matched.
+                     */
+                    if (rangeCheck.inRange(req.query.ip, results[0]['ipv6_prefixes'][i]['ipv6_prefix'])) {
+                        res.status(200).json({
                             'result': true,
                             'record': results[0]['ipv6_prefixes'][i],
                         });
-                       return;
-                   }
-               }
+                        return;
+                    }
+                }
 
-               res.status(200).json({'result': false});
-               return;
+                res.status(200).json({ 'result': false });
+                return;
             });
         });
 
@@ -265,31 +265,31 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/akamai/ip_check')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('ip'))) {
-                res.status(400).json({'message': 'An IP must be provided'});
+                res.status(400).json({ 'message': 'An IP must be provided' });
                 return;
             }
 
             let promise = akamaiIPs.getAkamaiIpZonesPromise();
-            promise.then(function(results) {
-               if (!results) {
-                   res.status(500).json({
-                       'message': 'Error fetching Akamai information!',
+            promise.then(function (results) {
+                if (!results) {
+                    res.status(500).json({
+                        'message': 'Error fetching Akamai information!',
                     });
-                   return;
-               }
-               let matcher = new CIDRMatcher();
-               for (let i =0; i < results[0]['ranges'].length; i++) {
-                  matcher.addNetworkClass(results[0]['ranges'][i]['cidr']);
-               }
-
-               if (matcher.contains(req.query.ip)) {
-                    res.status(200).json({'result': true});
                     return;
-               }
-               res.status(200).json({'result': false});
-               return;
+                }
+                let matcher = new CIDRMatcher();
+                for (let i = 0; i < results[0]['ranges'].length; i++) {
+                    matcher.addNetworkClass(results[0]['ranges'][i]['cidr']);
+                }
+
+                if (matcher.contains(req.query.ip)) {
+                    res.status(200).json({ 'result': true });
+                    return;
+                }
+                res.status(200).json({ 'result': false });
+                return;
             });
         });
 
@@ -347,28 +347,28 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/akamai/ipv6_check')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('ip'))) {
-                res.status(400).json({'message': 'An IP must be provided'});
+                res.status(400).json({ 'message': 'An IP must be provided' });
                 return;
             }
 
             let promise = akamaiIPs.getAkamaiIpv6ZonesPromise();
-            promise.then(function(results) {
-               if (!results) {
+            promise.then(function (results) {
+                if (!results) {
                     res.status(500).json({
-                       'message': 'Error fetching Akamai information!',
+                        'message': 'Error fetching Akamai information!',
                     });
                     return;
-               }
-               for (let i =0; i < results[0]['ipv6_ranges'].length; i++) {
+                }
+                for (let i = 0; i < results[0]['ipv6_ranges'].length; i++) {
                     if (rangeCheck.inRange(req.query.ip, results[0]['ipv6_ranges'][i]['cidr'])) {
-                        res.status(200).json({'result': true});
+                        res.status(200).json({ 'result': true });
                         return;
                     }
-               }
-               res.status(200).json({'result': false});
-               return;
+                }
+                res.status(200).json({ 'result': false });
+                return;
             });
         });
 
@@ -426,7 +426,7 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/azure/ip_check')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({
                     'message': 'An IP must be provided',
@@ -435,32 +435,32 @@ module.exports = function(envConfig) {
             }
 
             let promise = azureiIPs.getAzureIpZonesPromise();
-            promise.then(function(results) {
-               if (!results) {
-                   res.status(500).json({
-                       'message': 'Error fetching Azure information!',
+            promise.then(function (results) {
+                if (!results) {
+                    res.status(500).json({
+                        'message': 'Error fetching Azure information!',
                     });
-                   return;
-               }
-               let matcher;
-               for (let i =0; i < results[0]['prefixes'].length; i++) {
-                   /**
-                    * This is inefficient since you could add all the prefixes
-                    * to a single CIDRMatcher, and then check once.
-                    * However, then you would not know which record was matched.
-                    */
-                   matcher = new CIDRMatcher();
-                   matcher.addNetworkClass(results[0]['prefixes'][i]['ip_prefix']);
-                   if (matcher.contains(req.query.ip)) {
-                       res.status(200).json({
+                    return;
+                }
+                let matcher;
+                for (let i = 0; i < results[0]['prefixes'].length; i++) {
+                    /**
+                     * This is inefficient since you could add all the prefixes
+                     * to a single CIDRMatcher, and then check once.
+                     * However, then you would not know which record was matched.
+                     */
+                    matcher = new CIDRMatcher();
+                    matcher.addNetworkClass(results[0]['prefixes'][i]['ip_prefix']);
+                    if (matcher.contains(req.query.ip)) {
+                        res.status(200).json({
                             'result': true,
                             'record': results[0]['prefixes'][i],
-                            });
-                       return;
-                   }
-               }
-               res.status(200).json({'result': false});
-               return;
+                        });
+                        return;
+                    }
+                }
+                res.status(200).json({ 'result': false });
+                return;
             });
         });
 
@@ -519,7 +519,7 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/gcp/ip_check')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({
                     'message': 'An IP must be provided',
@@ -528,33 +528,33 @@ module.exports = function(envConfig) {
             }
 
             let promise = gcpIPs.getGCPIpZonesPromise();
-            promise.then(function(results) {
-               if (!results) {
-                   res.status(500).json({
-                       'message': 'Error fetching GCP information!',
+            promise.then(function (results) {
+                if (!results) {
+                    res.status(500).json({
+                        'message': 'Error fetching GCP information!',
                     });
-                   return;
-               }
-               let matcher;
-               for (let i =0; i < results[0]['prefixes'].length; i++) {
-                   /**
-                    * This is inefficient since you could add all the prefixes
-                    * to a single CIDRMatcher, and then check once.
-                    * However, then you would not know which record was matched.
-                    */
-                   matcher = new CIDRMatcher();
-                   matcher.addNetworkClass(results[0]['prefixes'][i]['ip_prefix']);
-                   if (matcher.contains(req.query.ip)) {
-                       res.status(200).json({
+                    return;
+                }
+                let matcher;
+                for (let i = 0; i < results[0]['prefixes'].length; i++) {
+                    /**
+                     * This is inefficient since you could add all the prefixes
+                     * to a single CIDRMatcher, and then check once.
+                     * However, then you would not know which record was matched.
+                     */
+                    matcher = new CIDRMatcher();
+                    matcher.addNetworkClass(results[0]['prefixes'][i]['ip_prefix']);
+                    if (matcher.contains(req.query.ip)) {
+                        res.status(200).json({
                             'result': true,
                             'record': results[0]['prefixes'][i],
                         });
-                       return;
-                   }
-               }
+                        return;
+                    }
+                }
 
-               res.status(200).json({'result': false});
-               return;
+                res.status(200).json({ 'result': false });
+                return;
             });
         });
 
@@ -612,7 +612,7 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/gcp/ipv6_check')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({
                     'message': 'An IPv6 IP must be provided',
@@ -621,31 +621,31 @@ module.exports = function(envConfig) {
             }
 
             let promise = gcpIPs.getGCPIpv6ZonesPromise();
-            promise.then(function(results) {
-               if (!results) {
-                   res.status(500).json({
-                       'message': 'Error fetching GCP information!',
+            promise.then(function (results) {
+                if (!results) {
+                    res.status(500).json({
+                        'message': 'Error fetching GCP information!',
                     });
-                   return;
+                    return;
                 }
 
-               for (let i =0; i < results[0]['ipv6_prefixes'].length; i++) {
-                   /**
-                    * This is inefficient since you could add all the prefixes
-                    * to a single rangecheck call.
-                    * However, then you would not know which record was matched.
-                    */
-                   if (rangeCheck.inRange(req.query.ip, results[0]['ipv6_prefixes'][i]['ipv6_prefix'])) {
-                       res.status(200).json({
+                for (let i = 0; i < results[0]['ipv6_prefixes'].length; i++) {
+                    /**
+                     * This is inefficient since you could add all the prefixes
+                     * to a single rangecheck call.
+                     * However, then you would not know which record was matched.
+                     */
+                    if (rangeCheck.inRange(req.query.ip, results[0]['ipv6_prefixes'][i]['ipv6_prefix'])) {
+                        res.status(200).json({
                             'result': true,
                             'record': results[0]['ipv6_prefixes'][i],
                         });
-                       return;
-                   }
-               }
+                        return;
+                    }
+                }
 
-               res.status(200).json({'result': false});
-               return;
+                res.status(200).json({ 'result': false });
+                return;
             });
         });
 

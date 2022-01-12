@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -110,7 +110,7 @@ const whoisDB = require('../config/models/whois_db');
  *
  */
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
     /**
      * @swagger
      *
@@ -314,129 +314,129 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-  router.route('/whois_db')
-    .get(function(req, res) {
-       let promise;
-       if (req.query.hasOwnProperty('zone')) {
-            promise = whoisDB.getRecordByZonePromise(req.query.zone);
-       } else if (req.query.hasOwnProperty('name_server')) {
-           let ns = req.query.name_server;
-           if (ns === 'null') {
-              if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                  promise = whoisDB.getWhoisDNSServerNullRecords(true);
-              } else {
-                  promise = whoisDB.getWhoisDNSServerNullRecords(false);
-              }
-           } else {
-              if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                  promise = whoisDB.getWhoisDNSServerRecords(ns, true);
-              } else {
-                  promise = whoisDB.getWhoisDNSServerRecords(ns, false);
-              }
-           }
-       } else if (req.query.hasOwnProperty('distinct') && req.query.distinct === '1') {
-           promise = whoisDB.getWhoisDistinctDNSServerRecords();
-           promise.then(function(data) {
-                if (data === null) {
-                    res.status(404).json({'message': 'Error fetching list'});
+    router.route('/whois_db')
+        .get(function (req, res) {
+            let promise;
+            if (req.query.hasOwnProperty('zone')) {
+                promise = whoisDB.getRecordByZonePromise(req.query.zone);
+            } else if (req.query.hasOwnProperty('name_server')) {
+                let ns = req.query.name_server;
+                if (ns === 'null') {
+                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                        promise = whoisDB.getWhoisDNSServerNullRecords(true);
+                    } else {
+                        promise = whoisDB.getWhoisDNSServerNullRecords(false);
+                    }
+                } else {
+                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                        promise = whoisDB.getWhoisDNSServerRecords(ns, true);
+                    } else {
+                        promise = whoisDB.getWhoisDNSServerRecords(ns, false);
+                    }
+                }
+            } else if (req.query.hasOwnProperty('distinct') && req.query.distinct === '1') {
+                promise = whoisDB.getWhoisDistinctDNSServerRecords();
+                promise.then(function (data) {
+                    if (data === null) {
+                        res.status(404).json({ 'message': 'Error fetching list' });
+                        return;
+                    }
+
+                    // Merge the results into a case-insensitve list
+                    let new_list = new Set();
+                    for (let entry in data) {
+                        if (data[entry] != null) {
+                            new_list.add(data[entry].toLowerCase());
+                        }
+                    }
+                    res.status(200).json({ "name_servers": Array.from(new_list) });
+                });
+                return;
+            } else if (req.query.hasOwnProperty('distinct_groups') && req.query.distinct_groups === '1') {
+                promise = whoisDB.getWhoisDistinctDNSServerGroupRecords();
+                promise.then(function (data) {
+                    if (data === null) {
+                        res.status(404).json({ 'message': 'Error fetching list' });
+                        return;
+                    }
+                    res.status(200).json({ "name_server_groups": data });
+                });
+                return;
+            } else if (req.query.hasOwnProperty('dnssec')) {
+                let dnssec = req.query.dnssec;
+                if (dnssec !== 'signed'
+                    && dnssec !== 'unsigned'
+                    && dnssec !== 'inactive'
+                    && dnssec !== 'unknown') {
+                    res.status(400).json({ 'message': 'Unrecognized DNSSEC request' });
                     return;
                 }
 
-                // Merge the results into a case-insensitve list
-                let new_list = new Set();
-                for (let entry in data) {
-                   if (data[entry] != null) {
-                       new_list.add(data[entry].toLowerCase());
-                   }
+                if (dnssec === 'unknown') {
+                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                        promise = whoisDB.getWhoisDNSSECOtherRecords(true);
+                    } else {
+                        promise = whoisDB.getWhoisDNSSECOtherRecords(false);
+                    }
+                } else {
+                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                        promise = whoisDB.getWhoisDNSSECRecords(dnssec, true);
+                    } else {
+                        promise = whoisDB.getWhoisDNSSECRecords(dnssec, false);
+                    }
                 }
-                res.status(200).json({"name_servers": Array.from(new_list)});
-           });
-           return;
-       } else if (req.query.hasOwnProperty('distinct_groups') && req.query.distinct_groups === '1') {
-            promise = whoisDB.getWhoisDistinctDNSServerGroupRecords();
-            promise.then(function(data) {
-                 if (data === null) {
-                     res.status(404).json({'message': 'Error fetching list'});
-                     return;
-                 }
-                res.status(200).json({"name_server_groups": data});
-            });
-            return;
-       } else if (req.query.hasOwnProperty('dnssec')) {
-           let dnssec = req.query.dnssec;
-           if (dnssec !== 'signed'
-               && dnssec !== 'unsigned'
-               && dnssec !== 'inactive'
-               && dnssec !== 'unknown') {
-               res.status(400).json({'message': 'Unrecognized DNSSEC request'});
-               return;
-           }
+            } else if (req.query.hasOwnProperty('email')) {
+                let email = req.query.email;
+                let re = new RegExp('^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\.([a-zA-Z]{2,5})$');
+                if (email !== 'none' && !(re.test(email))) {
+                    res.status(400).json({
+                        'message': 'An invalid email has been provided',
+                    });
+                    return;
+                }
+                let count = false;
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    count = true;
+                }
+                if (email === 'none') {
+                    promise = whoisDB.getWhoisEmailNullRecords(count);
+                } else {
+                    promise = whoisDB.getWhoisEmailRecords(email, count);
+                }
+            } else if (req.query.hasOwnProperty('count')) {
+                promise = whoisDB.getWhoisRecordCount();
+                promise.then(function (data) {
+                    if (data === null) {
+                        res.status(404).json({ 'message': 'Count failed.' });
+                        return;
+                    }
 
-           if (dnssec === 'unknown') {
-              if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                  promise = whoisDB.getWhoisDNSSECOtherRecords(true);
-              } else {
-                  promise = whoisDB.getWhoisDNSSECOtherRecords(false);
-              }
-           } else {
-              if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                  promise = whoisDB.getWhoisDNSSECRecords(dnssec, true);
-              } else {
-                  promise = whoisDB.getWhoisDNSSECRecords(dnssec, false);
-              }
-           }
-       } else if (req.query.hasOwnProperty('email')) {
-           let email = req.query.email;
-           let re = new RegExp('^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\.([a-zA-Z]{2,5})$');
-           if (email !== 'none' && !(re.test(email))) {
-               res.status(400).json({
-                   'message': 'An invalid email has been provided',
+                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                        res.status(200).json({ 'count': data });
+                    } else {
+                        res.status(200).json(data);
+                    }
+                    return;
                 });
-               return;
-           }
-           let count = false;
-           if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-               count = true;
-           }
-           if (email === 'none') {
-               promise = whoisDB.getWhoisEmailNullRecords(count);
-           } else {
-               promise = whoisDB.getWhoisEmailRecords(email, count);
-           }
-       } else if (req.query.hasOwnProperty('count')) {
-           promise = whoisDB.getWhoisRecordCount();
-           promise.then(function(data) {
+            } else {
+                res.status(400).json({ 'message': 'A zone, count, email, dnssec, distinct, distinct_groups, or name_server value must be provided.' });
+                return;
+            }
+            promise.then(function (data) {
                 if (data === null) {
-                    res.status(404).json({'message': 'Count failed.'});
+                    res.status(404).json({ 'message': 'Records not found' });
                     return;
                 }
 
                 if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
                 return;
-           });
-       } else {
-           res.status(400).json({'message': 'A zone, count, email, dnssec, distinct, distinct_groups, or name_server value must be provided.'});
-           return;
-       }
-       promise.then(function(data) {
-           if (data === null) {
-               res.status(404).json({'message': 'Records not found'});
-               return;
-           }
+            });
+        });
 
-           if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                res.status(200).json({'count': data});
-           } else {
-                res.status(200).json(data);
-           }
-           return;
-       });
-    });
-
-  return (router);
+    return (router);
 };
 

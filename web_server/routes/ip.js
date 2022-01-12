@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2019 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -74,7 +74,7 @@ const ipRecs = require('../config/models/ip');
  *             example: ["The raw splunk records for the associated host"]
  */
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
     /**
      * @swagger
      *
@@ -224,7 +224,7 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/ips')
-        .get(function(req, res) {
+        .get(function (req, res) {
             let promise;
             let count = false;
 
@@ -236,7 +236,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
-                    res.status(400).json({'message': 'A valid limit value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
                     return;
                 }
                 if (limit < 0) {
@@ -248,7 +248,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -259,7 +259,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('partner')) {
                 let partner = req.query.partner;
                 if (partner != "AWS" && partner != "AZURE" && partner != "TRACKED") {
-                    res.status(400).json({'message': 'Unknown hosting partner'});
+                    res.status(400).json({ 'message': 'Unknown hosting partner' });
                     return;
                 }
                 promise = ipRecs.getIPRecordsByHostPartnerPromise(partner, count, limit, page);
@@ -273,7 +273,7 @@ module.exports = function(envConfig) {
                 promise = ipRecs.getIPRecordsByHostCIDRPromise(req.query.host_cidr, count);
             } else if (req.query.hasOwnProperty('ip_version')) {
                 if (req.query.ip_version != "4" && req.query.ip_version != "6") {
-                    res.status(400).json({'message': 'Acceptable values are either "4" or "6"'});
+                    res.status(400).json({ 'message': 'Acceptable values are either "4" or "6"' });
                     return;
                 }
                 promise = ipRecs.getIPRecordsByIPVersionPromise(req.query.ip_version, count, limit, page);
@@ -287,13 +287,13 @@ module.exports = function(envConfig) {
                 promise = ipRecs.getAllIPRecordsPromise();
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data || data.length === 0) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }

@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -243,7 +243,7 @@ const vt = require('../config/models/virustotal');
  *       - $ref: '#/definitions/VT-DomainRecord'
  *
  */
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
     /**
      * @swagger
      *
@@ -338,52 +338,52 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/virustotal/domainDetected')
-        .get(function(req, res) {
-              if (!(req.query.hasOwnProperty('type'))) {
-                  res.status(400).json({'message': 'A type must be provided'});
-                  return;
-              }
-              let type = req.query.type;
-              let count = false;
-              if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                  count = true;
-              }
-              let promise;
-              if (req.query.hasOwnProperty('zone') &&
-                   req.query.zone.length > 0) {
-                  if (type === 'referrer') {
-                      promise = vt.getDetectedReferrerSamplesByZonePromise(req.query.zone, count);
-                  } else if (type === 'communicating') {
-                      promise = vt.getDetectedCommunicatingSamplesByZonePromise(req.query.zone, count);
-                  } else if (type === 'urls') {
-                      promise = vt.getDetectedURLsByZonePromise(req.query.zone, count);
-                  } else if (type === 'downloaded') {
-                      promise = vt.getDetectedDownloadedSamplesByZonePromise(req.query.zone, count);
-                  } else {
-                      res.status(400).json({'message': 'Unknown Type'});
-                      return;
-                  }
-              } else {
-                  if (type === 'referrer') {
-                      promise = vt.getDetectedReferrerSamplesPromise(count);
-                  } else if (type === 'communicating') {
-                      promise = vt.getDetectedCommunicatingSamplesPromise(count);
-                  } else if (type === 'urls') {
-                      promise = vt.getDetectedURLsPromise(count);
-                  } else if (type === 'downloaded') {
-                      promise = vt.getDetectedDownloadedSamplesPromise(count);
-                  } else {
-                      res.status(400).json({'message': 'Unknown Type'});
-                      return;
-                  }
-              }
-              promise.then(function(data) {
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('type'))) {
+                res.status(400).json({ 'message': 'A type must be provided' });
+                return;
+            }
+            let type = req.query.type;
+            let count = false;
+            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                count = true;
+            }
+            let promise;
+            if (req.query.hasOwnProperty('zone') &&
+                req.query.zone.length > 0) {
+                if (type === 'referrer') {
+                    promise = vt.getDetectedReferrerSamplesByZonePromise(req.query.zone, count);
+                } else if (type === 'communicating') {
+                    promise = vt.getDetectedCommunicatingSamplesByZonePromise(req.query.zone, count);
+                } else if (type === 'urls') {
+                    promise = vt.getDetectedURLsByZonePromise(req.query.zone, count);
+                } else if (type === 'downloaded') {
+                    promise = vt.getDetectedDownloadedSamplesByZonePromise(req.query.zone, count);
+                } else {
+                    res.status(400).json({ 'message': 'Unknown Type' });
+                    return;
+                }
+            } else {
+                if (type === 'referrer') {
+                    promise = vt.getDetectedReferrerSamplesPromise(count);
+                } else if (type === 'communicating') {
+                    promise = vt.getDetectedCommunicatingSamplesPromise(count);
+                } else if (type === 'urls') {
+                    promise = vt.getDetectedURLsPromise(count);
+                } else if (type === 'downloaded') {
+                    promise = vt.getDetectedDownloadedSamplesPromise(count);
+                } else {
+                    res.status(400).json({ 'message': 'Unknown Type' });
+                    return;
+                }
+            }
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -435,15 +435,15 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/virustotal/domainReport')
-        .get(function(req, res) {
-              if (!(req.query.hasOwnProperty('zone'))) {
-                  res.status(400).json({'message': 'A zone must be provided'});
-                  return;
-              }
-              let promise = vt.getRecordByZonePromise(req.query.zone);
-              promise.then(function(data) {
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('zone'))) {
+                res.status(400).json({ 'message': 'A zone must be provided' });
+                return;
+            }
+            let promise = vt.getRecordByZonePromise(req.query.zone);
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Zone not found'});
+                    res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 }
                 res.status(200).json(data);
@@ -535,24 +535,24 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/virustotal/domainMetaReport')
-        .get(function(req, res) {
-              if (!(req.query.hasOwnProperty('zone'))) {
-                  res.status(400).json({'message': 'A zone must be provided'});
-                  return;
-              }
-              let count = false;
-              if (req.query.hasOwnProperty('count') && req.query.count === "1") {
-                  count = true;
-              }
-              let promise = vt.getMetaInfoByZonePromise(req.query.zone);
-              promise.then(function(data) {
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('zone'))) {
+                res.status(400).json({ 'message': 'A zone must be provided' });
+                return;
+            }
+            let count = false;
+            if (req.query.hasOwnProperty('count') && req.query.count === "1") {
+                count = true;
+            }
+            let promise = vt.getMetaInfoByZonePromise(req.query.zone);
+            promise.then(function (data) {
                 if ((!data || data.length === 0) && count === false) {
-                    res.status(404).json({'message': 'Zone not found'});
+                    res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 } else if ((!data || data.length === 0) && count === true) {
-                    res.status(200).json({'count': 0})
+                    res.status(200).json({ 'count': 0 })
                 } else if (count) {
-                    res.status(200).json({'count': 1});
+                    res.status(200).json({ 'count': 1 });
                 } else {
                     res.status(200).json(data);
                 }
@@ -642,30 +642,30 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/virustotal/domainPcaps')
-        .get(function(req, res) {
-              let promise;
-              if (req.query.hasOwnProperty('zone')) {
-                 let count = false;
-                 if (req.query.hasOwnProperty('count') &&
-                     req.query.count === '1') {
-                     count = true;
-                 }
-                 promise = vt.getPcapsByZonePromise(req.query.zone, count);
-              } else if (req.query.hasOwnProperty('count') &&
-                         req.query.count === '1') {
-                 promise = vt.getAllPcapsPromise(true);
-              } else {
-                 promise = vt.getAllPcapsPromise(false);
-              }
+        .get(function (req, res) {
+            let promise;
+            if (req.query.hasOwnProperty('zone')) {
+                let count = false;
+                if (req.query.hasOwnProperty('count') &&
+                    req.query.count === '1') {
+                    count = true;
+                }
+                promise = vt.getPcapsByZonePromise(req.query.zone, count);
+            } else if (req.query.hasOwnProperty('count') &&
+                req.query.count === '1') {
+                promise = vt.getAllPcapsPromise(true);
+            } else {
+                promise = vt.getAllPcapsPromise(false);
+            }
 
-              promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
                 if (req.query.hasOwnProperty('count') &&
-                     req.query.count === '1') {
-                    res.status(200).json({'count': data});
+                    req.query.count === '1') {
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -717,15 +717,15 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/virustotal/domainWhois')
-        .get(function(req, res) {
-              if (!(req.query.hasOwnProperty('zone'))) {
-                  res.status(400).json({'message': 'A zone must be provided'});
-                  return;
-              }
-              let promise = vt.getWhoisByZonePromise(req.query.zone);
-              promise.then(function(data) {
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('zone'))) {
+                res.status(400).json({ 'message': 'A zone must be provided' });
+                return;
+            }
+            let promise = vt.getWhoisByZonePromise(req.query.zone);
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Zone not found'});
+                    res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 }
                 res.status(200).json(data);
@@ -815,21 +815,21 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/virustotal/domainIPs')
-        .get(function(req, res) {
-              if (!(req.query.hasOwnProperty('zone'))) {
-                  res.status(400).json({'message': 'A zone must be provided'});
-                  return;
-              }
-              let promise =  vt.getIPInfoByZonePromise(req.query.zone);
-              promise.then(function(data) {
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('zone'))) {
+                res.status(400).json({ 'message': 'A zone must be provided' });
+                return;
+            }
+            let promise = vt.getIPInfoByZonePromise(req.query.zone);
+            promise.then(function (data) {
                 if (!data || data.length === 0) {
-                    res.status(404).json({'message': 'Zone not found'});
+                    res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 }
                 if (req.query.hasOwnProperty('count') &&
-                     req.query.count === '1') {
+                    req.query.count === '1') {
                     let cnt = data[0]['resolutions'].length;
-                    res.status(200).json({'count': cnt});
+                    res.status(200).json({ 'count': cnt });
                     return;
                 }
                 res.status(200).json(data);
@@ -919,27 +919,27 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/virustotal/domainSubdomains')
-        .get(function(req, res) {
-              if (!(req.query.hasOwnProperty('zone'))) {
-                  res.status(400).json({'message': 'A zone must be provided'});
-                  return;
-              }
-              let promise = vt.getSubDomainsByZonePromise(req.query.zone);
-              promise.then(function(data) {
+        .get(function (req, res) {
+            if (!(req.query.hasOwnProperty('zone'))) {
+                res.status(400).json({ 'message': 'A zone must be provided' });
+                return;
+            }
+            let promise = vt.getSubDomainsByZonePromise(req.query.zone);
+            promise.then(function (data) {
                 if (!data || data.length === 0) {
-                    res.status(404).json({'message': 'Zone not found'});
+                    res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 }
                 if (req.query.hasOwnProperty('count') &&
-                     req.query.count === '1') {
+                    req.query.count === '1') {
                     let cnt = 0;
                     if (data[0]['domain_siblings']) {
-                      cnt = cnt + data[0]['domain_siblings'].length;
+                        cnt = cnt + data[0]['domain_siblings'].length;
                     }
                     if (data[0]['subdomains']) {
                         cnt = cnt + data[0]['subdomains'].length;
                     }
-                    res.status(200).json({'count': cnt});
+                    res.status(200).json({ 'count': cnt });
                     return;
                 }
                 res.status(200).json(data);

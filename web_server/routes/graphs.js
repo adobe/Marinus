@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -301,7 +301,7 @@ const certGraphRecs = require('../config/models/cert_graphs');
  *
  */
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
 
     /**
      * @swagger
@@ -513,43 +513,43 @@ module.exports = function(envConfig) {
      *
      */
     router.route('/graphs/:zone')
-     .get(function(req, res) {
-        if (!(req.params.hasOwnProperty('zone'))) {
-            res.status(400).json({'message': 'A zone must be provided.'});
-            return;
-        }
-
-        let graphPromise;
-        let count = false;
-        if (req.query.hasOwnProperty('dataType') &&
-            req.query.dataType === 'links') {
-            graphPromise = graphLinksRecs.getGraphLinksByZone(req.params.zone);
-        } else if (req.query.hasOwnProperty('dataType') &&
-                   req.query.dataType === 'config') {
-            graphPromise = graphRecs.getGraphConfigByZone(req.params.zone);
-        } else if (req.query.hasOwnProperty('dataType') &&
-                    req.query.dataType === 'docs') {
-            graphPromise = graphDocsRecs.getGraphDocsByZone(req.params.zone);
-        } else if (req.query.hasOwnProperty('count') && req.query.count == "1") {
-            count = true;
-            graphPromise = graphDataRecs.getGraphCountByZone(req.params.zone)
-        } else {
-            graphPromise = graphDataRecs.getGraphDataByZone(req.params.zone);
-        }
-
-        graphPromise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'Zone not found'});
+        .get(function (req, res) {
+            if (!(req.params.hasOwnProperty('zone'))) {
+                res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
             }
-            if (count) {
-                res.status(200).json({'count': data});
+
+            let graphPromise;
+            let count = false;
+            if (req.query.hasOwnProperty('dataType') &&
+                req.query.dataType === 'links') {
+                graphPromise = graphLinksRecs.getGraphLinksByZone(req.params.zone);
+            } else if (req.query.hasOwnProperty('dataType') &&
+                req.query.dataType === 'config') {
+                graphPromise = graphRecs.getGraphConfigByZone(req.params.zone);
+            } else if (req.query.hasOwnProperty('dataType') &&
+                req.query.dataType === 'docs') {
+                graphPromise = graphDocsRecs.getGraphDocsByZone(req.params.zone);
+            } else if (req.query.hasOwnProperty('count') && req.query.count == "1") {
+                count = true;
+                graphPromise = graphDataRecs.getGraphCountByZone(req.params.zone)
             } else {
-                res.status(200).json(data);
+                graphPromise = graphDataRecs.getGraphDataByZone(req.params.zone);
             }
-            return;
+
+            graphPromise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Zone not found' });
+                    return;
+                }
+                if (count) {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
+                }
+                return;
+            });
         });
-      });
 
 
     /**
@@ -681,188 +681,188 @@ module.exports = function(envConfig) {
      *
      */
     router.route('/tpd_graphs/:tpd')
-     .get(function(req, res) {
-        if (!(req.params.hasOwnProperty('tpd'))) {
-            res.status(400).json({'message': 'A TPD TLD must be provided.'});
-            return;
-        }
-
-        let graphPromise;
-        if (req.query.hasOwnProperty('dataType') &&
-            req.query.dataType === 'links') {
-            graphPromise = tpdGraphRecs.getTPDGraphLinksByTPD(req.params.tpd);
-        } else if (req.query.hasOwnProperty('dataType') &&
-                   req.query.dataType === 'config') {
-            graphPromise = tpdGraphRecs.getTPDGraphConfigByTPD(req.params.tpd);
-        } else {
-            graphPromise = tpdGraphRecs.getTPDGraphDataByTPD(req.params.tpd);
-        }
-
-        graphPromise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'TPD TLD not found'});
+        .get(function (req, res) {
+            if (!(req.params.hasOwnProperty('tpd'))) {
+                res.status(400).json({ 'message': 'A TPD TLD must be provided.' });
                 return;
             }
-            res.status(200).json(data);
-            return;
-        });
-      });
 
-/**
-     * @swagger
-     *
-     * security:
-     *   - APIKeyHeader: []
-     *
-     * tags:
-     *   - name: CIDR Graphs - Fetch CIDR links
-     *     description: Fetch the d3.js links component of the CIDR's graph.
-     *   - name: CIDR Graphs - Fetch CIDR config
-     *     description: Fetch the d3.js config component of the CIDR's graph.
-     *   - name: CIDR Graphs - Fetch CIDR data
-     *     description: Fetch the d3.js data component of the CIDR's graph.
-     *
-     * /api/v1.0/cidr_graphs/{cidr}?dataType=links:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Returns the d3.js links for the provided Class C (e.g. "8.8.8"). This is just one part of making a complete graph.
-     *     tags: [CIDR Graphs - Fetch CIDR links]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: cidr
-     *         type: string
-     *         required: true
-     *         description: The Class C zone (e.g. "8.8.8") to fetch.
-     *         in: path
-     *       - name: dataType
-     *         type: string
-     *         required: true
-     *         description: Set to "links" for this type of query.
-     *         in: query
-     *     responses:
-     *       200:
-     *         description: Returns the links for the relevant CIDR.
-     *         type: object
-     *         schema:
-     *           $ref: '#/definitions/SimpleLinksData'
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       404:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/ResultsNotFound'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     *
-     * /api/v1.0/cidr_graphs/{cidr}?dataType=config:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Returns the d3.js config for the provided Class 3 zone ("8.8.8"). This is just one part of making a complete graph.
-     *     tags: [CIDR Graphs - Fetch CIDR config]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: cidr
-     *         type: string
-     *         required: true
-     *         description: The Class C zone (e.g. "8.8.8") to fetch.
-     *         in: path
-     *       - name: dataType
-     *         type: string
-     *         required: true
-     *         description: Set to "config" for this type of query.
-     *         in: query
-     *     responses:
-     *       200:
-     *         description: Returns the d3.js config for the provided Class C. The additionalProp# keys are domain names.
-     *         type: object
-     *         schema:
-     *           $ref: '#/definitions/GraphConfig'
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       404:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/ResultsNotFound'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     *
-     *
-     * /api/v1.0/cidr_graphs/{cidr}:
-     *   get:
-     *   # Operation-specific security:
-     *     security:
-     *       - APIKeyHeader: []
-     *     description: Returns the d3.js data for the provided Class C zone (e.g "8.8.8").
-     *     tags: [CIDR Graphs - Fetch CIDR data]
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - name: cidr
-     *         type: string
-     *         required: true
-     *         description: The Class C zone ("8.8.8", etc.) to fetch.
-     *         in: path
-     *     responses:
-     *       200:
-     *         description: Returns the graph data for the relevant Class C.
-     *         type: object
-     *         schema:
-     *           $ref: '#/definitions/SimpleGraphData'
-     *       400:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/BadInputError'
-     *       404:
-     *         description: Bad request parameters.
-     *         schema:
-     *           $ref: '#/definitions/ResultsNotFound'
-     *       500:
-     *         description: Server error.
-     *         schema:
-     *           $ref: '#/definitions/ServerError'
-     *
-     */
+            let graphPromise;
+            if (req.query.hasOwnProperty('dataType') &&
+                req.query.dataType === 'links') {
+                graphPromise = tpdGraphRecs.getTPDGraphLinksByTPD(req.params.tpd);
+            } else if (req.query.hasOwnProperty('dataType') &&
+                req.query.dataType === 'config') {
+                graphPromise = tpdGraphRecs.getTPDGraphConfigByTPD(req.params.tpd);
+            } else {
+                graphPromise = tpdGraphRecs.getTPDGraphDataByTPD(req.params.tpd);
+            }
+
+            graphPromise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'TPD TLD not found' });
+                    return;
+                }
+                res.status(200).json(data);
+                return;
+            });
+        });
+
+    /**
+         * @swagger
+         *
+         * security:
+         *   - APIKeyHeader: []
+         *
+         * tags:
+         *   - name: CIDR Graphs - Fetch CIDR links
+         *     description: Fetch the d3.js links component of the CIDR's graph.
+         *   - name: CIDR Graphs - Fetch CIDR config
+         *     description: Fetch the d3.js config component of the CIDR's graph.
+         *   - name: CIDR Graphs - Fetch CIDR data
+         *     description: Fetch the d3.js data component of the CIDR's graph.
+         *
+         * /api/v1.0/cidr_graphs/{cidr}?dataType=links:
+         *   get:
+         *   # Operation-specific security:
+         *     security:
+         *       - APIKeyHeader: []
+         *     description: Returns the d3.js links for the provided Class C (e.g. "8.8.8"). This is just one part of making a complete graph.
+         *     tags: [CIDR Graphs - Fetch CIDR links]
+         *     produces:
+         *       - application/json
+         *     parameters:
+         *       - name: cidr
+         *         type: string
+         *         required: true
+         *         description: The Class C zone (e.g. "8.8.8") to fetch.
+         *         in: path
+         *       - name: dataType
+         *         type: string
+         *         required: true
+         *         description: Set to "links" for this type of query.
+         *         in: query
+         *     responses:
+         *       200:
+         *         description: Returns the links for the relevant CIDR.
+         *         type: object
+         *         schema:
+         *           $ref: '#/definitions/SimpleLinksData'
+         *       400:
+         *         description: Bad request parameters.
+         *         schema:
+         *           $ref: '#/definitions/BadInputError'
+         *       404:
+         *         description: Bad request parameters.
+         *         schema:
+         *           $ref: '#/definitions/ResultsNotFound'
+         *       500:
+         *         description: Server error.
+         *         schema:
+         *           $ref: '#/definitions/ServerError'
+         *
+         * /api/v1.0/cidr_graphs/{cidr}?dataType=config:
+         *   get:
+         *   # Operation-specific security:
+         *     security:
+         *       - APIKeyHeader: []
+         *     description: Returns the d3.js config for the provided Class 3 zone ("8.8.8"). This is just one part of making a complete graph.
+         *     tags: [CIDR Graphs - Fetch CIDR config]
+         *     produces:
+         *       - application/json
+         *     parameters:
+         *       - name: cidr
+         *         type: string
+         *         required: true
+         *         description: The Class C zone (e.g. "8.8.8") to fetch.
+         *         in: path
+         *       - name: dataType
+         *         type: string
+         *         required: true
+         *         description: Set to "config" for this type of query.
+         *         in: query
+         *     responses:
+         *       200:
+         *         description: Returns the d3.js config for the provided Class C. The additionalProp# keys are domain names.
+         *         type: object
+         *         schema:
+         *           $ref: '#/definitions/GraphConfig'
+         *       400:
+         *         description: Bad request parameters.
+         *         schema:
+         *           $ref: '#/definitions/BadInputError'
+         *       404:
+         *         description: Bad request parameters.
+         *         schema:
+         *           $ref: '#/definitions/ResultsNotFound'
+         *       500:
+         *         description: Server error.
+         *         schema:
+         *           $ref: '#/definitions/ServerError'
+         *
+         *
+         * /api/v1.0/cidr_graphs/{cidr}:
+         *   get:
+         *   # Operation-specific security:
+         *     security:
+         *       - APIKeyHeader: []
+         *     description: Returns the d3.js data for the provided Class C zone (e.g "8.8.8").
+         *     tags: [CIDR Graphs - Fetch CIDR data]
+         *     produces:
+         *       - application/json
+         *     parameters:
+         *       - name: cidr
+         *         type: string
+         *         required: true
+         *         description: The Class C zone ("8.8.8", etc.) to fetch.
+         *         in: path
+         *     responses:
+         *       200:
+         *         description: Returns the graph data for the relevant Class C.
+         *         type: object
+         *         schema:
+         *           $ref: '#/definitions/SimpleGraphData'
+         *       400:
+         *         description: Bad request parameters.
+         *         schema:
+         *           $ref: '#/definitions/BadInputError'
+         *       404:
+         *         description: Bad request parameters.
+         *         schema:
+         *           $ref: '#/definitions/ResultsNotFound'
+         *       500:
+         *         description: Server error.
+         *         schema:
+         *           $ref: '#/definitions/ServerError'
+         *
+         */
     router.route('/cidr_graphs/:cidr')
-     .get(function(req, res) {
-        if (!(req.params.hasOwnProperty('cidr'))) {
-            res.status(400).json({'message': 'A Class 3 zone (e.g. "8.8.8") must be provided.'});
-            return;
-        }
-
-        let graphPromise;
-        if (req.query.hasOwnProperty('dataType') &&
-            req.query.dataType === 'links') {
-            graphPromise = cidrGraphRecs.getCIDRGraphLinksByZone(req.params.cidr);
-        } else if (req.query.hasOwnProperty('dataType') &&
-                   req.query.dataType === 'config') {
-            graphPromise = cidrGraphRecs.getCIDRGraphConfigByZone(req.params.cidr);
-        } else {
-            graphPromise = cidrGraphRecs.getCIDRGraphDataByZone(req.params.cidr);
-        }
-
-        graphPromise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'CIDR not found'});
+        .get(function (req, res) {
+            if (!(req.params.hasOwnProperty('cidr'))) {
+                res.status(400).json({ 'message': 'A Class 3 zone (e.g. "8.8.8") must be provided.' });
                 return;
             }
-            res.status(200).json(data);
-            return;
+
+            let graphPromise;
+            if (req.query.hasOwnProperty('dataType') &&
+                req.query.dataType === 'links') {
+                graphPromise = cidrGraphRecs.getCIDRGraphLinksByZone(req.params.cidr);
+            } else if (req.query.hasOwnProperty('dataType') &&
+                req.query.dataType === 'config') {
+                graphPromise = cidrGraphRecs.getCIDRGraphConfigByZone(req.params.cidr);
+            } else {
+                graphPromise = cidrGraphRecs.getCIDRGraphDataByZone(req.params.cidr);
+            }
+
+            graphPromise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'CIDR not found' });
+                    return;
+                }
+                res.status(200).json(data);
+                return;
+            });
         });
-      });
 
     /**
      * @swagger
@@ -910,23 +910,23 @@ module.exports = function(envConfig) {
      */
 
     router.route('/cert_graphs/:zone')
-      .get(function(req, res) {
-         if (!(req.params.hasOwnProperty('zone'))) {
-             res.status(500).json({'message': 'A zone must be provided.'});
-             return;
-         }
+        .get(function (req, res) {
+            if (!(req.params.hasOwnProperty('zone'))) {
+                res.status(500).json({ 'message': 'A zone must be provided.' });
+                return;
+            }
 
-         let graphPromise = certGraphRecs.getGraphDataByZone(req.params.zone);
+            let graphPromise = certGraphRecs.getGraphDataByZone(req.params.zone);
 
-         graphPromise.then(function(data) {
-             if (!data) {
-                 res.status(404).json({'message': 'Zone not found'});
-                 return;
-             }
-             res.status(200).json(data);
-             return;
-         });
-       });
+            graphPromise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Zone not found' });
+                    return;
+                }
+                res.status(200).json(data);
+                return;
+            });
+        });
 
     return (router);
 };

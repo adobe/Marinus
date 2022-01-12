@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -14,7 +14,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { celebrate, Joi} = require('celebrate');
+const { celebrate, Joi } = require('celebrate');
 
 const ibloxARecs = require('../config/models/iblox_a_records');
 const ibloxAAAARecs = require('../config/models/iblox_aaaa_records');
@@ -91,7 +91,7 @@ function createRange(range) {
  */
 
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
 
     /**
      * Swagger is commented out because these APIs are being deprecated.
@@ -232,70 +232,70 @@ module.exports = function(envConfig) {
      *
      */
     router.route('/iblox/addresses')
-      .get(function(req, res) {
-        let promise;
-        if (req.query.hasOwnProperty('range')) {
-            let searchRange = createRange(req.query.range);
-            if (searchRange.startsWith('Error')) {
-                res.status(500).json({'message': searchRange});
-                return;
-            }
-            promise = ibloxARecs.getIBAddrByIPRangePromise(searchRange);
-            promise.then(function(data) {
-                if (!data) {
-                    res.status(404).json({'message': 'Info not found'});
+        .get(function (req, res) {
+            let promise;
+            if (req.query.hasOwnProperty('range')) {
+                let searchRange = createRange(req.query.range);
+                if (searchRange.startsWith('Error')) {
+                    res.status(500).json({ 'message': searchRange });
                     return;
                 }
-                let matcher = new CIDRMatcher();
-                matcher.addNetworkClass(req.query.range);
-                let returnData = [];
-                for (let i=0; i < data.length; i++) {
-                    if (matcher.contains(data[i]['ipv4addr'])) {
-                        returnData.push(data[i]);
+                promise = ibloxARecs.getIBAddrByIPRangePromise(searchRange);
+                promise.then(function (data) {
+                    if (!data) {
+                        res.status(404).json({ 'message': 'Info not found' });
+                        return;
                     }
-                }
-                if (req.query.hasOwnProperty('count') &&
-                    req.query.count === '1') {
-                    res.status(200).json({'count': returnData.length});
+                    let matcher = new CIDRMatcher();
+                    matcher.addNetworkClass(req.query.range);
+                    let returnData = [];
+                    for (let i = 0; i < data.length; i++) {
+                        if (matcher.contains(data[i]['ipv4addr'])) {
+                            returnData.push(data[i]);
+                        }
+                    }
+                    if (req.query.hasOwnProperty('count') &&
+                        req.query.count === '1') {
+                        res.status(200).json({ 'count': returnData.length });
+                    } else {
+                        res.status(200).json(returnData);
+                    }
+                    return;
+                });
+                return;
+            } else if (req.query.hasOwnProperty('zone')) {
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    promise = ibloxARecs.getIBAddrCountPromise(req.query.zone);
                 } else {
-                    res.status(200).json(returnData);
+                    promise = ibloxARecs.getIBAddrByZonePromise(req.query.zone);
+                }
+            } else if (req.query.hasOwnProperty('domain')) {
+                promise = ibloxARecs.getIBAddrByNamePromise(req.query.domain);
+            } else if (req.query.hasOwnProperty('ip')) {
+                promise = ibloxARecs.getIBAddrByIPPromise(req.query.ip);
+            } else if (req.query.hasOwnProperty('count') &&
+                req.query.count === '1') {
+                promise = ibloxARecs.getIBAddrCountPromise();
+            } else {
+                res.status(400).json({
+                    'message': 'An IP, domain, range, or zone must be provided',
+                });
+                return;
+            }
+
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Data not found' });
+                    return;
+                }
+                if (req.query.count) {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
                 }
                 return;
             });
-            return;
-        } else if (req.query.hasOwnProperty('zone')) {
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                promise = ibloxARecs.getIBAddrCountPromise(req.query.zone);
-            } else {
-                promise = ibloxARecs.getIBAddrByZonePromise(req.query.zone);
-            }
-        } else if (req.query.hasOwnProperty('domain')) {
-            promise = ibloxARecs.getIBAddrByNamePromise(req.query.domain);
-        } else if (req.query.hasOwnProperty('ip')) {
-            promise = ibloxARecs.getIBAddrByIPPromise(req.query.ip);
-        } else if (req.query.hasOwnProperty('count') &&
-                   req.query.count === '1') {
-            promise = ibloxARecs.getIBAddrCountPromise();
-        } else {
-            res.status(400).json({
-                'message': 'An IP, domain, range, or zone must be provided',
-            });
-            return;
-        }
-
-        promise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'Data not found'});
-                return;
-            }
-            if (req.query.count) {
-                res.status(200).json({'count': data});
-            } else {
-                res.status(200).json(data);
-            }
-            return;
         });
-    });
 
     /**
      * Swagger is commented out because these APIs are being deprecated.
@@ -435,72 +435,72 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/iblox/aaaa')
-      .get(function(req, res) {
-        let promise;
-        if (req.query.hasOwnProperty('range')) {
-            let searchRange = rangeCheck.isRange(req.query.range);
-            if (searchRange === false) {
-                res.status(400).json({'message': "Invalid IPv6 range"});
-                return;
-            }
-            //The database is searched via regex.
-            //Therefore, we search the database for the first block.
-            //That list is then range checked against the specific range.
-            let regex_range = req.query.range.split(":")[0]
-            promise = ibloxAAAARecs.getIBIPv6AddrByIPRangePromise(regex_range);
-            promise.then(function(data) {
-                if (!data) {
-                    res.status(404).json({'message': 'Info not found'});
+        .get(function (req, res) {
+            let promise;
+            if (req.query.hasOwnProperty('range')) {
+                let searchRange = rangeCheck.isRange(req.query.range);
+                if (searchRange === false) {
+                    res.status(400).json({ 'message': "Invalid IPv6 range" });
                     return;
                 }
-                let returnData = [];
-                for (let i=0; i < data.length; i++) {
-                    if (rangeCheck.inRange(data[i]['ipv6addr'], req.query.range)) {
-                        returnData.push(data[i]);
+                //The database is searched via regex.
+                //Therefore, we search the database for the first block.
+                //That list is then range checked against the specific range.
+                let regex_range = req.query.range.split(":")[0]
+                promise = ibloxAAAARecs.getIBIPv6AddrByIPRangePromise(regex_range);
+                promise.then(function (data) {
+                    if (!data) {
+                        res.status(404).json({ 'message': 'Info not found' });
+                        return;
                     }
-                }
-                if (req.query.hasOwnProperty('count') &&
-                    req.query.count === '1') {
-                    res.status(200).json({'count': returnData.length});
+                    let returnData = [];
+                    for (let i = 0; i < data.length; i++) {
+                        if (rangeCheck.inRange(data[i]['ipv6addr'], req.query.range)) {
+                            returnData.push(data[i]);
+                        }
+                    }
+                    if (req.query.hasOwnProperty('count') &&
+                        req.query.count === '1') {
+                        res.status(200).json({ 'count': returnData.length });
+                    } else {
+                        res.status(200).json(returnData);
+                    }
+                    return;
+                });
+                return;
+            } else if (req.query.hasOwnProperty('zone')) {
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    promise = ibloxAAAARecs.getIBIPv6AddrCountPromise(req.query.zone);
                 } else {
-                    res.status(200).json(returnData);
+                    promise = ibloxAAAARecs.getIBIPv6AddrByZonePromise(req.query.zone);
+                }
+            } else if (req.query.hasOwnProperty('domain')) {
+                promise = ibloxAAAARecs.getIBIPv6AddrByNamePromise(req.query.domain);
+            } else if (req.query.hasOwnProperty('ip')) {
+                promise = ibloxAAAARecs.getIBIPv6AddrByIPPromise(req.query.ip);
+            } else if (req.query.hasOwnProperty('count') &&
+                req.query.count === '1') {
+                promise = ibloxAAAARecs.getIBIPv6AddrCountPromise();
+            } else {
+                res.status(400).json({
+                    'message': 'An IP, domain, range, or zone must be provided',
+                });
+                return;
+            }
+
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Data not found' });
+                    return;
+                }
+                if (req.query.count) {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
                 }
                 return;
             });
-            return;
-        } else if (req.query.hasOwnProperty('zone')) {
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                promise = ibloxAAAARecs.getIBIPv6AddrCountPromise(req.query.zone);
-            } else {
-                promise = ibloxAAAARecs.getIBIPv6AddrByZonePromise(req.query.zone);
-            }
-        } else if (req.query.hasOwnProperty('domain')) {
-            promise = ibloxAAAARecs.getIBIPv6AddrByNamePromise(req.query.domain);
-        } else if (req.query.hasOwnProperty('ip')) {
-            promise = ibloxAAAARecs.getIBIPv6AddrByIPPromise(req.query.ip);
-        } else if (req.query.hasOwnProperty('count') &&
-                   req.query.count === '1') {
-            promise = ibloxAAAARecs.getIBIPv6AddrCountPromise();
-        } else {
-            res.status(400).json({
-                'message': 'An IP, domain, range, or zone must be provided',
-            });
-            return;
-        }
-
-        promise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'Data not found'});
-                return;
-            }
-            if (req.query.count) {
-                res.status(200).json({'count': data});
-            } else {
-                res.status(200).json(data);
-            }
-            return;
         });
-    });
 
     /**
      * Swagger is commented out because these APIs are being deprecated.
@@ -655,77 +655,77 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/iblox/hosts')
-      .get(function(req, res) {
-        let promise;
-        if (req.query.hasOwnProperty('range')) {
-            let searchRange = createRange(req.query.range);
-            if (searchRange.startsWith('Error')) {
-                res.status(500).json({'message': searchRange});
-                return;
-            }
-            promise = ibloxHostRecs.getIBHostByIPRangePromise(searchRange);
-            promise.then(function(data) {
-                if (!data) {
-                    res.status(404).json({'message': 'Info not found'});
+        .get(function (req, res) {
+            let promise;
+            if (req.query.hasOwnProperty('range')) {
+                let searchRange = createRange(req.query.range);
+                if (searchRange.startsWith('Error')) {
+                    res.status(500).json({ 'message': searchRange });
                     return;
                 }
-                let matcher = new CIDRMatcher();
-                matcher.addNetworkClass(req.query.range);
-                let returnData = [];
-                for (let i=0; i < data.length; i++) {
-                  let ipMatch = false;
-                  for (let j=0; j< data[i]['ipv4addrs'].length; j++) {
-                    if (matcher.contains(data[i]['ipv4addrs'][j]['ipv4addr'])) {
-                        ipMatch = true;
+                promise = ibloxHostRecs.getIBHostByIPRangePromise(searchRange);
+                promise.then(function (data) {
+                    if (!data) {
+                        res.status(404).json({ 'message': 'Info not found' });
+                        return;
                     }
-                  }
-                  if (ipMatch) {
-                      returnData.push(data[i]);
-                  }
-                }
-                if (req.query.hasOwnProperty('count') &&
-                    req.query.count === '1') {
-                    let cnt = returnData.length;
-                    res.status(200).json({'count': cnt});
+                    let matcher = new CIDRMatcher();
+                    matcher.addNetworkClass(req.query.range);
+                    let returnData = [];
+                    for (let i = 0; i < data.length; i++) {
+                        let ipMatch = false;
+                        for (let j = 0; j < data[i]['ipv4addrs'].length; j++) {
+                            if (matcher.contains(data[i]['ipv4addrs'][j]['ipv4addr'])) {
+                                ipMatch = true;
+                            }
+                        }
+                        if (ipMatch) {
+                            returnData.push(data[i]);
+                        }
+                    }
+                    if (req.query.hasOwnProperty('count') &&
+                        req.query.count === '1') {
+                        let cnt = returnData.length;
+                        res.status(200).json({ 'count': cnt });
+                    } else {
+                        res.status(200).json(returnData);
+                    }
+                    return;
+                });
+                return;
+            } else if (req.query.hasOwnProperty('zone')) {
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    promise = ibloxHostRecs.getIBHostCountPromise(req.query.zone);
                 } else {
-                    res.status(200).json(returnData);
+                    promise = ibloxHostRecs.getIBHostByZonePromise(req.query.zone);
+                }
+            } else if (req.query.hasOwnProperty('domain')) {
+                promise = ibloxHostRecs.getIBHostByNamePromise(req.query.domain);
+            } else if (req.query.hasOwnProperty('ip')) {
+                promise =
+                    ibloxHostRecs.getIBHostByIPPromise(req.query.ip);
+            } else if (req.query.hasOwnProperty('count') &&
+                req.query.count === '1') {
+                promise = ibloxHostRecs.getIBHostCountPromise();
+            } else {
+                res.status(400).json({
+                    'message': ' A domain, ip, range, or zone must be provided.',
+                });
+                return;
+            }
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Data not found' });
+                    return;
+                }
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    res.status(200).json({ 'count': data })
+                } else {
+                    res.status(200).json(data);
                 }
                 return;
             });
-            return;
-        } else if (req.query.hasOwnProperty('zone')) {
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                promise = ibloxHostRecs.getIBHostCountPromise(req.query.zone);
-            } else {
-                promise = ibloxHostRecs.getIBHostByZonePromise(req.query.zone);
-            }
-        } else if (req.query.hasOwnProperty('domain')) {
-            promise = ibloxHostRecs.getIBHostByNamePromise(req.query.domain);
-        } else if (req.query.hasOwnProperty('ip')) {
-            promise =
-            ibloxHostRecs.getIBHostByIPPromise(req.query.ip);
-        } else if (req.query.hasOwnProperty('count') &&
-                   req.query.count === '1') {
-            promise = ibloxHostRecs.getIBHostCountPromise();
-        } else {
-            res.status(400).json({
-                'message': ' A domain, ip, range, or zone must be provided.',
-            });
-            return;
-        }
-        promise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'Data not found'});
-                return;
-            }
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                res.status(200).json({'count': data})
-            } else {
-                res.status(200).json(data);
-            }
-            return;
         });
-    });
 
     /**
      * Swagger is commented out because these APIs are being deprecated.
@@ -856,44 +856,44 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/iblox/cnames')
-      .get(function(req, res) {
-        let promise;
-        if (req.query.hasOwnProperty('zone')) {
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                promise = ibloxCnameRecs.getIBCNameCountPromise(req.query.zone);
+        .get(function (req, res) {
+            let promise;
+            if (req.query.hasOwnProperty('zone')) {
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    promise = ibloxCnameRecs.getIBCNameCountPromise(req.query.zone);
+                } else {
+                    promise = ibloxCnameRecs.getIBCNameByZonePromise(req.query.zone);
+                }
+            } else if (req.query.hasOwnProperty('domain')) {
+                promise = ibloxCnameRecs.getIBCNameByNamePromise(req.query.domain);
+            } else if (req.query.hasOwnProperty('cnameTLD')) {
+                if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
+                    promise = ibloxCnameRecs.getIBCNameByCanonicalSearch(req.query.cnameTLD, req.query.zone);
+                } else {
+                    promise = ibloxCnameRecs.getIBCNameByCanonicalSearch(req.query.cnameTLD, null);
+                }
+            } else if (req.query.hasOwnProperty('count') &&
+                req.query.count === '1') {
+                promise = ibloxCnameRecs.getIBCNameCountPromise();
             } else {
-                promise = ibloxCnameRecs.getIBCNameByZonePromise(req.query.zone);
-            }
-        } else if (req.query.hasOwnProperty('domain')) {
-            promise = ibloxCnameRecs.getIBCNameByNamePromise(req.query.domain);
-        } else if (req.query.hasOwnProperty('cnameTLD')) {
-            if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
-                promise = ibloxCnameRecs.getIBCNameByCanonicalSearch(req.query.cnameTLD, req.query.zone);
-            } else {
-                promise = ibloxCnameRecs.getIBCNameByCanonicalSearch(req.query.cnameTLD, null);
-            }
-        } else if (req.query.hasOwnProperty('count') &&
-                   req.query.count === '1') {
-            promise = ibloxCnameRecs.getIBCNameCountPromise();
-        } else {
-            res.status(400).json({
-                'message': ' A domain, cnameTLD, or zone must be provided.',
-            });
-            return;
-        }
-        promise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'Data not found'});
+                res.status(400).json({
+                    'message': ' A domain, cnameTLD, or zone must be provided.',
+                });
                 return;
             }
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                res.status(200).json({'count': data});
-            } else {
-                res.status(200).json(data);
-            }
-            return;
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Data not found' });
+                    return;
+                }
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
+                }
+                return;
+            });
         });
-    });
 
     /**
      * Swagger is commented out because these APIs are being deprecated.
@@ -1027,44 +1027,44 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/iblox/mx')
-      .get(function(req, res) {
-        let promise;
-        if (req.query.hasOwnProperty('zone')) {
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                promise = ibloxMXRecs.getIBMXCountPromise(req.query.zone);
+        .get(function (req, res) {
+            let promise;
+            if (req.query.hasOwnProperty('zone')) {
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    promise = ibloxMXRecs.getIBMXCountPromise(req.query.zone);
+                } else {
+                    promise = ibloxMXRecs.getIBMXByZonePromise(req.query.zone);
+                }
+            } else if (req.query.hasOwnProperty('domain')) {
+                promise = ibloxMXRecs.getIBMXByNamePromise(req.query.domain);
+            } else if (req.query.hasOwnProperty('mail_exchanger')) {
+                if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
+                    promise = ibloxMXRecs.getIBMXByMailExchanger(req.query.mail_exchanger, req.query.zone);
+                } else {
+                    promise = ibloxMXRecs.getIBMXByMailExchanger(req.query.mail_exchanger, null);
+                }
+            } else if (req.query.hasOwnProperty('count') &&
+                req.query.count === '1') {
+                promise = ibloxMXRecs.getIBMXCountPromise();
             } else {
-                promise = ibloxMXRecs.getIBMXByZonePromise(req.query.zone);
-            }
-        } else if (req.query.hasOwnProperty('domain')) {
-            promise = ibloxMXRecs.getIBMXByNamePromise(req.query.domain);
-        } else if (req.query.hasOwnProperty('mail_exchanger')) {
-            if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
-                promise = ibloxMXRecs.getIBMXByMailExchanger(req.query.mail_exchanger, req.query.zone);
-            } else {
-                promise = ibloxMXRecs.getIBMXByMailExchanger(req.query.mail_exchanger, null);
-            }
-        } else if (req.query.hasOwnProperty('count') &&
-                   req.query.count === '1') {
-            promise = ibloxMXRecs.getIBMXCountPromise();
-        } else {
-            res.status(400).json({
-                'message': ' A domain, mail_exchanger, or zone must be provided.',
-            });
-            return;
-        }
-        promise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'Data not found'});
+                res.status(400).json({
+                    'message': ' A domain, mail_exchanger, or zone must be provided.',
+                });
                 return;
             }
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                res.status(200).json({'count': data});
-            } else {
-                res.status(200).json(data);
-            }
-            return;
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Data not found' });
+                    return;
+                }
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
+                }
+                return;
+            });
         });
-    });
 
     /**
      * Swagger is commented out because these APIs are being deprecated.
@@ -1196,40 +1196,40 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/iblox/txt')
-      .get(function(req, res) {
-        let promise;
-        if (req.query.hasOwnProperty('zone')) {
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                promise = ibloxTXTRecs.getIBTXTCountPromise(req.query.zone);
-            } else {
-                promise = ibloxTXTRecs.getIBTXTByZonePromise(req.query.zone);
-            }
-        } else if (req.query.hasOwnProperty('domain')) {
-            promise = ibloxTXTRecs.getIBTXTByNamePromise(req.query.domain);
-        } else if (req.query.hasOwnProperty('txt')) {
+        .get(function (req, res) {
+            let promise;
+            if (req.query.hasOwnProperty('zone')) {
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    promise = ibloxTXTRecs.getIBTXTCountPromise(req.query.zone);
+                } else {
+                    promise = ibloxTXTRecs.getIBTXTByZonePromise(req.query.zone);
+                }
+            } else if (req.query.hasOwnProperty('domain')) {
+                promise = ibloxTXTRecs.getIBTXTByNamePromise(req.query.domain);
+            } else if (req.query.hasOwnProperty('txt')) {
                 promise = ibloxTXTRecs.getIBTXTByRegex(req.query.txt);
-        } else if (req.query.hasOwnProperty('count') &&
-                   req.query.count === '1') {
-            promise = ibloxTXTRecs.getIBTXTCountPromise();
-        } else {
-            res.status(400).json({
-                'message': ' A domain, TXT substring, or zone must be provided.',
-            });
-            return;
-        }
-        promise.then(function(data) {
-            if (!data) {
-                res.status(404).json({'message': 'Data not found'});
+            } else if (req.query.hasOwnProperty('count') &&
+                req.query.count === '1') {
+                promise = ibloxTXTRecs.getIBTXTCountPromise();
+            } else {
+                res.status(400).json({
+                    'message': ' A domain, TXT substring, or zone must be provided.',
+                });
                 return;
             }
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                res.status(200).json({'count': data});
-            } else {
-                res.status(200).json(data);
-            }
-            return;
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Data not found' });
+                    return;
+                }
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
+                }
+                return;
+            });
         });
-    });
 
     /**
      * Retrieves the owner values from 'extattrs'
@@ -1238,7 +1238,7 @@ module.exports = function(envConfig) {
      */
     function extract_owners(data) {
         let owners = [];
-        for (let i=0; i < data.length; i++) {
+        for (let i = 0; i < data.length; i++) {
             let owner_info = {};
             let owners_list = [];
             for (let extattr_key of Object.keys(data[i]['extattrs'])) {
@@ -1247,7 +1247,7 @@ module.exports = function(envConfig) {
                 }
             }
             if (owners_list.length) {
-                owner_info = {'owners': owners_list.join(',')};
+                owner_info = { 'owners': owners_list.join(',') };
                 if ('ref' in data[i]) {
                     owner_info['meta'] = data[i]['ref'].split('/')[1].split(':')[1];
                 }
@@ -1330,25 +1330,27 @@ module.exports = function(envConfig) {
                             'ipv4',
                         ]
                     },
-                    {is: 'ipv6',
-                     then: Joi.string().ip({
-                        version: [
-                            'ipv6',
-                        ]
-                     })
-                    })
-            }),
-            apiKey: Joi.string().allow('')}
-        }),function (req, res) {
+                        {
+                            is: 'ipv6',
+                            then: Joi.string().ip({
+                                version: [
+                                    'ipv6',
+                                ]
+                            })
+                        })
+                }),
+                apiKey: Joi.string().allow('')
+            }
+        }), function (req, res) {
             let promise;
             let record_type = req.query.type;
             record_type = record_type.charAt(0).toUpperCase() + record_type.slice(1);
             promise = ibloxExtattrRecs['getIB' + record_type + 'Extattr'](req.query.value);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 let owners = extract_owners(data);
                 res.json(owners);
-            }).catch(function() {
+            }).catch(function () {
                 res.status(500).json({
                     'message': 'An error occurred at the server.',
                 });

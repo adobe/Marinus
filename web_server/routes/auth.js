@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -17,9 +17,9 @@ const router = express.Router();
 const group = require('../config/models/group');
 const user = require('../config/models/user');
 
-module.exports = function(envConfig, passport) {
+module.exports = function (envConfig, passport) {
     router.route('/logout')
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (req.session) {
                 req.session.destroy();
             }
@@ -35,7 +35,7 @@ module.exports = function(envConfig, passport) {
          * The GET request includes a returnPath parameter which is saved in the session
          * in order to return the user to their original page after authentication is complete.
          */
-        .get(function(req, res) {
+        .get(function (req, res) {
             req.session.returnPath = req.query.returnPath;
             if (envConfig.state === 'development') {
                 res.writeHead(302, {
@@ -55,7 +55,7 @@ module.exports = function(envConfig, passport) {
          * the default user is given admin privileges. This code sets up the session in the same
          * manner as the passport workflow for consistency.
          */
-        .post(function(req, res) {
+        .post(function (req, res) {
             /*
              * This section only applies when run in development mode.
              */
@@ -66,7 +66,7 @@ module.exports = function(envConfig, passport) {
                 return;
             }
             if (req.body.username === 'marinus' &&
-                 req.body.password === envConfig.localAdminPassword) {
+                req.body.password === envConfig.localAdminPassword) {
                 let sess = req.session;
                 sess.passport = {
                     'user': {
@@ -104,17 +104,17 @@ module.exports = function(envConfig, passport) {
      */
     router.route('/okta')
         .post(passport.authenticate('saml', {
-                failureRedirect: '/login',
-                failureFlash: true,
-            }),
-            function(req, res) {
+            failureRedirect: '/login',
+            failureFlash: true,
+        }),
+            function (req, res) {
                 let promise = user.getUserIdPromise(req.session.passport.user.userid);
-                promise.then(function(userData) {
-                   if (!userData) {
-                       res.redirect('/logout');
-                   }
-                   let groupPromise = group.getGroupsByUserPromise(req.session.passport.user.userid);
-                   groupPromise.then(function(data) {
+                promise.then(function (userData) {
+                    if (!userData) {
+                        res.redirect('/logout');
+                    }
+                    let groupPromise = group.getGroupsByUserPromise(req.session.passport.user.userid);
+                    groupPromise.then(function (data) {
                         if (!data) {
                             req.session.groups = [];
                         } else {
@@ -128,7 +128,7 @@ module.exports = function(envConfig, passport) {
                                 res.redirect('/');
                             }
                         }
-                   });
+                    });
                 }.bind(this));
             });
 

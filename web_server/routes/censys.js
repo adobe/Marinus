@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -200,7 +200,7 @@ function createRange(range) {
  *         description: The IP for the record
  *         example: "12.34.56.78"
  */
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
     /**
      * @swagger
      *
@@ -289,9 +289,9 @@ module.exports = function(envConfig) {
 
     router.route('/censys/zones/:zone')
         // get info on a specific zones
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.params.hasOwnProperty('zone'))) {
-                res.status(400).json({'message': 'A zone must be provided.'});
+                res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
             }
 
@@ -302,13 +302,13 @@ module.exports = function(envConfig) {
 
             let promise = censys.getRecordsByZonePromise(zone, count);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Zone not found'});
+                    res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 }
                 if (req.query.type === 'count') {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -513,9 +513,9 @@ module.exports = function(envConfig) {
      */
     router.route('/censys/ports')
         // get info on specific ports
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('port'))) {
-                res.status(400).json({'message': 'A port must be provided.'});
+                res.status(400).json({ 'message': 'A port must be provided.' });
                 return;
             }
 
@@ -538,7 +538,7 @@ module.exports = function(envConfig) {
             if (req.query.hasOwnProperty('page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
-                    res.status(400).json({'message': 'A valid page value must be provided.'});
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
                     return;
                 }
                 if (page < 1) {
@@ -558,13 +558,13 @@ module.exports = function(envConfig) {
                 promise = censys.getFullRecordsByPortPromise(req.query.port, ip);
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Port not found'});
+                    res.status(404).json({ 'message': 'Port not found' });
                     return;
                 }
                 if (req.query.type === 'count') {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -695,52 +695,52 @@ module.exports = function(envConfig) {
      */
     router.route('/censys/ips')
         // get info on a specific ip or range
-        .get(function(req, res) {
+        .get(function (req, res) {
             let promise;
             if (req.query.hasOwnProperty('range')) {
-                    let searchRange = createRange(req.query.range);
-                    if (searchRange.startsWith('Error')) {
-                        res.status(400).json({'message': htmlEscape(searchRange)});
-                        return;
-                    }
-                    let count = false;
-                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                        count = true;
-                    }
-                    promise = censys.getRecordByIpRangePromise(searchRange);
-                    promise.then(function(data) {
-                        if (!data) {
-                            res.status(404).json({'message': 'Info not found'});
-                            return;
-                        }
-                        let matcher = new CIDRMatcher();
-                        matcher.addNetworkClass(req.query.range);
-                        let returnData = [];
-                        for (let i=0; i < data.length; i++) {
-                            if (matcher.contains(data[i]['ip'])) {
-                                returnData.push(rdata[i]);
-                            }
-                        }
-                        if (count) {
-                            res.status(200).json({'count': returnData.length});
-                            return;
-                        }
-                        res.status(200).json(returnData);
-                        return;
-                    });
+                let searchRange = createRange(req.query.range);
+                if (searchRange.startsWith('Error')) {
+                    res.status(400).json({ 'message': htmlEscape(searchRange) });
                     return;
+                }
+                let count = false;
+                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    count = true;
+                }
+                promise = censys.getRecordByIpRangePromise(searchRange);
+                promise.then(function (data) {
+                    if (!data) {
+                        res.status(404).json({ 'message': 'Info not found' });
+                        return;
+                    }
+                    let matcher = new CIDRMatcher();
+                    matcher.addNetworkClass(req.query.range);
+                    let returnData = [];
+                    for (let i = 0; i < data.length; i++) {
+                        if (matcher.contains(data[i]['ip'])) {
+                            returnData.push(rdata[i]);
+                        }
+                    }
+                    if (count) {
+                        res.status(200).json({ 'count': returnData.length });
+                        return;
+                    }
+                    res.status(200).json(returnData);
+                    return;
+                });
+                return;
             } else if (req.query.hasOwnProperty('ip')) {
                 promise = censys.getRecordByIpPromise(req.query.ip);
             } else {
                 res.status(400).json({
                     'message': 'An IP or IP Range must be provided.',
-                    });
+                });
                 return;
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'IP not found'});
+                    res.status(404).json({ 'message': 'IP not found' });
                     return;
                 }
                 res.status(200).json(data);
@@ -1051,7 +1051,7 @@ module.exports = function(envConfig) {
      */
     router.route('/censys/headers/:header')
         // Retrieve information on headers
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.params.hasOwnProperty('header'))) {
                 res.status(400).json({
                     'message': 'A header value must be provided.',
@@ -1088,7 +1088,7 @@ module.exports = function(envConfig) {
                 }
                 count = true;
             } else if (req.query.hasOwnProperty('distinct') &&
-                        req.query.distinct === '1') {
+                req.query.distinct === '1') {
                 if (header_type === "unknown") {
                     promise = censys.getDistinctUnknownHttpHeaderPromise(header, zone);
                 } else {
@@ -1107,17 +1107,17 @@ module.exports = function(envConfig) {
                     promise = censys.getHttpHeaderPromise(header, zone, false);
                 }
             }
-            promise.then(function(data) {
-            if (!data || data.length === 0) {
-                res.status(404).json({'message': 'Header not found'});
+            promise.then(function (data) {
+                if (!data || data.length === 0) {
+                    res.status(404).json({ 'message': 'Header not found' });
+                    return;
+                }
+                if (count) {
+                    res.status(200).json({ 'count': data });
+                } else {
+                    res.status(200).json(data);
+                }
                 return;
-            }
-            if (count) {
-                res.status(200).json({'count': data});
-            } else {
-                res.status(200).json(data);
-            }
-            return;
             });
         });
 
@@ -1244,10 +1244,10 @@ module.exports = function(envConfig) {
      */
     router.route('/censys/algorithm/:algorithm')
         // get info on a specific algorithm
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.params.hasOwnProperty('algorithm')) ||
                 req.params.algorithm.length === 0) {
-                res.status(400).json({'message': 'An algorithm must be provided.'});
+                res.status(400).json({ 'message': 'An algorithm must be provided.' });
                 return;
             }
             let count = false;
@@ -1261,13 +1261,13 @@ module.exports = function(envConfig) {
             } else {
                 promise = censys.getSSLAlgorithmPromise(req.params.algorithm, count);
             }
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data || data.length === 0) {
-                    res.status(404).json({'message': 'Algorithm not found'});
+                    res.status(404).json({ 'message': 'Algorithm not found' });
                     return;
                 }
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -1445,7 +1445,7 @@ module.exports = function(envConfig) {
      */
     router.route('/censys/certs')
         // get info on a specific domain
-        .get(function(req, res) {
+        .get(function (req, res) {
             let promise;
             if (req.query.hasOwnProperty('org')) {
                 let org = req.query.org;
@@ -1483,17 +1483,17 @@ module.exports = function(envConfig) {
                 }
             } else {
                 res.status(400);
-                res.json({'message': 'An org or a common_name must be provided'});
+                res.json({ 'message': 'An org or a common_name must be provided' });
                 return;
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Cert not found'});
+                    res.status(404).json({ 'message': 'Cert not found' });
                     return;
                 }
                 if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -1548,12 +1548,12 @@ module.exports = function(envConfig) {
      */
     router.route('/censys/corp_certs')
         // get info on corporate certs
-        .get(function(req, res) {
+        .get(function (req, res) {
             let promise = censys.getSSLByCorpNamePromise(envConfig.internalDomain);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Records not found'});
+                    res.status(404).json({ 'message': 'Records not found' });
                     return;
                 }
                 res.status(200).json(data);
@@ -1602,12 +1602,12 @@ module.exports = function(envConfig) {
      */
     router.route('/censys/cert_ca')
         // Get unique CA values from chain[0]
-        .get(function(req, res) {
+        .get(function (req, res) {
             let promise = censys.getCAIssuersListPromise();
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(500).json({'message': 'Error retrieving CA List'});
+                    res.status(500).json({ 'message': 'Error retrieving CA List' });
                     return;
                 }
                 res.status(200).json(data);
@@ -1707,9 +1707,9 @@ module.exports = function(envConfig) {
      */
     router.route('/censys/cert_ca/:ca')
         // Get records for an individual CA
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.params.hasOwnProperty('ca'))) {
-                res.status(400).json({'message': 'A CA value must be provided.'});
+                res.status(400).json({ 'message': 'A CA value must be provided.' });
                 return;
             }
 
@@ -1728,13 +1728,13 @@ module.exports = function(envConfig) {
                 promise = censys.getRecordsBySSLCAPromise(ca, false, limit);
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'CA not found'});
+                    res.status(404).json({ 'message': 'CA not found' });
                     return;
                 }
                 if (count) {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -1789,12 +1789,12 @@ module.exports = function(envConfig) {
      */
     router.route('/censys/expired_certs_2k')
         // get info on expired certs
-        .get(function(req, res) {
+        .get(function (req, res) {
             let promise = censys.getSSLByValidity2kPromise();
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
                 res.status(200).json(data);
@@ -1855,20 +1855,20 @@ module.exports = function(envConfig) {
      */
     router.route('/censys/expired_certs_by_year')
         // get info on expired certs
-        .get(function(req, res) {
+        .get(function (req, res) {
             if (!(req.query.hasOwnProperty('year'))) {
-                res.status(400).json({'message': 'A year must be provided.'});
+                res.status(400).json({ 'message': 'A year must be provided.' });
                 return;
             } else if (req.query.year.match(/^[0-9\-]+$/) == null) {
-                res.status(400).json({'message': 'A valid year must be provided.'});
+                res.status(400).json({ 'message': 'A valid year must be provided.' });
                 return;
             }
 
             let promise = censys.getSSLByValidityYearPromise(req.query.year);
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data || data.length === 0) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
 
@@ -1876,7 +1876,7 @@ module.exports = function(envConfig) {
                 let today = new Date();
                 let thisYear = today.getFullYear().toString();
                 let test = data[0]['p443']['https']['tls']['certificate']['parsed']['validity']['end'].startsWith(thisYear);
-                for (let i=0; i<data.length; i++) {
+                for (let i = 0; i < data.length; i++) {
                     // For the current year, only include certificates that expired before today
                     if (test) {
                         let tempDate = new Date(data[i]['p443']['https']['tls']['certificate']['parsed']['validity']['end']);
@@ -1978,7 +1978,7 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/censys/heartbleed')
-        .get(function(req, res) {
+        .get(function (req, res) {
             let org;
             if (req.query.hasOwnProperty('org')) {
                 org = req.query.org;
@@ -1991,13 +1991,13 @@ module.exports = function(envConfig) {
             } else {
                 promise = censys.getSSLHeartbleedPromise(org, false);
             }
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
                 if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                    res.status(200).json({'count': data});
+                    res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
                 }
@@ -2050,15 +2050,15 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/censys/protocol_count')
-        .get(function(req, res) {
+        .get(function (req, res) {
             let promise;
             if (req.query.hasOwnProperty('protocol') &&
                 ((req.query.protocol === 'ssl_2') ||
-                (req.query.protocol === 'ssl_3') ||
-                (req.query.protocol === 'tls') ||
-                (req.query.protocol === 'dhe') ||
-                (req.query.protocol === 'dhe_export') ||
-                (req.query.protocol === 'rsa_export'))) {
+                    (req.query.protocol === 'ssl_3') ||
+                    (req.query.protocol === 'tls') ||
+                    (req.query.protocol === 'dhe') ||
+                    (req.query.protocol === 'dhe_export') ||
+                    (req.query.protocol === 'rsa_export'))) {
                 promise = censys.getSSLProtocolCountPromise(req.query.protocol);
             } else {
                 res.status(400).json({
@@ -2067,12 +2067,12 @@ module.exports = function(envConfig) {
                 return;
             }
 
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
-                res.status(200).json({'count': data});
+                res.status(200).json({ 'count': data });
                 return;
             });
         });
@@ -2111,15 +2111,15 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-   router.route('/censys/corp_ssl_count')
-        .get(function(req, res) {
+    router.route('/censys/corp_ssl_count')
+        .get(function (req, res) {
             let promise = censys.getCorpSSLCountPromise(envConfig.internalDomain);
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
-                res.status(200).json({'count': data});
+                res.status(200).json({ 'count': data });
                 return;
             });
         });
@@ -2158,18 +2158,18 @@ module.exports = function(envConfig) {
      *         schema:
      *           $ref: '#/definitions/ServerError'
      */
-   router.route('/censys/total_count')
-        .get(function(req, res) {
+    router.route('/censys/total_count')
+        .get(function (req, res) {
             let promise = censys.getFullCountPromise();
-            promise.then(function(data) {
+            promise.then(function (data) {
                 if (!data) {
-                    res.status(404).json({'message': 'Data not found'});
+                    res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
-                res.status(200).json({'count': data});
+                res.status(200).json({ 'count': data });
                 return;
             });
         });
 
-  return (router);
+    return (router);
 };

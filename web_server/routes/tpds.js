@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -73,7 +73,7 @@ const tpdRecs = require('../config/models/tpds');
  *
  */
 
-module.exports = function(envConfig) {
+module.exports = function (envConfig) {
 
     /**
      * @swagger
@@ -326,42 +326,42 @@ module.exports = function(envConfig) {
      *           $ref: '#/definitions/ServerError'
      */
     router.route('/tpds/search')
-     .get(function(req, res) {
-        let promise;
-        if ((req.query.hasOwnProperty('dataType'))) {
-            if (!req.query.hasOwnProperty('value')) {
-                res.status(400).json({'message': 'A value must be provided.'});
-                return;
-            }
-            let listOnly = false;
-            if (req.query.hasOwnProperty('listOnly')
-                && req.query.listOnly === '1') {
-                listOnly = true;
-            }
+        .get(function (req, res) {
+            let promise;
+            if ((req.query.hasOwnProperty('dataType'))) {
+                if (!req.query.hasOwnProperty('value')) {
+                    res.status(400).json({ 'message': 'A value must be provided.' });
+                    return;
+                }
+                let listOnly = false;
+                if (req.query.hasOwnProperty('listOnly')
+                    && req.query.listOnly === '1') {
+                    listOnly = true;
+                }
 
-            if (req.query.dataType === 'zone') {
-                promise = tpdRecs.getTPDsByZone(req.query.value, listOnly);
-            } else if (req.query.dataType === 'tpd') {
-                promise = tpdRecs.getTPDsByTPD(req.query.value);
-            } else if (req.query.dataType === 'wildcard') {
-                promise = tpdRecs.getTPDsByWildcard(req.query.value, listOnly);
+                if (req.query.dataType === 'zone') {
+                    promise = tpdRecs.getTPDsByZone(req.query.value, listOnly);
+                } else if (req.query.dataType === 'tpd') {
+                    promise = tpdRecs.getTPDsByTPD(req.query.value);
+                } else if (req.query.dataType === 'wildcard') {
+                    promise = tpdRecs.getTPDsByWildcard(req.query.value, listOnly);
+                } else {
+                    res.status(400).json({ 'message': 'An unknown data type was provided.' });
+                    return;
+                }
             } else {
-                res.status(400).json({'message': 'An unknown data type was provided.'});
-                return;
+                promise = tpdRecs.getAllTPDs();
             }
-        } else {
-            promise = tpdRecs.getAllTPDs();
-        }
 
-        promise.then(function(results) {
-            if (!results) {
-                res.status(404).json({'message': 'Results not found.'});
+            promise.then(function (results) {
+                if (!results) {
+                    res.status(404).json({ 'message': 'Results not found.' });
+                    return;
+                }
+                res.status(200).json(results);
                 return;
-            }
-            res.status(200).json(results);
-            return;
+            });
         });
-    });
 
     return (router);
 };
