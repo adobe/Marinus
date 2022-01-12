@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -22,8 +22,8 @@ class SwaggerController {
                 title: 'MARINUS REST API',
                 version: '1.0.0',
                 description: 'Marinus APIs. ' +
-                             'Login to Marinus via /login or use a valid apiKey to ' +
-                             'authenticate and authorise the API calls.'
+                    'Login to Marinus via /login or use a valid apiKey to ' +
+                    'authenticate and authorise the API calls.'
             },
             host: envConfig.swagger.hostname,
             basePath: '/',

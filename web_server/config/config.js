@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -41,11 +41,12 @@ function setUpLogger(app, envConfig) {
     app.use(mlogger({
       "format": "combined",
       "stream": {
-        write: function(message) {
+        write: function (message) {
           var payload = {
             message
           };
-          splunk_logger.send(payload); }
+          splunk_logger.send(payload);
+        }
       }
     }));
   } else {
@@ -53,76 +54,84 @@ function setUpLogger(app, envConfig) {
   }
 }
 
-module.exports = function(app, envConfig){
-    const passport = require('passport');
-    require('./passport_conf')(passport, envConfig);
+module.exports = function (app, envConfig) {
+  const passport = require('passport');
+  require('./passport_conf')(passport, envConfig);
 
-    // view engine setup
-    app.set('views', path.join(envConfig.rootPath, 'views'));
-    app.set('view engine', 'ejs');
+  // view engine setup
+  app.set('views', path.join(envConfig.rootPath, 'views'));
+  app.set('view engine', 'ejs');
 
-    // app.use(favicon(envConfig.rootPath + '/public/images/satyrusmarinus-small.ico'));
-    app.use(bodyParser.json());
-    app.use(bodyParser.urlencoded({extended: false}));
+  // app.use(favicon(envConfig.rootPath + '/public/images/satyrusmarinus-small.ico'));
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({ extended: false }));
 
-    // Set up sessions
-    app.use(cookieParser());
+  // Set up sessions
+  app.use(cookieParser());
 
-    if (envConfig.state === 'production') {
+  if (envConfig.state === 'production') {
 
-        setUpLogger(app, envConfig);
+    setUpLogger(app, envConfig);
 
-        const store = new MongoDBStore(
-          {
-            uri: envConfig.database,
-            collection: 'sessions',
-          });
+    const store = new MongoDBStore(
+      {
+        uri: envConfig.database,
+        collection: 'sessions',
+      });
 
-        store.on('error', function(error) {
-          assert.ifError(error);
-          assert.ok(false);
-        });
+    store.on('error', function (error) {
+      assert.ifError(error);
+      assert.ok(false);
+    });
 
-        app.use(expressSession({secret: envConfig.cookieSecret,
-                              cookie: {secure: true, sameSite: "None",
-                              maxAge: 1000 * 60 * 60 * 24 * 1},
-                              store: store,
-                              resave: false,
-                              saveUninitialized: false}));
-    } else {
-        /**
-         * Begin development mode section
-         */
+    app.use(expressSession({
+      secret: envConfig.cookieSecret,
+      cookie: {
+        secure: true, sameSite: "None",
+        maxAge: 1000 * 60 * 60 * 24 * 1
+      },
+      store: store,
+      resave: false,
+      saveUninitialized: false
+    }));
+  } else {
+    /**
+     * Begin development mode section
+     */
 
-        app.use(mlogger('combined'));
+    app.use(mlogger('combined'));
 
-        app.use(expressSession({secret: envConfig.cookieSecret,
-                              cookie: {secure: true, sameSite: "None",
-                              maxAge: 1000 * 60 * 60 * 24 * 1},
-                              resave: false,
-                              saveUninitialized: false}));
-    }
+    app.use(expressSession({
+      secret: envConfig.cookieSecret,
+      cookie: {
+        secure: true, sameSite: "None",
+        maxAge: 1000 * 60 * 60 * 24 * 1
+      },
+      resave: false,
+      saveUninitialized: false
+    }));
+  }
 
-    // SSO initialization
-    app.use(passport.initialize());
-    app.use(passport.session());
+  // SSO initialization
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-    app.locals.pretty = envConfig.pretty;
+  app.locals.pretty = envConfig.pretty;
 
-    // Tell Express to serve static objects from the /public/ dir in /
-    app.use('/', express.static(path.join(envConfig.rootPath, 'public')));
+  // Tell Express to serve static objects from the /public/ dir in /
+  app.use('/', express.static(path.join(envConfig.rootPath, 'public')));
 
-    app.use('/javascripts/jquery', express.static(path.join(envConfig.rootPath, 'node_modules/jquery/dist/')));
-    app.use('/javascripts/bootstrap', express.static(path.join(envConfig.rootPath, 'node_modules/bootstrap/dist/js/')));
-    app.use('/stylesheets/bootstrap', express.static(path.join(envConfig.rootPath, 'node_modules/bootstrap/dist/css/')));
-    app.use('/stylesheets/octicons', express.static(path.join(envConfig.rootPath, 'node_modules/octicons/build/')));
-    app.use('/javascripts/d3', express.static(path.join(envConfig.rootPath, 'node_modules/d3/dist')));
-    app.use('/javascripts/d3-scale', express.static(path.join(envConfig.rootPath, 'node_modules/d3-scale-chromatic/dist')));
-    app.use('/javascripts/URI.min.js', express.static(path.join(envConfig.rootPath, 'node_modules/urijs/src/URI.min.js')));
+  app.use('/javascripts/jquery', express.static(path.join(envConfig.rootPath, 'node_modules/jquery/dist/')));
+  app.use('/javascripts/bootstrap', express.static(path.join(envConfig.rootPath, 'node_modules/bootstrap/dist/js/')));
+  app.use('/stylesheets/bootstrap', express.static(path.join(envConfig.rootPath, 'node_modules/bootstrap/dist/css/')));
+  app.use('/stylesheets/octicons', express.static(path.join(envConfig.rootPath, 'node_modules/octicons/build/')));
+  app.use('/javascripts/d3', express.static(path.join(envConfig.rootPath, 'node_modules/d3/dist')));
+  app.use('/javascripts/d3-scale', express.static(path.join(envConfig.rootPath, 'node_modules/d3-scale-chromatic/dist')));
+  app.use('/javascripts/URI.min.js', express.static(path.join(envConfig.rootPath, 'node_modules/urijs/src/URI.min.js')));
 
-    // Necessary for cert_graph
-    app.use("/bootstrap/dist", express.static(path.join(envConfig.rootPath, '/node_modules/bootstrap/dist')));
-    app.use("/bootstrap/less", express.static(path.join(envConfig.rootPath, '/node_modules/bootstrap/less')));
+  // Necessary for cert_graph
+  app.use("/bootstrap/dist", express.static(path.join(envConfig.rootPath, '/node_modules/bootstrap/dist')));
+  app.use("/bootstrap/less", express.static(path.join(envConfig.rootPath, '/node_modules/bootstrap/less')));
 
-    return (passport);
+  return (passport);
 };

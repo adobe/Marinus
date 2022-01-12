@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -37,7 +37,7 @@ function checkApiKey(apiKey, req, res, next) {
     };
 
     let uPromise = user.getUserByApiKeyPromise(params.apiKey, true);
-    uPromise.then(function(userResult) {
+    uPromise.then(function (userResult) {
         if (!userResult) {
             res.status(401).json({
                 'message': 'You do not appear to be a current user',
@@ -47,7 +47,7 @@ function checkApiKey(apiKey, req, res, next) {
         req.session.userid = userResult.userid;
         this.userid = userResult.userid;
         let gPromise = group.getGroupsByUserPromise(userResult.userid, true);
-        gPromise.then(function(groupResult) {
+        gPromise.then(function (groupResult) {
             req.session.groups = [];
             req.session.isAdmin = false;
 
@@ -66,18 +66,18 @@ function checkApiKey(apiKey, req, res, next) {
             next();
             return;
         }.bind(this))
-        .catch(function(err) {
+            .catch(function (err) {
+                res.status(500).json({
+                    'message': err.toString(),
+                });
+            });
+    }.bind(params))
+        .catch(function (err) {
             res.status(500).json({
                 'message': err.toString(),
             });
+            res.end();
         });
-    }.bind(params))
-    .catch(function(err) {
-        res.status(500).json({
-            'message': err.toString(),
-        });
-        res.end();
-    });
 }
 
 /**
@@ -90,7 +90,7 @@ function checkAuthentication(req, res, next) {
     let apiKey = '';
     if (typeof req.query.apiKey !== 'undefined') {
         apiKey = req.query.apiKey;
-    } else if (typeof req.params.apiKey  !== 'undefined') {
+    } else if (typeof req.params.apiKey !== 'undefined') {
         apiKey = req.params.apiKey;
     } else if (typeof req.body.apiKey !== 'undefined') {
         apiKey = req.body.apiKey;
@@ -126,18 +126,18 @@ function checkAuthentication(req, res, next) {
  */
 function checkAuthorization(req, res, next) {
     if ((req.path.indexOf('/auth/') === 0  // No login requirements
-            || req.path === '/logout'
-            || req.path === '/login'
-            || /^\/docs/.test(req.path)
-            || req.path === '/swagger.json')
-    || (req.session && req.session.localAuth) // local testing. Assumed to be authorized
-    || (typeof req.session.isAdmin !== 'undefined')) // The API check already handles assigning isAdmin
+        || req.path === '/logout'
+        || req.path === '/login'
+        || /^\/docs/.test(req.path)
+        || req.path === '/swagger.json')
+        || (req.session && req.session.localAuth) // local testing. Assumed to be authorized
+        || (typeof req.session.isAdmin !== 'undefined')) // The API check already handles assigning isAdmin
     {
         next();
         return;
     } else if (req.session.isAdmin == null) {
         let gPromise = group.getGroupByNamePromise('admin');
-        gPromise.then(function(adminGroup) {
+        gPromise.then(function (adminGroup) {
             req.session.isAdmin = false;
             for (let i in adminGroup.admins) {
                 if (adminGroup.admins[i] === req.session.passport.user.userid) {
@@ -148,17 +148,17 @@ function checkAuthorization(req, res, next) {
             }
             next();
         })
-        .catch(function(err) {
-            res.status(500).json({
-                'message': err.toString(),
+            .catch(function (err) {
+                res.status(500).json({
+                    'message': err.toString(),
+                });
             });
-        });
     } else {
         next();
     }
 }
 
-module.exports = function(app, envConfig, passport) {
+module.exports = function (app, envConfig, passport) {
     app.use(checkAuthentication);
     app.use(checkAuthorization);
 
