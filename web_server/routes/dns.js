@@ -190,6 +190,11 @@ module.exports = function (envConfig) {
      *                      source, and zone parameters.
      *         enum: [a, cname, ns, soa, aaaa, txt, ptr, mx, ds, naptr, rrsig, srv]
      *         in: query
+     *       - name: cname
+     *         type: string
+     *         required: false
+     *         description: Fetch DNS records whose fqdn resolves to the provided CNAME value
+     *         in: query
      *       - name: cnameTLD
      *         type: string
      *         required: false
@@ -456,6 +461,12 @@ module.exports = function (envConfig) {
                     promise = allDNS.getAllDNSByCanonicalSearch(req.query.cnameTLD, req.query.zone, source);
                 } else {
                     promise = allDNS.getAllDNSByCanonicalSearch(req.query.cnameTLD, null, source);
+                }
+            } else if (req.query.hasOwnProperty('cname')) {
+                if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
+                    promise = allDNS.getAllDNSByCNameSearch(req.query.cname, req.query.zone, source);
+                } else {
+                    promise = allDNS.getAllDNSByCNameSearch(req.query.cname, null, source);
                 }
             } else if ((req.query.hasOwnProperty('count')) &&
                 (req.query.count === '1')) {

@@ -239,6 +239,34 @@ module.exports = {
         }
         return allDnsModel.countDocuments(query).exec();
     },
+    getAllDNSByCNameSearch: function (cname, zone, source) {
+        /**
+         * Fetch all records which resolve to the provided CName value
+         */
+        let promise;
+        let query;
+        if (zone) {
+            query = {
+                'type': 'cname',
+                'value': cname,
+                'zone': zone,
+            };
+            if (source != null) {
+                query['sources.source'] = source;
+            }
+            promise = allDnsModel.find(query).exec();
+        } else {
+            query = {
+                'type': 'cname',
+                'value': cname,
+            };
+            if (source != null) {
+                query['sources.source'] = source;
+            }
+            promise = allDnsModel.find(query).exec();
+        }
+        return promise;
+    },
     getAllDNSByCanonicalSearch: function (search, zone, source) {
         /**
          * Fetch all CNAME records that end in the provided search string.
