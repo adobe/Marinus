@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -17,13 +17,13 @@ window.addEventListener("load", custom_check);
 
 function custom_check() {
   if (CustomScriptSourcesEnabled) {
-      var scr = document.createElement('script');
-      scr.type = 'text/javascript';
-      scr.addEventListener('load', build_page);
-      scr.src = CustomScriptSrc;
-      document.head.appendChild(scr);
+    var scr = document.createElement('script');
+    scr.type = 'text/javascript';
+    scr.addEventListener('load', build_page);
+    scr.src = CustomScriptSrc;
+    document.head.appendChild(scr);
   } else {
-      build_page();
+    build_page();
   }
 }
 
@@ -59,20 +59,20 @@ function build_page() {
   /* Censys Statistics */
   if (ScanDataSources.includes("censys")) {
     document.getElementById("censysSection").style.display = "block";
-    get_counts("/api/v1.0/censys/corp_ssl_count","CensysCorpSSLCount");
-    get_counts("/api/v1.0/censys/protocol_count?protocol=ssl_2","SSL2Count");
-    get_counts("/api/v1.0/censys/protocol_count?protocol=ssl_3","SSL3Count");
-    get_counts("/api/v1.0/censys/protocol_count?protocol=tls","TLSCount");
-    get_counts("/api/v1.0/censys/protocol_count?protocol=dhe","SSLDHECount");
-    get_counts("/api/v1.0/censys/protocol_count?protocol=dhe_export","SSLDHEExportCount");
-    get_counts("/api/v1.0/censys/protocol_count?protocol=rsa_export","SSLRSAExportCount");
+    get_counts("/api/v1.0/censys/corp_ssl_count", "CensysCorpSSLCount");
+    get_counts("/api/v1.0/censys/protocol_count?protocol=ssl_2", "SSL2Count");
+    get_counts("/api/v1.0/censys/protocol_count?protocol=ssl_3", "SSL3Count");
+    get_counts("/api/v1.0/censys/protocol_count?protocol=tls", "TLSCount");
+    get_counts("/api/v1.0/censys/protocol_count?protocol=dhe", "SSLDHECount");
+    get_counts("/api/v1.0/censys/protocol_count?protocol=dhe_export", "SSLDHEExportCount");
+    get_counts("/api/v1.0/censys/protocol_count?protocol=rsa_export", "SSLRSAExportCount");
     get_counts("/api/v1.0/censys/total_count", "censysCount");
 
     for (let org in TLSOrgs) {
       make_get_request("/api/v1.0/censys/certs?org=" + encodeURIComponent(TLSOrgs[org]) + "&count=1", show_distinct_fields, [TLSOrgs[org], "censysOrgs"], "errorMessage")
     }
 
-    for (let i =0; i < CensysSupportedPorts.length; i++) {
+    for (let i = 0; i < CensysSupportedPorts.length; i++) {
       make_get_request("/api/v1.0/censys/ports?port=" + CensysSupportedPorts[i] + "&type=count", show_distinct_fields, [CensysSupportedPorts[i], "censysPorts"], "errorMessage");
     }
   }
@@ -92,7 +92,7 @@ function build_page() {
       make_get_request("/api/v1.0/zgrab/443/certs?org=" + encodeURIComponent(TLSOrgs[org]) + "&count=1", show_distinct_fields, [TLSOrgs[org], "zgrabOrgs"], "errorMessage");
     }
 
-    for (let i =0; i < ScanSupportedPorts.length; i++) {
+    for (let i = 0; i < ScanSupportedPorts.length; i++) {
       make_get_request("/api/v1.0/zgrab/" + ScanSupportedPorts[i] + "/ips?count=1", show_distinct_fields, [ScanSupportedPorts[i], "zgrabPorts"], "errorMessage");
     }
   }
@@ -101,16 +101,16 @@ function build_page() {
 }
 
 function displayCountData(obj, divRef) {
-   var elem = document.getElementById(divRef);
-   elem.className = "";
+  var elem = document.getElementById(divRef);
+  elem.className = "";
 
-   if (obj.hasOwnProperty("count")) {
-     elem.innerHTML = obj.count;
-   } else if (obj.hasOwnProperty("message")) {
-     elem.innerHTML = obj.message;
-   } else {
-     elem.innerHTML = "Error parsing response.";
-   }
+  if (obj.hasOwnProperty("count")) {
+    elem.innerHTML = obj.count;
+  } else if (obj.hasOwnProperty("message")) {
+    elem.innerHTML = obj.message;
+  } else {
+    elem.innerHTML = "Error parsing response.";
+  }
 }
 
 function show_distinct_fields(obj, values) {
@@ -126,9 +126,9 @@ function get_counts(url, field_name) {
 function fetch_field_stats(obj, field_name) {
   for (let entry in obj['sources']) {
     if (field_name === "zoneSources") {
-      make_get_request("/api/v1.0/zones/stats?source=" + obj['sources'][entry], show_distinct_fields, [obj['sources'][entry],field_name], "errorMessage");
+      make_get_request("/api/v1.0/zones/stats?source=" + obj['sources'][entry], show_distinct_fields, [obj['sources'][entry], field_name], "errorMessage");
     } else if (field_name === "dnsSources") {
-      make_get_request("/api/v1.0/dns?count=1&source=" + obj['sources'][entry], show_distinct_fields, [obj['sources'][entry],field_name], "errorMessage");
+      make_get_request("/api/v1.0/dns?count=1&source=" + obj['sources'][entry], show_distinct_fields, [obj['sources'][entry], field_name], "errorMessage");
     }
   }
 }

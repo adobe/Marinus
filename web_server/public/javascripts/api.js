@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -29,7 +29,7 @@ function custom_check() {
     if (CustomScriptSourcesEnabled) {
         var scr = document.createElement('script');
         scr.type = 'text/javascript';
-        scr.addEventListener('load',build_page);
+        scr.addEventListener('load', build_page);
         scr.src = CustomScriptSrc;
         document.head.appendChild(scr);
     } else {
@@ -60,8 +60,8 @@ function queries(event) {
         do_nslookup(value);
         ibloxOwner('host', value);
         // Check Location
-        search_all_dns('domain',value);
-        search_sonar_rdns('domain',value);
+        search_all_dns('domain', value);
+        search_sonar_rdns('domain', value);
         // Certificate Checks
         search_ct('domain', value);
         // Scan Information
@@ -100,7 +100,7 @@ function queries(event) {
         gcp_check('ip', value);
         tracked_ip_range_check('ip', value);
         // DNS Records
-        search_all_dns('ip',value);
+        search_all_dns('ip', value);
         search_sonar_rdns('ip', value);
         // Certificate Checks
         search_ct('ip', value);
@@ -139,7 +139,7 @@ function queries(event) {
         gcp_check('ipv6', value);
         tracked_ip_range_check('ipv6', value);
         // DNS Records
-        search_all_dns('ipv6',value);
+        search_all_dns('ipv6', value);
         // Whois information
         if (DynamicWhoisEnabled) {
             clear_divs(["dynamic_whois"]);
@@ -162,14 +162,14 @@ function display_nslookup(results) {
     var resDiv = document.getElementById('hostingLocation');
     var displayHTML = create_h3("NSLookup Results");
     if (results.hasOwnProperty("ips")) {
-        for (let i=0; i < results['ips'].length; i++) {
+        for (let i = 0; i < results['ips'].length; i++) {
             displayHTML += create_anchor("/ip?search=" + results["ips"][i]["address"], results["ips"][i]["address"], "_blank") + ", ";
         }
         displayHTML = displayHTML.substring(0, displayHTML.length - 2);
     } else if (results.hasOwnProperty["Error"]) {
         resDiv.innerHTML = results["Error"].toString();
     } else if (results.hasOwnProperty("domains")) {
-        for (let i=0; i < results['domains'].length; i++) {
+        for (let i = 0; i < results['domains'].length; i++) {
             displayHTML += results['domains'][i] + " ";
         }
     } else if (typeof results === "string") {
@@ -184,26 +184,26 @@ function do_nslookup(target) {
     var url = "/api/v1.0/utilities/nslookup";
     var query_string = "?target=" + target;
 
-    make_get_request(url+query_string, display_nslookup);
+    make_get_request(url + query_string, display_nslookup);
 }
 
 function allDNSResult(results) {
     var displayHTML = create_h3("DNS Records");
     if (results.length === 0) {
         document.getElementById("dnsRecords").innerHTML = displayHTML + "<b>No DNS Records Found</b><br/><br/>";
-         return;
+        return;
     }
     displayHTML += create_new_table();
     displayHTML += create_table_head(["Type", "Value", "Domain", "Zone", "Sources", "Accounts"]);
     displayHTML += create_table_body();
 
-    for (let i=0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(results[i]['type']);
         displayHTML += create_table_entry(results[i]['value']);
         displayHTML += create_table_entry(create_anchor("/domain?search=" + results[i]['fqdn'], results[i]['fqdn']));
         displayHTML += create_table_entry(create_anchor("/zone?search=" + results[i]['zone'], results[i]['zone']));
-    
+
         let sources = "";
         for (let source in results[i]['sources']) {
             sources += results[i]['sources'][source]['source'] + ", ";
@@ -229,7 +229,7 @@ function allDNSResult(results) {
     document.getElementById("dnsRecords").innerHTML = displayHTML;
 }
 
-function search_all_dns(type,value) {
+function search_all_dns(type, value) {
     var url = "/api/v1.0/dns";
     var query = "";
     if (type === 'domain') {
@@ -242,20 +242,20 @@ function search_all_dns(type,value) {
         query = "?ipv6=" + value;
     }
 
-    make_get_request(url+query, allDNSResult, null, "sonar_dns");
+    make_get_request(url + query, allDNSResult, null, "sonar_dns");
 }
 
 function sonarRDNSResult(results) {
     var displayHTML = create_h3("Reverse DNS Records");
     if (results.length === 0) {
         document.getElementById("reverseDnsRecords").innerHTML = displayHTML + "<b>No RDNS Records Found</b><br/><br/>";
-         return;
-     }
-     displayHTML += create_new_table();
-     displayHTML += create_table_head(["IP", "Domain", "Zone", "Status"]);
-     displayHTML += create_table_body();
+        return;
+    }
+    displayHTML += create_new_table();
+    displayHTML += create_table_head(["IP", "Domain", "Zone", "Status"]);
+    displayHTML += create_table_body();
 
-    for (let i=0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
         displayHTML += create_table_entry(results[i]['fqdn']);
@@ -269,7 +269,7 @@ function sonarRDNSResult(results) {
     document.getElementById("reverseDnsRecords").innerHTML = displayHTML;
 }
 
-function search_sonar_rdns(type,value) {
+function search_sonar_rdns(type, value) {
     var url = "/api/v1.0/sonar/rdns";
     var query = "";
     if (type === 'domain') {
@@ -280,7 +280,7 @@ function search_sonar_rdns(type,value) {
         query = "?ip=" + value;
     }
 
-    make_get_request(url+query, sonarRDNSResult, null, "sonar_rdns");
+    make_get_request(url + query, sonarRDNSResult, null, "sonar_rdns");
 }
 
 function aws_check_result(results, type) {
@@ -306,7 +306,7 @@ function aws_check(type, ip) {
     }
     var query = "?ip=" + ip;
 
-    make_get_request(url+query, aws_check_result, type, "awsResult");
+    make_get_request(url + query, aws_check_result, type, "awsResult");
 }
 
 function azure_check_result(results) {
@@ -322,7 +322,7 @@ function azure_check(ip) {
     var url = "/api/v1.0/azure/ip_check";
     var query = "?ip=" + ip;
 
-    make_get_request(url+query, azure_check_result, null, "azureResult");
+    make_get_request(url + query, azure_check_result, null, "azureResult");
 }
 
 function akamai_check_result(results) {
@@ -343,7 +343,7 @@ function akamai_check(type, ip) {
     }
     var query = "?ip=" + ip;
 
-    make_get_request(url+query, akamai_check_result, null, "akamaiResult");
+    make_get_request(url + query, akamai_check_result, null, "akamaiResult");
 }
 
 function gcp_check_result(results, type) {
@@ -369,7 +369,7 @@ function gcp_check(type, ip) {
     }
     var query = "?ip=" + ip;
 
-    make_get_request(url+query, gcp_check_result, type, "gcpResult");
+    make_get_request(url + query, gcp_check_result, type, "gcpResult");
 }
 
 function tracked_range_result(results) {
@@ -395,7 +395,7 @@ function tracked_ip_range_check(type, ip) {
     }
     var query = "?ip=" + ip;
 
-    make_get_request(url+query, tracked_range_result, null, "hostingLocation");
+    make_get_request(url + query, tracked_range_result, null, "hostingLocation");
 }
 
 
@@ -404,7 +404,7 @@ function tracked_ip_range_check(type, ip) {
  * @returns {promise} Promise jqXHR object
  */
 function retrieve_results(url, response_element) {
-    return $.getJSON(url).fail(function(jqXHR, textStatus, errorThrown) {
+    return $.getJSON(url).fail(function (jqXHR, textStatus, errorThrown) {
         if (jqXHR.status === 200 && errorThrown.message.length) {
             $('#' + response_element).text('<H3>Infoblox Owner Information</H3>Infoblox Owner Error: Bad JSON! ' + errorThrown.message).addClass('boldElem');
         }
@@ -422,7 +422,7 @@ function owner_detail_renderer(owner_details, type, div_id) {
     if (!owner_details.length) {
         return;
     }
-    switch(type){
+    switch (type) {
         case 'host':
             host_owner_detail_renderer(owner_details, div_id);
             break;
@@ -439,7 +439,7 @@ function owner_detail_renderer(owner_details, type, div_id) {
  */
 function host_owner_detail_renderer(owner_details, div_id) {
     var displayHTML = create_h3("Infoblox Owner Information");
-    displayHTML += "Owner(s): " +  owner_details[0]['owners'];
+    displayHTML += "Owner(s): " + owner_details[0]['owners'];
     document.getElementById(div_id).innerHTML += displayHTML + "<br/><br/>";
 }
 
@@ -454,7 +454,7 @@ function ip_owner_detail_renderer(owner_details, div_id) {
     displayHTML += create_table_head(["Domain", "Owners"]);
     displayHTML += create_table_body();
 
-    for (let i=0; i < owner_details.length; i++) {
+    for (let i = 0; i < owner_details.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(decodeURIComponent(owner_details[i]['meta']));
         displayHTML += create_table_entry(owner_details[i]['owners']);
@@ -472,12 +472,12 @@ function ip_owner_detail_renderer(owner_details, div_id) {
 function ibloxOwner(type, value) {
     var url = new URI('/api/v1.0/iblox/owners');
     url.addSearch({
-        'type' : type,
+        'type': type,
         'value': value
     });
 
     retrieve_results(url.toString(), 'ownershipInformation')
-        .then(function(owner_details) {
+        .then(function (owner_details) {
             owner_detail_renderer(owner_details, type, 'ownershipInformation');
         });
 }
@@ -492,7 +492,7 @@ function ctResults(results) {
     displayHTML += create_table_head(["Common Name", "Organization"]);
     displayHTML += create_table_body();
 
-    for (let i=0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(create_anchor("/reports/display_cert?id=" + results[i]['_id'], results[i]['subject_common_names'].toString()));
         displayHTML += create_table_entry(results[i]['subject_organization_name'].toString());
@@ -504,7 +504,7 @@ function ctResults(results) {
     document.getElementById("certificateRecords").innerHTML += displayHTML + "<br/>";
 }
 
-function search_ct(type,value) {
+function search_ct(type, value) {
     var url = "";
     var query = "";
     if (type === "ip") {
@@ -515,7 +515,7 @@ function search_ct(type,value) {
         query = "?cn=" + value;
     }
 
-    make_get_request(url+query, ctResults, null, "ct");
+    make_get_request(url + query, ctResults, null, "ct");
 }
 
 function update_censys_preview(ev) {
@@ -528,9 +528,9 @@ function update_censys_preview(ev) {
     var index = parts[1].split(/_/);
     var result = lastCensysResult[index[0]][parts[0]];
     var temp = JSON.stringify(result);
-    var parsed = temp.replace(/\</g,"&lt;");
-    parsed = parsed.replace(/\>/g,"&gt;");
-    parsed = parsed.replace(/\{/g,"<br>{");
+    var parsed = temp.replace(/\</g, "&lt;");
+    parsed = parsed.replace(/\>/g, "&gt;");
+    parsed = parsed.replace(/\{/g, "<br>{");
 
 
     var cpc = document.getElementById("censysOutput");
@@ -539,27 +539,27 @@ function update_censys_preview(ev) {
 
 function censysResult(results) {
     var portList = {
-        'p21':'ftp',
-        'p22':'ssh',
-        'p23':'telnet',
-        'p25':'smtp',
-        'p53':'dns',
-        'p80':'http',
-        'p110':'pop3',
-        'p143':'imap',
-        'p443':'https',
-        'p465':'smtps',
-        'p502':'modbus',
-        'p8080':'http',
-        'p993':'imaps',
-        'p995':'pop3s',
-        'p47808':'bacnet',
-        'p7547':'cwmp'
+        'p21': 'ftp',
+        'p22': 'ssh',
+        'p23': 'telnet',
+        'p25': 'smtp',
+        'p53': 'dns',
+        'p80': 'http',
+        'p110': 'pop3',
+        'p143': 'imap',
+        'p443': 'https',
+        'p465': 'smtps',
+        'p502': 'modbus',
+        'p8080': 'http',
+        'p993': 'imaps',
+        'p995': 'pop3s',
+        'p47808': 'bacnet',
+        'p7547': 'cwmp'
     };
-    var staticList = ["location","ip","autonomous_system","createdAt","tags","zones", "domains", "ipint", "aws", "azure", "ports"];
+    var staticList = ["location", "ip", "autonomous_system", "createdAt", "tags", "zones", "domains", "ipint", "aws", "azure", "ports"];
     if (results.length === 0) {
-         return;
-     }
+        return;
+    }
 
     var htmlOut = "";
     var censysTag = document.getElementById("censysInformation");
@@ -571,7 +571,7 @@ function censysResult(results) {
         <div class="tableCell">';
     htmlOut += create_new_list();
 
-    for (var i=0; i< results.length; i++) {
+    for (var i = 0; i < results.length; i++) {
 
         if (!(results[i].hasOwnProperty("tags")) || results[i]["tags"].length === 0) {
             for (let val in results[i]) {
@@ -584,7 +584,7 @@ function censysResult(results) {
                 if (staticList.indexOf(val) != -1) {
                     htmlOut += create_list_entry(val + ':' + i.toString(), val, "#");
                 } else if ((val.startsWith("p")) && val !== "ports" && (results[i]["tags"].indexOf(portList[val]) !== -1)) {
-                    htmlOut +=  create_list_entry(val + ':' + i.toString(), '<img src="/stylesheets/octicons/svg/file.svg" alt="data"></img>&nbsp;' + val + ' (' + portList[val] + ')', "#");
+                    htmlOut += create_list_entry(val + ':' + i.toString(), '<img src="/stylesheets/octicons/svg/file.svg" alt="data"></img>&nbsp;' + val + ' (' + portList[val] + ')', "#");
                 } else if (val.startsWith("p") && val !== "ports") {
                     htmlOut += create_list_entry(val + ':' + i.toString(), val + ' (' + portList[val] + ')', "#");
                 }
@@ -599,7 +599,7 @@ function censysResult(results) {
 
     censysTag.innerHTML = htmlOut;
     lastCensysResult = results;
-    for (let i= 0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         for (let val in results[i]) {
             if (val !== "_id") {
                 document.getElementById(val + ":" + i.toString() + "_link").addEventListener("click", update_censys_preview);
@@ -608,7 +608,7 @@ function censysResult(results) {
     }
 }
 
-function censys_rec(type,value) {
+function censys_rec(type, value) {
     var url, query;
     if (type === "domain") {
         url = "/api/v1.0/censys/certs";
@@ -618,7 +618,7 @@ function censys_rec(type,value) {
         query = "?ip=" + value;
     }
 
-    make_get_request(url+query, censysResult, null, "scanInformation");
+    make_get_request(url + query, censysResult, null, "scanInformation");
 }
 
 function display_scan_output(results, port) {
@@ -651,7 +651,7 @@ function display_scan_records(ev) {
         query = "?domain=" + document.getElementById("search_input").value.toLowerCase();
     }
     query += "&port=" + port;
-    make_get_request(url+query, display_scan_output, port, "scanOutput");
+    make_get_request(url + query, display_scan_output, port, "scanOutput");
 }
 
 
@@ -659,7 +659,7 @@ function create_div_title(idRef, title) {
     let displayDiv = document.createElement('div');
     displayDiv.setAttribute("id", idRef + "_title");
     displayDiv.setAttribute("class", "tableCell noWrap");
-    displayDiv.innerHTML = "<b>" +  title + "</b><br/>";
+    displayDiv.innerHTML = "<b>" + title + "</b><br/>";
     return (displayDiv);
 }
 
@@ -679,7 +679,7 @@ function addCountBox(results, source) {
     if (results['count'] !== 0) {
         document.getElementById("scanInformation").style.display = "block";
         let dataRow = document.getElementById("scanDataRow");
-        dataRow.appendChild(create_div_data(source , create_button(results.count, source + "_button", "icon", "M", "search")));
+        dataRow.appendChild(create_div_data(source, create_button(results.count, source + "_button", "icon", "M", "search")));
         let titleRow = document.getElementById("scanTitleRow");
 
         if (source === "22") {

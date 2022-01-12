@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -14,7 +14,7 @@
 
 window.addEventListener("load", buildPage);
 
-var vtTypes = ["referrer","communicating","downloaded","urls","pcaps"];
+var vtTypes = ["referrer", "communicating", "downloaded", "urls", "pcaps"];
 
 function buildPage() {
     var path = window.location.pathname;
@@ -22,7 +22,7 @@ function buildPage() {
         fetch_amazon_records("all", false);
     } else if (path === "/reports/virustotal_threats") {
         for (let vttype in vtTypes) {
-            fetch_vt_records(vtTypes[vttype],true);
+            fetch_vt_records(vtTypes[vttype], true);
         }
         window.setTimeout(assignVTEventListeners, 1000);
     } else if (path === "/reports/dead_dns") {
@@ -32,14 +32,14 @@ function buildPage() {
 
 function draw_table(results) {
     if (results.length === 0) {
-        return("<b>N/A</b><br/>");
+        return ("<b>N/A</b><br/>");
     }
 
     var displayHTML = create_new_table();
     displayHTML += create_table_head(["Type", "Value", "Domain", "Zone", "Status"]);
     displayHTML += create_table_body();
 
-    for (let i=0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(results[i]['type']);
         displayHTML += create_table_entry(results[i]['value']);
@@ -57,15 +57,15 @@ function draw_table(results) {
 function display_amazon_records(results) {
     if (results.length === 0) {
         document.getElementById("sonar_amazonaws").innerHTML = "<b>N/A</b><br/>";
-         return;
-     }
+        return;
+    }
     var s3Entries = [];
     var elbEntries = [];
     var computeEntries = [];
     var otherEntries = [];
 
 
-    for (let i=0; i< results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         if (results[i]['value'].includes("s3.amazonaws.") || results[i]['value'].includes("s3-website-us-east-1") || results[i]['value'].includes("s3-1-w.amazonaws.")) {
             s3Entries.push(results[i]);
         } else if (results[i]['value'].includes("elb.amazonaws")) {
@@ -95,49 +95,49 @@ function fetch_amazon_records(subdomain, count) {
         query += "&count=1";
     }
 
-    make_get_request(url+query, display_amazon_records, null, "sonar_amazonaws");
+    make_get_request(url + query, display_amazon_records, null, "sonar_amazonaws");
 }
 
 function displayVtList(jsonResults, id) {
     var resultDiv = document.getElementById("report_details");
     var resultHTML = "";
     if (id !== "pcaps") {
-      for (let i =0; i < jsonResults.length; i++) {
-        resultHTML += create_h3(jsonResults[i]['zone']);
-        resultHTML += create_new_table();
-        resultHTML += create_table_head(["Date", "Positives", "Scanners", "Sample/URL"]);
-        resultHTML += create_table_body();
-        var did = "detected_" + id;
-        if (id !== "urls") {
-            did += "_samples";
-        }
-        for (let j=0; j<jsonResults[i][did].length; j++) {
-            resultHTML += create_table_row();
-            if (id === "referrer") {
-                resultHTML += create_table_entry("N/A");
-            } else if (id === "downloaded" || id === "communicating") {
-                resultHTML += create_table_entry(jsonResults[i][did][j]['date']);
-            } else if (id === "urls") {
-                resultHTML += create_table_entry(jsonResults[i][did][j]['scan_date']);
-            }
-            resultHTML += create_table_entry(jsonResults[i][did][j]['positives']);
-            resultHTML += create_table_entry(jsonResults[i][did][j]['total']);
+        for (let i = 0; i < jsonResults.length; i++) {
+            resultHTML += create_h3(jsonResults[i]['zone']);
+            resultHTML += create_new_table();
+            resultHTML += create_table_head(["Date", "Positives", "Scanners", "Sample/URL"]);
+            resultHTML += create_table_body();
+            var did = "detected_" + id;
             if (id !== "urls") {
-                resultHTML += create_table_entry(jsonResults[i][did][j]['sha256']);
-            } else {
-                resultHTML += create_table_entry(jsonResults[i][did][j]['url']);
+                did += "_samples";
             }
-            resultHTML += end_table_row();
+            for (let j = 0; j < jsonResults[i][did].length; j++) {
+                resultHTML += create_table_row();
+                if (id === "referrer") {
+                    resultHTML += create_table_entry("N/A");
+                } else if (id === "downloaded" || id === "communicating") {
+                    resultHTML += create_table_entry(jsonResults[i][did][j]['date']);
+                } else if (id === "urls") {
+                    resultHTML += create_table_entry(jsonResults[i][did][j]['scan_date']);
+                }
+                resultHTML += create_table_entry(jsonResults[i][did][j]['positives']);
+                resultHTML += create_table_entry(jsonResults[i][did][j]['total']);
+                if (id !== "urls") {
+                    resultHTML += create_table_entry(jsonResults[i][did][j]['sha256']);
+                } else {
+                    resultHTML += create_table_entry(jsonResults[i][did][j]['url']);
+                }
+                resultHTML += end_table_row();
+            }
+            resultHTML += end_table() + "<br/>";
         }
-        resultHTML += end_table() + "<br/>";
-      }
     } else {
-        for (let i=0; i < jsonResults.length; i++) {
+        for (let i = 0; i < jsonResults.length; i++) {
             resultHTML += create_h3(jsonResults[i]['zone']);
             resultHTML += create_new_table();
             resultHTML += create_table_head(["ID"]);
             resultHTML += create_table_body();
-            for (let j=0; j< jsonResults[i]['pcaps'].length; j++) {
+            for (let j = 0; j < jsonResults[i]['pcaps'].length; j++) {
                 resultHTML += create_table_row();
                 resultHTML += create_table_entry(jsonResults[i]['pcaps'][j]);
                 resultHTML += end_table_row();
@@ -153,36 +153,36 @@ function getVTList() {
     var id = this.id.split("Button")[0];
     var url;
     if (vtTypes.indexOf(id) !== -1 && id !== "pcaps") {
-       url = "/api/v1.0/virustotal/domainDetected?type=" + id;
+        url = "/api/v1.0/virustotal/domainDetected?type=" + id;
     } else {
-       url = "/api/v1.0/virustotal/domainPcaps";
+        url = "/api/v1.0/virustotal/domainPcaps";
     }
-    document.getElementById("tableTitle").innerHTML = "<h3>" +  id + " Results</h3>";
+    document.getElementById("tableTitle").innerHTML = "<h3>" + id + " Results</h3>";
 
     make_get_request(url, displayVtList, id);
 }
 
 function assignVTEventListeners() {
-    for (let i =0; i < vtTypes.length; i++) {
-        var elem = document.getElementById( vtTypes[i] + "Button");
+    for (let i = 0; i < vtTypes.length; i++) {
+        var elem = document.getElementById(vtTypes[i] + "Button");
         if (elem != null) {
             elem.addEventListener("click", getVTList);
         }
     }
 }
 
-function displayVtCountData(obj,divRef) {
-   var cSpan = document.getElementById(divRef)
-   if (obj.hasOwnProperty("count")) {
-     cSpan.innerHTML =  obj.count;
-   } else if (obj.hasOwnProperty("message")) {
-     cSpan.innerHTML = "Error: " + obj.message;
-   } else {
-     cSpan.innerHTML = "Error parsing response";
-   }
+function displayVtCountData(obj, divRef) {
+    var cSpan = document.getElementById(divRef)
+    if (obj.hasOwnProperty("count")) {
+        cSpan.innerHTML = obj.count;
+    } else if (obj.hasOwnProperty("message")) {
+        cSpan.innerHTML = "Error: " + obj.message;
+    } else {
+        cSpan.innerHTML = "Error parsing response";
+    }
 }
 
-function fetch_vt_records(type,count) {
+function fetch_vt_records(type, count) {
     var url, query;
     if (type === "pcaps") {
         url = "/api/v1.0/virustotal/domainPcaps";
@@ -198,7 +198,7 @@ function fetch_vt_records(type,count) {
         }
     }
 
-    make_get_request(url+query, displayVtCountData, type + "Count");
+    make_get_request(url + query, displayVtCountData, type + "Count");
 }
 
 function displayDeadDNS(results) {
@@ -206,7 +206,7 @@ function displayDeadDNS(results) {
     displayHTML += create_table_head(["Zone", "FQDN", "Type", "Value"]);
     displayHTML += create_table_body();
 
-    for (let i=0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(results[i]['zone']);
         displayHTML += create_table_entry(results[i]['fqdn']);
@@ -225,5 +225,5 @@ function performDeadDnsLookup() {
     var url = "/api/v1.0/dead_dns";
     var query = "?";
 
-    make_get_request(url+query, displayDeadDNS);
+    make_get_request(url + query, displayDeadDNS);
 }

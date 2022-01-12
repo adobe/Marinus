@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -17,9 +17,9 @@ window.addEventListener("load", custom_check);
 
 var portSource;
 
-var PortList = ["21","22","23","25","53","80","110","143","443","465","502","993","995","7547","47808"];
+var PortList = ["21", "22", "23", "25", "53", "80", "110", "143", "443", "465", "502", "993", "995", "7547", "47808"];
 
-var ScanServicesList = ["22","25","80","443","465"];
+var ScanServicesList = ["22", "25", "80", "443", "465"];
 
 var DomainListPorts = ["80", "443"];
 
@@ -82,33 +82,33 @@ function createWhoisSearchBox() {
 function display_zone_list(results) {
     var display_list = '<div class="list-group" id="0">';
     var current_alpha_index = 0;
-    var alphabet = ['0','1','2','3','4','5','6','7','8','9','\\','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
+    var alphabet = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\\', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
     var false_positives = [];
     var expired = [];
 
-    for (let i=0; i < results.length; i++) {
-      if (results[i]['status'] === "false_positive") {
-         false_positives.push(results[i]);
-      } else if (results[i]['status'] === "expired") {
+    for (let i = 0; i < results.length; i++) {
+        if (results[i]['status'] === "false_positive") {
+            false_positives.push(results[i]);
+        } else if (results[i]['status'] === "expired") {
             expired.push(results[i]);
-      } else {
-        if (!(results[i]['zone'].startsWith(alphabet[current_alpha_index])) && current_alpha_index < alphabet.length) {
-            display_list += end_list();
-            current_alpha_index = current_alpha_index + 1;
-
-            while (!(results[i]['zone'].startsWith(alphabet[current_alpha_index])) && (current_alpha_index < alphabet.length)) {
+        } else {
+            if (!(results[i]['zone'].startsWith(alphabet[current_alpha_index])) && current_alpha_index < alphabet.length) {
+                display_list += end_list();
                 current_alpha_index = current_alpha_index + 1;
+
+                while (!(results[i]['zone'].startsWith(alphabet[current_alpha_index])) && (current_alpha_index < alphabet.length)) {
+                    current_alpha_index = current_alpha_index + 1;
+                }
+
+                if (current_alpha_index != alphabet.length) {
+                    display_list += create_new_list(alphabet[current_alpha_index]);
+                } else {
+                    display_list += create_new_list("other");
+                }
             }
 
-            if (current_alpha_index != alphabet.length) {
-                display_list += create_new_list(alphabet[current_alpha_index]);
-            } else {
-                display_list += create_new_list("other");
-            }
+            display_list += create_list_entry(results[i]['zone'], results[i]['zone'], "/zone?search=" + results[i]['zone'], false)
         }
-
-        display_list += create_list_entry(results[i]['zone'], results[i]['zone'], "/zone?search=" + results[i]['zone'], false)
-      }
     }
 
     display_list += end_list() + '<br/><br/>';
@@ -137,11 +137,11 @@ function display_zone_list(results) {
 }
 
 function fetch_zone_pattern(event) {
-   clearErrorHandler();
-   var zone = document.getElementById("zone_input").value;
-   fetch_zone_list(zone);
-   event.preventDefault();
-   return (false);
+    clearErrorHandler();
+    var zone = document.getElementById("zone_input").value;
+    fetch_zone_list(zone);
+    event.preventDefault();
+    return (false);
 }
 
 function fetch_zone_list(txtSearch) {
@@ -162,7 +162,7 @@ function create_table(results, type) {
     displayHTML += create_table_head(["Zone", "Source", "Status", "Notes"]);
     displayHTML += create_table_body();
 
-    for (let i=0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         if (type === "ip") {
             displayHTML += create_table_entry(create_anchor("/ip_range?search=" + results[i]['zone'], results[i]['zone']));
@@ -187,7 +187,7 @@ function display_ip_list(results, type) {
     var positive_results = [];
     var false_positives = [];
 
-    for (let i=0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         if (results[i]['status'] === "false_positive") {
             false_positives.push(results[i]);
         } else {
@@ -208,14 +208,14 @@ function fetch_ip_zone_list() {
     var url = "/api/v1.0/zones/ip_list";
     var query = "?include_fp=1";
 
-    make_get_request(url+query, display_ip_list, "ip", "ipList");
+    make_get_request(url + query, display_ip_list, "ip", "ipList");
 }
 
 function fetch_ipv6_zone_list() {
     var url = "/api/v1.0/zones/ipv6_list";
     var query = "?include_fp=1";
 
-    make_get_request(url+query, display_ip_list, "ipv6", "ipv6List");
+    make_get_request(url + query, display_ip_list, "ipv6", "ipv6List");
 }
 
 /**
@@ -244,7 +244,7 @@ function check_aws_ip(ip) {
     var url = "/api/v1.0/aws/ip_check";
     var query = "?ip=" + ip;
 
-    make_get_request(url+query, update_aws_ip, ip);
+    make_get_request(url + query, update_aws_ip, ip);
 
     if (CustomScriptSourcesEnabled) {
         custom_code_handler("port_aws_check", ip);
@@ -273,7 +273,7 @@ function check_azure_ip(ip) {
     var url = "/api/v1.0/azure/ip_check";
     var query = "?ip=" + ip;
 
-    make_get_request(url+query, update_azure_ip, ip);
+    make_get_request(url + query, update_azure_ip, ip);
 }
 
 function update_gcp_ip(result_data, ip) {
@@ -298,7 +298,7 @@ function check_gcp_ip(ip) {
     var url = "/api/v1.0/gcp/ip_check";
     var query = "?ip=" + ip;
 
-    make_get_request(url+query, update_gcp_ip, ip);
+    make_get_request(url + query, update_gcp_ip, ip);
 }
 
 function update_known_ip(results, ip) {
@@ -318,7 +318,7 @@ function check_known_ip(ip) {
     var url = "/api/v1.0/zones/ip_zone_check";
     var query = "?ip=" + ip;
 
-    make_get_request(url+query, update_known_ip, ip);
+    make_get_request(url + query, update_known_ip, ip);
 }
 
 function displayIPList(json_results) {
@@ -329,12 +329,12 @@ function displayIPList(json_results) {
         document.getElementById("ipTableTitle").innerHTML = "<b>Port " + currentPort + " Results</b>" + add_paging_html("ip", displayIPList);
         document.getElementById("prevPage-ip").addEventListener("click", port_page_back);
         document.getElementById("nextPage-ip").addEventListener("click", port_page_forward);
-        document.getElementById("pageLimit-ip").addEventListener("change", function() {update_limit("ip")});
+        document.getElementById("pageLimit-ip").addEventListener("change", function () { update_limit("ip") });
     } else {
         document.getElementById("ipTableTitle").innerHTML = "<b> Port " + currentPort + " Results</b>";
     }
 
-    for (let i=0; i < json_results.length; i++) {
+    for (let i = 0; i < json_results.length; i++) {
         var row = new_tbody.insertRow(0);
         var cell1 = row.insertCell(0);
         var cell2 = row.insertCell(1);
@@ -343,15 +343,15 @@ function displayIPList(json_results) {
         var cell5 = row.insertCell(4);
         var cell6 = row.insertCell(5);
         cell1.innerHTML = create_anchor("/ip?search=" + json_results[i]['ip'], json_results[i]['ip']);
-        cell2.innerHTML = "<img id='" + json_results[i]['ip'] +  "-tracked-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
+        cell2.innerHTML = "<img id='" + json_results[i]['ip'] + "-tracked-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
         cell2.style = "text-align:center";
-        cell3.innerHTML = "<img id='" + json_results[i]['ip'] +  "-aws-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
+        cell3.innerHTML = "<img id='" + json_results[i]['ip'] + "-aws-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
         cell3.style = "text-align:center";
-        cell4.innerHTML = "<img id='" + json_results[i]['ip'] +  "-azure-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
+        cell4.innerHTML = "<img id='" + json_results[i]['ip'] + "-azure-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
         cell4.style = "text-align:center";
-        cell5.innerHTML = "<img id='" + json_results[i]['ip'] +  "-gcp-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
+        cell5.innerHTML = "<img id='" + json_results[i]['ip'] + "-gcp-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
         cell5.style = "text-align:center";
-        cell6.innerHTML = "<span id='" + json_results[i]['ip'] +  "-notes'></span><br/>";
+        cell6.innerHTML = "<span id='" + json_results[i]['ip'] + "-notes'></span><br/>";
 
         if (json_results[i]['aws'] === true) {
             check_aws_ip(json_results[i]['ip']);
@@ -379,7 +379,7 @@ function getPortIPList() {
         url = api_map["zgrab_root"] + id + "/ips?";
     }
 
-    PAGING_URLS["ip"]= url;
+    PAGING_URLS["ip"] = url;
 
     url = url + "limit=" + LIMIT.toString() + "&page=" + PAGE.toString();
 
@@ -391,14 +391,14 @@ function displayDomainList(json_results) {
         document.getElementById("httpTableTitle").innerHTML = "<b>Port " + currentPort + " Results</b>" + add_paging_html("domain", displayDomainList);
         document.getElementById("prevPage-domain").addEventListener("click", domain_page_back);
         document.getElementById("nextPage-domain").addEventListener("click", domain_page_forward);
-        document.getElementById("pageLimit-domain").addEventListener("change", function(){update_limit("domain")});
+        document.getElementById("pageLimit-domain").addEventListener("change", function () { update_limit("domain") });
     } else {
         document.getElementById("httpTableTitle").innerHTML = "<b> Port " + currentPort + " Results</b>";
     }
 
     var old_tbody = document.getElementById("httpOutputBody");
     var new_tbody = document.createElement('tbody');
-    for (let i=0; i < json_results.length; i++) {
+    for (let i = 0; i < json_results.length; i++) {
         var row = new_tbody.insertRow(0);
         var cell1 = row.insertCell(0);
         var cell2 = row.insertCell(1);
@@ -441,7 +441,7 @@ function assignPortEventListeners() {
         ports = ScanServicesList;
     }
 
-    for (let i =0; i < ports.length; i++) {
+    for (let i = 0; i < ports.length; i++) {
         var elem = document.getElementById("p" + ports[i]);
         if (elem != null) {
             elem.addEventListener("click", getPortIPList);
@@ -454,7 +454,7 @@ function assignDomainPortEventListeners() {
         return;
     }
 
-    for (let i =0; i < DomainListPorts.length; i++) {
+    for (let i = 0; i < DomainListPorts.length; i++) {
         var elem = document.getElementById("dp" + DomainListPorts[i]);
         if (elem != null) {
             elem.addEventListener("click", getPortDomainList);
@@ -462,26 +462,26 @@ function assignDomainPortEventListeners() {
     }
 }
 
-function displayPortCountData(obj ,divRef) {
-   var elem = document.getElementById("portListBody");
-   var parts = divRef.split(":");
-   var port = parts[1];
-   var row = elem.insertRow(0);
-   var cell1 = row.insertCell(0);
-   cell1.style = "text-align:center; padding: 10px;";
-   var cell2 = row.insertCell(1);
-   cell2.style = "text-align:center; padding: 10px;";
-   cell1.innerHTML = "Port " + port;
-   if (obj.hasOwnProperty("count")) {
-     cell2.appendChild(create_button(obj.count, 'p' + port, 'variant'));
-   } else if (obj.hasOwnProperty("message")) {
-     cell2.innerHTML = "Error: " + obj.message;
-   } else {
-     cell2.innerHTML = "Error parsing response";
-   }
+function displayPortCountData(obj, divRef) {
+    var elem = document.getElementById("portListBody");
+    var parts = divRef.split(":");
+    var port = parts[1];
+    var row = elem.insertRow(0);
+    var cell1 = row.insertCell(0);
+    cell1.style = "text-align:center; padding: 10px;";
+    var cell2 = row.insertCell(1);
+    cell2.style = "text-align:center; padding: 10px;";
+    cell1.innerHTML = "Port " + port;
+    if (obj.hasOwnProperty("count")) {
+        cell2.appendChild(create_button(obj.count, 'p' + port, 'variant'));
+    } else if (obj.hasOwnProperty("message")) {
+        cell2.innerHTML = "Error: " + obj.message;
+    } else {
+        cell2.innerHTML = "Error parsing response";
+    }
 }
 
-function displayDomainPortCountData(obj ,divRef) {
+function displayDomainPortCountData(obj, divRef) {
     var elem = document.getElementById("httpPortListBody");
     var parts = divRef.split(":");
     var port = parts[1];
@@ -492,13 +492,13 @@ function displayDomainPortCountData(obj ,divRef) {
     cell2.style = "text-align:center; padding: 10px;";
     cell1.innerHTML = "Port " + port;
     if (obj.hasOwnProperty("count")) {
-      cell2.appendChild(create_button(obj.count, 'dp' + port, 'variant'));
+        cell2.appendChild(create_button(obj.count, 'dp' + port, 'variant'));
     } else if (obj.hasOwnProperty("message")) {
-      cell2.innerHTML = "Error: " + obj.message;
+        cell2.innerHTML = "Error: " + obj.message;
     } else {
-      cell2.innerHTML = "Error parsing response";
+        cell2.innerHTML = "Error parsing response";
     }
- }
+}
 
 function getSrvPortIPList() {
     let port = this.id.substring(4);
@@ -507,7 +507,7 @@ function getSrvPortIPList() {
     let old_tbody = document.getElementById("srvOutputBody");
     let new_tbody = document.createElement('tbody');
 
-    document.getElementById("srvTableTitle").innerHTML = "<b> Port " +  port + " Results</b>";
+    document.getElementById("srvTableTitle").innerHTML = "<b> Port " + port + " Results</b>";
 
     for (let entry in data) {
         let row = new_tbody.insertRow(0);
@@ -560,7 +560,7 @@ function get_srv_records() {
     let url = api_map['dns_srv'];
     let query = "?dnsType=srv";
 
-    make_get_request(url+query, process_srv);
+    make_get_request(url + query, process_srv);
 }
 
 function domain_page_back() {
@@ -599,30 +599,30 @@ function port_page_forward() {
     page_forward(url, query, "ip");
 }
 
-function get_counts(url ,divRef) {
+function get_counts(url, divRef) {
     make_get_request(url, displayPortCountData, divRef)
 }
 
-function get_domain_counts(url ,divRef) {
+function get_domain_counts(url, divRef) {
     make_get_request(url, displayDomainPortCountData, divRef)
 }
 
 function initialize_port_page() {
-    for (let i =0; i < PortList.length; i++) {
+    for (let i = 0; i < PortList.length; i++) {
         get_counts(api_map["censys_ports"] + "?port=" + PortList[i] + "&type=count", "portCount:" + PortList[i]);
     }
     window.setTimeout(assignPortEventListeners, 3000);
 }
 
 function initialize_scan_port_page() {
-    for (let i=0; i < ScanServicesList.length; i ++) {
-           get_counts(api_map["zgrab_root"] + ScanServicesList[i] + "/ips?count=1", "p:" + ScanServicesList[i]);
+    for (let i = 0; i < ScanServicesList.length; i++) {
+        get_counts(api_map["zgrab_root"] + ScanServicesList[i] + "/ips?count=1", "p:" + ScanServicesList[i]);
     }
     window.setTimeout(assignPortEventListeners, 3000);
 
     document.getElementById("zgrab_domain_scans").style.display = "block";
 
-    for (let i=0; i < DomainListPorts.length; i++) {
+    for (let i = 0; i < DomainListPorts.length; i++) {
         get_domain_counts(api_map["zgrab_root"] + DomainListPorts[i] + "/domains?count=1", "dp:" + DomainListPorts[i]);
         window.setTimeout(assignDomainPortEventListeners, 3000);
     }
@@ -633,53 +633,53 @@ function initialize_scan_port_page() {
  */
 
 function display_tpd_object(results) {
-  if (results.length === 0) {
+    if (results.length === 0) {
         document.getElementById("tpd_detail").innerHTML = '<b>N/A</b><br/>';
-         return;
-  }
-  var display_html = '<h3>' + results['tld'] + '</h3>';
-  display_html += create_anchor("/graph?tpd=" + results['tld'], "Click here for the network graph") + "<br/><br/>";
-
-  for (let i=0; i<results['zones'].length; i++) {
-    display_html += '<br><b>' + results['zones'][i]['zone'] + '</b><br>';
-    display_html += create_new_table();
-    display_html += create_table_head(["Tracked hostname", "CNAME target"]);
-    display_html += create_table_body();
-
-    for (var j=0; j < results['zones'][i]['records'].length; j++) {
-        display_html += create_table_row();
-        display_html += create_table_entry(create_anchor("/domain?search=" + results['zones'][i]['records'][j]['host'], results['zones'][i]['records'][j]['host']));
-        display_html += create_table_entry(results['zones'][i]['records'][j]['target']);
-        display_html += end_table_row();
+        return;
     }
-    display_html += end_table();
-  }
-  document.getElementById("tpd_detail").innerHTML = display_html;
+    var display_html = '<h3>' + results['tld'] + '</h3>';
+    display_html += create_anchor("/graph?tpd=" + results['tld'], "Click here for the network graph") + "<br/><br/>";
+
+    for (let i = 0; i < results['zones'].length; i++) {
+        display_html += '<br><b>' + results['zones'][i]['zone'] + '</b><br>';
+        display_html += create_new_table();
+        display_html += create_table_head(["Tracked hostname", "CNAME target"]);
+        display_html += create_table_body();
+
+        for (var j = 0; j < results['zones'][i]['records'].length; j++) {
+            display_html += create_table_row();
+            display_html += create_table_entry(create_anchor("/domain?search=" + results['zones'][i]['records'][j]['host'], results['zones'][i]['records'][j]['host']));
+            display_html += create_table_entry(results['zones'][i]['records'][j]['target']);
+            display_html += end_table_row();
+        }
+        display_html += end_table();
+    }
+    document.getElementById("tpd_detail").innerHTML = display_html;
 }
 
 function display_tpd_detail(target) {
     var url = "/api/v1.0/tpds/search";
     var query = "?dataType=tpd&value=" + target;
 
-    make_get_request(url+query, display_tpd_object, null, "tpds");
+    make_get_request(url + query, display_tpd_object, null, "tpds");
 }
 
 function display_tpd(event) {
     window.open("/meta/tpd_list_detail?tpd=" + event.target.id, "_blank");
-	return (false);
+    return (false);
 }
 
 function display_tpds(results) {
-     if (results.length === 0) {
+    if (results.length === 0) {
         document.getElementById("tpds").innerHTML = '<b>N/A</b><br/>';
-         return;
-     }
+        return;
+    }
 
-     var displayHTML = create_new_table();
-     displayHTML += create_table_head(["TPD", "Count"]);
-     displayHTML += create_table_body();
+    var displayHTML = create_new_table();
+    displayHTML += create_table_head(["TPD", "Count"]);
+    displayHTML += create_table_body();
 
-    for (let i=0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(create_anchor("", results[i]['tld'], "", results[i]['tld']));
         displayHTML += create_table_entry(results[i]['total']);
@@ -689,7 +689,7 @@ function display_tpds(results) {
     displayHTML += end_table();
     document.getElementById("tpds").innerHTML = displayHTML;
 
-    for (let i=0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         document.getElementById(results[i]['tld']).addEventListener("click", display_tpd);
     }
 }
@@ -698,7 +698,7 @@ function initialize_tpd_list() {
     var url = "/api/v1.0/tpds/search";
     var query = "";
 
-    make_get_request(url+query, display_tpds, "", "tpds");
+    make_get_request(url + query, display_tpds, "", "tpds");
 }
 
 

@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -22,9 +22,9 @@ function buildPage() {
 
 function login_qs(key) {
     key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&"); // escape RegEx meta chars
-    var match = location.search.match(new RegExp("[?&]"+key+"=([^&]+)(&|$)"));
+    var match = location.search.match(new RegExp("[?&]" + key + "=([^&]+)(&|$)"));
     if (match == null) {
-      return ("/");
+        return ("/");
     }
     return match && decodeURIComponent(match[1].replace(/\+/g, " "));
 }

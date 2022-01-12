@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2021 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -56,14 +56,14 @@ function displayCensys(results) {
     if (results.length === 0) {
         document.getElementById("certDetails").innerHTML = "<b>No records found.</b><br/>";
         return;
-     }
+    }
 
-     var displayHTML = create_new_table();
-     displayHTML += create_table_head(["IP"]);
-     displayHTML += create_table_body("scroll-body");
+    var displayHTML = create_new_table();
+    displayHTML += create_table_head(["IP"]);
+    displayHTML += create_table_body("scroll-body");
 
 
-    for (var i=0; i < results.length; i++) {
+    for (var i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
         displayHTML += end_table_row();
@@ -78,13 +78,13 @@ function displayZscan(results) {
     if (results.length === 0) {
         document.getElementById("certDetails").innerHTML = "<b>No records found.</b><br/>";
         return;
-     }
+    }
 
-     var displayHTML = create_new_table();
-     displayHTML += create_table_head(["IP/Domain"]);
-     displayHTML += create_table_body("scroll-body");
+    var displayHTML = create_new_table();
+    displayHTML += create_table_head(["IP/Domain"]);
+    displayHTML += create_table_body("scroll-body");
 
-    for (var i=0; i < results.length; i++) {
+    for (var i = 0; i < results.length; i++) {
         if (results[i]['ip'] !== "<nil>") {
             displayHTML += create_table_row();
             displayHTML += create_table_entry(create_anchor("ip/search?=" + results[i]['ip'], results[i]['ip']));
@@ -104,7 +104,7 @@ function displayZscan(results) {
 function displayCT(results) {
     var displayHTML = "";
     if (Array.isArray(results)) {
-        for (let i=0; i < results.length; i++) {
+        for (let i = 0; i < results.length; i++) {
             displayHTML += create_h3("Certificate " + i.toString());
             displayHTML += create_anchor("/api/v1.0/ct/download/" + results[i]['_id'], "Click to download the DER file") + "<br/";
             displayHTML += '<div class="bg-light"><pre>' + results[i]['full_certificate'] + "</pre></div><br/><br/>";
@@ -164,7 +164,7 @@ function displayCountData(results, divRef) {
 }
 
 function get_counts(url, divRef) {
-    make_get_request(url, displayCountData, divRef, "", {"count": 0});
+    make_get_request(url, displayCountData, divRef, "", { "count": 0 });
 }
 
 function queries(event) {

@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -12,7 +12,7 @@
  * governing permissions and limitations under the License.
  */
 
-var DnssecValues = ["signed","unsigned","inactive","unknown"];
+var DnssecValues = ["signed", "unsigned", "inactive", "unknown"];
 
 var DnsServerList = [];
 var DnsEmails = [];
@@ -42,13 +42,13 @@ if (DynamicWhoisEnabled) {
 function initialize_whois_list() {
     let dns_server_list = document.getElementById("dnsServers");
     let dns_server_list_html = create_new_div_section("dnsServerColumn", "DNS Servers") + create_new_list("dnsServerList");
-    for (let i=0; i < DnsServerList.length; i++) {
+    for (let i = 0; i < DnsServerList.length; i++) {
         dns_server_list_html += create_list_entry(DnsServerList[i], DnsServerList[i] + " count: ", "#tableTitle", true);
     }
     dns_server_list_html += end_list() + end_div();
     dns_server_list.innerHTML = dns_server_list_html;
 
-    for (let i=0; i < DnsServerList.length; i++) {
+    for (let i = 0; i < DnsServerList.length; i++) {
         make_get_request("/api/v1.0/whois_db?name_server=" + DnsServerList[i] + "&count=1", displayWhoisCountData, DnsServerList[i] + "_count")
     }
 
@@ -57,7 +57,7 @@ function initialize_whois_list() {
 
     let dnssec_list = document.getElementById("dnsSec");
     let dnssec_list_html = create_new_div_section("dnsSecColumn", "DNSSEC") + create_new_list("dnsSecList");
-    for (let i=0; i < DnssecValues.length; i++) {
+    for (let i = 0; i < DnssecValues.length; i++) {
         dnssec_list_html += create_list_entry(DnssecValues[i], DnssecValues[i] + " count: ", "#tableTitle", true);
     }
     dnssec_list_html += end_list() + end_div();
@@ -70,7 +70,7 @@ function initialize_whois_list() {
 
     let dns_email_list = document.getElementById("dnsEmails");
     let dns_email_list_html = create_new_div_section("dnsEmailColumn", "DNS Emails") + create_new_list("dnsEmailList");
-    for (let i=0; i < DnsEmails.length; i++) {
+    for (let i = 0; i < DnsEmails.length; i++) {
         dns_email_list_html += create_list_entry(DnsEmails[i], DnsEmails[i] + " count: ", "#tableTitle", true);
     }
     dns_email_list_html += end_list() + end_div();
@@ -86,7 +86,7 @@ function initialize_whois_list() {
 function displayWhoisList(jsonResults) {
     var resultDiv = document.getElementById("dnsQueryResult");
     var resultHTML = "";
-    for (let i =0; i < jsonResults.length; i++) {
+    for (let i = 0; i < jsonResults.length; i++) {
         resultHTML += "<a href='/zone?search=" + jsonResults[i]['zone'] + "'>" + jsonResults[i]['zone'] + "</a><br/>";
         if (jsonResults[i].hasOwnProperty("name_servers") && jsonResults[i]['name_servers'] != null && jsonResults[i]['name_servers'].length > 0) {
             resultHTML += " - " + jsonResults[i]['name_servers'].toString() + "<br/>";
@@ -101,11 +101,11 @@ function getWhoisList() {
     var id = this.id.split("_link")[0];
     var url;
     if (DnssecValues.indexOf(id) !== -1) {
-       url = "/api/v1.0/whois_db?dnssec=" + id;
-       document.getElementById("tableTitle").innerHTML = "<h3>" +  id + " Results</h3>";
+        url = "/api/v1.0/whois_db?dnssec=" + id;
+        document.getElementById("tableTitle").innerHTML = "<h3>" + id + " Results</h3>";
     } else if (DnsServerList.indexOf(id) !== -1) {
         url = "/api/v1.0/whois_db?name_server=" + id;
-        document.getElementById("tableTitle").innerHTML = "<h3>" +  id + " Results</h3>";
+        document.getElementById("tableTitle").innerHTML = "<h3>" + id + " Results</h3>";
     } else {
         var email_id;
         for (var key in DnsEmails) {
@@ -114,22 +114,22 @@ function getWhoisList() {
             }
         }
         url = "/api/v1.0/whois_db?email=" + email_id;
-        document.getElementById("tableTitle").innerHTML = "<h3>" +  id + " Results</h3>";
+        document.getElementById("tableTitle").innerHTML = "<h3>" + id + " Results</h3>";
     }
 
     make_get_request(url, displayWhoisList);
 }
 
 function assignWhoisEventListeners() {
-    for (let i =0; i < DnsServerList.length; i++) {
+    for (let i = 0; i < DnsServerList.length; i++) {
         add_click_event_listeners(DnsServerList[i], "link", getWhoisList);
     }
 
-    for (let i=0; i < DnssecValues.length; i++) {
+    for (let i = 0; i < DnssecValues.length; i++) {
         add_click_event_listeners(DnssecValues[i], "link", getWhoisList);
     }
 
-    for (let i=0; i < DnsEmails.length; i++) {
+    for (let i = 0; i < DnsEmails.length; i++) {
         add_click_event_listeners(DnsEmails[i], "link", getWhoisList);
     }
 }
@@ -137,16 +137,16 @@ function assignWhoisEventListeners() {
 function displayWhoisCountData(res, divRef) {
     var cSpan = document.getElementById(divRef);
     if (cSpan == null && (divRef.indexOf("@") >= 0 || divRef === "none")) {
-       cSpan = document.getElementById(divRef + "_count");
+        cSpan = document.getElementById(divRef + "_count");
     }
 
     if (cSpan == null) {
-      document.getElementById('errorMessage').innerHTML = "Page rendering error";
+        document.getElementById('errorMessage').innerHTML = "Page rendering error";
     } else if (res.hasOwnProperty("count")) {
-      cSpan.innerHTML = res.count;
+        cSpan.innerHTML = res.count;
     } else if (res.hasOwnProperty("message")) {
-      cSpan.innerHTML = "Error: " + res.message;
+        cSpan.innerHTML = "Error: " + res.message;
     } else {
-      cSpan.innerHTML = "Error parsing response";
+        cSpan.innerHTML = "Error parsing response";
     }
- }
+}

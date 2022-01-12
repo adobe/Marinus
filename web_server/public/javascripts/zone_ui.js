@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -49,7 +49,7 @@ function start_page() {
     }
 }
 
-function search_click (event) {
+function search_click(event) {
     document.getElementById("htTitleRow").innerHTML = "";
     document.getElementById("htDataRow").innerHTML = "";
     document.getElementById("dnsTitleRow").innerHTML = "";
@@ -80,7 +80,7 @@ function initialize_data(zone) {
 
 function fetch_zone_request(zone) {
     let url = api_map["zones"] + zone;
-    make_get_request(url, display_zone_data, null, "", {"message": "Zone not found"});
+    make_get_request(url, display_zone_data, null, "", { "message": "Zone not found" });
 }
 
 function display_zone_data(results) {
@@ -129,68 +129,68 @@ function display_zone_data(results) {
 
 function zone_data_requests(zone) {
     // Hosting table
-    layout['network_graph'] = {'target': 'ht', 'desc': 'Network Graph'};
+    layout['network_graph'] = { 'target': 'ht', 'desc': 'Network Graph' };
     fetch_request("network_graph", zone, true);
     fetch_whois_count(zone);
 
     // Security Information
-    layout['ct'] = {'target':'sec', 'desc': "CT Log Records"};
+    layout['ct'] = { 'target': 'sec', 'desc': "CT Log Records" };
     fetch_request("ct", zone, true);
     if (ScanDataSources.includes("censys")) {
-        layout['censys_certs'] = {'target':'sec', 'desc': "Certificate Hosts (Censys)"};
+        layout['censys_certs'] = { 'target': 'sec', 'desc': "Certificate Hosts (Censys)" };
         fetch_request("censys_certs", zone, true);
-        layout['censys_algorithm'] = {'target':'sec', 'desc': "SHA1 TLS Servers (Censys)"};
+        layout['censys_algorithm'] = { 'target': 'sec', 'desc': "SHA1 TLS Servers (Censys)" };
         fetch_request("censys_algorithm", zone, true);
     }
     if (ScanDataSources.includes("zgrab")) {
-        layout['scan_certs'] = {'target':'sec', 'desc': "Certificate Hosts (Zgrab)"};
+        layout['scan_certs'] = { 'target': 'sec', 'desc': "Certificate Hosts (Zgrab)" };
         fetch_request("scan_certs", zone, true);
-        layout['scan_algorithm'] = {'target':'sec', 'desc': "SHA1 TLS Servers (Zgrab)"};
+        layout['scan_algorithm'] = { 'target': 'sec', 'desc': "SHA1 TLS Servers (Zgrab)" };
         fetch_request("scan_algorithm", zone, true);
-        layout['scan_zone_port_22'] = {'target': 'scan', 'desc': "SSH Services"};
+        layout['scan_zone_port_22'] = { 'target': 'scan', 'desc': "SSH Services" };
         fetch_request("scan_zone_port_22", zone, true);
-        layout['scan_zone_port_25'] = {'target': 'scan', 'desc': "SMTP Services"};
+        layout['scan_zone_port_25'] = { 'target': 'scan', 'desc': "SMTP Services" };
         fetch_request("scan_zone_port_25", zone, true);
-        layout['scan_zone_port_80'] = {'target': 'scan', 'desc': "HTTP Services"};
+        layout['scan_zone_port_80'] = { 'target': 'scan', 'desc': "HTTP Services" };
         fetch_request("scan_zone_port_80", zone, true);
-        layout['scan_zone_port_443'] = {'target': 'scan', 'desc': "HTTPS Services"};
+        layout['scan_zone_port_443'] = { 'target': 'scan', 'desc': "HTTPS Services" };
         fetch_request("scan_zone_port_443", zone, true);
-        layout['scan_zone_port_465'] = {'target': 'scan', 'desc': "SMTPS Services"};
+        layout['scan_zone_port_465'] = { 'target': 'scan', 'desc': "SMTPS Services" };
         fetch_request("scan_zone_port_465", zone, true);
     }
 
     // DNS information
-    layout['all_dns'] = {'target':'dns', 'desc': "Total DNS Records"};
+    layout['all_dns'] = { 'target': 'dns', 'desc': "Total DNS Records" };
     fetch_request("all_dns", zone, true);
-    layout['dns_mx'] = {'target':'dns', 'desc': "DNS MX Records"};
+    layout['dns_mx'] = { 'target': 'dns', 'desc': "DNS MX Records" };
     fetch_request("dns_mx", zone, true);
-    layout['dns_spf'] = {'target':'dns', 'desc': "DNS SPF Records"};
+    layout['dns_spf'] = { 'target': 'dns', 'desc': "DNS SPF Records" };
     fetch_request("dns_spf", zone, true);
-    layout['dns_soa'] = {'target':'dns', 'desc': "DNS SOA Records"};
+    layout['dns_soa'] = { 'target': 'dns', 'desc': "DNS SOA Records" };
     fetch_request("dns_soa", zone, true);
-    layout['dns_a'] = {'target':'dns', 'desc': "DNS A Records"};
+    layout['dns_a'] = { 'target': 'dns', 'desc': "DNS A Records" };
     fetch_request("dns_a", zone, true);
-    layout['dns_aaaa'] = {'target':'dns', 'desc': "DNS AAAA Records"};
+    layout['dns_aaaa'] = { 'target': 'dns', 'desc': "DNS AAAA Records" };
     fetch_request("dns_aaaa", zone, true);
-    layout['dns_cname'] = {'target':'dns', 'desc': "DNS CNAME Records"};
+    layout['dns_cname'] = { 'target': 'dns', 'desc': "DNS CNAME Records" };
     fetch_request("dns_cname", zone, true);
-    layout['dns_txt'] = {'target':'dns', 'desc': "DNS TXT Records"};
+    layout['dns_txt'] = { 'target': 'dns', 'desc': "DNS TXT Records" };
     fetch_request("dns_txt", zone, true);
-    layout['dns_srv'] = {'target':'dns', 'desc': "DNS SRV Records"};
+    layout['dns_srv'] = { 'target': 'dns', 'desc': "DNS SRV Records" };
     fetch_request("dns_srv", zone, true);
-    layout['sonar_rdns'] = {'target':'dns', 'desc': "RDNS Records"};
+    layout['sonar_rdns'] = { 'target': 'dns', 'desc': "RDNS Records" };
     fetch_request("sonar_rdns", zone, true);
 
     // Miscellaneous
-    layout['vt_domains'] = {'target':'misc', 'desc': "VirusTotal Domains"};
+    layout['vt_domains'] = { 'target': 'misc', 'desc': "VirusTotal Domains" };
     fetch_request("vt_domains", zone, true);
-    layout['vt_ips'] = {'target':'misc', 'desc': "VirusTotal IPs"};
+    layout['vt_ips'] = { 'target': 'misc', 'desc': "VirusTotal IPs" };
     fetch_request("vt_ips", zone, true);
-    layout['vt_meta'] = {'target':'misc', 'desc': "VirusTotal Metadata"};
+    layout['vt_meta'] = { 'target': 'misc', 'desc': "VirusTotal Metadata" };
     fetch_request("vt_meta", zone, true);
 
     // Ownership Information
-    layout['iblox_owners'] = {'target':'own', 'desc': "Infoblox Ownership"};
+    layout['iblox_owners'] = { 'target': 'own', 'desc': "Infoblox Ownership" };
     fetch_request("iblox_owners", zone, false);
 
     if (CustomScriptSourcesEnabled) {
@@ -202,7 +202,7 @@ function create_div_title(idRef, title) {
     let displayDiv = document.createElement('div');
     displayDiv.setAttribute("id", idRef + "_title");
     displayDiv.setAttribute("class", "tableCell noWrap");
-    displayDiv.innerHTML = "<b>" +  title + "</b><br/>";
+    displayDiv.innerHTML = "<b>" + title + "</b><br/>";
     return (displayDiv);
 }
 
@@ -219,20 +219,20 @@ function create_div_data(idRef, data) {
 }
 
 function display_graph_link(results) {
-    if (!('message'in results)) {
+    if (!('message' in results)) {
         document.getElementById("htTitleRow").prepend(create_div_title("net_graph", "Network Graph"));
         document.getElementById("htDataRow").prepend(create_div_data("net_graph", create_button("View Graph", "net_graph_button", "icon", "S", "search")));
 
-        document.getElementById("net_graph_button").addEventListener("click", function() {window.open('/graph?zone=' + document.getElementById("search_input").value);});
+        document.getElementById("net_graph_button").addEventListener("click", function () { window.open('/graph?zone=' + document.getElementById("search_input").value); });
     }
 }
 
 function display_cert_graph_link(results) {
-    if (!('message'in results) && document.getElementById('cert_graph_button') == null) {
+    if (!('message' in results) && document.getElementById('cert_graph_button') == null) {
         document.getElementById("secDataRow").prepend(create_div_data("cert_graph", create_button("View Certificate Graph", "cert_graph_button", "icon", "S", "search")));
         document.getElementById("secTitleRow").prepend(create_div_title("cert_graph", "TLS Certificate Graph"));
 
-        document.getElementById("cert_graph_button").addEventListener("click", function() {window.open('/cert_graph?zone=' + document.getElementById("search_input").value);});
+        document.getElementById("cert_graph_button").addEventListener("click", function () { window.open('/cert_graph?zone=' + document.getElementById("search_input").value); });
     }
 }
 
@@ -264,7 +264,7 @@ function display_response(results, source) {
 
     if (source === "sonar_rdns") {
         displayHTML += create_table_head(["Domain", "IP"]);
-    } else if (source === "all_dns" || source.substring(0,4) === "dns_") {
+    } else if (source === "all_dns" || source.substring(0, 4) === "dns_") {
         displayHTML += create_table_head(["Domain", "Type", "Value"]);
     } else if (source === "ct") {
         displayHTML += create_table_head(["Common Name", "Organization", "SHA256"]);
@@ -282,7 +282,7 @@ function display_response(results, source) {
         displayHTML += create_table_head(["VirusTotal Metadata"]);
     } else if (source === "whois_db") {
         displayHTML += create_table_head(["Name", "Value"]);
-    } else if (source.substring(0,15) === "scan_zone_port_") {
+    } else if (source.substring(0, 15) === "scan_zone_port_") {
         displayHTML += create_table_head(["IP/Domain", "Location"]);
     } else if (CustomScriptSourcesEnabled) {
         displayHTML += custom_code_handler("zone_ui_table_header", source);
@@ -295,12 +295,12 @@ function display_response(results, source) {
         results = temp;
     }
 
-    for (let i=0; i< results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         if (source === "sonar_rdns") {
             displayHTML += create_table_entry(create_anchor("/domain?search=" + results[i]['fqdn'], results[i]['fqdn']));
             displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
-        } else if (source === "all_dns" || source.substring(0,4) === "dns_") {
+        } else if (source === "all_dns" || source.substring(0, 4) === "dns_") {
             displayHTML += create_table_entry(create_anchor("/domain?search=" + results[i]['fqdn'], results[i]['fqdn']));
             displayHTML += create_table_entry(results[i]['type']);
             if (results[i]['type'] === "a") {
@@ -331,7 +331,7 @@ function display_response(results, source) {
             }
 
             if (source == "scan_certs") {
-                let tls_log = get_tls_log(results,i);
+                let tls_log = get_tls_log(results, i);
 
                 let sha256 = tls_log['server_certificates']['certificate']['parsed']['fingerprint_sha256'];
                 displayHTML += create_table_entry(create_anchor("/reports/display_cert?type=zgrab_sha256&sha256=" + sha256, sha256, "_blank"));
@@ -346,12 +346,12 @@ function display_response(results, source) {
         } else if (source === "vt_domains") {
             let data = "";
             if (results[i]['subdomains']) {
-                for (let j=0; j < results[i]['subdomains'].length; j++) {
+                for (let j = 0; j < results[i]['subdomains'].length; j++) {
                     data += create_anchor("/domain?search=" + results[i]['subdomains'][j], results[i]['subdomains'][j]) + '<br/>';
                 }
             }
             if (results[i]['domain_siblings']) {
-                for (let j=0; j < results[i]['domain_siblings'].length; j++) {
+                for (let j = 0; j < results[i]['domain_siblings'].length; j++) {
                     data += create_anchor("/domain?search=" + results[i]['domain_siblings'][j], results[i]['domain_siblings'][j]) + '<br/>';
                 }
             }
@@ -359,11 +359,11 @@ function display_response(results, source) {
         } else if (source === "vt_ips") {
             let data = ""
             if (results[i]['resolutions']) {
-                for (let j=0; j < results[i]['resolutions'].length; j++) {
+                for (let j = 0; j < results[i]['resolutions'].length; j++) {
                     if (j != 0) {
                         data += create_table_row();
                     }
-                    data += create_table_entry(create_anchor("/ip?search=" +  results[i]['resolutions'][j]['ip_address'], results[i]['resolutions'][j]['ip_address']));
+                    data += create_table_entry(create_anchor("/ip?search=" + results[i]['resolutions'][j]['ip_address'], results[i]['resolutions'][j]['ip_address']));
                     data += create_table_entry(results[i]['resolutions'][j]['last_resolved']);
                     if (j != results[i]['resolutions'].length - 1) {
                         data += end_table_row();
@@ -397,7 +397,7 @@ function display_response(results, source) {
             }
             temp = temp.substring(0, temp.length - tr_end.length);
             displayHTML += temp;
-        } else if (source.substring(0,15) === "scan_zone_port_") {
+        } else if (source.substring(0, 15) === "scan_zone_port_") {
             if (results[i]['ip'] === "<nil>") {
                 displayHTML += create_table_entry(create_anchor("/domain?search=" + results[i]['domain'], results[i]['domain'], "_blank"));
             } else {
@@ -436,13 +436,13 @@ function display_records() {
 
     if (reqName === "dns_spf") {
         query += "&txtSearch=spf";
-    } else if (reqName.substring(0,4) === "dns_") {
+    } else if (reqName.substring(0, 4) === "dns_") {
         query += "&dnsType=" + reqName.substring(4);
-    } else if (reqName.substring(0,15) === "scan_zone_port_") {
+    } else if (reqName.substring(0, 15) === "scan_zone_port_") {
         query += "&port=" + reqName.substring(15);
     }
 
-    make_get_request(url+query, display_response, reqName, "output");
+    make_get_request(url + query, display_response, reqName, "output");
 }
 
 /**
@@ -450,7 +450,7 @@ function display_records() {
  * @param results: Owner information.
  */
 function display_infoblox_owners(results) {
-    if (results.length){
+    if (results.length) {
         document.getElementById("ownTitleRow").appendChild(create_div_title("iblox_owner", "Infoblox Owners"));
         document.getElementById("ownDataRow").appendChild(create_div_data("iblox_owner", results[0]['owners']));
     }
@@ -463,7 +463,7 @@ function fetch_whois_count(zone) {
 
 function addCountBox(source, results) {
     let dataRow = document.getElementById(layout[source]['target'] + "DataRow");
-    dataRow.appendChild(create_div_data(source , create_button(results.count, source + "_button", "icon", "M", "search")));
+    dataRow.appendChild(create_div_data(source, create_button(results.count, source + "_button", "icon", "M", "search")));
     let titleRow = document.getElementById(layout[source]['target'] + "TitleRow");
     titleRow.appendChild(create_div_title(source, layout[source]['desc']));
 
@@ -500,7 +500,7 @@ function display_response_count(results, source) {
 function fetch_request(source, zone, count) {
     var url = new URI(api_map[source]);
     var query = {};
-    switch(source) {
+    switch (source) {
         case 'network_graph':
             url.segment(zone);
             break;
@@ -516,22 +516,22 @@ function fetch_request(source, zone, count) {
             };
     }
     if (count) {
-        query = $.extend({}, query, {'count':1});
+        query = $.extend({}, query, { 'count': 1 });
     }
 
     if (source === "dns_spf") {
-        query = $.extend({}, query, {'txtSearch': 'spf'});
-    } else if (source.substring(0,4) === "dns_") {
+        query = $.extend({}, query, { 'txtSearch': 'spf' });
+    } else if (source.substring(0, 4) === "dns_") {
         let dns_type = source.substring(4);
-        query = $.extend({}, query, {'dnsType': dns_type});
+        query = $.extend({}, query, { 'dnsType': dns_type });
     } else if (source.substring(0, 15) === "scan_zone_port_") {
         let port = source.substring(15);
-        query = $.extend({}, query, {'port': port});
+        query = $.extend({}, query, { 'port': port });
     }
 
     url = url.search(query).toString();
 
-    make_get_request(url, display_response_count, source, "" , {'count': 0});
+    make_get_request(url, display_response_count, source, "", { 'count': 0 });
 }
 
 

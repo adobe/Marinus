@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -65,7 +65,7 @@ function addHeaderSelectItem(result, args) {
     for (var header in zgrab_http_headers) {
         if (header === name) {
             let opt = document.createElement('option');
-            opt.appendChild( document.createTextNode(header + " - " + result["count"]) );
+            opt.appendChild(document.createTextNode(header + " - " + result["count"]));
             opt.value = header;
 
             if (name === selected) {
@@ -104,10 +104,10 @@ function displayHeaderSummary(results, args) {
     displayHTML += create_table_head(["Value", "Count"]);
     displayHTML += create_table_body();
 
-    for (let i=0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         let url = "/meta/header_details?header=" + header + '&value=' +
-              encodeURIComponent(results[i]['_id']) + '&header_type=' + zgrab_http_headers[header];
+            encodeURIComponent(results[i]['_id']) + '&header_type=' + zgrab_http_headers[header];
 
         if (zone != null && zone !== "") {
             url += "&zone=" + zone;
@@ -210,14 +210,14 @@ function displayValueSummary(results, args) {
     displayHTML += create_table_body();
 
     if (headerSource === "censys") {
-        for (let i=0; i < results.length; i++) {
+        for (let i = 0; i < results.length; i++) {
             displayHTML += create_table_row();
             displayHTML += create_table_entry(create_anchor("ip?search=" + results[i]['ip'], results['ip']));
             displayHTML += create_table_entry(results[i]['zones']);
             displayHTML += end_table_row();
         }
     } else {
-        for (let i=0; i < results.length; i++) {
+        for (let i = 0; i < results.length; i++) {
             if (results[i]['domain'] !== "<nil>") {
                 displayHTML += create_table_row();
                 displayHTML += create_table_entry(create_anchor("/domain?search=" + results[i]['domain'], results[i]['domain']));
@@ -255,5 +255,5 @@ function doHeaderValueLookup(header, value, zone) {
     }
     query += "&header_type=" + zgrab_http_headers[header];
 
-    make_get_request(url+query, displayValueSummary, [header, value, zone]);
+    make_get_request(url + query, displayValueSummary, [header, value, zone]);
 }

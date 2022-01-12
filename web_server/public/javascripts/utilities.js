@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -53,7 +53,7 @@ var api_map = {
 
 function qs(key) {
     key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&"); // escape RegEx meta chars
-    var match = location.search.match(new RegExp("[?&]"+key+"=([^&]+)(&|$)"));
+    var match = location.search.match(new RegExp("[?&]" + key + "=([^&]+)(&|$)"));
     return match && decodeURIComponent(match[1].replace(/\+/g, " "));
 }
 
@@ -73,7 +73,7 @@ function get_tls_log(results, index) {
             // ZGrab
             tls_log = results[index]['data']['http']['response']['request']['tls_handshake'];
         }
-    } catch(error) {
+    } catch (error) {
         tls_log = {};
     }
 
@@ -95,7 +95,7 @@ function get_port_tls_log(results, index) {
             // ZGrab
             tls_log = rresults[index]['data']['tls']['tls_handshake'];
         }
-    } catch(error) {
+    } catch (error) {
         tls_log = {};
     }
 
@@ -107,47 +107,47 @@ function get_port_tls_log(results, index) {
  * Networking requests
  */
 
-function make_get_request(url, return_function, additionalArgs = null, errorLocation="errorMessage", defaultReturn=null) {
+function make_get_request(url, return_function, additionalArgs = null, errorLocation = "errorMessage", defaultReturn = null) {
     var xhr = new XMLHttpRequest();
-	xhr.addEventListener("error", errorHandler);
-	xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        let data;
-        try {
-            data = JSON.parse(xhr.responseText);
-          } catch (err) {
-            if (errorLocation !== "") {
-                document.getElementById(errorLocation).innerHTML = "<b>Error: Bad JSON! " + err.message + "</b>";
+    xhr.addEventListener("error", errorHandler);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            let data;
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch (err) {
+                if (errorLocation !== "") {
+                    document.getElementById(errorLocation).innerHTML = "<b>Error: Bad JSON! " + err.message + "</b>";
+                }
+                return;
             }
-            return;
-          }
 
-        if (additionalArgs != null) {
-            return_function(data, additionalArgs);
-        } else {
-            return_function(data);
+            if (additionalArgs != null) {
+                return_function(data, additionalArgs);
+            } else {
+                return_function(data);
+            }
+        } else if (xhr.status === 404 && defaultReturn != null) {
+            if (additionalArgs != null) {
+                return_function(defaultReturn, additionalArgs);
+            } else {
+                return_function(defaultReturn);
+            }
+        } else if (xhr.status === 500 || xhr.status === 400) {
+            if (errorLocation !== "") {
+                document.getElementById(errorLocation).innerHTML = xhr.responseText;
+            }
         }
-      } else if (xhr.status === 404 && defaultReturn != null) {
-        if (additionalArgs != null) {
-            return_function(defaultReturn, additionalArgs);
-        } else {
-            return_function(defaultReturn);
-        }
-	  } else if (xhr.status === 500 || xhr.status === 400) {
-        if (errorLocation !== "") {
-            document.getElementById(errorLocation).innerHTML = xhr.responseText;
-        }
-	  }
-	};
-	xhr.open("GET",url);
-	xhr.send();
-	return (false);
+    };
+    xhr.open("GET", url);
+    xhr.send();
+    return (false);
 }
 
 function dynamicWhoisResult(result, output) {
     var whoisWell = document.getElementById(output);
-    var parsed = result['result'].replace(/\\n/g,"<br/>");
-    parsed = parsed.replace(/\\r/g,"");
+    var parsed = result['result'].replace(/\\n/g, "<br/>");
+    parsed = parsed.replace(/\\r/g, "");
     whoisWell.innerHTML = parsed;
 }
 
@@ -155,7 +155,7 @@ function dynamic_whois(range, output) {
     var url = "/api/v1.0/utilities/whois";
     var query = "?domain=" + range;
 
-    make_get_request(url+query, dynamicWhoisResult, output, "dynamic_whois");
+    make_get_request(url + query, dynamicWhoisResult, output, "dynamic_whois");
 }
 
 /**
@@ -163,15 +163,15 @@ function dynamic_whois(range, output) {
  */
 
 function errorHandler(message = "<b>Error: An error occurred during transfer</b>") {
-	document.getElementById('errorMessage').innerHTML = message;
+    document.getElementById('errorMessage').innerHTML = message;
 }
 
 function clearErrorHandler() {
-	document.getElementById('errorMessage').innerHTML = "";
+    document.getElementById('errorMessage').innerHTML = "";
 }
 
 function create_h3(visible_text) {
-    return("<h4>" + visible_text + "</h4>");
+    return ("<h4>" + visible_text + "</h4>");
 }
 
 function create_new_div(id, divClass = "") {
@@ -180,7 +180,7 @@ function create_new_div(id, divClass = "") {
         displayHTML += ' class="' + divClass + '"';
     }
     displayHTML += '>'
-    return(displayHTML);
+    return (displayHTML);
 }
 
 function create_new_div_section(column_name, visible_text) {
@@ -193,7 +193,7 @@ function create_new_list(list_id) {
     return ('<div class="list-group">');
 }
 
-function create_list_entry(row_name, visible_text, href, include_count = false, icon_name='chevronRight', target_location = "") {
+function create_list_entry(row_name, visible_text, href, include_count = false, icon_name = 'chevronRight', target_location = "") {
     let target_code = "";
     if (target_location !== "") {
         target_code = ' target="' + target_location + '" ';
@@ -215,11 +215,11 @@ function create_list_entry(row_name, visible_text, href, include_count = false, 
 }
 
 function end_list() {
-    return('</div>');
+    return ('</div>');
 }
 
 function end_div() {
-    return('</div>');
+    return ('</div>');
 }
 
 function create_anchor(url, text, target = "", id = "") {
@@ -237,13 +237,13 @@ function create_anchor(url, text, target = "", id = "") {
     return (output_text);
 }
 
-function create_new_table (class_string = "") {
+function create_new_table(class_string = "") {
     let output_text = '<table class="table';
     if (class_string !== "") {
         output_text += ' ' + class_string;
     }
     output_text += '">';
-    return(output_text);
+    return (output_text);
 }
 
 function create_table_head(names, class_string = "") {
@@ -257,10 +257,10 @@ function create_table_head(names, class_string = "") {
         output_text += '<th>' + names[entry] + '</th>';
     }
     output_text += '</tr></thead>';
-    return(output_text);
+    return (output_text);
 }
 
-function create_table_body (class_string = "") {
+function create_table_body(class_string = "") {
     let output_text = '<tbody';
     if (class_string !== "") {
         output_text += ' class="' + class_string + '"';
@@ -270,10 +270,10 @@ function create_table_body (class_string = "") {
 }
 
 function create_table_row() {
-    return('<tr>');
+    return ('<tr>');
 }
 
-function create_table_entry(value, id="", tdClass="") {
+function create_table_entry(value, id = "", tdClass = "") {
     let output_text = '<td';
     if (tdClass !== "") {
         output_text += ' class="' + tdClass + '"';
@@ -283,11 +283,11 @@ function create_table_entry(value, id="", tdClass="") {
         output_text += ' id="' + id + '"';
     }
     output_text += '>' + value + '</td>';
-    return(output_text);
+    return (output_text);
 }
 
 function end_table_row() {
-    return("</tr>");
+    return ("</tr>");
 }
 
 function end_table() {
@@ -295,15 +295,15 @@ function end_table() {
 }
 
 function create_check_mark() {
-    return('<img src="/stylesheets/octicons/svg/check.svg" alt="check"/>');
+    return ('<img src="/stylesheets/octicons/svg/check.svg" alt="check"/>');
 }
 
-function create_button(visible_text, button_id, button_type="icon", size = "S", icon = "search") {
+function create_button(visible_text, button_id, button_type = "icon", size = "S", icon = "search") {
 
-    let settings = {"label": {"innerHTML": visible_text}};
+    let settings = { "label": { "innerHTML": visible_text } };
 
     if (button_type === "icon" && icon === "search") {
-        visible_text = visible_text +  '&nbsp;<img src="/stylesheets/octicons/svg/search.svg" alt="search"/>';
+        visible_text = visible_text + '&nbsp;<img src="/stylesheets/octicons/svg/search.svg" alt="search"/>';
     }
 
     var newButton = document.createElement("button");
@@ -311,7 +311,7 @@ function create_button(visible_text, button_id, button_type="icon", size = "S", 
     newButton.innerHTML = visible_text;
     newButton.id = button_id;
 
-    return(newButton);
+    return (newButton);
 }
 
 function add_click_event_listeners(row_name, row_type, row_function) {
@@ -334,7 +334,7 @@ var PAGING_URLS = {};
 var PAGING_CLICK_WAIT = false;
 
 function kill_paging_form(formName) {
-    document.getElementById('pagingForm-' + formName).onsubmit = function() {
+    document.getElementById('pagingForm-' + formName).onsubmit = function () {
         return false;
     };
 }
@@ -362,9 +362,9 @@ function add_paging_html(formName, display_function) {
 
     PAGING_FUNCTIONS[formName] = display_function;
 
-    window.setTimeout(function(){kill_paging_form(formName)}, 1000);
+    window.setTimeout(function () { kill_paging_form(formName) }, 1000);
 
-    return(html);
+    return (html);
 }
 
 function do_page_refresh(formName) {
@@ -377,12 +377,12 @@ function do_page_refresh(formName) {
 function update_limit(formName) {
     if (PAGING_CLICK_WAIT === false) {
         PAGING_CLICK_WAIT = true;
-        window.setTimeout(function(){do_page_refresh(formName)}, 2000);
+        window.setTimeout(function () { do_page_refresh(formName) }, 2000);
     }
     return false;
 }
 
-function refresh (url, base_query, formName) {
+function refresh(url, base_query, formName) {
     if (base_query !== "") {
         PAGING_URLS[formName] = url + "&";
         base_query = base_query + "&limit=" + LIMIT.toString() + "&page=" + PAGE.toString();

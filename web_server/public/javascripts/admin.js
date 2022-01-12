@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -39,7 +39,7 @@ function fetch_group_info() {
     var url = "/api/v1.0/admin/self_group";
     var query = "";
 
-    make_get_request(url+query, display_group_info);
+    make_get_request(url + query, display_group_info);
 }
 
 
@@ -54,6 +54,6 @@ function fetch_user_info() {
     var url = "/api/v1.0/admin/self";
     var query = "";
 
-    make_get_request(url+query, display_user_info);
+    make_get_request(url + query, display_user_info);
 }
 

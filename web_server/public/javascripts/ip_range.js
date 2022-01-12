@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -37,7 +37,7 @@ function buildPage() {
     make_get_request("/api/v1.0/dns/sources", populateDivRefTable);
 }
 
-function continueBuildPage(){
+function continueBuildPage() {
     document.getElementById("search_form").addEventListener("submit", queries);
 
 
@@ -59,7 +59,7 @@ function continueBuildPage(){
         whois_div.style = "bg-light";
         whois_div.appendChild(create_button("Perform lookup", "whoisLookup"));
         document.getElementById("dynamic_whois_section").appendChild(whois_div);
-        document.getElementById("whoisLookup").addEventListener("click",whois_lookup);
+        document.getElementById("whoisLookup").addEventListener("click", whois_lookup);
     }
 }
 
@@ -80,12 +80,12 @@ function displayCensys(result_text) {
     if (results.length === 0) {
         document.getElementById("rangeInfo").innerHTML = "<b>No records found.</b><br/>";
         return;
-     }
-     var displayHTML = create_new_table();
-     displayHTML += create_table_head(["IP"]);
-     displayHTML += create_table_body();
+    }
+    var displayHTML = create_new_table();
+    displayHTML += create_table_head(["IP"]);
+    displayHTML += create_table_body();
 
-    for (var i=0; i < results.length; i++) {
+    for (var i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_row(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
         displayHTML += end_table_row();
@@ -100,12 +100,12 @@ function displaySRDNS(results) {
     if (results.length === 0) {
         document.getElementById("rangeInfo").innerHTML = "<b>No records found.</b><br/>";
         return;
-     }
-     var displayHTML = create_new_table();
-     displayHTML += create_table_head(["IP", "Domain", "Zone", "Status"]);
-     displayHTML += create_table_body();
+    }
+    var displayHTML = create_new_table();
+    displayHTML += create_table_head(["IP", "Domain", "Zone", "Status"]);
+    displayHTML += create_table_body();
 
-    for (var i=0; i < results.length; i++) {
+    for (var i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
         displayHTML += create_table_entry(create_anchor("/domain?search=" + results[i]['fqdn'], results[i]['fqdn']));
@@ -121,22 +121,22 @@ function displaySRDNS(results) {
 
 function displayDNS(results) {
     if (results.length === 0) {
-            document.getElementById("rangeInfo").innerHTML = "<b>No records found.</b><br/>";
-            return;
+        document.getElementById("rangeInfo").innerHTML = "<b>No records found.</b><br/>";
+        return;
     }
     var displayHTML = create_new_table();
     displayHTML += create_table_head(["Value", "Domain", "Zone", "Status"]);
     displayHTML += create_table_body();
 
-    for (var i=0; i < results.length; i++) {
+    for (var i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['value'], results[i]['value']));
         displayHTML += create_table_entry(create_anchor("/domain?search=" + results[i]['fqdn'], results[i]['fqdn']));
         displayHTML += create_table_entry(create_anchor("/zone?search=" + results[i]['zone'], results[i]['zone']));
 
         let sourceString = "";
-        for (let j = 0; j< results[i]['sources'].length; j++) {
-             sourceString += results[i]['sources'][j]['source'] + ", ";
+        for (let j = 0; j < results[i]['sources'].length; j++) {
+            sourceString += results[i]['sources'][j]['source'] + ", ";
         }
         sourceString = sourceString.substring(0, sourceString.length - 2);
         displayHTML += create_table_entry(sourceString);
@@ -166,7 +166,7 @@ function get_details() {
         url = "/api/v1.0/sonar/rdns?range=" + range;
         callback = displaySRDNS;
     } else {
-        url = "/api/v1.0/dns?source=" + callId.substring(0, callId.length-5) + "&range=" + range;
+        url = "/api/v1.0/dns?source=" + callId.substring(0, callId.length - 5) + "&range=" + range;
         callback = displayDNS;
     }
 
@@ -185,14 +185,14 @@ function displayCountData(results, divRef) {
 function queries(event) {
     var range = document.getElementById("search_input").value;
     var ipv4 = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$/;
- 
+
     if (!(range.match(ipv4))) {
         errorHandler("Invalid Range: " + range);
         return;
     }
 
     if (useCensys) {
-        get_counts("/api/v1.0/censys/ips?count=1&range=" + range,"censys");
+        get_counts("/api/v1.0/censys/ips?count=1&range=" + range, "censys");
     }
 
     for (let entry in divRefTable) {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -18,10 +18,10 @@
 // The check against this value is a JavaScript "includes" and not a strict match.
 var ScanDataSources = ["zgrab"];
 var ScanSupportedPorts = ["22", "25", "80", "443", "465"]
-var CensysSupportedPorts = ["21","22","23","25","53","80","110","143","443","465","502","993","995","7547","47808"];
+var CensysSupportedPorts = ["21", "22", "23", "25", "53", "80", "110", "143", "443", "465", "502", "993", "995", "7547", "47808"];
 
 // This can be used to specify your primary Org value in TLS certificates
-var TLSOrgs=[];
+var TLSOrgs = [];
 
 // Your company name for HTML UI purposes.
 var CompanyName = "";
