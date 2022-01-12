@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -33,36 +33,36 @@ const ipv6AddrModel = mongoose.model('ipv6AddrModel', ipv6AddrSchema);
 
 module.exports = {
     ipv6AddrModel: ipv6AddrModel,
-    getIBIPv6AddrByZonePromise: function(zone) {
+    getIBIPv6AddrByZonePromise: function (zone) {
         return ipv6AddrModel.find({
             'zone': zone,
         }).exec();
     },
-    getIBIPv6AddrByIBloxZonePromise: function(zone) {
+    getIBIPv6AddrByIBloxZonePromise: function (zone) {
         return ipv6AddrModel.find({
             'infoblox_zone': zone,
         }).exec();
     },
-    getIBIPv6AddrByNamePromise: function(name) {
+    getIBIPv6AddrByNamePromise: function (name) {
         return ipv6AddrModel.find({
             'name': name,
         }).exec();
     },
-    getIBIPv6AddrByIPPromise: function(ip) {
+    getIBIPv6AddrByIPPromise: function (ip) {
         return ipv6AddrModel.find({
             'ipv6addr': ip,
         }).exec();
     },
-    getIBIPv6AddrByIPRangePromise: function(ipRange) {
+    getIBIPv6AddrByIPRangePromise: function (ipRange) {
         let reZone = new RegExp('^' + ipRange + '\\..*');
         return ipv6AddrModel.find({
-            'ipv6addr': {'$regex': reZone},
+            'ipv6addr': { '$regex': reZone },
         }).exec();
     },
-    getIBIPv6AddrCountPromise: function(zone) {
+    getIBIPv6AddrCountPromise: function (zone) {
         let query = {};
         if (zone) {
-            query = {'zone': zone};
+            query = { 'zone': zone };
         }
         return ipv6AddrModel.countDocuments(query).exec();
     },

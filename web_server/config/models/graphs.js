@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -31,13 +31,13 @@ const graphModel = mongoose.model('graphModel', graphSchema);
 
 module.exports = {
     GraphModel: graphModel,
-    getGraphConfigByZone: function(zone) {
-        let limitQuery = {'config': 1};
+    getGraphConfigByZone: function (zone) {
+        let limitQuery = { 'config': 1 };
         return graphModel.findOne({
             'zone': zone,
         }, limitQuery).exec();
     },
-    getGraphCountByZone: function(zone) {
-        return(graphModel.countDocuments({'zone': zone}).exec());
+    getGraphCountByZone: function (zone) {
+        return (graphModel.countDocuments({ 'zone': zone }).exec());
     },
 };

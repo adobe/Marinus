@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -30,51 +30,51 @@ const zgrab_cert_path = 'data.http.response.request.tls_handshake.server_certifi
 // zgrab port 443 Module
 module.exports = {
     zgrabModel: zSchema.zgrab443Model,
-    getRecordByDomainPromise: function(domain) {
-        return zSchema.zgrab443Model.find({'domain': domain}).exec();
+    getRecordByDomainPromise: function (domain) {
+        return zSchema.zgrab443Model.find({ 'domain': domain }).exec();
     },
-    getRecordByIPPromise: function(ip, count) {
+    getRecordByIPPromise: function (ip, count) {
         if (count) {
-            return zSchema.zgrab443Model.find({'ip': ip}).countDocuments().exec();
+            return zSchema.zgrab443Model.find({ 'ip': ip }).countDocuments().exec();
         }
-        return zSchema.zgrab443Model.find({'ip': ip}).exec();
+        return zSchema.zgrab443Model.find({ 'ip': ip }).exec();
     },
-    getRecordsByZonePromise: function(zone, count, limit, page) {
+    getRecordsByZonePromise: function (zone, count, limit, page) {
         let promise;
         if (count) {
-           promise = zSchema.zgrab443Model.countDocuments({'zones': zone}).exec();
+            promise = zSchema.zgrab443Model.countDocuments({ 'zones': zone }).exec();
         } else {
-           if (limit > 0) {
-                promise = zSchema.zgrab443Model.find({'zones': zone}).skip(limit * (page - 1)).limit(limit).exec();
-           } else {
-                promise = zSchema.zgrab443Model.find({'zones': zone}).exec();
-           }
+            if (limit > 0) {
+                promise = zSchema.zgrab443Model.find({ 'zones': zone }).skip(limit * (page - 1)).limit(limit).exec();
+            } else {
+                promise = zSchema.zgrab443Model.find({ 'zones': zone }).exec();
+            }
         }
         return (promise);
     },
-    getDomainListPromise: function(count, limit, page) {
+    getDomainListPromise: function (count, limit, page) {
         let promise;
         if (count) {
-           promise = zSchema.zgrab443Model.countDocuments({"domain": {"$ne": "<nil>"}}).exec();
+            promise = zSchema.zgrab443Model.countDocuments({ "domain": { "$ne": "<nil>" } }).exec();
         } else if (limit > 0 && page > 0) {
-           promise = zSchema.zgrab443Model.find({"domain": {"$ne": "<nil>"}}, {"_id": 0, "domain": 1, "zones": 1}).skip(limit * (page - 1)).limit(limit).exec();
+            promise = zSchema.zgrab443Model.find({ "domain": { "$ne": "<nil>" } }, { "_id": 0, "domain": 1, "zones": 1 }).skip(limit * (page - 1)).limit(limit).exec();
         } else {
-           promise = zSchema.zgrab443Model.find({"domain": {"$ne": "<nil>"}}, {"_id": 0, "domain": 1, "zones": 1}).exec();
+            promise = zSchema.zgrab443Model.find({ "domain": { "$ne": "<nil>" } }, { "_id": 0, "domain": 1, "zones": 1 }).exec();
         }
         return (promise);
     },
-    getIPListPromise: function(count, limit, page,) {
+    getIPListPromise: function (count, limit, page,) {
         let promise;
         if (count) {
-           promise = zSchema.zgrab443Model.countDocuments({"ip": {"$ne": "<nil>"}}).exec();
+            promise = zSchema.zgrab443Model.countDocuments({ "ip": { "$ne": "<nil>" } }).exec();
         } else if (limit > 0 && page > 0) {
-           promise = zSchema.zgrab443Model.find({"ip": {"$ne": "<nil>"}}, {"_id": 0, "ip": 1, "aws": 1, "azure": 1, "tracked": 1}).skip(limit * (page - 1)).limit(limit).exec();
+            promise = zSchema.zgrab443Model.find({ "ip": { "$ne": "<nil>" } }, { "_id": 0, "ip": 1, "aws": 1, "azure": 1, "tracked": 1 }).skip(limit * (page - 1)).limit(limit).exec();
         } else {
-           promise = zSchema.zgrab443Model.find({"ip": {"$ne": "<nil>"}}, {"_id": 0, "ip": 1, "aws": 1, "azure": 1, "tracked": 1}).exec();
+            promise = zSchema.zgrab443Model.find({ "ip": { "$ne": "<nil>" } }, { "_id": 0, "ip": 1, "aws": 1, "azure": 1, "tracked": 1 }).exec();
         }
         return (promise);
     },
-    getRecordsBySSLOrgPromise: function(org, recursive, limit, page) {
+    getRecordsBySSLOrgPromise: function (org, recursive, limit, page) {
         let promise;
         if (recursive === true) {
             if (limit > 0) {
@@ -88,156 +88,201 @@ module.exports = {
             }
         } else {
             if (limit > 0) {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {[zgrab_cert_path + 'certificate.parsed.subject.organization']: org}}]
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                { "$match": { [zgrab_cert_path + 'certificate.parsed.subject.organization']: org } }]
                 ).skip(limit * (page - 1)).limit(limit).exec();
             } else {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {[zgrab_cert_path + 'certificate.parsed.subject.organization']: org}}]
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                { "$match": { [zgrab_cert_path + 'certificate.parsed.subject.organization']: org } }]
                 ).exec();
             }
         }
         return (promise);
     },
-    getSSLByCommonNamePromise: function(commonName, recursive) {
+    getSSLByCommonNamePromise: function (commonName, recursive) {
         let promise;
         if (recursive === true) {
             promise = zSchema.zgrab443Model.find({
-                '$or': [{[zgrab_cert_path + 'certificate.parsed.subject.common_name']: commonName},
-                        {[zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: commonName}],
-            }, {'domain': 1, 'ip':1, 'data.http': 1}).exec();
+                '$or': [{ [zgrab_cert_path + 'certificate.parsed.subject.common_name']: commonName },
+                { [zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: commonName }],
+            }, { 'domain': 1, 'ip': 1, 'data.http': 1 }).exec();
         } else {
-            promise = zSchema.zgrab443Model.aggregate([{"$project":
-                {'domain': 1,
-                'ip': 1,
-                'data.http':
-                    {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                {"$match": {'$or': [{'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': commonName},
-                            {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': commonName}]}}
-                ]
-                ).exec();
+            promise = zSchema.zgrab443Model.aggregate([{
+                "$project":
+                {
+                    'domain': 1,
+                    'ip': 1,
+                    'data.http':
+                        { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                }
+            },
+            {
+                "$match": {
+                    '$or': [{ 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': commonName },
+                    { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': commonName }]
+                }
+            }
+            ]
+            ).exec();
         }
         return (promise);
     },
-    getSSLByZonePromise: function(zone, count, recursive) {
+    getSSLByZonePromise: function (zone, count, recursive) {
         let escZone = zone.replace('.', '\\.');
         let reZone = new RegExp('^.*\.' + escZone + '$');
         let promise;
         if (recursive === true) {
             if (count) {
                 promise = zSchema.zgrab443Model.countDocuments({
-                    '$or': [{[zgrab_cert_path + 'certificate.parsed.subject.common_name']: reZone},
-                            {[zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: reZone},
-                            {[zgrab_cert_path + 'certificate.parsed.subject.common_name']: zone},
-                            {[zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: zone}],
+                    '$or': [{ [zgrab_cert_path + 'certificate.parsed.subject.common_name']: reZone },
+                    { [zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: reZone },
+                    { [zgrab_cert_path + 'certificate.parsed.subject.common_name']: zone },
+                    { [zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: zone }],
                 }).exec();
             } else {
                 promise = zSchema.zgrab443Model.find({
-                    '$or': [{[zgrab_cert_path + 'certificate.parsed.subject.common_name']: reZone},
-                            {[zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: reZone},
-                            {[zgrab_cert_path + 'certificate.parsed.subject.common_name']: zone},
-                            {[zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: zone},
-                ]}, {'domain': 1, 'ip': 1, 'data.http': 1}).exec();
+                    '$or': [{ [zgrab_cert_path + 'certificate.parsed.subject.common_name']: reZone },
+                    { [zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: reZone },
+                    { [zgrab_cert_path + 'certificate.parsed.subject.common_name']: zone },
+                    { [zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: zone },
+                    ]
+                }, { 'domain': 1, 'ip': 1, 'data.http': 1 }).exec();
             }
         } else {
             if (count) {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'zones' : 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'$or': [{'zones': zone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': zone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': zone},
-                            ]}},
-                    {"$count": "count"}
-                    ]
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'zones': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                {
+                    "$match": {
+                        '$or': [{ 'zones': zone },
+                        { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone },
+                        { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone },
+                        { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': zone },
+                        { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': zone },
+                        ]
+                    }
+                },
+                { "$count": "count" }
+                ]
                 ).exec();
             } else {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'zones': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'$or': [{'zones': zone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': zone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': zone},
-                            ]}}
-                    ]
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'zones': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                {
+                    "$match": {
+                        '$or': [{ 'zones': zone },
+                        { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone },
+                        { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone },
+                        { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': zone },
+                        { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': zone },
+                        ]
+                    }
+                }
+                ]
                 ).exec();
             }
         }
         return (promise);
     },
-    getSSLByValidity2kPromise: function(recursive) {
+    getSSLByValidity2kPromise: function (recursive) {
         let isBefore2010 = new RegExp('^200.*');
         let promise;
         if (recursive === true) {
             promise = zSchema.zgrab443Model.find({
                 [zgrab_cert_path + 'certificate.parsed.validity.end']: isBefore2010,
-                }, {'domain': 1, 'ip': 1, 'data.http': 1}).exec();
+            }, { 'domain': 1, 'ip': 1, 'data.http': 1 }).exec();
         } else {
-            promise = zSchema.zgrab443Model.aggregate([{"$project":
-                {'domain': 1,
-                'ip': 1,
-                'data.http':
-                    {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.validity.end': isBefore2010}}]
-                ).exec();
+            promise = zSchema.zgrab443Model.aggregate([{
+                "$project":
+                {
+                    'domain': 1,
+                    'ip': 1,
+                    'data.http':
+                        { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                }
+            },
+            { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.validity.end': isBefore2010 } }]
+            ).exec();
         }
         return (promise);
     },
-    getSSLByValidityYearPromise: function(year, recursive) {
+    getSSLByValidityYearPromise: function (year, recursive) {
         let thisDecade = new RegExp('^' + year + '.*');
         let promise;
         if (recursive === true) {
             promise = zSchema.zgrab443Model.find({
                 [zgrab_cert_path + 'certificate.parsed.validity.end']: thisDecade,
-                }, {'domain': 1, 'ip': 1, 'data.http': 1}).exec();
+            }, { 'domain': 1, 'ip': 1, 'data.http': 1 }).exec();
         } else {
-            promise = zSchema.zgrab443Model.aggregate([{"$project":
-                {'domain': 1,
-                 'ip': 1,
-                'data.http':
-                    {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.validity.end': thisDecade}}]
-                ).exec();
+            promise = zSchema.zgrab443Model.aggregate([{
+                "$project":
+                {
+                    'domain': 1,
+                    'ip': 1,
+                    'data.http':
+                        { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                }
+            },
+            { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.validity.end': thisDecade } }]
+            ).exec();
         }
         return (promise);
     },
-    getSSLOrgCountPromise: function(org, recursive) {
+    getSSLOrgCountPromise: function (org, recursive) {
         let promise;
         if (recursive === true) {
             promise = zSchema.zgrab443Model.countDocuments({
-                   [zgrab_cert_path + 'certificate.parsed.subject.organization']: org,
+                [zgrab_cert_path + 'certificate.parsed.subject.organization']: org,
             }).exec();
         } else {
-            promise = zSchema.zgrab443Model.aggregate([{"$project":
-                {'domain': 1,
-                 'ip': 1,
-                'data.http':
-                    {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.organization': org}},
-                {"$count": "count"}]
-                ).exec();
+            promise = zSchema.zgrab443Model.aggregate([{
+                "$project":
+                {
+                    'domain': 1,
+                    'ip': 1,
+                    'data.http':
+                        { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                }
+            },
+            { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.organization': org } },
+            { "$count": "count" }]
+            ).exec();
         }
         return (promise);
     },
-    getSSLAlgorithmPromise: function(algorithm, count, recursive, limit, page) {
+    getSSLAlgorithmPromise: function (algorithm, count, recursive, limit, page) {
         let promise;
         if (recursive === true) {
             if (count === true) {
@@ -247,45 +292,61 @@ module.exports = {
             } else {
                 promise = zSchema.zgrab443Model.find({
                     [zgrab_cert_path + 'certificate.parsed.signature.signature_algorithm.name']: algorithm,
-                }, {'ip': 1,
+                }, {
+                    'ip': 1,
                     'domain': 1,
                     [zgrab_cert_path + 'certificate']: 1,
-                    [zgrab_cert_path + 'validation']: 1}).skip(limit * (page - 1)).limit(limit).exec();
+                    [zgrab_cert_path + 'validation']: 1
+                }).skip(limit * (page - 1)).limit(limit).exec();
             }
         } else {
             if (count) {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm}},
-                    {"$count": "count"}]
-                    ).exec();
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm } },
+                { "$count": "count" }]
+                ).exec();
             } else {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm}},
-                    {"$project":
-                    {'domain': 1,
-                     'ip': 1,
-                     'temp': {"$arrayElemAt": ['$data.http',0]}
-                     }},
-                     {"$project":
-                     {'domain': 1,
-                     'ip': 1,
-                     'data.http.response.request.tls_handshake.server_certificates.certificate': "$temp.request.tls_handshake.server_certificates.certificate",
-                     'data.http.response.request.tls_handshake.server_certificates.validation': "$temp.request.tls_handshake.server_certificates.validation"
-                     }},
-                    ]).skip(limit * (page - 1)).limit(limit).exec();
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm } },
+                {
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'temp': { "$arrayElemAt": ['$data.http', 0] }
+                    }
+                },
+                {
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'data.http.response.request.tls_handshake.server_certificates.certificate': "$temp.request.tls_handshake.server_certificates.certificate",
+                        'data.http.response.request.tls_handshake.server_certificates.validation': "$temp.request.tls_handshake.server_certificates.validation"
+                    }
+                },
+                ]).skip(limit * (page - 1)).limit(limit).exec();
             }
         }
         return (promise);
     },
-    getSSLAlgorithmByZonePromise: function(algorithm, zone, count, recursive, limit, page) {
+    getSSLAlgorithmByZonePromise: function (algorithm, zone, count, recursive, limit, page) {
         let escZone = zone.replace('.', '\\.');
         let reZone = new RegExp('^.*\.' + escZone + '$');
         let promise;
@@ -293,61 +354,85 @@ module.exports = {
             if (count === true) {
                 promise = zSchema.zgrab443Model.countDocuments({
                     [zgrab_cert_path + 'certificate.parsed.signature.signature_algorithm.name']: algorithm,
-                    '$or': [{[zgrab_cert_path + 'certificate.parsed.subject.common_name']: reZone},
-                            {[zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: reZone}]
-                        }).exec();
+                    '$or': [{ [zgrab_cert_path + 'certificate.parsed.subject.common_name']: reZone },
+                    { [zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: reZone }]
+                }).exec();
             } else {
-                promise = zSchema.zgrab443Model.find({[zgrab_cert_path + 'certificate.parsed.signature.signature_algorithm.name']: algorithm,
-                '$or': [{[zgrab_cert_path + 'certificate.parsed.subject.common_name']: reZone},
-                        {[zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: reZone}]},
-                        {'domain': 1, 'ip':1, [zgrab_cert_path + 'certificate']: 1}).skip(limit * (page - 1)).limit(limit).exec();
+                promise = zSchema.zgrab443Model.find({
+                    [zgrab_cert_path + 'certificate.parsed.signature.signature_algorithm.name']: algorithm,
+                    '$or': [{ [zgrab_cert_path + 'certificate.parsed.subject.common_name']: reZone },
+                    { [zgrab_cert_path + 'certificate.parsed.extensions.subject_alt_name.dns_names']: reZone }]
+                },
+                    { 'domain': 1, 'ip': 1, [zgrab_cert_path + 'certificate']: 1 }).skip(limit * (page - 1)).limit(limit).exec();
             }
         } else {
             if (count === true) {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'zones': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm,
-                                "$or": [{'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
-                             {'zones': zone}]}},
-                    {"$project":
-                        {'domain': 1,
-                            'ip': 1,
-                            'zones': 1,
-                            'data.http.0.request.tls_handshake.server_certificates.certificate': 1,
-                    }},
-                    {"$count": "count"}]
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'zones': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                {
+                    "$match": {
+                        'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm,
+                        "$or": [{ 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone },
+                        { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone },
+                        { 'zones': zone }]
+                    }
+                },
+                {
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'zones': 1,
+                        'data.http.0.request.tls_handshake.server_certificates.certificate': 1,
+                    }
+                },
+                { "$count": "count" }]
                 ).exec();
             } else {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'zones': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm,
-                                "$or": [{'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone},
-                                {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone},
-                             {'zones': zone}]}},
-                    {"$project":
-                        {'domain': 1,
-                            'ip': 1,
-                            'data.http.request.tls_handshake.server_certificates.certificate': 1,
-                    }}]
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'zones': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                {
+                    "$match": {
+                        'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.signature.signature_algorithm.name': algorithm,
+                        "$or": [{ 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name': reZone },
+                        { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': reZone },
+                        { 'zones': zone }]
+                    }
+                },
+                {
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'data.http.request.tls_handshake.server_certificates.certificate': 1,
+                    }
+                }]
                 ).skip(limit * (page - 1)).limit(limit).exec();
             }
 
         }
         return (promise);
     },
-    getFullCountPromise: function() {
+    getFullCountPromise: function () {
         return zSchema.zgrab443Model.countDocuments({}).exec();
     },
-    getRecordsBySSLFingerprintPromise: function(fingerprint, count, recursive) {
+    getRecordsBySSLFingerprintPromise: function (fingerprint, count, recursive) {
         let promise;
         if (recursive === true) {
             if (count) {
@@ -361,56 +446,72 @@ module.exports = {
             }
         } else {
             if (count) {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha1': fingerprint}},
-                    {"$count": "count"}]
-                    ).exec();
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha1': fingerprint } },
+                { "$count": "count" }]
+                ).exec();
             } else {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha1': fingerprint}}]
-                    ).exec();
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha1': fingerprint } }]
+                ).exec();
             }
         }
         return (promise);
     },
-    getRecordsBySSL256FingerprintPromise: function(fingerprint, count, recursive) {
+    getRecordsBySSL256FingerprintPromise: function (fingerprint, count, recursive) {
         let promise;
         if (recursive === true) {
             if (count) {
                 promise = zSchema.zgrab443Model.countDocuments({
                     [zgrab_cert_path + 'certificate.parsed.fingerprint_sha256']: fingerprint,
-                    }).exec();
+                }).exec();
             } else {
                 promise = zSchema.zgrab443Model.find({
                     [zgrab_cert_path + 'certificate.parsed.fingerprint_sha256']: fingerprint,
-                    }).exec();
+                }).exec();
             }
         } else {
             if (count) {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': fingerprint}},
-                    {"$count": "count"}]
-                    ).exec();
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': fingerprint } },
+                { "$count": "count" }]
+                ).exec();
             } else {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'domain': 1,
-                    'ip': 1,
-                    'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': fingerprint}}]
-                    ).exec();
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'domain': 1,
+                        'ip': 1,
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256': fingerprint } }]
+                ).exec();
             }
         }
         return (promise);
@@ -419,26 +520,38 @@ module.exports = {
         let promise;
         if (recursive === true) {
             promise = zSchema.zgrab443Model.aggregate([
-            {"$project":
-              {'chain': {"$arrayElemAt": ['$data.http.response.request.tls_handshake.server_certificates.chain',0]}}},
-            {"$project":
-              {'common_name': {"$arrayElemAt": ['$chain.parsed.issuer.common_name',0]}}},
-            {"$group": {"_id": {'ca': '$common_name'}, "result": {'$push': '$common_name'}}},
-            {"$unwind": "$result"},
-            {"$group": {"_id": "$_id.ca", "count": {"$sum": 1}}}
+                {
+                    "$project":
+                        { 'chain': { "$arrayElemAt": ['$data.http.response.request.tls_handshake.server_certificates.chain', 0] } }
+                },
+                {
+                    "$project":
+                        { 'common_name': { "$arrayElemAt": ['$chain.parsed.issuer.common_name', 0] } }
+                },
+                { "$group": { "_id": { 'ca': '$common_name' }, "result": { '$push': '$common_name' } } },
+                { "$unwind": "$result" },
+                { "$group": { "_id": "$_id.ca", "count": { "$sum": 1 } } }
             ]).exec();
         } else {
-            promise = zSchema.zgrab443Model.aggregate([{"$project":
-                {'data.http':{"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-            {"$project":
-              {'response': {"$arrayElemAt": ['$data.http',0]}}},
-            {"$project":
-              {'chain': {"$arrayElemAt": ['$response.request.tls_handshake.server_certificates.chain',0]}}},
-            {"$project":
-              {'common_name': {"$arrayElemAt": ['$chain.parsed.issuer.common_name',0]}}},
-            {"$group": {"_id": {'ca': '$common_name'}, "result": {'$push': '$common_name'}}},
-            {"$unwind": "$result"},
-            {"$group": {"_id": "$_id.ca", "count": {"$sum": 1}}}
+            promise = zSchema.zgrab443Model.aggregate([{
+                "$project":
+                    { 'data.http': { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] } }
+            },
+            {
+                "$project":
+                    { 'response': { "$arrayElemAt": ['$data.http', 0] } }
+            },
+            {
+                "$project":
+                    { 'chain': { "$arrayElemAt": ['$response.request.tls_handshake.server_certificates.chain', 0] } }
+            },
+            {
+                "$project":
+                    { 'common_name': { "$arrayElemAt": ['$chain.parsed.issuer.common_name', 0] } }
+            },
+            { "$group": { "_id": { 'ca': '$common_name' }, "result": { '$push': '$common_name' } } },
+            { "$unwind": "$result" },
+            { "$group": { "_id": "$_id.ca", "count": { "$sum": 1 } } }
             ]).exec();
         }
         //             {"$group": {"_id": null, "result": {'$addToSet': '$common_name'}}}
@@ -462,44 +575,56 @@ module.exports = {
                     }).exec();
                 }
             }
-         } else {
+        } else {
             if (count === true) {
-                promise = zSchema.zgrab443Model.aggregate([{"$project":
-                    {'data.http':
-                        {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                    {"$match": {'data.http.0.request.tls_handshake.server_certificates.chain.0.parsed.issuer.common_name': caIssuer}},
-                    {"$count": "count"}]
-                    ).exec();
+                promise = zSchema.zgrab443Model.aggregate([{
+                    "$project":
+                    {
+                        'data.http':
+                            { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                    }
+                },
+                { "$match": { 'data.http.0.request.tls_handshake.server_certificates.chain.0.parsed.issuer.common_name': caIssuer } },
+                { "$count": "count" }]
+                ).exec();
             } else {
                 if (limit > 0) {
                     promise = zSchema.zgrab443Model.aggregate([
-                        {"$project":
-                            {'domain': 1,
-                             'ip': 1,
-                             'data.http':
-                                {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                        {"$match": {'data.http.0.request.tls_handshake.server_certificates.chain.0.parsed.issuer.common_name': caIssuer}},
-                        {"$skip": (limit * (page - 1))},
-                        {"$limit": limit}]
-                        ).exec();
+                        {
+                            "$project":
+                            {
+                                'domain': 1,
+                                'ip': 1,
+                                'data.http':
+                                    { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                            }
+                        },
+                        { "$match": { 'data.http.0.request.tls_handshake.server_certificates.chain.0.parsed.issuer.common_name': caIssuer } },
+                        { "$skip": (limit * (page - 1)) },
+                        { "$limit": limit }]
+                    ).exec();
                 } else {
-                    promise = zSchema.zgrab443Model.aggregate([{"$project":
-                        {'domain': 1,
-                        'ip': 1,
-                        'data.http':
-                            {"$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]]}}},
-                        {"$match": {'data.http.0.request.tls_handshake.server_certificates.chain.0.parsed.issuer.common_name': caIssuer}}]
-                        ).exec();
+                    promise = zSchema.zgrab443Model.aggregate([{
+                        "$project":
+                        {
+                            'domain': 1,
+                            'ip': 1,
+                            'data.http':
+                                { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
+                        }
+                    },
+                    { "$match": { 'data.http.0.request.tls_handshake.server_certificates.chain.0.parsed.issuer.common_name': caIssuer } }]
+                    ).exec();
                 }
             }
         }
         return (promise);
     },
-    getHttpHeaderPromise: function(header, zone, count) {
+    getHttpHeaderPromise: function (header, zone, count) {
         let headerQuery = 'data.http.response.headers.' + header;
         let query = {};
         if (zone != null && zone !== '') {
-            query = {'zones': zone};
+            query = { 'zones': zone };
         }
         let promise;
         if (count === true) {
@@ -509,8 +634,8 @@ module.exports = {
         }
         return (promise);
     },
-    getUnknownHttpHeaderPromise: function(header, zone, count) {
-        let query = {'data.http.response.headers.unknown.key': header};
+    getUnknownHttpHeaderPromise: function (header, zone, count) {
+        let query = { 'data.http.response.headers.unknown.key': header };
         if (zone != null && zone !== '') {
             query['zones'] = zone;
         }
@@ -522,42 +647,50 @@ module.exports = {
         }
         return (promise);
     },
-    getHttpHeaderByValuePromise: function(header, value, zone) {
+    getHttpHeaderByValuePromise: function (header, value, zone) {
         let headerQuery = 'data.http.response.headers.' + header;
-        let query = {[headerQuery]: value};
+        let query = { [headerQuery]: value };
         if (zone != null && zone !== '') {
             query['zones'] = zone;
         }
         return zSchema.zgrab443Model.find(query).select(headerQuery + ' zones domain ip').exec();
     },
-    getUnknownHttpHeaderByValuePromise: function(value, zone) {
-        let query = {'data.http.response.headers.unknown.value': value};
+    getUnknownHttpHeaderByValuePromise: function (value, zone) {
+        let query = { 'data.http.response.headers.unknown.value': value };
         if (zone != null && zone !== '') {
             query['zones'] = zone;
         }
         return zSchema.zgrab443Model.find(query).select('data.http.response.headers.$.key ' + ' zones ip domain').exec();
     },
-    getDistinctHttpHeaderPromise: function(header, zone) {
+    getDistinctHttpHeaderPromise: function (header, zone) {
         let headerQuery = 'data.http.response.headers.' + header;
         let query;
         if (zone == null || zone === '') {
-            query = {'$match': {[headerQuery]: {'$exists': true}}};
+            query = { '$match': { [headerQuery]: { '$exists': true } } };
         } else {
-            query = {'$match': {[headerQuery]: {'$exists': true}, 'zones': zone}};
+            query = { '$match': { [headerQuery]: { '$exists': true }, 'zones': zone } };
         }
-        return zSchema.zgrab443Model.aggregate([query, {'$group': {'_id': '$'+headerQuery, 'count': {'$sum': 1}}}]).sort({'count': 'descending'}).exec();
+        return zSchema.zgrab443Model.aggregate([query, { '$group': { '_id': '$' + headerQuery, 'count': { '$sum': 1 } } }]).sort({ 'count': 'descending' }).exec();
     },
-    getDistinctUnknownHttpHeaderPromise: function(header, zone) {
+    getDistinctUnknownHttpHeaderPromise: function (header, zone) {
         let query = {}
         if (zone == null || zone === '') {
-            query = {'data.http.response.headers.unknown.key': header};
+            query = { 'data.http.response.headers.unknown.key': header };
         } else {
-            query = {'data.http.response.headers.unknown.key': header, 'zones': zone};
+            query = { 'data.http.response.headers.unknown.key': header, 'zones': zone };
         }
-        return zSchema.zgrab443Model.aggregate([{"$match": query},
-                                                {"$project": {"headers": {"$filter": {"input": '$data.http.response.headers.unknown',
-                                                                                      "as": "header",
-                                                                                      "cond": {"$eq": ["$$header.key", header]}}}}},
-                                                {'$group': {"_id": "$headers.value", "count": {"$sum": 1}}}, {"$project": {"_id": {"$arrayElemAt": ["$_id",0]}, "count": "$count"}}])
+        return zSchema.zgrab443Model.aggregate([{ "$match": query },
+        {
+            "$project": {
+                "headers": {
+                    "$filter": {
+                        "input": '$data.http.response.headers.unknown',
+                        "as": "header",
+                        "cond": { "$eq": ["$$header.key", header] }
+                    }
+                }
+            }
+        },
+        { '$group': { "_id": "$headers.value", "count": { "$sum": 1 } } }, { "$project": { "_id": { "$arrayElemAt": ["$_id", 0] }, "count": "$count" } }])
     },
 };

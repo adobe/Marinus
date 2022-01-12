@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -38,58 +38,58 @@ const virustotalSchema = new Schema({
         'Privacy': String,
     },
     'detected_referrer_samples': [
-    {
-      'positives': Number,
-      'total': Number,
-      'sha256': String,
-    }],
+        {
+            'positives': Number,
+            'total': Number,
+            'sha256': String,
+        }],
     'undetected_referrer_samples': [
-    {
-      'positives': Number,
-      'total': Number,
-      'sha256': String,
-    }],
+        {
+            'positives': Number,
+            'total': Number,
+            'sha256': String,
+        }],
     'detected_downloaded_samples': [
-    {
-      'date': Date,
-      'positives': Number,
-      'total': Number,
-      'sha256': String,
-    }],
+        {
+            'date': Date,
+            'positives': Number,
+            'total': Number,
+            'sha256': String,
+        }],
     'undetected_downloaded_samples': [
-    {
-      'date': Date,
-      'positives': Number,
-      'total': Number,
-      'sha256': String,
-    }],
+        {
+            'date': Date,
+            'positives': Number,
+            'total': Number,
+            'sha256': String,
+        }],
     'detected_communicating_samples': [
-    {
-      'date': Date,
-      'positives': Number,
-      'total': Number,
-      'sha256': String,
-    }],
+        {
+            'date': Date,
+            'positives': Number,
+            'total': Number,
+            'sha256': String,
+        }],
     'undetected_communicating_samples': [{
-      'date': Date,
-      'positives': Number,
-      'total': Number,
-      'sha256': String,
+        'date': Date,
+        'positives': Number,
+        'total': Number,
+        'sha256': String,
     }],
     'detected_urls': [
-    {
-      'url': String,
-      'positives': Number,
-      'total': Number,
-      'scan_date': Date,
-    }],
+        {
+            'url': String,
+            'positives': Number,
+            'total': Number,
+            'scan_date': Date,
+        }],
     'pcaps': [String],
     'subdomains': [String],
     'resolutions': [
-    {
-      'last_resolved': Date,
-      'ip_address': String,
-    }],
+        {
+            'last_resolved': Date,
+            'ip_address': String,
+        }],
     'BitDefender category': String,
     'TrendMicro category': String,
     'Websense ThreatSeeker category': String,
@@ -104,20 +104,20 @@ const virustotalModel = mongoose.model('virustotalModel', virustotalSchema);
 
 module.exports = {
     VirustotalModel: virustotalModel,
-    getRecordByZonePromise: function(zone) {
+    getRecordByZonePromise: function (zone) {
         return virustotalModel.findOne({
             'zone': zone,
         }).exec();
     },
-    getDetectedReferrerSamplesPromise: function(count) {
+    getDetectedReferrerSamplesPromise: function (count) {
         let promise;
         if (count) {
             promise = virustotalModel.find({
-                'detected_referrer_samples': {'$ne': []},
+                'detected_referrer_samples': { '$ne': [] },
             }).exists('detected_referrer_samples').countDocuments().exec();
         } else {
             promise = virustotalModel.find({
-                'detected_referrer_samples': {'$ne': []},
+                'detected_referrer_samples': { '$ne': [] },
             }, {
                 'zone': 1,
                 'detected_referrer_samples': 1,
@@ -125,17 +125,17 @@ module.exports = {
         }
         return (promise);
     },
-    getDetectedReferrerSamplesByZonePromise: function(zone, count) {
+    getDetectedReferrerSamplesByZonePromise: function (zone, count) {
         let promise;
         if (count) {
             promise = virustotalModel.find({
                 'zone': zone,
-                'detected_referrer_samples': {'$ne': []},
+                'detected_referrer_samples': { '$ne': [] },
             }).exists('detected_referrer_samples').countDocuments().exec();
         } else {
             promise = virustotalModel.find({
                 'zone': zone,
-                'detected_referrer_samples': {'$ne': []},
+                'detected_referrer_samples': { '$ne': [] },
             }, {
                 'zone': 1,
                 'detected_referrer_samples': 1,
@@ -143,15 +143,15 @@ module.exports = {
         }
         return (promise);
     },
-    getDetectedCommunicatingSamplesPromise: function(count) {
+    getDetectedCommunicatingSamplesPromise: function (count) {
         let promise;
         if (count) {
             promise = virustotalModel.find({
-                'detected_communicating_samples': {'$ne': []},
+                'detected_communicating_samples': { '$ne': [] },
             }).exists('detected_communicating_samples').countDocuments().exec();
         } else {
             promise = virustotalModel.find({
-                'detected_communicating_samples': {'$ne': []},
+                'detected_communicating_samples': { '$ne': [] },
             }, {
                 'zone': 1,
                 'detected_communicating_samples': 1,
@@ -159,17 +159,17 @@ module.exports = {
         }
         return (promise);
     },
-    getDetectedCommunicatingSamplesByZonePromise: function(zone, count) {
+    getDetectedCommunicatingSamplesByZonePromise: function (zone, count) {
         let promise;
         if (count) {
             promise = virustotalModel.find({
                 'zone': zone,
-                'detected_communicating_samples': {'$ne': []},
+                'detected_communicating_samples': { '$ne': [] },
             }).exists('detected_communicating_samples').countDocuments().exec();
         } else {
             promise = virustotalModel.find({
                 'zone': zone,
-                'detected_communicating_samples': {'$ne': []},
+                'detected_communicating_samples': { '$ne': [] },
             }, {
                 'zone': 1,
                 'detected_communicating_samples': 1,
@@ -177,15 +177,15 @@ module.exports = {
         }
         return (promise);
     },
-    getDetectedDownloadedSamplesPromise: function(count) {
+    getDetectedDownloadedSamplesPromise: function (count) {
         let promise;
         if (count) {
             promise = virustotalModel.find({
-                'detected_downloaded_samples': {'$ne': []},
+                'detected_downloaded_samples': { '$ne': [] },
             }).exists('detected_downloaded_samples').countDocuments().exec();
         } else {
             promise = virustotalModel.find({
-                'detected_downloaded_samples': {'$ne': []},
+                'detected_downloaded_samples': { '$ne': [] },
             }, {
                 'zone': 1,
                 'detected_downloaded_samples': 1,
@@ -193,17 +193,17 @@ module.exports = {
         }
         return (promise);
     },
-    getDetectedDownloadedSamplesByZonePromise: function(zone, count) {
+    getDetectedDownloadedSamplesByZonePromise: function (zone, count) {
         let promise;
         if (count) {
             promise = virustotalModel.find({
                 'zone': zone,
-                'detected_downloaded_samples': {'$ne': []},
+                'detected_downloaded_samples': { '$ne': [] },
             }).exists('detected_downloaded_samples').countDocuments().exec();
         } else {
             promise = virustotalModel.find({
                 'zone': zone,
-                'detected_downloaded_samples': {'$ne': []},
+                'detected_downloaded_samples': { '$ne': [] },
             }, {
                 'zone': 1,
                 'detected_downloaded_samples': 1,
@@ -211,39 +211,41 @@ module.exports = {
         }
         return (promise);
     },
-    getDetectedURLsPromise: function(count) {
+    getDetectedURLsPromise: function (count) {
         let promise;
         if (count) {
             promise = virustotalModel.find({
-                'detected_urls': {'$ne': []},
+                'detected_urls': { '$ne': [] },
             }).exists('detected_urls').countDocuments().exec();
         } else {
             promise = virustotalModel.find({
-                'detected_urls': {'$ne': []},
+                'detected_urls': { '$ne': [] },
             }, {
                 'zone': 1,
-                'detected_urls': 1}).exists('detected_urls').exec();
+                'detected_urls': 1
+            }).exists('detected_urls').exec();
         }
         return (promise);
     },
-    getDetectedURLsByZonePromise: function(zone, count) {
+    getDetectedURLsByZonePromise: function (zone, count) {
         let promise;
         if (count) {
             promise = virustotalModel.find({
                 'zone': zone,
-                'detected_urls': {'$ne': []},
+                'detected_urls': { '$ne': [] },
             }).exists('detected_urls').countDocuments().exec();
         } else {
             promise = virustotalModel.find({
                 'zone': zone,
-                'detected_urls': {'$ne': []},
+                'detected_urls': { '$ne': [] },
             }, {
                 'zone': 1,
-                'detected_urls': 1}).exists('detected_urls').exec();
+                'detected_urls': 1
+            }).exists('detected_urls').exec();
         }
         return (promise);
     },
-    getSubDomainsByZonePromise: function(zone) {
+    getSubDomainsByZonePromise: function (zone) {
         return virustotalModel.find({
             'zone': zone,
         }, {
@@ -252,7 +254,7 @@ module.exports = {
             'subdomains': 1,
         }).exec();
     },
-    getMetaInfoByZonePromise: function(zone) {
+    getMetaInfoByZonePromise: function (zone) {
         return virustotalModel.find({
             'zone': zone,
         }, {
@@ -270,22 +272,23 @@ module.exports = {
             'Dr Web category': 1,
         }).exec();
     },
-    getIPInfoByZonePromise: function(zone) {
+    getIPInfoByZonePromise: function (zone) {
         return virustotalModel.find({
             'zone': zone,
         }, {
             'zone': 1,
-            'resolutions': 1}).exec();
+            'resolutions': 1
+        }).exec();
     },
-    getAllPcapsPromise: function(count) {
+    getAllPcapsPromise: function (count) {
         let promise;
         if (count) {
             promise = virustotalModel.find({
-                'pcaps': {'$ne': []},
+                'pcaps': { '$ne': [] },
             }).exists('pcaps').countDocuments().exec();
         } else {
             promise = virustotalModel.find({
-                'pcaps': {'$ne': []},
+                'pcaps': { '$ne': [] },
             }, {
                 'pcaps': 1,
                 'zone': 1,
@@ -293,10 +296,10 @@ module.exports = {
         }
         return (promise);
     },
-    getPcapsByZonePromise: function(zone, count) {
+    getPcapsByZonePromise: function (zone, count) {
         let promise;
         if (count) {
-            promise = virustotalModel.countDocuments({'zone': zone}).exec();
+            promise = virustotalModel.countDocuments({ 'zone': zone }).exec();
         } else {
             promise = virustotalModel.find({
                 'zone': zone,
@@ -307,7 +310,7 @@ module.exports = {
         }
         return (promise);
     },
-    getWhoisByZonePromise: function(zone) {
+    getWhoisByZonePromise: function (zone) {
         return virustotalModel.find({
             'zone': zone,
         }, {

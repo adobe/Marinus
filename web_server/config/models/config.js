@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -28,16 +28,16 @@ const configModel = mongoose.model('configModel', configSchema);
 
 module.exports = {
     configModel: configModel,
-    getDNSAdminsPromise: function() {
-        return configModel.find({}, {'DNS_Admins': 1, '_id': 0}).exec();
+    getDNSAdminsPromise: function () {
+        return configModel.find({}, { 'DNS_Admins': 1, '_id': 0 }).exec();
     },
-    getSSLOrgsPromise: function() {
-        return configModel.find({}, {'SSL_Orgs': 1, '_id': 0}).exec();
+    getSSLOrgsPromise: function () {
+        return configModel.find({}, { 'SSL_Orgs': 1, '_id': 0 }).exec();
     },
-    getWhoisOrgsPromise: function() {
-        return configModel.find({}, {'Whois_Orgs': 1, '_id': 0}).exec();
+    getWhoisOrgsPromise: function () {
+        return configModel.find({}, { 'Whois_Orgs': 1, '_id': 0 }).exec();
     },
-    getFullConfigPromise: function() {
+    getFullConfigPromise: function () {
         return configModel.find({}).exec();
     },
 };

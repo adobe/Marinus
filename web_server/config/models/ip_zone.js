@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -32,15 +32,15 @@ const ipZoneModel = mongoose.model('ipZoneModel', ipZoneSchema);
 
 module.exports = {
     IpZoneModel: ipZoneModel,
-    getZoneByNamePromise: function(name) {
+    getZoneByNamePromise: function (name) {
         return ipZoneModel.findOne({
             'zone': name,
         }).exec();
     },
-    getZoneByIdPromise: function(id) {
+    getZoneByIdPromise: function (id) {
         return ipZoneModel.findById(id).exec();
     },
-    getZoneCount: function(source, status) {
+    getZoneCount: function (source, status) {
         let query = {};
         if (!(source === undefined || source.length === 0)) {
             query['source'] = source;
@@ -48,18 +48,18 @@ module.exports = {
         if (!(status === undefined || status.length === 0)) {
             query['status'] = status;
         } else {
-            query['status'] = {'$ne': 'false_positive'};
+            query['status'] = { '$ne': 'false_positive' };
         }
         return ipZoneModel.countDocuments(query).exec();
     },
-    getUniqueSources: function() {
+    getUniqueSources: function () {
         return ipZoneModel.find().distinct('source').exec();
     },
-    getAllZones: function(includeFalsePositives) {
-        let query = {'status': {'$ne': 'false_positive'}};
+    getAllZones: function (includeFalsePositives) {
+        let query = { 'status': { '$ne': 'false_positive' } };
         if (includeFalsePositives === true) {
             query = {};
         }
-        return ipZoneModel.find(query).sort({'zone': 1}).exec();
+        return ipZoneModel.find(query).sort({ 'zone': 1 }).exec();
     },
 };

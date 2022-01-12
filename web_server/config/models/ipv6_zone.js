@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -31,15 +31,15 @@ const ipv6ZoneModel = mongoose.model('ipv6ZoneModel', ipv6ZoneSchema);
 
 module.exports = {
     Ipv6ZoneModel: ipv6ZoneModel,
-    getZoneByNamePromise: function(name) {
+    getZoneByNamePromise: function (name) {
         return ipv6ZoneModel.findOne({
             'zone': name,
         }).exec();
     },
-    getZoneByIdPromise: function(id) {
+    getZoneByIdPromise: function (id) {
         return ipv6ZoneModel.findById(id).exec();
     },
-    getZoneCount: function(source, status) {
+    getZoneCount: function (source, status) {
         let query = {};
         if (!(source === undefined || source.length === 0)) {
             query['source'] = source;
@@ -47,18 +47,18 @@ module.exports = {
         if (!(status === undefined || status.length === 0)) {
             query['status'] = status;
         } else {
-            query['status'] = {'$ne': 'false_positive'};
+            query['status'] = { '$ne': 'false_positive' };
         }
         return ipv6ZoneModel.countDocuments(query).exec();
     },
-    getUniqueSources: function() {
+    getUniqueSources: function () {
         return ipv6ZoneModel.find().distinct('source').exec();
     },
-    getAllZones: function(includeFalsePositives) {
-        let query = {'status': {'$ne': 'false_positive'}};
+    getAllZones: function (includeFalsePositives) {
+        let query = { 'status': { '$ne': 'false_positive' } };
         if (includeFalsePositives === true) {
             query = {};
         }
-        return ipv6ZoneModel.find(query).sort({'zone': 1}).exec();
+        return ipv6ZoneModel.find(query).sort({ 'zone': 1 }).exec();
     },
 };

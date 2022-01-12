@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -31,41 +31,41 @@ const cnameModel = mongoose.model('cnameModel', cnameSchema);
 
 module.exports = {
     CnameModel: cnameModel,
-    getIBCNameByZonePromise: function(zone) {
+    getIBCNameByZonePromise: function (zone) {
         return cnameModel.find({
             'zone': zone,
         }).exec();
     },
-    getIBCNameByIBloxZonePromise: function(zone) {
+    getIBCNameByIBloxZonePromise: function (zone) {
         return cnameModel.find({
             'infoblox_zone': zone,
         }).exec();
     },
-    getIBCNameByNamePromise: function(name) {
+    getIBCNameByNamePromise: function (name) {
         return cnameModel.find().or([{
             'name': name,
         }, {
             'canonical': name,
         }]).exec();
     },
-    getIBCNameCountPromise: function(zone) {
+    getIBCNameCountPromise: function (zone) {
         let query = {};
         if (zone) {
-            query = {'zone': zone};
+            query = { 'zone': zone };
         }
         return cnameModel.countDocuments(query).exec();
     },
-    getIBCNameByCanonicalSearch: function(search, zone) {
+    getIBCNameByCanonicalSearch: function (search, zone) {
         let reSearch = new RegExp('.*' + search + '$');
         let promise;
         if (zone) {
             promise = cnameModel.find({
-                'canonical': {'$regex': reSearch},
+                'canonical': { '$regex': reSearch },
                 'zone': zone,
             }).exec();
         } else {
             promise = cnameModel.find({
-                'canonical': {'$regex': reSearch},
+                'canonical': { '$regex': reSearch },
             }).exec();
         }
         return promise;

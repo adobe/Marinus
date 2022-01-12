@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -33,20 +33,20 @@ const cidrGraphModel = mongoose.model('cidr_graphModel', cidrGraphSchema);
 
 module.exports = {
     CIDR_graphModel: cidrGraphModel,
-    getCIDRGraphDataByZone: function(zone) {
-        let limitQuery = {'data': 1, 'errs': 1};
+    getCIDRGraphDataByZone: function (zone) {
+        let limitQuery = { 'data': 1, 'errs': 1 };
         return cidrGraphModel.findOne({
             'zone': zone,
         }, limitQuery).exec();
     },
-    getCIDRGraphConfigByZone: function(zone) {
-        let limitQuery = {'config': 1};
+    getCIDRGraphConfigByZone: function (zone) {
+        let limitQuery = { 'config': 1 };
         return cidrGraphModel.findOne({
             'zone': zone,
         }, limitQuery).exec();
     },
-    getCIDRGraphLinksByZone: function(zone) {
-        let limitQuery = {'links': 1};
+    getCIDRGraphLinksByZone: function (zone) {
+        let limitQuery = { 'links': 1 };
         return cidrGraphModel.findOne({
             'zone': zone,
         }, limitQuery).exec();

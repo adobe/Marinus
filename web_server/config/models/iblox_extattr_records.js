@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -38,60 +38,68 @@ module.exports = {
      * @param value: Host or Cname value to be queried
      * @returns {promise} Promise object
      */
-    getIBHostExtattr: function(value) {
+    getIBHostExtattr: function (value) {
         return extattrModel.find({
-            $and:[
-                {$or:[{'record_type':'cname'}, {'record_type':'host'}]},
-                {'value': value}]
-        }, {'extattrs': 1}).exec();
+            $and: [
+                { $or: [{ 'record_type': 'cname' }, { 'record_type': 'host' }] },
+                { 'value': value }]
+        }, { 'extattrs': 1 }).exec();
     },
     /**
      * Returns the owner information for the zone value queried.
      * @param value: Zone value to be queried
      * @returns {promise} Promise object
      */
-    getIBZoneExtattr: function(value) {
+    getIBZoneExtattr: function (value) {
         return extattrModel.find({
             'record_type': 'zone',
             'value': value,
-        }, {'extattrs': 1}).exec();
+        }, { 'extattrs': 1 }).exec();
     },
     /**
      * Returns the owner information for the cname value queried.
      * @param value: Zone value to be queried
      * @returns {promise} Promise object
      */
-    getIBCnameExtattr: function(value) {
+    getIBCnameExtattr: function (value) {
         return extattrModel.find({
             'record_type': 'cname',
             'value': value,
-        }, {'extattrs': 1}).exec();
+        }, { 'extattrs': 1 }).exec();
     },
     /**
      * Returns the owner information for the IP value queried.
      * @param value: IP value to be queried
      * @returns {promise} Promise object
      */
-    getIBIpExtattr: function(value) {
+    getIBIpExtattr: function (value) {
         return extattrModel.aggregate([
-            {$match: {
+            {
+                $match: {
                     'record_type': 'a',
                     'value': value
-            }},
-            {$project: {
+                }
+            },
+            {
+                $project: {
                     'extattrs': 1,
                     'ref': '$_ref'
-            }}]).exec();
+                }
+            }]).exec();
     },
-    getIBIpv6Extattr: function(value) {
+    getIBIpv6Extattr: function (value) {
         return extattrModel.aggregate([
-            {$match: {
+            {
+                $match: {
                     'record_type': 'aaaa',
                     'value': value
-            }},
-            {$project: {
+                }
+            },
+            {
+                $project: {
                     'extattrs': 1,
                     'ref': '$_ref'
-            }}]).exec();
+                }
+            }]).exec();
     },
 };

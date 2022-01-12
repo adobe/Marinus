@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -30,7 +30,7 @@ const userModel = mongoose.model('userModel', userSchema);
 
 module.exports = {
     UserModel: userModel,
-    getUserIdPromise: function(userid, isActive) {
+    getUserIdPromise: function (userid, isActive) {
         if (typeof isActive === 'undefined') {
             isActive = true;
         }
@@ -47,7 +47,7 @@ module.exports = {
         }
         return promise;
     },
-    getUserByApiKeyPromise: function(apiKey, isActive) {
+    getUserByApiKeyPromise: function (apiKey, isActive) {
         if (typeof isActive === 'undefined') {
             isActive = true;
         }
@@ -64,7 +64,7 @@ module.exports = {
         }
         return promise;
     },
-    getUserListPromise: function(isActive) {
+    getUserListPromise: function (isActive) {
         if (typeof isActive === 'undefined') {
             isActive = true;
         }
@@ -74,7 +74,7 @@ module.exports = {
                 'status': 'active',
             }).exec();
         } else {
-            promise = userModel.find({}, {'apiKey': 0}).exec();
+            promise = userModel.find({}, { 'apiKey': 0 }).exec();
         }
         return promise;
     },

@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -31,36 +31,36 @@ const ipAddrModel = mongoose.model('ipAddrModel', ipAddrSchema);
 
 module.exports = {
     IPAddrModel: ipAddrModel,
-    getIBAddrByZonePromise: function(zone) {
+    getIBAddrByZonePromise: function (zone) {
         return ipAddrModel.find({
             'zone': zone,
         }).exec();
     },
-    getIBAddrByIBloxZonePromise: function(zone) {
+    getIBAddrByIBloxZonePromise: function (zone) {
         return ipAddrModel.find({
             'infoblox_zone': zone,
         }).exec();
     },
-    getIBAddrByNamePromise: function(name) {
+    getIBAddrByNamePromise: function (name) {
         return ipAddrModel.find({
             'name': name,
         }).exec();
     },
-    getIBAddrByIPPromise: function(ip) {
+    getIBAddrByIPPromise: function (ip) {
         return ipAddrModel.find({
             'ipv4addr': ip,
         }).exec();
     },
-    getIBAddrByIPRangePromise: function(ipRange) {
+    getIBAddrByIPRangePromise: function (ipRange) {
         let reZone = new RegExp('^' + ipRange + '\\..*');
         return ipAddrModel.find({
-            'ipv4addr': {'$regex': reZone},
+            'ipv4addr': { '$regex': reZone },
         }).exec();
     },
-    getIBAddrCountPromise: function(zone) {
+    getIBAddrCountPromise: function (zone) {
         let query = {};
         if (zone) {
-            query = {'zone': zone};
+            query = { 'zone': zone };
         }
         return ipAddrModel.countDocuments(query).exec();
     },

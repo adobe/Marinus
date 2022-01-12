@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -20,13 +20,13 @@ const Schema = mongoose.Schema;
  */
 const allDnsSchema = new Schema({
     status: String,
-    sources: [{source: String, updated: Date}],
+    sources: [{ source: String, updated: Date }],
     sonar_timestamp: Number,
     fqdn: String,
     zone: String,
     created: Date,
     value: String,
-    accountInfo: [{key: String, value: String}],
+    accountInfo: [{ key: String, value: String }],
     type: String, // Record type: "a", "cname", etc.
 }, {
     collection: 'all_dns',
@@ -36,29 +36,29 @@ const allDnsModel = mongoose.model('allDnsModel', allDnsSchema);
 
 module.exports = {
     AllDnsModel: allDnsModel,
-    getAllDNSByZonePromise: function(zone, source) {
+    getAllDNSByZonePromise: function (zone, source) {
         /**
          * Fetch all DNS records for the provided zone.
          * (Optional) Limit to the provided source.
          */
-        let query = {'zone': zone};
+        let query = { 'zone': zone };
         if (source != null) {
             query['sources.source'] = source;
         }
         return allDnsModel.find(query).exec();
     },
-    getAllDNSByDomainPromise: function(domain, source) {
+    getAllDNSByDomainPromise: function (domain, source) {
         /**
          * Fetch all DNS records associated to the provided FQDN.
          * (Optional) Limit to the provided source.
          */
-        let query = {'fqdn': domain};
+        let query = { 'fqdn': domain };
         if (source != null) {
             query['sources.source'] = source;
         }
         return allDnsModel.find(query).exec();
     },
-    getAllDNSByIPPromise: function(ip, source) {
+    getAllDNSByIPPromise: function (ip, source) {
         /**
          * Fetch all IP records associated with the provided IP.
          * (Optional) Limit to the provided source.
@@ -72,7 +72,7 @@ module.exports = {
         }
         return allDnsModel.find(query).exec();
     },
-    getAllDNSByIPv6Promise: function(ip, source) {
+    getAllDNSByIPv6Promise: function (ip, source) {
         /**
          * Fetch all IPv6 records for the provided IPv6
          * (Optional) Limit to the provided source.
@@ -86,7 +86,7 @@ module.exports = {
         }
         return allDnsModel.find(query).exec();
     },
-    getAllDNSByIPRangePromise: function(ipRange, source) {
+    getAllDNSByIPRangePromise: function (ipRange, source) {
         /**
          * Fetch all IP records that begin with the ipRange
          * This is a regex match and not a true CIDR match.
@@ -95,14 +95,14 @@ module.exports = {
         let reZone = new RegExp('^' + ipRange + '\\..*');
         let query = {
             'type': 'a',
-            'value': {'$regex': reZone},
+            'value': { '$regex': reZone },
         };
         if (source != null) {
             query['sources.source'] = source;
         }
         return allDnsModel.find(query).exec();
     },
-    getAllDNSByIPv6RangePromise: function(ipRange, source) {
+    getAllDNSByIPv6RangePromise: function (ipRange, source) {
         /**
          * Fetech all IPv6 records that begin with the specified IP range
          * This is a regex match and not a true CIDR match.
@@ -111,22 +111,24 @@ module.exports = {
         let reZone = new RegExp('^' + ipRange + '\\:.*');
         let query = {
             'type': 'aaaa',
-            'value': {'$regex': reZone},
+            'value': { '$regex': reZone },
         };
         if (source != null) {
             query['sources.source'] = source;
         }
         return allDnsModel.find(query).exec();
     },
-    getAllDNSByTxtSearchPromise: function(txtRegex, zone, source, count) {
+    getAllDNSByTxtSearchPromise: function (txtRegex, zone, source, count) {
         /**
          * Fetch all TXT records that match the regex "".*{txtRegex}.*"
          * (Optional) Limit by zone and/or source
          * If count is true, return the count of the matched records.
          */
         let reZone = new RegExp('.*' + txtRegex + '.*', 'i');
-        let query = {'type': 'txt',
-                'value': {'$regex': reZone}};
+        let query = {
+            'type': 'txt',
+            'value': { '$regex': reZone }
+        };
         if (zone != null) {
             query['zone'] = zone;
         }
@@ -141,48 +143,54 @@ module.exports = {
         }
         return promise;
     },
-    getAllDNSTypeByZoneCountPromise: function(type, source) {
+    getAllDNSTypeByZoneCountPromise: function (type, source) {
         /**
          * Fetch the sum of records for the given type (grouped by zone).
          * (Optional) Limit the query to those from the given source.
          * e.g. Example.org has 12 A records, Example.net has 5 A records, etc.
          */
-        let query = {'type': type};
+        let query = { 'type': type };
         if (source != null) {
             query['sources.source'] = source;
         }
-        return allDnsModel.aggregate([{'$match': query},
-                                              {$group: {'_id': '$zone',
-                                                    'count': {$sum: 1}},
-                                             }]).sort({'_id': 1}).exec();
+        return allDnsModel.aggregate([{ '$match': query },
+        {
+            $group: {
+                '_id': '$zone',
+                'count': { $sum: 1 }
+            },
+        }]).sort({ '_id': 1 }).exec();
 
     },
-    getAllDNSTxtByZoneCountPromise: function(stringType, source) {
+    getAllDNSTxtByZoneCountPromise: function (stringType, source) {
         /**
          * Fetch all TXT records that match ".*v={stringType}.*"
          * (Optional) Limit by source.
          */
         let reSPF = new RegExp('.*v=' + stringType + '.*', 'i');
 
-        let query = {'type': 'txt', 'value': {'$regex': reSPF}};
+        let query = { 'type': 'txt', 'value': { '$regex': reSPF } };
 
         if (source != null) {
             query['sources.source'] = source;
         }
 
-        return allDnsModel.aggregate([{'$match': query},
-                                             {$group: {'_id': '$zone',
-                                                'count': {$sum: 1}},
-                                             }]).sort({'_id': 1}).exec();
+        return allDnsModel.aggregate([{ '$match': query },
+        {
+            $group: {
+                '_id': '$zone',
+                'count': { $sum: 1 }
+            },
+        }]).sort({ '_id': 1 }).exec();
 
     },
-    getAllDNSByTypePromise: function(type, zone, source, count) {
+    getAllDNSByTypePromise: function (type, zone, source, count) {
         /**
          * Fetch all records for the given type.
          * (Optional) Limit the search with zone and/or source.
          * Return either the records or the count of the records.
          */
-        let search = {'type': type};
+        let search = { 'type': type };
         if (zone) {
             search['zone'] = zone;
         }
@@ -197,7 +205,7 @@ module.exports = {
         }
         return promise;
     },
-    getAllDNSAmazonEntriesPromise: function(subdomain, source) {
+    getAllDNSAmazonEntriesPromise: function (subdomain, source) {
         /**
          * Fetch all CNAME records that match the regex "^.*+{subdomain}+\.amazonaws\.com"
          * (Optional) Limit to the provided source.
@@ -217,7 +225,7 @@ module.exports = {
         }
         return allDnsModel.find(query).exec();
     },
-    getAllDNSCount: function(zone, source) {
+    getAllDNSCount: function (zone, source) {
         /**
          * Return the count of AllDNS records.
          * (Optional) Limit by zone and/or source.
@@ -231,7 +239,7 @@ module.exports = {
         }
         return allDnsModel.countDocuments(query).exec();
     },
-    getAllDNSByCanonicalSearch: function(search, zone, source) {
+    getAllDNSByCanonicalSearch: function (search, zone, source) {
         /**
          * Fetch all CNAME records that end in the provided search string.
          * (Optional) Limit the request by zone and/or source.
@@ -242,7 +250,7 @@ module.exports = {
         if (zone) {
             query = {
                 'type': 'cname',
-                'value': {'$regex': reSearch},
+                'value': { '$regex': reSearch },
                 'zone': zone,
             };
             if (source != null) {
@@ -252,7 +260,7 @@ module.exports = {
         } else {
             query = {
                 'type': 'cname',
-                'value': {'$regex': reSearch},
+                'value': { '$regex': reSearch },
             };
             if (source != null) {
                 query['sources.source'] = source;
@@ -261,16 +269,16 @@ module.exports = {
         }
         return promise;
     },
-    getDistinctDNSSources: function() {
+    getDistinctDNSSources: function () {
         /**
          * Returns the list of distinct DNS record sources.
          */
         return allDnsModel.distinct('sources.source').exec()
     },
-    getByAccountInfo: function(accountInfoValue) {
+    getByAccountInfo: function (accountInfoValue) {
         /**
          * Returns DNS names matching an accountInfoValue
          */
-        return allDnsModel.find({'accountInfo.value': accountInfoValue}).exec()
+        return allDnsModel.find({ 'accountInfo.value': accountInfoValue }).exec()
     }
 };

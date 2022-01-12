@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -37,19 +37,19 @@ const whoisSchema = new Schema({
     emails: [String],
     name_servers: [String],
     text: String,
-}, {collection: 'whois'});
+}, { collection: 'whois' });
 
 
 const whoisModel = mongoose.model('whoisModel', whoisSchema);
 
 module.exports = {
     WhoisModel: whoisModel,
-    getRecordByZonePromise: function(zone) {
+    getRecordByZonePromise: function (zone) {
         return whoisModel.findOne({
             'zone': zone,
         }).exec();
     },
-    getWhoisDNSServerRecords: function(server, count) {
+    getWhoisDNSServerRecords: function (server, count) {
         let reServer = new RegExp('.*' + server + '.*', 'i');
         let promise;
         if (count) {
@@ -57,34 +57,34 @@ module.exports = {
                 'name_servers': reServer,
             }).exec();
         } else {
-            promise = whoisModel.find({'name_servers': reServer}).exec();
+            promise = whoisModel.find({ 'name_servers': reServer }).exec();
         }
         return promise;
     },
-    getWhoisDNSServerNullRecords: function(count) {
+    getWhoisDNSServerNullRecords: function (count) {
         let promise;
         if (count) {
             promise = whoisModel.countDocuments({
-                '$or': [{'name_servers': {'$exists': false}},
-                        {'name_servers': []},
-                        {'name_servers': null}],
-                    }).exec();
+                '$or': [{ 'name_servers': { '$exists': false } },
+                { 'name_servers': [] },
+                { 'name_servers': null }],
+            }).exec();
         } else {
             promise = whoisModel.find({
-                '$or': [{'name_servers': {'$exists': false}},
-                        {'name_servers': []},
-                        {'name_servers': null}],
-                    }).exec();
+                '$or': [{ 'name_servers': { '$exists': false } },
+                { 'name_servers': [] },
+                { 'name_servers': null }],
+            }).exec();
         }
         return promise;
     },
-    getWhoisDistinctDNSServerRecords: function() {
-        return(whoisModel.distinct('name_servers').exec());
+    getWhoisDistinctDNSServerRecords: function () {
+        return (whoisModel.distinct('name_servers').exec());
     },
-    getWhoisDistinctDNSServerGroupRecords: function() {
-        return(whoisModel.distinct('name_server_groups').exec());
+    getWhoisDistinctDNSServerGroupRecords: function () {
+        return (whoisModel.distinct('name_server_groups').exec());
     },
-    getWhoisDNSSECRecords: function(type, count) {
+    getWhoisDNSSECRecords: function (type, count) {
         let query;
         if (type === 'signed') {
             query = 'signedDelegation';
@@ -95,59 +95,59 @@ module.exports = {
         }
         let promise;
         if (count) {
-            promise = whoisModel.countDocuments({'dnssec': query}).exec();
+            promise = whoisModel.countDocuments({ 'dnssec': query }).exec();
         } else {
-            promise = whoisModel.find({'dnssec': query}).exec();
+            promise = whoisModel.find({ 'dnssec': query }).exec();
         }
         return promise;
     },
-    getWhoisDNSSECOtherRecords: function(count) {
+    getWhoisDNSSECOtherRecords: function (count) {
         let promise;
         let query = new RegExp('^(n|no)$', 'i');
         if (count) {
             promise = whoisModel.countDocuments({
-                '$or': [{'dnssec': {'$exists': false}},
-                        {'dnssec': false},
-                        {'dnssec': query},
-                        {'dnssec': null}],
-                    }).exec();
+                '$or': [{ 'dnssec': { '$exists': false } },
+                { 'dnssec': false },
+                { 'dnssec': query },
+                { 'dnssec': null }],
+            }).exec();
         } else {
             promise = whoisModel.find({
-                '$or': [{'dnssec': {'$exists': false}},
-                        {'dnssec': false},
-                        {'dnssec': query},
-                        {'dnssec': null}],
-                    }).exec();
+                '$or': [{ 'dnssec': { '$exists': false } },
+                { 'dnssec': false },
+                { 'dnssec': query },
+                { 'dnssec': null }],
+            }).exec();
         }
         return promise;
     },
-    getWhoisEmailRecords: function(email, count) {
+    getWhoisEmailRecords: function (email, count) {
         let promise;
         if (count) {
-            promise = whoisModel.countDocuments({'emails': email}).exec();
+            promise = whoisModel.countDocuments({ 'emails': email }).exec();
         } else {
-            promise = whoisModel.find({'emails': email}).exec();
+            promise = whoisModel.find({ 'emails': email }).exec();
         }
         return promise;
     },
-    getWhoisEmailNullRecords: function(count) {
+    getWhoisEmailNullRecords: function (count) {
         let promise;
         if (count) {
             promise = whoisModel.countDocuments({
-                '$or': [{'emails': {'$eq': null}},
-                        {'emails': {'$eq': []}},
-                        {'emails': {'$exists': false}}],
-                    }).exec();
+                '$or': [{ 'emails': { '$eq': null } },
+                { 'emails': { '$eq': [] } },
+                { 'emails': { '$exists': false } }],
+            }).exec();
         } else {
             promise = whoisModel.find({
-                '$or': [{'emails': {'$eq': null}},
-                        {'emails': {'$eq': []}},
-                        {'emails': {'$exists': false}}],
-                    }).exec();
+                '$or': [{ 'emails': { '$eq': null } },
+                { 'emails': { '$eq': [] } },
+                { 'emails': { '$exists': false } }],
+            }).exec();
         }
         return promise;
     },
-    getWhoisRecordCount: function() {
+    getWhoisRecordCount: function () {
         return whoisModel.countDocuments({}).exec();
     },
 };

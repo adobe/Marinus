@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Copyright 2018 Adobe. All rights reserved.
+ * Copyright 2022 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -34,31 +34,31 @@ const rdnsModel = mongoose.model('rdnsModel', rdnsSchema);
 
 module.exports = {
     RdnsModel: rdnsModel,
-    getSRDNSByZonePromise: function(zone) {
+    getSRDNSByZonePromise: function (zone) {
         return rdnsModel.find({
             'zone': zone,
         }).exec();
     },
-    getSRDNSByIPPromise: function(ip) {
+    getSRDNSByIPPromise: function (ip) {
         return rdnsModel.find({
             'ip': ip,
         }).exec();
     },
-    getSRDNSByIPRangePromise: function(ipRange) {
+    getSRDNSByIPRangePromise: function (ipRange) {
         let reZone = new RegExp('^' + ipRange + '\\..*');
         return rdnsModel.find({
-            'ip': {'$regex': reZone},
+            'ip': { '$regex': reZone },
         }).exec();
     },
-    getSRDNSByDomainPromise: function(domain) {
+    getSRDNSByDomainPromise: function (domain) {
         return rdnsModel.find({
             'fqdn': domain,
         }).exec();
     },
-    getSRDNSCount: function(zone) {
+    getSRDNSCount: function (zone) {
         let query = {};
         if (zone) {
-            query = {'zone': zone};
+            query = { 'zone': zone };
         }
         return rdnsModel.find(query).countDocuments().exec();
     },
