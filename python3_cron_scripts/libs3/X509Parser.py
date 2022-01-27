@@ -177,6 +177,10 @@ class X509Parser(object):
             "id": "IkVFB1lVJFaWP6Ev8fdthuAjJmOtwEt/XcaDXG7iDwI=",
             "url": "yeti2022.ct.digicert.com/log",
         },
+        "yeti2022-2": {
+            "id": "BZwB0yDgB4QTlYBJjRF8kDJmr69yULWvO0akPhGEDUo=",
+            "url": "yeti2022-2.ct.digicert.com/log",
+        },
         "yeti2023": {
             "id": "Nc8ZG7+xbFe/D61MbULLu7YnICZR6j/hKu+oA8M71kw=",
             "url": "yeti2023.ct.digicert.com/log",
