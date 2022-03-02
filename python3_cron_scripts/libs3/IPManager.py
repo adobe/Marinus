@@ -24,7 +24,7 @@ from datetime import datetime
 from bson.objectid import ObjectId
 from netaddr import IPAddress, IPNetwork
 
-from libs3 import DNSManager, GoogleDNS, MongoConnector
+from libs3 import DNSManager, GoogleDNS
 from libs3.ZoneManager import ZoneManager
 
 
