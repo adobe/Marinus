@@ -83,9 +83,11 @@ class JobsManager(object):
             == 0
         ):
             now = datetime.now()
-            self._jobs_collection.insert(
-                {"job_name": job_name, "status": self.NOT_RUN, "updated": now}
+            self._mongo_connector.perform_insert(
+                self._jobs_collection,
+                {"job_name": job_name, "status": self.NOT_RUN, "updated": now},
             )
+
 
     def create_job(self, job_name):
         """
