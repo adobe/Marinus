@@ -265,6 +265,12 @@ def main():
         default="local",
         help="Whether to use the local or remote DB",
     )
+    parser.add_argument(
+        "--download_location",
+        required=False,
+        default="./files/",
+        help="The location to save the downloaded files",
+    )
     args = parser.parse_args()
 
     r7 = Rapid7.Rapid7()
@@ -278,7 +284,7 @@ def main():
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
 
-    save_directory = "./files/"
+    save_directory = args.download_location
     check_save_location(save_directory)
 
     # A session is necessary for the multi-step log-in process
