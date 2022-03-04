@@ -48,5 +48,13 @@ class LoggingUtil:
 
         if level is not None:
             logger.setLevel(level)
+        else:
+            try:
+                level = os.environ["LOG_LEVEL"]
+            except:
+                level = None
+
+            if level is not None:
+                logger.setLevel(level)
 
         return logger
