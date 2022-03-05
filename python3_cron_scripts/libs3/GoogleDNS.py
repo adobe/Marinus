@@ -102,13 +102,13 @@ class GoogleDNS(object):
             return []
 
         if req.status_code != 200:
-            logger.error("Error looking up: " + host)
+            logger.debug("Error looking up: " + host)
             return []
 
         nslookup_results = json.loads(req.text)
 
         if nslookup_results["Status"] != 0:
-            logger.error("Status error looking up: " + host)
+            logger.debug("Status error looking up: " + host)
             return []
 
         if "Answer" not in nslookup_results:
