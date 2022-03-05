@@ -59,12 +59,12 @@ from libs3.ZoneManager import ZoneManager
 CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2021-jun-jul-sep/host/cc-main-2021-jun-jul-sep-host-vertices.paths.gz"
 
 
-def download_file(logger, url):
+def download_file(logger, url, save_location):
     """
     Download the file from the provided URL.
     Use the filename in the URL as the name of the outputed file.
     """
-    local_filename = url.split("/")[-1]
+    local_filename = save_location + url.split("/")[-1]
     logger.debug(local_filename)
     # NOTE the stream=True parameter
     req = requests.get(url, stream=True)
@@ -205,6 +205,12 @@ def main():
     parser.add_argument(
         "--url", metavar="URL", help="The URL for the latest vertices file"
     )
+    parser.add_argument(
+        "--save_location",
+        metavar="LOCATION",
+        default="./files",
+        help="The directory for saving files",
+    )
     args = parser.parse_args()
 
     CURRENT_FILE = CURRENT_FILE_LIST
@@ -235,8 +241,18 @@ def main():
         first_letter = zone[0]
         grouped_zones[first_letter].append(zone)
 
-    compressed_download_list = download_file(logger, CURRENT_FILE)
-    subprocess.check_call(["gunzip", "-f", compressed_download_list])
+    save_location = args.save_location
+    if not save_location.endswith("/"):
+        save_location = save_location + "/"
+
+    compressed_download_list = download_file(logger, CURRENT_FILE, save_location)
+    try:
+        subprocess.check_call(["gunzip", "-f", compressed_download_list])
+    except Exception as e:
+        logger.error("Could not unzip download list")
+        logger.error(str(e))
+        jobs_manager.record_job_error()
+        exit(1)
 
     download_list = compressed_download_list.split(".")[:-1]
     list_file = ".".join(download_list)
@@ -246,10 +262,17 @@ def main():
     for entry in vertices_file_entries:
         # Download file
         vert_file_url = "https://commoncrawl.s3.amazonaws.com/" + entry.rstrip("\n")
-        compressed_vertices_file = download_file(logger, vert_file_url)
+        compressed_vertices_file = download_file(logger, vert_file_url, save_location)
 
         # Decompress file
-        subprocess.check_call(["gunzip", "-f", compressed_vertices_file])
+        try:
+            subprocess.check_call(["gunzip", "-f", compressed_vertices_file])
+        except Exception as e:
+            logger.error("Could not unzip vertices file")
+            logger.error(str(e))
+            jobs_manager.record_job_error()
+            exit(1)
+
         vertices_list = compressed_vertices_file.split(".")[:-1]
         vertices_file = ".".join(vertices_list)
 
