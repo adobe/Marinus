@@ -135,8 +135,8 @@ class InfobloxZone(object):
         # Change the update date if it already exists
         utf8_zone = zone["fqdn"].encode("utf-8").decode("utf8")
         if re.match(r"^([0-9]{1,3}\.){3}[0-9]{1,3}\/\d\d$", utf8_zone) is not None:
-            cursor = self.ip_collection.find({"zone": zone["fqdn"]})
-            if cursor.count() == 0:
+            count = self.MC.perform_count(self.ip_collection, {"zone": zone["fqdn"]})
+            if count == 0:
                 insert_text = dict()
                 insert_text["zone"] = utf8_zone
                 insert_text["source"] = "Infoblox"
@@ -146,6 +146,9 @@ class InfobloxZone(object):
                 self.ip_collection.insert_one(insert_text)
                 self._logger.info("Added IP: " + utf8_zone)
             else:
+                cursor = self.MC.perform_find(
+                    self.ip_collection, {"zone": zone["fqdn"]}
+                )
                 for _ in cursor:
                     self.ip_collection.update_one(
                         {"zone": zone["fqdn"]}, {"$currentDate": {"updated": True}}

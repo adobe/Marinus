@@ -275,7 +275,7 @@ class ZoneIngestor(object):
         Delete the zone record.
         :param zone: Zone value to be deleted.
         """
-        self.zone_collection.remove({"zone": zone})
+        self.zone_collection.delete_many({"zone": zone})
 
     def __zone_previously_not_present(self, zone, source, parent, custom_fields):
         """
@@ -299,9 +299,10 @@ class ZoneIngestor(object):
             # check if the parent is present as zone.
             # If yes, add zone as sub-zone
             # If no, add zone and parent as new entry.
-            parent_record = self.zone_collection.find({"zone": parent})
+            parent_record = self.MC.perform_find(self.zone_collection, {"zone": parent})
             if parent_record:
-                if parent_record.count() > 1:
+                count = self.MC.perform_count(self.zone_collection, {"zone": parent})
+                if count > 1:
                     self._logger.error(
                         "Error: Too many records for the parent zone:{parent}.".format(
                             parent=parent
@@ -333,7 +334,7 @@ class ZoneIngestor(object):
                 else:
                     self.__add_new_zone(None, source, zone, custom_fields)
 
-    def __zone_previously_present(self, zone, source, parent, cursor, custom_fields):
+    def __zone_previously_present(self, zone, source, parent, query, custom_fields):
         """
         Handling of the zone while it already exists in the collection as zone/sub-zone. The function returns
         in case multiple documents of the zone are discovered.
@@ -355,13 +356,17 @@ class ZoneIngestor(object):
         :param cursor: Existing record of zone provided.
         """
 
-        if cursor.count() > 1:
+        count = self.MC.perform_count(self.zone_collection, query)
+
+        if count > 1:
             self._logger.error(
                 "Error: The zone:{zone} is present in multiple records. Rectify.".format(
                     zone=zone
                 )
             )
             return
+
+        cursor = self.MC.perform_find(self.zone_collection, query)
 
         record = cursor[0]
         # if record['status'] == 'false_positive':
@@ -435,11 +440,11 @@ class ZoneIngestor(object):
             self._logger.error("Error: Invalid zone entry : " + zone)
             return
 
-        cursor = self.zone_collection.find(
-            {"$or": [{"sub_zones.sub_zone": zone}, {"zone": zone}]}
-        )
+        query = {"$or": [{"sub_zones.sub_zone": zone}, {"zone": zone}]}
 
-        if cursor.count() == 0:
+        count = self.MC.perform_count(self.zone_collection, query)
+
+        if count == 0:
             self.__zone_previously_not_present(zone, source, parent, custom_fields)
         else:
-            self.__zone_previously_present(zone, source, parent, cursor, custom_fields)
+            self.__zone_previously_present(zone, source, parent, query, custom_fields)

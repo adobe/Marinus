@@ -221,7 +221,8 @@ class ZoneManager(object):
         """
         Set a zone to expired.
         """
-        if self.zone_collection.find({"zone": zone}).count() == 0:
+        count = self.mongo_connector.perform_count(self.zone_collection, {"zone": zone})
+        if count == 0:
             self._logger.error("ERROR: Invalid zone!")
             return
 
@@ -240,7 +241,7 @@ class ZoneManager(object):
 
         now = datetime.now()
         note = caller + " set to " + status + " on " + str(now)
-        self.zone_collection.update(
+        self.zone_collection.update_one(
             {"zone": zone},
             {"$set": {"status": status, "updated": now}, "$addToSet": {"notes": note}},
         )
@@ -251,4 +252,4 @@ class ZoneManager(object):
         For now, it is not set until more information on usage is available.
         """
 
-        self.zone_collection.update({"zone": zone}, {"$addToSet": {"notes": note}})
+        self.zone_collection.update_one({"zone": zone}, {"$addToSet": {"notes": note}})
