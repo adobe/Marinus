@@ -132,7 +132,7 @@ class InfobloxDNSManager(object):
         if not insert_object["_ref"] in self.previous_records:
             insert_object["created"] = datetime.now()
             insert_object["updated"] = datetime.now()
-            self.iblox_collection.insert(insert_object)
+            self.MC.perform_insert(self.iblox_collection, insert_object)
         else:
             self.previous_records.remove(insert_object["_ref"])
             insert_object["updated"] = datetime.now()
