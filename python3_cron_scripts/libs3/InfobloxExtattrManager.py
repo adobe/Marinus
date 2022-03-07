@@ -205,7 +205,6 @@ class InfobloxExtattrManager(object):
         return requests.get(
             (self.__get_record_type_url()),
             auth=HTTPBasicAuth(self.IH.IBLOX_UNAME, self.IH.IBLOX_PASSWD),
-            verify="/etc/ssl/certs/ca-bundle.crt",
             timeout=120,
         )
 
