@@ -187,11 +187,10 @@ def fetch_starting_index(ct_collection, source):
         .limit(1)
     )
 
-    if result.count() == 0:
-        return 0
-
     for entry in result:
         return entry[source + "_id"]
+
+    return 0
 
 
 def read_leaf_header(leaf):
@@ -281,7 +280,9 @@ def insert_certificate(cert, source, ct_collection, cert_zones):
     """
 
     if (
-        ct_collection.find({"fingerprint_sha256": cert["fingerprint_sha256"]}).count()
+        ct_collection.count_documents(
+            {"fingerprint_sha256": cert["fingerprint_sha256"]}
+        )
         == 0
     ):
         ct_collection.insert_one(cert)
@@ -523,3 +524,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
