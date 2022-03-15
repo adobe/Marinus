@@ -42,8 +42,6 @@ import argparse
 import base64
 import json
 import logging
-import os
-import struct
 import time
 from datetime import datetime
 
@@ -55,6 +53,7 @@ from urllib3.util import Retry
 
 from libs3 import JobsManager, MongoConnector, X509Parser
 from libs3.LoggingUtil import LoggingUtil
+from libs3.StorageManager import StorageManager
 from libs3.ZoneManager import ZoneManager
 
 
@@ -213,7 +212,7 @@ def get_cert_from_leaf(logger, leaf):
     header = read_leaf_header(base64.b64decode(leaf))
 
     cert_type = header["LogEntryType"]
-    if cert_type == 1:
+    if cert_type == 1 or cert_type == 2:
         # Precertificates processed separately
         return None, cert_type
 
@@ -301,7 +300,7 @@ def insert_certificate(cert, source, ct_collection, cert_zones):
         )
 
 
-def write_file(logger, cert, save_location, save_type, source):
+def write_file(logger, storage_manager, cert, save_location, save_type, source):
     """
     Write the file to disk.
     """
@@ -326,29 +325,39 @@ def write_file(logger, cert, save_location, save_type, source):
 
     if save_type == "PEM":
         new_file = crypto.dump_certificate(crypto.FILETYPE_PEM, c_file)
-        fh = open(
-            save_location + "ct_" + source + "/" + str(cert[source + "_id"]) + ".pem",
-            "wb",
-        )
-        fh.write(new_file)
-        fh.close()
+        if storage_manager.storage_location == storage_manager.LOCAL_FILESYSTEM:
+            storage_manager.write_file(
+                save_location + "ct-" + source,
+                str(cert[source + "_id"]) + ".pem",
+                new_file,
+            )
+        else:
+            storage_manager.write_file(
+                "ct-" + source, str(cert[source + "_id"]) + ".pem", new_file
+            )
     else:
         new_file = crypto.dump_certificate(crypto.FILETYPE_ASN1, c_file)
-        fh = open(
-            save_location + "ct_" + source + "/" + str(cert[source + "_id"]) + ".der",
-            "wb",
-        )
-        fh.write(new_file)
-        fh.close()
+        if storage_manager.storage_location == storage_manager.LOCAL_FILESYSTEM:
+            storage_manager.write_file(
+                save_location + "ct-" + source,
+                str(cert[source + "_id"]) + ".der",
+                new_file,
+            )
+        else:
+            storage_manager.write_file(
+                "ct-" + source, str(cert[source + "_id"]) + ".der", new_file
+            )
 
 
-def check_save_location(save_location, source):
+def check_save_location(storage_manager, save_location, source):
     """
     Check to see if the directory exists.
     If the directory does not exist, it will automatically create it.
     """
-    if not os.path.exists(save_location + "ct_" + source):
-        os.makedirs(save_location + "ct_" + source)
+    if storage_manager.storage_location == StorageManager.LOCAL_FILESYSTEM:
+        storage_manager.create_folder(save_location + "ct-" + source)
+    else:
+        storage_manager.create_folder("ct-" + source)
 
 
 def main():
@@ -372,7 +381,7 @@ def main():
     ssl_orgs = result["SSL_Orgs"]
 
     # Defaults
-    save_location = "/mnt/workspace/"
+    save_location = "./"
     download_method = "dbAndSave"
     save_type = "PEM"
 
@@ -414,6 +423,16 @@ def main():
         default=save_type,
         help="Indicates which format to use for the data. The default is PEM",
     )
+    parser.add_argument(
+        "--storage_system",
+        choices=[
+            StorageManager.AWS_S3,
+            StorageManager.AZURE_BLOB,
+            StorageManager.LOCAL_FILESYSTEM,
+        ],
+        default=StorageManager.LOCAL_FILESYSTEM,
+        help="Indicates where to save the files when dbAndSave is chosen",
+    )
     args = parser.parse_args()
 
     source = args.log_source
@@ -430,13 +449,17 @@ def main():
 
     if args.download_methods:
         download_method = args.download_methods
-        check_save_location(save_location, source)
 
     if args.save_type:
         save_type = args.save_type
 
     jobs_manager = JobsManager.JobsManager(mongo_connector, "ct_log-" + source)
     jobs_manager.record_job_start()
+
+    storage_manager = StorageManager(location=args.storage_system)
+
+    if download_method == "dbAndSave":
+        check_save_location(storage_manager, save_location, source)
 
     if args.starting_index == -1:
         starting_index = fetch_starting_index(ct_collection, source)
@@ -505,7 +528,9 @@ def main():
                 insert_certificate(cert, source, ct_collection, cert_zones)
 
                 if download_method == "dbAndSave":
-                    write_file(logger, cert, save_location, save_type, source)
+                    write_file(
+                        logger, storage_manager, cert, save_location, save_type, source
+                    )
 
             current_index = current_index + 1
 
@@ -524,4 +549,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

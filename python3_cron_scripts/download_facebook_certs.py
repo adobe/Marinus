@@ -28,11 +28,16 @@ import time
 from datetime import datetime
 
 import requests
-from requests.exceptions import Timeout
-
-from libs3 import FacebookConnector, JobsManager, MongoConnector, X509Parser
+from libs3 import (
+    FacebookConnector,
+    JobsManager,
+    MongoConnector,
+    X509Parser,
+    StorageManager,
+)
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
+from requests.exceptions import Timeout
 
 
 def make_https_request(logger, jobs_manager, fb_url, timeout_attempt=0):
@@ -104,13 +109,12 @@ def fetch_domain(logger, jobs_manager, fbc, access_token, zone):
     return cert_results
 
 
-def check_save_location(location):
+def check_save_location(storage_manager, save_location):
     """
     Check to see if the directory exists.
     If the directory does not exist, it will automatically create it.
     """
-    if not os.path.exists(location):
-        os.makedirs(location)
+    storage_manager.create_folder(save_location)
 
 
 def main():
@@ -130,7 +134,7 @@ def main():
 
     jobs_manager.record_job_start()
 
-    file_path = "/mnt/workspace/ct_facebook/"
+    file_path = "ct-facebook"
 
     fb_connector = FacebookConnector.FacebookConnector()
     access_token = fb_connector.get_facebook_access_token()
@@ -153,13 +157,32 @@ def main():
         default=file_path,
         help="Indicates where to save the certificates on disk when choosing dbAndSave",
     )
+    parser.add_argument(
+        "--storage_system",
+        choices=[
+            StorageManager.StorageManager.AWS_S3,
+            StorageManager.StorageManager.AZURE_BLOB,
+            StorageManager.StorageManager.LOCAL_FILESYSTEM,
+        ],
+        default=StorageManager.StorageManager.LOCAL_FILESYSTEM,
+        help="Indicates where to save the files when dbAndSave is chosen",
+    )
     args = parser.parse_args()
 
-    check_save_location(args.cert_save_location)
+    if args.cert_save_location:
+        save_location = args.cert_save_location
 
-    save_location = args.cert_save_location
-    if not save_location.endswith("/"):
-        save_location = save_location + "/"
+        if args.storage_system == StorageManager.StorageManager.LOCAL_FILESYSTEM:
+            if "/" not in save_location:
+                save_location = "./" + save_location
+
+        if not save_location.endswith("/"):
+            save_location = save_location + "/"
+
+    storage_manager = StorageManager.StorageManager(location=args.storage_system)
+
+    if args.fetch_cert_records == "dbAndSave":
+        check_save_location(storage_manager, save_location)
 
     for zone in zones:
         time.sleep(15)
@@ -173,9 +196,11 @@ def main():
 
         for result in results:
             if args.fetch_cert_records == "dbAndSave":
-                cert_f = open(save_location + zone + "_" + result["id"] + ".pem", "w")
-                cert_f.write(result["certificate_pem"])
-                cert_f.close()
+                storage_manager.write_file(
+                    save_location,
+                    zone + "_" + result["id"] + ".pem",
+                    result["certificate_pem"],
+                )
 
             cert = x509_parser.parse_data(result["certificate_pem"], "facebook")
             cert["facebook_id"] = result["id"]

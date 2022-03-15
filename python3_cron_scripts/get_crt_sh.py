@@ -24,7 +24,6 @@ saving certificates. The default is "/mnt/workspace/crt_sh" but this can be over
 import argparse
 import json
 import logging
-import os
 import time
 from datetime import datetime
 
@@ -32,7 +31,14 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
-from libs3 import DNSManager, GoogleDNS, JobsManager, MongoConnector, X509Parser
+from libs3 import (
+    DNSManager,
+    GoogleDNS,
+    JobsManager,
+    MongoConnector,
+    X509Parser,
+    StorageManager,
+)
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
 
@@ -153,7 +159,13 @@ def get_cert_zones(cert, zones):
 
 
 def add_new_certificate_values(
-    logger, jobs_manager, new_ids, ct_collection, zones, save_location=None
+    logger,
+    jobs_manager,
+    new_ids,
+    ct_collection,
+    zones,
+    storage_manager=None,
+    save_location=None,
 ):
     """
     Add new certificate values to the database.
@@ -179,7 +191,9 @@ def add_new_certificate_values(
                 continue
 
             if save_location is not None:
-                open(save_location + str(min_cert_id) + ".crt", "wb").write(c_file)
+                storage_manager.write_file(
+                    save_location, str(min_cert_id) + ".crt", c_file
+                )
 
             cert = x509_parser.parse_data(c_file, "crt_sh")
             if cert is None:
@@ -223,13 +237,12 @@ def add_new_certificate_values(
                 ct_collection.insert_one(cert)
 
 
-def check_save_location(save_location):
+def check_save_location(storage_manager, save_location):
     """
     Check to see if the directory exists.
     If the directory does not exist, it will automatically create it.
     """
-    if not os.path.exists(save_location):
-        os.makedirs(save_location)
+    storage_manager.create_folder(save_location)
 
 
 def main():
@@ -249,7 +262,7 @@ def main():
     jobs_manager = JobsManager.JobsManager(mongo_connector, "get_crt_sh")
     jobs_manager.record_job_start()
 
-    save_location = "/mnt/workspace/crt_sh"
+    save_location = "crt-sh"
     download_method = "dbAndSave"
 
     parser = argparse.ArgumentParser(
@@ -272,15 +285,32 @@ def main():
         default=save_location,
         help="Indicates where to save the certificates on disk when choosing dbAndSave",
     )
+    parser.add_argument(
+        "--storage_system",
+        choices=[
+            StorageManager.StorageManager.AWS_S3,
+            StorageManager.StorageManager.AZURE_BLOB,
+            StorageManager.StorageManager.LOCAL_FILESYSTEM,
+        ],
+        default=StorageManager.StorageManager.LOCAL_FILESYSTEM,
+        help="Indicates where to save the files when dbAndSave is chosen",
+    )
     args = parser.parse_args()
 
     if args.cert_save_location:
         save_location = args.cert_save_location
+
+        if args.storage_system == StorageManager.StorageManager.LOCAL_FILESYSTEM:
+            if "/" not in save_location:
+                save_location = "./" + save_location
+
         if not save_location.endswith("/"):
             save_location = save_location + "/"
 
+    storage_manager = StorageManager.StorageManager(location=args.storage_system)
+
     if args.download_methods == "dbAndSave":
-        check_save_location(save_location)
+        check_save_location(storage_manager, save_location)
 
     for zone in zones:
         # Pace out requests so as not to DoS crt.sh and Google DNS
@@ -310,7 +340,13 @@ def main():
 
         if args.download_methods == "dbAndSave":
             add_new_certificate_values(
-                logger, jobs_manager, new_ids, ct_collection, zones, save_location
+                logger,
+                jobs_manager,
+                new_ids,
+                ct_collection,
+                zones,
+                storage_manager,
+                save_location,
             )
         elif args.download_methods == "dbOnly":
             add_new_certificate_values(
