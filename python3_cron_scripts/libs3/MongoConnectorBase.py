@@ -40,25 +40,30 @@ class MongoConnectorBase(object):
         """
         return logging.getLogger(__name__)
 
-    def _init_mongo_connection(self, config):
+    def _init_mongo_connection(self, config, config_location):
         """Obtains all the parameters from the config file"""
         protocol = ConnectorUtil.get_config_setting(
-            self._logger, config, "MongoDB", "mongo.protocol", "str", self.protocol
+            self._logger,
+            config,
+            config_location,
+            "mongo.protocol",
+            "str",
+            self.protocol,
         )
         endpoint = ConnectorUtil.get_config_setting(
-            self._logger, config, "MongoDB", "mongo.host"
+            self._logger, config, config_location, "mongo.host"
         )
         path = ConnectorUtil.get_config_setting(
-            self._logger, config, "MongoDB", "mongo.path"
+            self._logger, config, config_location, "mongo.path"
         )
         username = ConnectorUtil.get_config_setting(
-            self._logger, config, "MongoDB", "mongo.username"
+            self._logger, config, config_location, "mongo.username"
         )
         password = ConnectorUtil.get_config_setting(
-            self._logger, config, "MongoDB", "mongo.password"
+            self._logger, config, config_location, "mongo.password"
         )
         cacert = ConnectorUtil.get_config_setting(
-            self._logger, config, "MongoDB", "mongo.ca_cert"
+            self._logger, config, config_location, "mongo.ca_cert"
         )
 
         if username != "" and password != "":
@@ -75,7 +80,7 @@ class MongoConnectorBase(object):
 
         self.m_connection = client[path[1:]]
 
-    def __init__(self, config_file="", log_level=None):
+    def __init__(self, config_file="", config_location="MongoDB", log_level=None):
         if config_file != "":
             self.mongo_config_file = config_file
 
@@ -89,7 +94,7 @@ class MongoConnectorBase(object):
             self._logger.error("Error: Could not find the config file")
             exit(1)
 
-        self._init_mongo_connection(config)
+        self._init_mongo_connection(config, config_location)
 
     def perform_find(self, collection, query, filter=None, batch_size=None):
         """

@@ -46,7 +46,7 @@ class MongoConnector(MongoConnectorBase):
         if config_file != "":
             self.mongo_config_file = config_file
 
-        m_base = MongoConnectorBase(config_file, log_level)
+        m_base = MongoConnectorBase(config_file, "MongoDB", log_level)
         self.m_connection = m_base.m_connection
 
     def get_akamai_ips_connection(self):
