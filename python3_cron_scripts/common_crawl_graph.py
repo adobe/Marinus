@@ -56,7 +56,8 @@ from libs3.ZoneManager import ZoneManager
 # CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2020-jul-aug-sep/host/cc-main-2020-jul-aug-sep-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2020-21-oct-nov-jan/host/cc-main-2020-21-oct-nov-jan-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2021-feb-apr-may/host/cc-main-2021-feb-apr-may-host-vertices.paths.gz"
-CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2021-jun-jul-sep/host/cc-main-2021-jun-jul-sep-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2021-jun-jul-sep/host/cc-main-2021-jun-jul-sep-host-vertices.paths.gz"
+CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2021-jun-jul-sep/host/cc-main-2021-jun-jul-sep-host-vertices.paths.gz"
 
 
 def download_file(logger, url, save_location):
@@ -261,7 +262,7 @@ def main():
 
     for entry in vertices_file_entries:
         # Download file
-        vert_file_url = "https://commoncrawl.s3.amazonaws.com/" + entry.rstrip("\n")
+        vert_file_url = "https://data.commoncrawl.org/" + entry.rstrip("\n")
         compressed_vertices_file = download_file(logger, vert_file_url, save_location)
 
         # Decompress file
