@@ -108,6 +108,32 @@ class AWSStorageManager(object):
 
         return True
 
+    def write_large_file(
+        self, folder: str, remote_file_name: str, local_file_path: str
+    ) -> bool:
+        """
+        Upload a large file to an S3 bucket
+
+        :param folder: The remote folder
+        :param remote_file_name: Name for the new remote file
+        :param local_file_path: The path to the local file
+        :return: True if file was uploaded, else False
+        """
+
+        GB = 1024 ** 3
+        config = TransferConfig(multipart_threshold=4 * GB)
+
+        try:
+            bucket = self._s3_resource.Bucket(folder)
+
+            with open(local_file_path, "rb") as data:
+                bucket.upload_fileobj(data, remote_file_name)
+        except Exception as e:
+            logging.error(str(e))
+            return False
+
+        return True
+
     def create_folder(self, foldername: str) -> bool:
         """
         Create an AWS S3 bucket

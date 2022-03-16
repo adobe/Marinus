@@ -18,6 +18,7 @@ DO NOT rename the methods since they are meant to be inherited by the storage ma
 import configparser
 import logging
 import os
+import shutil
 from ast import Bytes
 
 
@@ -53,6 +54,21 @@ class LocalStorageManager(object):
         try:
             with open(folder + "/" + filename, "wb") as dest_file:
                 dest_file.write(data)
+        except Exception as err:
+            self._logger.error("Could not write to local filesystem")
+            self._logger.error(str(err))
+            return False
+
+        return True
+
+    def write_large_file(
+        self, folder: str, remote_file_name: str, local_file_path: str
+    ) -> bool:
+        """
+        Copy a large file between two local folders.
+        """
+        try:
+            shutil.copy(local_file_path, folder + "/" + remote_file_name)
         except Exception as err:
             self._logger.error("Could not write to local filesystem")
             self._logger.error(str(err))

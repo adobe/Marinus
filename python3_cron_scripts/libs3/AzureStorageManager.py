@@ -93,6 +93,41 @@ class AzureStorageManager(object):
 
         return True
 
+    def write_large_file(
+        self, folder: str, remote_filename: str, local_file_path: str
+    ) -> bool:
+        """
+        Write a large file that requires streaming to an Azure container
+        """
+        # upload 4 MB for each request
+        chunk_size = 4 * 1024 * 1024
+
+        blob_client = BlobClient(
+            account_url=self._azure_account_url,
+            container_name=folder,
+            blob_name=remote_filename,
+            credential=self._azure_creds,
+        )
+
+        blob_client.create_append_blob()
+
+        try:
+            with open(local_file_path, "rb") as stream:
+
+                while True:
+                    read_data = stream.read(chunk_size)
+
+                    if not read_data:
+                        self._logger.info("uploaded")
+                        break
+
+                    blob_client.append_block(read_data)
+
+        except Exception as err:
+            self._logger.error("Could not upload large Blob file")
+            self._logger.error(str(err))
+            return False
+
     def create_folder(self, foldername: str) -> bool:
         """
         Create an Azure container

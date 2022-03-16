@@ -95,3 +95,5 @@ class StorageManager(object):
         self.write_file = self._instance.write_file
         self.read_file = self._instance.read_file
         self.create_folder = self._instance.create_folder
+        self.write_large_file = self._instance.write_large_file
+
