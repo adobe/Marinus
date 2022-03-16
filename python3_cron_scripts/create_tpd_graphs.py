@@ -309,7 +309,7 @@ def main():
         tpd_graphs_collection = mongo_connector.get_tpd_graphs_connection()
         tpd_graphs_collection.delete_one({"zone": tpd})
         try:
-            tpd_graphs_collection.insert_one(new_data)
+            mongo_connector.perform_insert(tpd_graphs_collection, new_data)
         except:
             logger.error("ERROR: Could not insert " + tpd)
 

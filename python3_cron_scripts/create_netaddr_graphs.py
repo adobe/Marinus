@@ -482,7 +482,7 @@ def main():
 
         cidr_graphs_collection = mongo_connector.get_cidr_graphs_connection()
         cidr_graphs_collection.delete_one({"zone": cidr})
-        cidr_graphs_collection.insert_one(new_data)
+        mongo_connector.perform_insert(cidr_graphs_collection, new_data)
 
         time.sleep(1)
 

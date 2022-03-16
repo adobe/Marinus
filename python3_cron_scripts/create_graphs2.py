@@ -21,6 +21,7 @@ The data is split up across three collections because graphs for large domains c
 the maximum size of allowed JSON objects in MongoDB.
 """
 
+from hashlib import new
 import json
 import logging
 import math
@@ -447,16 +448,16 @@ def main():
 
         try:
             graphs_collection.delete_one({"zone": zone})
-            graphs_collection.insert_one(new_data)
+            mongo_connector.perform_insert(graphs_collection, new_data)
 
             graphs_data_collection.delete_one({"zone": zone})
-            graphs_data_collection.insert_one(new_graph_data)
+            mongo_connector.perform_insert(graphs_data_collection, new_graph_data)
 
             graphs_links_collection.delete_one({"zone": zone})
-            graphs_links_collection.insert_one(new_links_data)
+            mongo_connector.perform_insert(graphs_links_collection, new_links_data)
 
             graphs_docs_collection.delete_one({"zone": zone})
-            graphs_docs_collection.insert_one(new_docs_data)
+            mongo_connector.perform_insert(graphs_docs_collection, new_docs_data)
         except:
             logger.error("ERROR: Can't insert: " + zone)
 
