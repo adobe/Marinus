@@ -148,7 +148,7 @@ def main():
                     )
                     if check == 0:
                         record.pop("_id")
-                        dead_dns_collection.insert(record)
+                        mongo_connector.perform_insert(dead_dns_collection, record)
             else:
                 for entry in result:
                     if is_tracked_zone(entry["fqdn"], zones):
