@@ -29,8 +29,8 @@ function setUpLogger(app, envConfig) {
 
   if (envConfig.hasOwnProperty('splunk_token')) {
     let splunk_config = {
-      token: envConfig.splunkToken,
-      url: envConfig.splunkURL
+      token: envConfig.splunk_token,
+      url: envConfig.splunk_url
     };
 
     var splunk_logger = new sLogger(splunk_config);
@@ -38,12 +38,16 @@ function setUpLogger(app, envConfig) {
     splunk_logger.requestOptions.strictSSL = true;
 
     app.set('trust proxy', true);
-    app.use(mlogger({
+    app.use(mlogger("combined", {
       "format": "combined",
       "stream": {
         write: function (message) {
           var payload = {
-            message
+            message,
+            metadata: {
+              source: envConfig.splunk_index,
+              sourcetype: 'marinus-ui'
+            }
           };
           splunk_logger.send(payload);
         }
