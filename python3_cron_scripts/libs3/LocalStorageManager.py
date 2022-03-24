@@ -90,12 +90,15 @@ class LocalStorageManager(object):
 
         return True
 
-    def read_file(self, foldername: str, filename: str) -> Bytes:
+    def read_file(self, foldername: str, filename: str, mode: str = "bytes") -> Bytes:
         """
         Read a local file
         """
         try:
-            f = open(foldername + "/" + filename, "rb")
+            if mode == "text":
+                f = open(foldername + "/" + filename, "r")
+            else:
+                f = open(foldername + "/" + filename, "rb")
             data = f.read()
             f.close()
         except Exception as err:

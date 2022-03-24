@@ -32,6 +32,9 @@ class StorageManager(object):
     AWS_S3 = "aws_s3"
     LOCAL_FILESYSTEM = "local_filesystem"
 
+    TEXT_MODE = "text"
+    BYTES_MODE = "bytes"
+
     storage_location = LOCAL_FILESYSTEM
     _storage_config_file = "connector.config"
 
@@ -96,4 +99,3 @@ class StorageManager(object):
         self.read_file = self._instance.read_file
         self.create_folder = self._instance.create_folder
         self.write_large_file = self._instance.write_large_file
-

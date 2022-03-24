@@ -18,9 +18,11 @@ This currently assumes that credentials exist in the ~/.aws/config file as defin
 
 import configparser
 import logging
+import os
 from ast import Bytes
 
 import boto3
+from boto3.s3.transfer import TransferConfig
 from libs3.ConnectorUtil import ConnectorUtil
 
 
@@ -120,7 +122,7 @@ class AWSStorageManager(object):
         :return: True if file was uploaded, else False
         """
 
-        GB = 1024 ** 3
+        GB = 1024**3
         config = TransferConfig(multipart_threshold=4 * GB)
 
         try:
@@ -150,13 +152,17 @@ class AWSStorageManager(object):
 
         return True
 
-    def read_file(self, foldername: str, filename: str) -> Bytes:
+    def read_file(self, foldername: str, filename: str, mode: str = "bytes") -> Bytes:
         """
         Read an AWS S3 file
         """
         try:
             s3_object = self._s3_resource.Object(foldername, filename)
-            data = s3_object.get()["Body"].read()
+
+            if mode == "text":
+                data = s3_object.get()["Body"].read().decode()
+            else:
+                data = s3_object.get()["Body"].read()
         except Exception as err:
             self._logger.error(
                 "Could not locate file: " + filename + " in " + foldername

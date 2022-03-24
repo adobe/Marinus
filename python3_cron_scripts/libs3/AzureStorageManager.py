@@ -142,7 +142,7 @@ class AzureStorageManager(object):
 
         return True
 
-    def read_file(self, foldername: str, filename: str) -> Bytes:
+    def read_file(self, foldername: str, filename: str, mode: str = "bytes") -> Bytes:
         """
         Read a blob from Azure
         """
@@ -154,7 +154,10 @@ class AzureStorageManager(object):
                 credential=self._azure_creds,
             )
             blob_download = blob_client.download_blob()
-            data = blob_download.readall()
+            if mode == "text":
+                data = blob_download.content_as_text()
+            else:
+                data = blob_download.content_as_bytes()
         except Exception as err:
             self._logger.error(
                 "Could not download blob " + filename + " from " + foldername
