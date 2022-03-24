@@ -196,6 +196,19 @@ function reformatResponse(results) {
  *                                                validation:
  *                                                type: object
  *
+ * 
+ *   HTTPSZoneList:
+ *     type: array
+ *     items:
+ *       type: object
+ *       properties:
+ *         zone:
+ *           type: string
+ *           example: adobe.com
+ *         count:
+ *           type: int
+ *           example: 5
+ *
  */
 
 module.exports = function (envConfig) {
@@ -1107,6 +1120,60 @@ module.exports = function (envConfig) {
                     }
                     res.status(200).json(data);
                 }
+                return;
+            });
+        });
+
+
+    /**
+     * @swagger
+     *
+     * security:
+     *   - APIKeyHeader: []
+     *
+     * tags:
+     *   - name: Port 443 scans - Fetch zones list
+     *     description: Return a list of all of the zones that responded to a port 443 TCP connection.
+     *
+     * /api/v1.0/zgrab/443/zones:
+     *   get:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: Retrieve the list of all zones that responded to a port 443 response. This will include zones that
+     *                  redirected to another site.
+     *     tags: [Port 443 scans - Fetch zones list]
+     *     produces:
+     *       - application/json
+     *     responses:
+     *       200:
+     *         description: Returns the distinct zones for port 443
+     *         schema:
+     *           $ref: '#/definitions/HTTPSZoneList'
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       404:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/ResultsNotFound'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
+     */
+    router.route('/zgrab/443/zones')
+        // get info on a specific zones
+        .get(function (req, res) {
+            let promise = zgrab443.getDistinctZonesPromise();
+
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Error performing distinct call' });
+                    return;
+                }
+                res.status(200).json(data);
                 return;
             });
         });
@@ -2717,6 +2784,60 @@ module.exports = function (envConfig) {
                 return;
             });
         });
+
+    /**
+     * @swagger
+     *
+     * security:
+     *   - APIKeyHeader: []
+     *
+     * tags:
+     *   - name: Port 80 scans - Fetch zones list
+     *     description: Return a list of all of the zones that responded to a port 80 TCP connection.
+     *
+     * /api/v1.0/zgrab/80/zones:
+     *   get:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: Retrieve the list of all zones that responded to a port 80 response. This will include zones that
+     *                  redirected to another site.
+     *     tags: [Port 80 scans - Fetch zones list]
+     *     produces:
+     *       - application/json
+     *     responses:
+     *       200:
+     *         description: Returns the distinct zones for port 80
+     *         schema:
+     *           $ref: '#/definitions/HTTPSZoneList'
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       404:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/ResultsNotFound'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
+     */
+    router.route('/zgrab/80/zones')
+        // get info on a specific zones
+        .get(function (req, res) {
+            let promise = zgrab80.getDistinctZonesPromise();
+
+            promise.then(function (data) {
+                if (!data) {
+                    res.status(404).json({ 'message': 'Error performing distinct call' });
+                    return;
+                }
+                res.status(200).json(data);
+                return;
+            });
+        });
+
 
     /**
      * @swagger

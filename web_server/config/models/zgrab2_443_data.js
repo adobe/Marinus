@@ -52,6 +52,24 @@ module.exports = {
         }
         return (promise);
     },
+    getDistinctZonesPromise: function () {
+        return z2_443_schema.zgrab2_443_model.aggregate([
+            { "$unwind": "$zones" },
+            {
+                "$group": {
+                    "_id": "$zones",
+                    "count": { "$sum": 1 }
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "zone": "$_id",
+                    "count": "$count"
+                }
+            }
+        ]).exec()
+    },
     getDomainListPromise: function (count, limit, page) {
         let promise;
         if (count) {
