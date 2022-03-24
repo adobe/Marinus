@@ -76,6 +76,7 @@ module.exports = {
     api_key_length: 32,
     splunk_url: 'SPLUNK_PROD_URL',
     splunk_token: 'SPLUNK_PROD_TOKEN',
+    splunk_index: 'SPLUNK_INDEX',
     new_relic_enabled: true,
     mongodbSSLCA: '',
     zgrabVersion: 2,
