@@ -18,13 +18,11 @@ const fs = require('fs');
 module.exports = function (envConfig) {
     const db_options = {
         reconnectTries: 10,
-        keepAlive: 120,
-        useNewUrlParser: true,
+        keepAlive: true,
     };
 
     if (envConfig.hasOwnProperty('mongodbSSLCA') && envConfig.mongodbSSLCA !== "") {
-        var certFileBuf = fs.readFileSync(envConfig.mongodbSSLCA);
-        db_options['sslCA'] = certFileBuf;
+        db_options['sslCA'] = envConfig.mongodbSSLCA;
     }
 
     // connect to the database
