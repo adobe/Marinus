@@ -11,8 +11,8 @@
     "registry": "https://github.com/adobe/Marinus/"
   },
   "repository": {
-     "type" : "git",
-     "url" : "https://github.com/adobe/Marinus.git"
+    "type": "git",
+    "url": "https://github.com/adobe/Marinus.git"
   },
   "author": "Peleus Uhley",
   "license": "Apache-2.0",
@@ -22,17 +22,17 @@
     "bootstrap": "^4.3.1",
     "celebrate": "9.0.1",
     "cidr-matcher": "^1.0.5",
-    "connect-mongodb-session": "^2.1.1",
-    "cookie-parser": "^1.4.4",
+    "connect-mongodb-session": "^3.1.1",
+    "cookie-parser": "^1.4.5",
     "d3": "^5.9.1",
     "d3-scale-chromatic": "^1.3.3",
     "debug": "4.1.0",
     "ejs": "^2.6.1",
     "escape-string-regexp": "^1.0.5",
     "express": "^4.16.4",
-    "express-session": "^1.15.6",
+    "express-session": "^1.17.1",
     "jquery": "^3.3.1",
-    "mongoose": "^5.4.15",
+    "mongoose": "^6.2.5",
     "morgan": "^1.9.1",
     "newrelic": "^8.7.1",
     "octicons": "^8.5.0",
