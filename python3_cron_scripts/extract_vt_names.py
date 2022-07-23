@@ -140,7 +140,7 @@ def main():
                 original_record = dns_manager.find_one({"fqdn": hostname}, "virustotal")
                 if original_record != None:
                     original_record.pop("_id")
-		    mongo_connector.perform_insert(dead_dns_collection, original_record)
+                mongo_connector.perform_insert(dead_dns_collection, original_record)
                 logger.warning("Failed IP Lookup for: " + hostname)
         else:
             logger.warning("Failed match on zone for: " + hostname)
