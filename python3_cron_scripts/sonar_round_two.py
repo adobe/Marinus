@@ -185,7 +185,7 @@ def main():
                 original_record = dns_manager.find_one({"fqdn": hostname}, "marinus")
                 if original_record != None:
                     original_record.pop("_id")
-                    dead_dns_collection.insert(original_record)
+                    mongo_connector.perform_insert(dead_dns_collection, original_record)
                 logger.debug("Failed IP Lookup for: " + hostname)
         else:
             logger.debug("Failed match on zone for: " + hostname)

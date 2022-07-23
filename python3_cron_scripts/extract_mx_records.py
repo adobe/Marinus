@@ -171,7 +171,7 @@ def main():
                 original_record = dns_manager.find_one({"fqdn": hostname}, "mx")
                 if original_record != None:
                     original_record.pop("_id")
-                    dead_dns_collection.insert(original_record)
+                    mongo_connector.perform_insert(dead_dns_collection, original_record)
         else:
             logger.warning("Failed match on zone for: " + hostname)
 
