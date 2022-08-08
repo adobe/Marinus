@@ -166,7 +166,7 @@ def create_user(mongo_connector, username):
         [random.choice(string.ascii_letters + string.digits) for n in range(32)]
     )
 
-    user_collection.insert(
+    user_collection.insert_one(
         {"userid": username, "status": "active", "created": now, "apiKey": randomValue}
     )
 
@@ -196,7 +196,7 @@ def create_first_groups(mongo_connector, username):
     members = [username]
     admins = [username]
 
-    group_collection.insert(
+    group_collection.insert_one(
         {
             "name": "admin",
             "status": "active",
@@ -207,7 +207,7 @@ def create_first_groups(mongo_connector, username):
             "admins": admins,
         }
     )
-    group_collection.insert(
+    group_collection.insert_one(
         {
             "name": "data_admin",
             "status": "active",
@@ -240,7 +240,7 @@ def add_user_to_group(mongo_connector, username, group):
     update_object["$set"] = {}
     update_object["$set"]["updated"] = now
 
-    group_collection.update({"name": group}, update_object)
+    group_collection.update_one({"name": group}, update_object)
 
 
 def add_admin_to_group(mongo_connector, username, group):
@@ -257,7 +257,7 @@ def add_admin_to_group(mongo_connector, username, group):
         print("User does not yet exist. Please create the user first.")
         return
 
-    group_collection.update(
+    group_collection.update_one(
         {"name": group}, {"$addToSet": {"admins": username}, "$set": {"updated": now}}
     )
 
@@ -281,7 +281,7 @@ def create_config_collection(mongo_collection):
         print("WARNING: The config collection already exists. Skipping initialiation.")
         return
 
-    config_collection.insert(new_config)
+    config_collection.insert_one(new_config)
 
 
 def add_tls_org(mongo_connector, org):
@@ -293,7 +293,7 @@ def add_tls_org(mongo_connector, org):
     now = datetime.now()
 
     print("Adding TLS Org: " + org)
-    config_collection.update(
+    config_collection.update_many(
         {}, {"$addToSet": {"SSL_Orgs": org}, "$set": {"updated": now}}
     )
 
@@ -308,7 +308,7 @@ def add_dns_admin(mongo_connector, dns_admin):
     now = datetime.now()
 
     print("Adding DNS Admin: " + dns_admin)
-    config_collection.update(
+    config_collection.update_many(
         {}, {"$addToSet": {"DNS_Admins": dns_admin}, "$set": {"updated": now}}
     )
 
@@ -323,7 +323,7 @@ def add_whois_org(mongo_connector, org):
     now = datetime.now()
 
     print("Adding Whois Org: " + org)
-    config_collection.update(
+    config_collection.update_many(
         {}, {"$addToSet": {"Whois_Orgs": org}, "$set": {"updated": now}}
     )
 
@@ -338,7 +338,7 @@ def add_whois_name_server(mongo_connector, name_server):
     now = datetime.now()
 
     print("Adding Whois Name Server: " + name_server.lower())
-    config_collection.update(
+    config_collection.update_many(
         {},
         {
             "$addToSet": {"Whois_Name_Servers": name_server.lower()},
@@ -393,7 +393,7 @@ def create_IPv4_zone(mongo_collection, cidr):
     new_entry["zone"] = cidr
 
     print("Inserting IPv4 zone: " + cidr)
-    ipv4_zone_collection.insert(new_entry)
+    ipv4_zone_collection.insert_one(new_entry)
 
 
 def create_IPv6_zone(mongo_collection, cidr):
@@ -429,7 +429,7 @@ def create_IPv6_zone(mongo_collection, cidr):
     new_entry["zone"] = cidr
 
     print("Inserting IPv6 zone: " + cidr)
-    ipv6_zone_collection.insert(new_entry)
+    ipv6_zone_collection.insert_one(new_entry)
 
 
 def add_new_job(mongo_connector, job_name):
