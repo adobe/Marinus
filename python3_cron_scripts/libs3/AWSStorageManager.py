@@ -18,7 +18,6 @@ This currently assumes that credentials exist in the ~/.aws/config file as defin
 
 import configparser
 import logging
-import os
 from ast import Bytes
 
 import boto3
@@ -171,3 +170,40 @@ class AWSStorageManager(object):
             return None
 
         return data
+
+
+    def delete_file(self, foldername: str, filename: str):
+        """
+        Delete a file within AWS
+        Returns True if success, False otherwise
+        """
+
+        try:
+            self._s3_client.delete_object(Bucket=foldername, Key=filename)
+        except Exception as err:
+            self._logger.error(
+                "Could not delete file: " + filename + " in " + foldername
+            )
+            self._logger.error(str(err))
+            return False
+
+        return True
+
+    def list_directory(self, foldername: str):
+        """
+        List all of the files in a bucket
+        """
+        try:
+            remote_bucket = self._s3_resource.Bucket(foldername)
+
+            results = []
+            for bucket in remote_bucket.objects_all():
+                results.append(bucket.key)
+
+            return results
+
+        except Exception as err:
+            self._logger.error("Could not not list files in Bucket: " + foldername)
+            self._logger.error(str(err))
+            return False
+

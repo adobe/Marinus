@@ -23,7 +23,7 @@ import logging
 from ast import Bytes
 
 from azure.identity import DefaultAzureCredential
-from azure.storage.blob import BlobClient, BlobServiceClient
+from azure.storage.blob import BlobClient, BlobServiceClient, BlobType, ContainerClient
 from libs3.ConnectorUtil import ConnectorUtil
 
 
@@ -99,8 +99,6 @@ class AzureStorageManager(object):
         """
         Write a large file that requires streaming to an Azure container
         """
-        # upload 4 MB for each request
-        chunk_size = 4 * 1024 * 1024
 
         blob_client = BlobClient(
             account_url=self._azure_account_url,
@@ -109,24 +107,16 @@ class AzureStorageManager(object):
             credential=self._azure_creds,
         )
 
-        blob_client.create_append_blob()
-
         try:
             with open(local_file_path, "rb") as stream:
-
-                while True:
-                    read_data = stream.read(chunk_size)
-
-                    if not read_data:
-                        self._logger.info("uploaded")
-                        break
-
-                    blob_client.append_block(read_data)
+                blob_client.upload_blob(stream, blob_type="BlockBlob")
 
         except Exception as err:
             self._logger.error("Could not upload large Blob file")
             self._logger.error(str(err))
             return False
+
+        return True
 
     def create_folder(self, foldername: str) -> bool:
         """
@@ -166,3 +156,54 @@ class AzureStorageManager(object):
             return None
 
         return data
+
+
+    def delete_file(self, foldername: str, filename: str):
+        """
+        Delete a file within Azure
+        Returns True if success, False otherwise
+        """
+        try:
+            blob_client = BlobClient(
+                account_url=self._azure_account_url,
+                container_name=foldername,
+                blob_name=filename,
+                credential=self._azure_creds,
+            )
+
+            blob_client.delete_blob()
+
+        except Exception as err:
+            self._logger.error(
+                "Could not delete blob " + filename + " from " + foldername
+            )
+            self._logger.error(str(err))
+            return False
+
+        return True
+
+    def list_directory(self, foldername: str):
+        """
+        List the files in the remote Azure container
+        """
+
+        try:
+            container_client = ContainerClient(
+                account_url=self._azure_account_url,
+                container_name=foldername,
+                credential=self._azure_creds,
+            )
+
+            results = []
+
+            blob_pager = container_client.list_blobs()
+
+            for blob in blob_pager:
+                results.append(blob.name)
+
+            return results
+
+        except Exception as err:
+            self._logger.error("Could not list files from container: " + foldername)
+            self._logger.error(str(err))
+            return None

@@ -107,3 +107,39 @@ class LocalStorageManager(object):
             return None
 
         return data
+
+    def delete_file(self, foldername: str, filename: str):
+        """
+        Delete a local file.
+        Returns True if success, False otherwise
+        """
+        try:
+            path = foldername + "/" + filename
+            if os.path.exists(path):
+                os.remove(path)
+            else:
+                self._logger.error("The file does not exist")
+                return False
+        except Exception as err:
+            self._logger.error("Could not delete " + filename + " from " + foldername)
+            self._logger.error(str(err))
+            return False
+
+        return True
+
+    def list_directory(self, foldername: str):
+        """
+        Return a list of local files
+        """
+        try:
+            if os.path.exists(foldername):
+                return os.listdir(foldername)
+            else:
+                return None
+        except Exception as err:
+            self._logger.error("Could not list the files in: " + foldername)
+            self._logger.error(str(err))
+            return None
+
+        return True
+
