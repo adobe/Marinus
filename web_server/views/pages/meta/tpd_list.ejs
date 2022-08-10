@@ -1,20 +1,23 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Third-Party Domain List</title>
-    <% include ../../partials/head %>
-    <script src="/javascripts/meta.js"></script>
+    <%- include('../../partials/head') %>
+        <script src="/javascripts/meta.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
-    
-<h3>List of 3rd-party domains pointed to by Adobe CNAME records.</h3>
-<div id="tpds"><img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation" alt="timer"/></div><br>
-<br>
-    
-<% include ../../partials/footer %>
+    <%- include('../../partials/header') %>
+
+        <h3>List of 3rd-party domains pointed to by Adobe CNAME records.</h3>
+        <div id="tpds"><img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation" alt="timer" /></div><br>
+        <br>
+
+        <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

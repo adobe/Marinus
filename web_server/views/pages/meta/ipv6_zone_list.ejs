@@ -1,24 +1,27 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>IPv6 Range List</title>
-    <% include ../../partials/head %>
-    <script src="/javascripts/meta.js"></script>
+    <%- include('../../partials/head') %>
+        <script src="/javascripts/meta.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
-    
-<h3>Adobe IPv6 Ranges <span id="ipPosCount"></span></h3>
-<div id="ipPosList"></div>
-<br/>
-<br/>
-    
-<h3>False Positive Adobe IPv6 Ranges <span id="falsePosCount"></span></h3>
-<div id="falsePosList"></div>
-    
-<% include ../../partials/footer %>
+    <%- include('../../partials/header') %>
+
+        <h3>Adobe IPv6 Ranges <span id="ipPosCount"></span></h3>
+        <div id="ipPosList"></div>
+        <br />
+        <br />
+
+        <h3>False Positive Adobe IPv6 Ranges <span id="falsePosCount"></span></h3>
+        <div id="falsePosList"></div>
+
+        <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

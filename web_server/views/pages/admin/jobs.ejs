@@ -1,21 +1,24 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Job Status</title>
-    <% include ../../partials/head %>
-    <script src="/javascripts/config.js"></script>
+    <%- include('../../partials/head') %>
+        <script src="/javascripts/config.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
+    <%- include('../../partials/header') %>
 
-<h1>Job Status </h1>
-<p>This page provides details on data analysys jobs and when they were completed.</p>
-    
-<div id="jobStatus"></div>
+        <h1>Job Status </h1>
+        <p>This page provides details on data analysys jobs and when they were completed.</p>
 
-<% include ../../partials/footer %>
+        <div id="jobStatus"></div>
+
+        <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

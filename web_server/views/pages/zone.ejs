@@ -1,85 +1,89 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Zones</title>
-    <% include ../partials/head %>
-    <script src="/javascripts/zone_ui.js" defer></script>
+    <%- include('../partials/head') %>
+        <script src="/javascripts/zone_ui.js" defer></script>
 </head>
+
 <body>
 
-<% include ../partials/header %>
+    <%- include('../partials/header') %>
 
-<form id="search_form">
-  <section>
-    <label id="zoneLabel">Please enter a root domain (e.g. example.org):</label>
-    <div class="input-group col-3">
-        <div class="input-group-prepend">
-            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+        <form id="search_form">
+            <section>
+                <label id="zoneLabel">Please enter a root domain (e.g. example.org):</label>
+                <div class="input-group col-3">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search">
+                        </div>
+                    </div>
+                    <input class="form-control" type="text" value="" name="search" id="search_input"></input>
+                </div>
+            </section>
+        </form>
+        <br />
+        <div id="overviewTable"></div>
+        <br />
+        <div id="dnsSection" class="hidden">
+            <h3>DNS Configuration</h3>
+            <div class="divTable">
+                <div id="htTitleRow" class="tableRow"></div>
+                <div id="htDataRow" class="tableRow"></div>
+            </div>
+            <br />
+            <div class="divTable">
+                <div id="dnsTitleRow" class="tableRow"></div>
+                <div id="dnsDataRow" class="tableRow"></div>
+            </div>
         </div>
-        <input class="form-control" type="text" value="" name="search" id="search_input"></input>
-    </div>
-  </section>
-</form>
-<br/>
-<div id="overviewTable"></div>
-<br/>
-<div id="dnsSection" class="hidden">
-    <h3>DNS Configuration</h3>
-    <div class="divTable">
-        <div id="htTitleRow" class="tableRow"></div>
-        <div id="htDataRow" class="tableRow"></div>
-    </div>
-    <br/>
-    <div class="divTable">
-        <div id="dnsTitleRow" class="tableRow"></div>
-        <div id="dnsDataRow" class="tableRow"></div>
-    </div>
-</div>
-<br/>
-<br/>
-<div id="secSection" class="hidden">
-    <h3>Security Information</h3>
-    <div class="divTable">
-        <div id="secTitleRow" class="tableRow"></div>
-        <div id="secDataRow" class="tableRow"></div>
-    </div>
-    <br/>
-    <div class="divTable">
-        <div id="miscTitleRow" class="tableRow"></div>
-        <div id="miscDataRow" class="tableRow"></div>
-    </div>
-</div>
-<br/>
-<br/>
-<div id="ownSection" class="hidden">
-    <h3>Ownership Information</h3>
-    <div class="divTable">
-        <div id="ownTitleRow" class="tableRow"></div>
-        <div id="ownDataRow" class="tableRow"></div>
-    </div>
-    <div class="divTable">
-        <div id="ownMiscRow" class="tableRow"></div>
-    </div>
-</div>
-<br/>
-<br/>
-<div id="scanSection" class="hidden">
-    <h3>Open Ports</h3>
-    <div class="divTable">
-        <div id="scanTitleRow" class="tableRow"></div>
-        <div id="scanDataRow" class="tableRow"></div>
-    </div>
-</div>
-<br/>
-<!--Temporarily removed due to Marinus firewall issue -->
-<div id="whois_buttton"></div>
+        <br />
+        <br />
+        <div id="secSection" class="hidden">
+            <h3>Security Information</h3>
+            <div class="divTable">
+                <div id="secTitleRow" class="tableRow"></div>
+                <div id="secDataRow" class="tableRow"></div>
+            </div>
+            <br />
+            <div class="divTable">
+                <div id="miscTitleRow" class="tableRow"></div>
+                <div id="miscDataRow" class="tableRow"></div>
+            </div>
+        </div>
+        <br />
+        <br />
+        <div id="ownSection" class="hidden">
+            <h3>Ownership Information</h3>
+            <div class="divTable">
+                <div id="ownTitleRow" class="tableRow"></div>
+                <div id="ownDataRow" class="tableRow"></div>
+            </div>
+            <div class="divTable">
+                <div id="ownMiscRow" class="tableRow"></div>
+            </div>
+        </div>
+        <br />
+        <br />
+        <div id="scanSection" class="hidden">
+            <h3>Open Ports</h3>
+            <div class="divTable">
+                <div id="scanTitleRow" class="tableRow"></div>
+                <div id="scanDataRow" class="tableRow"></div>
+            </div>
+        </div>
+        <br />
+        <!--Temporarily removed due to Marinus firewall issue -->
+        <div id="whois_buttton"></div>
 
-<br/><br/>
-<h3>Details</h3>
-<div class="coral-Well" id="output"></div>
+        <br /><br />
+        <h3>Details</h3>
+        <div class="coral-Well" id="output"></div>
 
-<% include ../partials/footer %>
+        <%- include('../partials/footer') %>
 
 </body>
+
 </html>

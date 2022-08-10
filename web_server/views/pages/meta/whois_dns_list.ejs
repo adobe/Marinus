@@ -1,39 +1,44 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Whois Data</title>
-    <% include ../../partials/head %>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Whois Data</title>
+  <%- include('../../partials/head') %>
     <script src="/javascripts/whois.js"></script>
-  </head>
+</head>
+
 <body>
 
-<% include ../../partials/header %>
+  <%- include('../../partials/header') %>
 
-<p>Please note: It is possible for a domain to be managed by more than one entity. For instance, "adobe.com" is managed on both Adobe and Akamai DNS servers. It is also possible for more than DNS Admin to be listed on a domain.</p>
+    <p>Please note: It is possible for a domain to be managed by more than one entity. For instance, "adobe.com" is
+      managed on both Adobe and Akamai DNS servers. It is also possible for more than DNS Admin to be listed on a
+      domain.</p>
 
-<table>
-  <tr>
-    <td class="tdTop">
-      <div id="dnsServers"></div>
-      Total: <span id="whois_count"></span>
-  </td>
-  <td class="tdTop">
-      <div id="dnsEmails"></div>
-  </td>
-  <td class="tdTop">
-      <div id="dnsSec"></div>
-   </td>
- </tr>
-</table>
-<br/>
-<div id="dynamicWhoisSection"></div>
-<div id="tableTitle"></div>
-<div id="dnsQueryResult">
-</div>
+    <table>
+      <tr>
+        <td class="tdTop">
+          <div id="dnsServers"></div>
+          Total: <span id="whois_count"></span>
+        </td>
+        <td class="tdTop">
+          <div id="dnsEmails"></div>
+        </td>
+        <td class="tdTop">
+          <div id="dnsSec"></div>
+        </td>
+      </tr>
+    </table>
+    <br />
+    <div id="dynamicWhoisSection"></div>
+    <div id="tableTitle"></div>
+    <div id="dnsQueryResult">
+    </div>
 
-    
-<% include ../../partials/footer %>
+
+    <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

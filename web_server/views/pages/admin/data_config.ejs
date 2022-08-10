@@ -1,149 +1,170 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Administration Control Panel</title>
-    <% include ../../partials/head %>
-    <script src="/javascripts/config.js"></script>
+    <%- include('../../partials/head') %>
+        <script src="/javascripts/config.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
+    <%- include('../../partials/header') %>
 
-<nav class="nav nav-tabs" role="tabList">
-    <a id="domainTab" class="nav-link active" href="#domainPane" role="tab" data-toggle="tab" aria-controls="domainPane" aria-selected="true">Root Domains</a>
-    <a id="ipv4Tab" class="nav-link" href="#ipv4Pane" role="tab" data-toggle="tab" aria-controls="ipv4Pane" aria-selected="false">IPv4 CIDRs</a>
-    <a id="ipv6Tab" class="nav-link" href="#ipv6Pane" role="tab" data-toggle="tab" aria-controls="ipv6Pane" aria-selected="false">IPv6 CIDRs</a>
-</nav>
-<div class="tab-content">
-    <div id="domainPane" class="tab-pane show active" role="tabpanel" aria-labelledby="domainTab">
-        <h3>Add a new root domain</h3>
-        <div class="bg-light input-group">
-            <label id="zoneLabel" for="zone_add_input">Please enter the new root domain:</label>&nbsp;
-            <div class="input-group-prepend">
-                <div class="input-group-text"><img src="/stylesheets/octicons/svg/plus.svg" alt="add"></div>
-            </div>
-            <input type="text" placeholder="TLD" name="zoneInput" class="form-control col-3" id="zone_add_input"/>&nbsp;
-            <button class="btn btn-primary" id="addZone">Add</button>
-       </div>
-       <br/>
-       <br/>
-       <div id="zoneUpdateResult"></div>
-       <h3>Modify an existing root domain record</h3>
-       <div class="bg-light">
-         <form class="form-inline mb-2 mr-sm-2" id="modify_domain">
-              <label id="zoneLabel" for="search_zone_input">Please enter the root domain to modify:</label>&nbsp;
-              <div class="input-group-prepend">
-                  <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+        <nav class="nav nav-tabs" role="tabList">
+            <a id="domainTab" class="nav-link active" href="#domainPane" role="tab" data-toggle="tab"
+                aria-controls="domainPane" aria-selected="true">Root Domains</a>
+            <a id="ipv4Tab" class="nav-link" href="#ipv4Pane" role="tab" data-toggle="tab" aria-controls="ipv4Pane"
+                aria-selected="false">IPv4 CIDRs</a>
+            <a id="ipv6Tab" class="nav-link" href="#ipv6Pane" role="tab" data-toggle="tab" aria-controls="ipv6Pane"
+                aria-selected="false">IPv6 CIDRs</a>
+        </nav>
+        <div class="tab-content">
+            <div id="domainPane" class="tab-pane show active" role="tabpanel" aria-labelledby="domainTab">
+                <h3>Add a new root domain</h3>
+                <div class="bg-light input-group">
+                    <label id="zoneLabel" for="zone_add_input">Please enter the new root domain:</label>&nbsp;
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><img src="/stylesheets/octicons/svg/plus.svg" alt="add"></div>
+                    </div>
+                    <input type="text" placeholder="TLD" name="zoneInput" class="form-control col-3"
+                        id="zone_add_input" />&nbsp;
+                    <button class="btn btn-primary" id="addZone">Add</button>
                 </div>
-              <input type="text" class="form-control col-3" value="" name="zoneSearch" id="zone_search_input"></input>
-          </form>
-          <br/>
-          <div id="zoneResult"></div>
-          <div id="zoneDetails">
-              <span id="zoneName"></span>
-              <select name="Select" placeholder="Choose an item" id="zoneStatus" class="custom-select col-3">
-                  <option value="confirmed" selected>confirmed</option>
-                  <option value="unconfirmed">unconfirmed</option>
-                  <option value="false_positive">false_positive</option>
-                  <option value="expired">expired</option>
-              </select>
-              <button class="btn btn-primary" id="updateZoneStatus">Update</button><br/>
-              <br/>
-              <br/>
-              <div class="input-group mb-3">
-                <input type="text" class="form-control col-3" placeholder="Tag" name="field" id="zoneNotes" value=""/>&nbsp;
-                <button class="btn btn-primary" id="updateZoneNotes">Add</button>
-              </div>
-              <div id="zonePatchResult"></div>
-          </div>
-        </div>
-    </div>
-    <div id="ipv4Pane" class="tab-pane fade" role="tabpanel" aria-labelledby="ipv4Tab">
-        <h3>Add a new IPv4 range</h3>
-        <div class="bg-light input-group">
-            <label id="ipZoneLabel" for="ipZone_add_input">Please enter the CIDR to add:</label>&nbsp;
-            <div class="input-group-prepend">
-                <div class="input-group-text"><img src="/stylesheets/octicons/svg/plus.svg" alt="add"></div>
-            </div>
-            <input type="text" class="form-control col-3" placeholder="CIDR" name="cidrInput" id="ipZone_add_input"/>&nbsp;
-            <button class="btn btn-primary" id="addIPZone">Add</button>
-        </div>
-        <div id="ipZoneUpdateResult"></div>
-        <br/>
-        <br/>
-        <h3>Modify an existing IP zone</h3>
-        <div class="bg-light">
-            <form class="form-inline" id="modify_cidr">
-                  <label id="ipZoneLabel" for="cidr_search_input">Please enter the CIDR to modify:</label>&nbsp;
-                  <div class="input-group-prepend">
-                      <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
-                  </div>
-                  <input type="text" value="" name="cidrSearch" id="cidr_search_input" class="form-control col-3"></input>
-            </form>
-            <br/>
-            <div id="ipZoneResult"></div>
-            <div id="ipZoneDetails">
-                  <select name="Select" placeholder="Choose an item" id="ipZoneStatus" class="custom-select col-3">
-                      <option value="confirmed" selected>confirmed</option>
-                      <option value="unconfirmed">unconfirmed</option>
-                      <option value="false_positive">false_positive</option>
-                  </select>
-                  <button class="btn btn-primary" id="updateCIDRStatus">Update</button><br/>
-                  <br/>
-                  <br/>
-                  <div class="input-group mb-3">
-                    <input type="text" class="form-control col-3" placeholder="Tag" name="field" id="cidrNotes" value=""/>&nbsp;
-                    <button class="btn btn-primary" id="updateCIDRNotes">Add</button>
-                  </div>
-                  <div id="ipZonePatchResult"></div>
-            </div>
-        </div>
-    </div>
-    <div id="ipv6Pane" class="tab-pane fade" role="tabpanel" aria-labelledby="ipv6Tab">
-        <h3>Add a new IPv6 range</h3>
-        <div class="bg-light input-group">
-          <label id="ipv6ZoneLabel" for="ipv6Zone_add_input">Please enter the CIDR to add:</label>&nbsp;
-          <div class="input-group-prepend">
-              <div class="input-group-text"><img src="/stylesheets/octicons/svg/plus.svg" alt="add"></div>
-          </div>
-          <input type="text" class="form-control col-3" placeholder="IPv6 CIDR" name="ipv6Input" id="ipv6Zone_add_input"/>&nbsp;
-          <button class="btn btn-primary" id="addIPv6Zone">Add</button>
-        </div>
-        <div id="ipv6ZoneUpdateResult"></div>
-        <br/>
-        <br/>
-        <h3>Modify an existing IPv6 zone</h3>
-        <div class="bg-light">
-          <form class="form-inline" id="modify_ipv6">
-                <label id="ipv6ZoneLabel" for="ipv6_search_input">Please enter the CIDR to modify:</label>&nbsp;
-                <div class="input-group-prepend">
-                    <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+                <br />
+                <br />
+                <div id="zoneUpdateResult"></div>
+                <h3>Modify an existing root domain record</h3>
+                <div class="bg-light">
+                    <form class="form-inline mb-2 mr-sm-2" id="modify_domain">
+                        <label id="zoneLabel" for="search_zone_input">Please enter the root domain to
+                            modify:</label>&nbsp;
+                        <div class="input-group-prepend">
+                            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search">
+                            </div>
+                        </div>
+                        <input type="text" class="form-control col-3" value="" name="zoneSearch"
+                            id="zone_search_input"></input>
+                    </form>
+                    <br />
+                    <div id="zoneResult"></div>
+                    <div id="zoneDetails">
+                        <span id="zoneName"></span>
+                        <select name="Select" placeholder="Choose an item" id="zoneStatus" class="custom-select col-3">
+                            <option value="confirmed" selected>confirmed</option>
+                            <option value="unconfirmed">unconfirmed</option>
+                            <option value="false_positive">false_positive</option>
+                            <option value="expired">expired</option>
+                        </select>
+                        <button class="btn btn-primary" id="updateZoneStatus">Update</button><br />
+                        <br />
+                        <br />
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control col-3" placeholder="Tag" name="field" id="zoneNotes"
+                                value="" />&nbsp;
+                            <button class="btn btn-primary" id="updateZoneNotes">Add</button>
+                        </div>
+                        <div id="zonePatchResult"></div>
+                    </div>
                 </div>
-                <input type="text" value="" name="ipv6Search" id="ipv6_search_input" class="form-control col-3"></input>
-          </form>
-          <br/>
-          <div id="ipv6ZoneResult"></div>
-          <div id="ipv6ZoneDetails">
-                <select name="Select" placeholder="Choose an item" id="ipv6ZoneStatus" class="custom-select col-3">
-                    <option value="confirmed" selected>confirmed</option>
-                    <option value="unconfirmed">unconfirmed</option>
-                    <option value="false_positive">false_positive</option>
-                </select>
-                <button class="btn btn-primary" id="updateIPv6Status">Update</button><br/>
-                <br/>
-                <br/>
-                <div class="input-group mb-3">
-                  <input type="text" class="form-control col-3" placeholder="Tag" name="field" id="ipv6Notes" value=""/>&nbsp;
-                  <button class="btn btn-primary" id="updateIPv6Notes">Add</button>
+            </div>
+            <div id="ipv4Pane" class="tab-pane fade" role="tabpanel" aria-labelledby="ipv4Tab">
+                <h3>Add a new IPv4 range</h3>
+                <div class="bg-light input-group">
+                    <label id="ipZoneLabel" for="ipZone_add_input">Please enter the CIDR to add:</label>&nbsp;
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><img src="/stylesheets/octicons/svg/plus.svg" alt="add"></div>
+                    </div>
+                    <input type="text" class="form-control col-3" placeholder="CIDR" name="cidrInput"
+                        id="ipZone_add_input" />&nbsp;
+                    <button class="btn btn-primary" id="addIPZone">Add</button>
                 </div>
-                <div id="ipv6ZonePatchResult"></div>
-          </div>
+                <div id="ipZoneUpdateResult"></div>
+                <br />
+                <br />
+                <h3>Modify an existing IP zone</h3>
+                <div class="bg-light">
+                    <form class="form-inline" id="modify_cidr">
+                        <label id="ipZoneLabel" for="cidr_search_input">Please enter the CIDR to modify:</label>&nbsp;
+                        <div class="input-group-prepend">
+                            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search">
+                            </div>
+                        </div>
+                        <input type="text" value="" name="cidrSearch" id="cidr_search_input"
+                            class="form-control col-3"></input>
+                    </form>
+                    <br />
+                    <div id="ipZoneResult"></div>
+                    <div id="ipZoneDetails">
+                        <select name="Select" placeholder="Choose an item" id="ipZoneStatus"
+                            class="custom-select col-3">
+                            <option value="confirmed" selected>confirmed</option>
+                            <option value="unconfirmed">unconfirmed</option>
+                            <option value="false_positive">false_positive</option>
+                        </select>
+                        <button class="btn btn-primary" id="updateCIDRStatus">Update</button><br />
+                        <br />
+                        <br />
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control col-3" placeholder="Tag" name="field" id="cidrNotes"
+                                value="" />&nbsp;
+                            <button class="btn btn-primary" id="updateCIDRNotes">Add</button>
+                        </div>
+                        <div id="ipZonePatchResult"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="ipv6Pane" class="tab-pane fade" role="tabpanel" aria-labelledby="ipv6Tab">
+                <h3>Add a new IPv6 range</h3>
+                <div class="bg-light input-group">
+                    <label id="ipv6ZoneLabel" for="ipv6Zone_add_input">Please enter the CIDR to add:</label>&nbsp;
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><img src="/stylesheets/octicons/svg/plus.svg" alt="add"></div>
+                    </div>
+                    <input type="text" class="form-control col-3" placeholder="IPv6 CIDR" name="ipv6Input"
+                        id="ipv6Zone_add_input" />&nbsp;
+                    <button class="btn btn-primary" id="addIPv6Zone">Add</button>
+                </div>
+                <div id="ipv6ZoneUpdateResult"></div>
+                <br />
+                <br />
+                <h3>Modify an existing IPv6 zone</h3>
+                <div class="bg-light">
+                    <form class="form-inline" id="modify_ipv6">
+                        <label id="ipv6ZoneLabel" for="ipv6_search_input">Please enter the CIDR to modify:</label>&nbsp;
+                        <div class="input-group-prepend">
+                            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search">
+                            </div>
+                        </div>
+                        <input type="text" value="" name="ipv6Search" id="ipv6_search_input"
+                            class="form-control col-3"></input>
+                    </form>
+                    <br />
+                    <div id="ipv6ZoneResult"></div>
+                    <div id="ipv6ZoneDetails">
+                        <select name="Select" placeholder="Choose an item" id="ipv6ZoneStatus"
+                            class="custom-select col-3">
+                            <option value="confirmed" selected>confirmed</option>
+                            <option value="unconfirmed">unconfirmed</option>
+                            <option value="false_positive">false_positive</option>
+                        </select>
+                        <button class="btn btn-primary" id="updateIPv6Status">Update</button><br />
+                        <br />
+                        <br />
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control col-3" placeholder="Tag" name="field" id="ipv6Notes"
+                                value="" />&nbsp;
+                            <button class="btn btn-primary" id="updateIPv6Notes">Add</button>
+                        </div>
+                        <div id="ipv6ZonePatchResult"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-    
-<% include ../../partials/footer %>
+
+        <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

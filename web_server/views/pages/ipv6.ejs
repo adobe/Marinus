@@ -1,37 +1,40 @@
 <!doctype html>
 <html>
+
 <head>
-    <meta charset="UTF-8">
-    <title>IPv6</title>
-    <% include ../partials/head %>
+  <meta charset="UTF-8">
+  <title>IPv6</title>
+  <%- include('../partials/head') %>
     <script src="/javascripts/api.js"></script>
 </head>
+
 <body>
 
-<% include ../partials/header %>
+  <%- include('../partials/header') %>
 
-<form id="search_form">
-  <section>
-    <label id="ipLabel">Please enter an IPv6 address:</label>
-    <div class="input-group col-3">
-        <div class="input-group-prepend">
-          <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+    <form id="search_form">
+      <section>
+        <label id="ipLabel">Please enter an IPv6 address:</label>
+        <div class="input-group col-3">
+          <div class="input-group-prepend">
+            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+          </div>
+          <input type="text" value="" name="search" id="search_input"></input>
         </div>
-        <input type="text" value="" name="search" id="search_input"></input>
-    </div>
-  </section>
-</form>
+      </section>
+    </form>
 
 
-<div id="hostingLocation"></div>
+    <div id="hostingLocation"></div>
 
-<div id="ownershipInformation"></div>
+    <div id="ownershipInformation"></div>
 
-<div id="dnsRecords"></div>
+    <div id="dnsRecords"></div>
 
-<div id="dynamic_whois" class="output"></div>
+    <div id="dynamic_whois" class="output"></div>
 
-<% include ../partials/footer %>
+    <%- include('../partials/footer') %>
 
 </body>
+
 </html>

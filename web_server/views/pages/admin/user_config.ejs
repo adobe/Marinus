@@ -1,46 +1,53 @@
 <!doctype html>
 <html>
+
 <head>
-    <meta charset="UTF-8">
-    <title>Administration Control Panel</title>
-    <% include ../../partials/head %>
+  <meta charset="UTF-8">
+  <title>Administration Control Panel</title>
+  <%- include('../../partials/head') %>
     <script src="/javascripts/config.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
+  <%- include('../../partials/header') %>
 
-<nav class="nav nav-tabs" role="tabList">
-    <a id="userTab" class="nav-link active" href="#userPane" role="tab" data-toggle="tab" aria-controls="userPane" aria-selected="true">Users</a>
-    <a id="groupTab" class="nav-link" href="#groupPane" role="tab" data-toggle="tab" aria-controls="groupPane" aria-selected="false">Groups</a>
-</nav>
-<div class="tab-content">
-    <div id="userPane" class="tab-pane show active" role="tabpanel" aria-labelledby="userTab">
-      <div id="userResult">
+    <nav class="nav nav-tabs" role="tabList">
+      <a id="userTab" class="nav-link active" href="#userPane" role="tab" data-toggle="tab" aria-controls="userPane"
+        aria-selected="true">Users</a>
+      <a id="groupTab" class="nav-link" href="#groupPane" role="tab" data-toggle="tab" aria-controls="groupPane"
+        aria-selected="false">Groups</a>
+    </nav>
+    <div class="tab-content">
+      <div id="userPane" class="tab-pane show active" role="tabpanel" aria-labelledby="userTab">
+        <div id="userResult">
+        </div>
+        <div id="userList">
+        </div>
+        <form id="user_form" class="form-inline">
+          <label id="userLabel" for="newUser">Add User: </label>
+          <input type="text" placeholder="Enter a user to add" name="field" value="" id="newUser" class="form-control">
+          <button class="btn btn-primary" id="addUser"><img src="/stylesheets/octicons/svg/plus.svg" alt="add">&nbsp;Add
+            User</button>
+        </form>
       </div>
-      <div id="userList">
+      <div id="groupPane" class="tab-pane fade" role="tabpanel" aria-labelledby="groupTab">
+        <div id="groupResult">
+        </div>
+        <div id="groupList">
+        </div>
+        <form id="group_form" class="form-inline">
+          <label id="groupLabel" for="selectGroup">Please select a group to modify: </label>
+          <select class="custom-select" name="Select" placeholder="Choose an item" id="selectGroup"></select>
+          <input type="text" placeholder="UserID" id="groupUser" name="groupUser" value="" class="form-control" />
+          <button class="btn btn-primary" id="addUserToGroup"><img src="/stylesheets/octicons/svg/plus.svg"
+              alt="add">&nbsp;Add User</button>
+        </form>
       </div>
-      <form id="user_form" class="form-inline">
-        <label id="userLabel" for="newUser">Add User: </label>
-        <input type="text" placeholder="Enter a user to add" name="field" value="" id="newUser" class="form-control">
-        <button class="btn btn-primary" id="addUser"><img src="/stylesheets/octicons/svg/plus.svg" alt="add">&nbsp;Add User</button>
-      </form>
     </div>
-    <div id="groupPane" class="tab-pane fade" role="tabpanel" aria-labelledby="groupTab">
-      <div id="groupResult">
-      </div>
-      <div id="groupList">
-      </div>
-      <form id="group_form" class="form-inline">
-        <label id="groupLabel" for="selectGroup">Please select a group to modify: </label>
-        <select class="custom-select" name="Select" placeholder="Choose an item" id="selectGroup"></select>
-        <input type="text" placeholder="UserID" id="groupUser" name="groupUser" value="" class="form-control"/>
-        <button class="btn btn-primary" id="addUserToGroup"><img src="/stylesheets/octicons/svg/plus.svg" alt="add">&nbsp;Add User</button>
-      </form>
-    </div>
-  </div>
-    
-<% include ../../partials/footer %>
+
+    <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

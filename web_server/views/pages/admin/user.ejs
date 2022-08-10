@@ -1,24 +1,27 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>User Information</title>
-    <% include ../../partials/head %>
-    <script src="/javascripts/admin.js"></script>
+    <%- include('../../partials/head') %>
+        <script src="/javascripts/admin.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
+    <%- include('../../partials/header') %>
 
-<b>User ID:</b> <span id="userid"></span><br/>
-<br/>
-<b>Status:</b> <span id="status"></span><br/>
-<br/>
-<b>API Key:</b> <span id="apiKey"></span><br/>
-<br/>
-<b>Groups:</b> <span id="groupInfo"></span><br/>
-    
-<% include ../../partials/footer %>
+        <b>User ID:</b> <span id="userid"></span><br />
+        <br />
+        <b>Status:</b> <span id="status"></span><br />
+        <br />
+        <b>API Key:</b> <span id="apiKey"></span><br />
+        <br />
+        <b>Groups:</b> <span id="groupInfo"></span><br />
+
+        <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

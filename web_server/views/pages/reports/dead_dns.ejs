@@ -1,19 +1,23 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Dead DNS entries</title>
-    <% include ../../partials/head %>
-    <script src="/javascripts/reports.js"></script>
+    <%- include('../../partials/head') %>
+        <script src="/javascripts/reports.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
-    
-<h2>DNS entries that no longer resolve.</h2>
-<div id="deadDnsDiv"><img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation" alt="timer"/></div><br>
+    <%- include('../../partials/header') %>
 
-<% include ../../partials/footer %>
+        <h2>DNS entries that no longer resolve.</h2>
+        <div id="deadDnsDiv"><img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation" alt="timer" /></div>
+        <br>
+
+        <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

@@ -1,56 +1,63 @@
 <!doctype html>
 <html>
+
 <head>
-    <meta charset="UTF-8">
-    <title>Header Reports</title>
-    <% include ../../partials/head %>
+  <meta charset="UTF-8">
+  <title>Header Reports</title>
+  <%- include('../../partials/head') %>
     <script src="/javascripts/zgrab_headers.js"></script>
     <script src="/javascripts/headers.js"></script>
 </head>
+
 <body>
 
- <% include ../../partials/header %>
-    
- <h3>HTTP response headers detected by zgrab during an HTTP request</h3>
- Select from the supported headers below to see the detected values and the detection count for each value.<br/><br/>
- <section class="divTable">
-   <div class="tableRow">
-      <div class="tableCell">
-        Port:
-        <div id="portInfo">
-        <div class="custom-control custom-radio custom-control-inline">
-           <input type="radio" id="p443" name="portGroup" value="443" class="custom-control-input" checked/>
-           <label class="custom-control-label" for="p443">443</label>
-        </div>
-        <div class="custom-control custom-radio custom-control-inline">
-           <input type="radio" id="p80" name="portGroup" value="80" class="custom-control-input"/>
-           <label class="custom-control-label" for="p80">80</label>
-        </div>
-        </div>
-      </div>
-      <div class="tableCell">
-        Header:<br><div id="selectDiv"><select class="custom-select" id="headerSelect" name="headerSelect" placeholder="Choose a header"></select></div>
-      </div>
-      <div class="tableCell">
-        Zone:
-        <form id="zoneFilter" class="form-inline">
-          <div class="input-group col-6">
-             <div class="input-group-prepend">
-                <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
-             </div>
-             <input class="form-control" id="zone" type="text" placeholder="Filter by zone (e.g. example.org)" name="zone" value="">
-          </div>
-          <button class="btn btn-primary btn-sm" id="updateZone">Filter (optional)</button>
-        </form>
-      </div>
-   </div>
- </section>
- 
+  <%- include('../../partials/header') %>
 
-<h3>Header summary</h3>
-<div id="headerList"></div>
-    
-<% include ../../partials/footer %>
+    <h3>HTTP response headers detected by zgrab during an HTTP request</h3>
+    Select from the supported headers below to see the detected values and the detection count for each
+    value.<br /><br />
+    <section class="divTable">
+      <div class="tableRow">
+        <div class="tableCell">
+          Port:
+          <div id="portInfo">
+            <div class="custom-control custom-radio custom-control-inline">
+              <input type="radio" id="p443" name="portGroup" value="443" class="custom-control-input" checked />
+              <label class="custom-control-label" for="p443">443</label>
+            </div>
+            <div class="custom-control custom-radio custom-control-inline">
+              <input type="radio" id="p80" name="portGroup" value="80" class="custom-control-input" />
+              <label class="custom-control-label" for="p80">80</label>
+            </div>
+          </div>
+        </div>
+        <div class="tableCell">
+          Header:<br>
+          <div id="selectDiv"><select class="custom-select" id="headerSelect" name="headerSelect"
+              placeholder="Choose a header"></select></div>
+        </div>
+        <div class="tableCell">
+          Zone:
+          <form id="zoneFilter" class="form-inline">
+            <div class="input-group col-6">
+              <div class="input-group-prepend">
+                <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+              </div>
+              <input class="form-control" id="zone" type="text" placeholder="Filter by zone (e.g. example.org)"
+                name="zone" value="">
+            </div>
+            <button class="btn btn-primary btn-sm" id="updateZone">Filter (optional)</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+
+    <h3>Header summary</h3>
+    <div id="headerList"></div>
+
+    <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

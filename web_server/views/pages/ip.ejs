@@ -1,53 +1,56 @@
 <!doctype html>
 <html>
+
 <head>
-    <meta charset="UTF-8">
-    <title>IPs</title>
-    <% include ../partials/head %>
+  <meta charset="UTF-8">
+  <title>IPs</title>
+  <%- include('../partials/head') %>
     <script src="/javascripts/api.js"></script>
 </head>
+
 <body>
 
-<% include ../partials/header %>
+  <%- include('../partials/header') %>
 
-<form id="search_form">
-    <section>
-      <label id="ipLabel" for="search_input">Please enter an IP: </label>
-      <div class="input-group col-3">
-        <div class="input-group-prepend">
-          <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+    <form id="search_form">
+      <section>
+        <label id="ipLabel" for="search_input">Please enter an IP: </label>
+        <div class="input-group col-3">
+          <div class="input-group-prepend">
+            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+          </div>
+          <input class="form-control" type="text" value="" name="search" id="search_input"></input>
         </div>
-        <input class="form-control" type="text" value="" name="search" id="search_input"></input>
-      </div>
-    </section>
-</form>
-<br/>
-<br/>
+      </section>
+    </form>
+    <br />
+    <br />
 
-<div id="hostingLocation"></div>
+    <div id="hostingLocation"></div>
 
-<div id="ownershipInformation"></div>
+    <div id="ownershipInformation"></div>
 
-<div id="dnsRecords"></div>
+    <div id="dnsRecords"></div>
 
-<div id="reverseDnsRecords"></div>
+    <div id="reverseDnsRecords"></div>
 
-<div id="certificateRecords"></div>
+    <div id="certificateRecords"></div>
 
-<div id="scanInformation" class="hidden">
-    <h3>Open Ports</h3>
-    <div class="divTable">
+    <div id="scanInformation" class="hidden">
+      <h3>Open Ports</h3>
+      <div class="divTable">
         <div id="scanTitleRow" class="tableRow"></div>
         <div id="scanDataRow" class="tableRow"></div>
+      </div>
+      <div id="scanOutput" class="bg-light"></div>
     </div>
-    <div id="scanOutput" class="bg-light"></div>
-</div>
 
-<div id="censysInformation"></div>
+    <div id="censysInformation"></div>
 
-<div id="dynamic_whois" class="hidden"></div>
+    <div id="dynamic_whois" class="hidden"></div>
 
-<% include ../partials/footer %>
+    <%- include('../partials/footer') %>
 
 </body>
+
 </html>

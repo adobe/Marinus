@@ -1,65 +1,77 @@
 <!doctype html>
 <html>
+
 <head>
-    <meta charset="UTF-8">
-    <title>Home</title>
-    <% include ../partials/head %>
+  <meta charset="UTF-8">
+  <title>Home</title>
+  <%- include('../partials/head') %>
     <script src="/javascripts/index.js"></script>
 </head>
+
 <body>
 
-<% include ../partials/header %>
+  <%- include('../partials/header') %>
 
-<h3>Welcome to Marinus! </h3>
-<p>This site collects data from public sources regarding public facing infrastructure. There is information on domains, IPs, ports, SSL certificates, and various other bits of information. Since the data is from public resources, this information is also available to anyone external to Adobe. This site does not have a 100% complete view of the tracked network at this time but it does represent a significant portion of the available assets. The data provided is not collected in real time. It is updated approximately once a week.</p>
+    <h3>Welcome to Marinus! </h3>
+    <p>This site collects data from public sources regarding public facing infrastructure. There is information on
+      domains, IPs, ports, SSL certificates, and various other bits of information. Since the data is from public
+      resources, this information is also available to anyone external to Adobe. This site does not have a 100% complete
+      view of the tracked network at this time but it does represent a significant portion of the available assets. The
+      data provided is not collected in real time. It is updated approximately once a week.</p>
 
-<p>If you have never been here before, you can start by examining the <I>Meta Search</I> and <I>Reports</I> utilities. The <I>Host</I> utilities are for when you have something specific in mind that you want to look up.</p>
+    <p>If you have never been here before, you can start by examining the <I>Meta Search</I> and <I>Reports</I>
+      utilities. The <I>Host</I> utilities are for when you have something specific in mind that you want to look up.
+    </p>
 
-<p>Below are few shortcuts to common searches. The other searches can be found in the Host Details pull down menu.</p>
+    <p>Below are few shortcuts to common searches. The other searches can be found in the Host Details pull down menu.
+    </p>
 
-<br/>
-<br/>
-<br/>
-<br/>
+    <br />
+    <br />
+    <br />
+    <br />
 
-<div class="form-group">
-  <form id="zone_search">
-    <label id="zoneLabel" for="zone_input">Search records associated with a root domain (e.g. "example.com", "example.net", etc.).</label>
-    <div class="input-group col-3">
-      <div class="input-group-prepend">
-        <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="check"></div>
-      </div>
-      <input type="text" value="" class="form-control" name="zoneSearch" id="zone_input"></input>
+    <div class="form-group">
+      <form id="zone_search">
+        <label id="zoneLabel" for="zone_input">Search records associated with a root domain (e.g. "example.com",
+          "example.net", etc.).</label>
+        <div class="input-group col-3">
+          <div class="input-group-prepend">
+            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="check"></div>
+          </div>
+          <input type="text" value="" class="form-control" name="zoneSearch" id="zone_input"></input>
+        </div>
+      </form>
     </div>
-  </form>
-</div>
-<br/>
-<div class="form-group">
-  <form id="fqdn_search">
-    <label id="fqdnLabel" for="fqdn_input">Search for a fully qualified domain name (e.g. "www.example.com", "images.example.net", etc.).</label>
-    <div class="input-group col-3">
-      <div class="input-group-prepend">
-        <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="check"></div>
-      </div>
-      <input type="text" value="" class="form-control" name="fqdnSearch" id="fqdn_input"></input>
+    <br />
+    <div class="form-group">
+      <form id="fqdn_search">
+        <label id="fqdnLabel" for="fqdn_input">Search for a fully qualified domain name (e.g. "www.example.com",
+          "images.example.net", etc.).</label>
+        <div class="input-group col-3">
+          <div class="input-group-prepend">
+            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="check"></div>
+          </div>
+          <input type="text" value="" class="form-control" name="fqdnSearch" id="fqdn_input"></input>
+        </div>
+      </form>
     </div>
-  </form>
-</div>
-<br/>
-<div class="form-group">
-  <form id="ip_search">
-    <label id="ipLabel" for='ip_input'>Search for an IP address (e.g. "4.4.4.4", etc.).</label>
-    <div class="input-group col-3">
-      <div class="input-group-prepend">
-        <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="check"></div>
-      </div>
-      <input type="text" value=""class="form-control" name="ipSearch" labelledby="ipLabel" id="ip_input"></input>
+    <br />
+    <div class="form-group">
+      <form id="ip_search">
+        <label id="ipLabel" for='ip_input'>Search for an IP address (e.g. "4.4.4.4", etc.).</label>
+        <div class="input-group col-3">
+          <div class="input-group-prepend">
+            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="check"></div>
+          </div>
+          <input type="text" value="" class="form-control" name="ipSearch" labelledby="ipLabel" id="ip_input"></input>
+        </div>
+      </form>
     </div>
-  </form>
-</div>
-    
-    
-<% include ../partials/footer %>
+
+
+    <%- include('../partials/footer') %>
 
 </body>
+
 </html>

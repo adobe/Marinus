@@ -1,110 +1,113 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Port Summary</title>
-    <% include ../../partials/head %>
-    <script src="/javascripts/meta.js"></script>
+    <%- include('../../partials/head') %>
+        <script src="/javascripts/meta.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
+    <%- include('../../partials/header') %>
 
-<h3>Ports listed in DNS SRV records</h3>
-<div class="divTable">
-  <div class="tableRow">
-      <div id="srvPortCounts" class="tableCell">
-          <table class="table" id="srvPortListTable">
-              <thead>
-                  <tr>
-                    <th>Srv Record Port</th>
-                    <th>Record Count</th>
-                  </tr>
-              </thead>
-              <tbody id="srvPortListBody"></tbody>
-          </table>
-      </div>
-      <div id="srvPortInfo" class="bg-light tableCell fullWidth">
-        <span id="srvTableTitle"></span>
-        <table class="table" id="srvOutputTable">
-          <thead>
-              <tr>
-                  <th>FQDN</th>
-                  <th>Value</th>
-              </tr>
-          </thead>
-          <tbody id="srvOutputBody">
-          </tbody>
-        </table>
-      </div>
-  </div>
-</div>
-<br/>
-<h3>Information from IP-based port scans</h3>
-<div class="divTable">
-  <div class="tableRow">
-    <div id="portCounts" class="tableCell">
-        <table class="table" id="portListTable">
-            <thead>
-                <tr>
-                    <th>Scanned Port</th>
-                    <th>Unique IP Count</th>
-                </tr>
-            <tbody id="portListBody"></tbody>
-        </table>
-    </div>
-    <div id="portInfo" class="bg-light tableCell fullWidth">
-      <span id="ipTableTitle"></span>
-      <table class="table" id="outputTable">
-        <thead>
-            <tr>
-                <th>IP</th>
-                <th>Tracked CIDR</th>
-                <th>AWS IP</th>
-                <th>Azure IP</th>
-                <th>GCP IP</th>
-                <th>Notes</th>
-            </tr>
-        </thead>
-        <tbody id="outputBody">
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-<br/>
-<div id="zgrab_domain_scans" class="hidden">
-    <h3>Information from Domain-based HTTP connections</h3>
-    <div class="divTable">
-        <div class="tableRow">
-            <div id="httpPortCounts" class="tableCell">
-                <table class="table" id="httpPortListTable">
-                    <thead>
-                        <tr>
-                            <th>HTTP Port</th>
-                            <th>Unique domain Count</th>
-                        </tr>
-                    <tbody id="httpPortListBody"></tbody>
-                </table>
-            </div>
-            <div id="portInfo" class="bg-light tableCell fullWidth">
-                <span id="httpTableTitle"></span>
-                <table class="table" id="httpOutputTable">
-                    <thead>
-                        <tr>
-                            <th>Domain</th>
-                            <th>Zone</th>
-                        </tr>
-                    </thead>
-                    <tbody id="httpOutputBody">
-                    </tbody>
-                </table>
+        <h3>Ports listed in DNS SRV records</h3>
+        <div class="divTable">
+            <div class="tableRow">
+                <div id="srvPortCounts" class="tableCell">
+                    <table class="table" id="srvPortListTable">
+                        <thead>
+                            <tr>
+                                <th>Srv Record Port</th>
+                                <th>Record Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="srvPortListBody"></tbody>
+                    </table>
+                </div>
+                <div id="srvPortInfo" class="bg-light tableCell fullWidth">
+                    <span id="srvTableTitle"></span>
+                    <table class="table" id="srvOutputTable">
+                        <thead>
+                            <tr>
+                                <th>FQDN</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="srvOutputBody">
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+        <br />
+        <h3>Information from IP-based port scans</h3>
+        <div class="divTable">
+            <div class="tableRow">
+                <div id="portCounts" class="tableCell">
+                    <table class="table" id="portListTable">
+                        <thead>
+                            <tr>
+                                <th>Scanned Port</th>
+                                <th>Unique IP Count</th>
+                            </tr>
+                        <tbody id="portListBody"></tbody>
+                    </table>
+                </div>
+                <div id="portInfo" class="bg-light tableCell fullWidth">
+                    <span id="ipTableTitle"></span>
+                    <table class="table" id="outputTable">
+                        <thead>
+                            <tr>
+                                <th>IP</th>
+                                <th>Tracked CIDR</th>
+                                <th>AWS IP</th>
+                                <th>Azure IP</th>
+                                <th>GCP IP</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="outputBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div id="zgrab_domain_scans" class="hidden">
+            <h3>Information from Domain-based HTTP connections</h3>
+            <div class="divTable">
+                <div class="tableRow">
+                    <div id="httpPortCounts" class="tableCell">
+                        <table class="table" id="httpPortListTable">
+                            <thead>
+                                <tr>
+                                    <th>HTTP Port</th>
+                                    <th>Unique domain Count</th>
+                                </tr>
+                            <tbody id="httpPortListBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="portInfo" class="bg-light tableCell fullWidth">
+                        <span id="httpTableTitle"></span>
+                        <table class="table" id="httpOutputTable">
+                            <thead>
+                                <tr>
+                                    <th>Domain</th>
+                                    <th>Zone</th>
+                                </tr>
+                            </thead>
+                            <tbody id="httpOutputBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<% include ../../partials/footer %>
+        <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

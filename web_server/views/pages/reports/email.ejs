@@ -1,50 +1,56 @@
 <!doctype html>
 <html>
+
 <head>
-    <meta charset="UTF-8">
-    <title>Mail Configuration Information</title>
-    <% include ../../partials/head %>
+  <meta charset="UTF-8">
+  <title>Mail Configuration Information</title>
+  <%- include('../../partials/head') %>
     <script src="/javascripts/email.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
+  <%- include('../../partials/header') %>
 
-<H3>Email MX and TXT Records</H3>
-<nav class="nav nav-tabs" role="tabList">
-      <a id="mxTab" class="nav-link active" href="#mxPane" role="tab" data-toggle="tab" aria-controls="mxPane" aria-selected="true">MX Records</a>
-      <a id="spfTab" class="nav-link" href="#spfPane" role="tab" data-toggle="tab" aria-controls="spfPane" aria-selected="false">SPF Records</a>
-      <a id="dkimTab" class="nav-link" href="#dkimPane" role="tab" data-toggle="tab" aria-controls="dkimPane" aria-selected="false">DKIM Records</a>
-</nav>
-<div class="tab-content">
-  <div id="mxPane" class="tab-pane show active" role="tabpanel" aria-labelledby="mxTab">
-    <div class="divTable">
-      <div class="tableRow">
-          <div class="tableCell" id="mxTable"></div>
-          <div class="tableCell" id="mxResult"></div>
+    <H3>Email MX and TXT Records</H3>
+    <nav class="nav nav-tabs" role="tabList">
+      <a id="mxTab" class="nav-link active" href="#mxPane" role="tab" data-toggle="tab" aria-controls="mxPane"
+        aria-selected="true">MX Records</a>
+      <a id="spfTab" class="nav-link" href="#spfPane" role="tab" data-toggle="tab" aria-controls="spfPane"
+        aria-selected="false">SPF Records</a>
+      <a id="dkimTab" class="nav-link" href="#dkimPane" role="tab" data-toggle="tab" aria-controls="dkimPane"
+        aria-selected="false">DKIM Records</a>
+    </nav>
+    <div class="tab-content">
+      <div id="mxPane" class="tab-pane show active" role="tabpanel" aria-labelledby="mxTab">
+        <div class="divTable">
+          <div class="tableRow">
+            <div class="tableCell" id="mxTable"></div>
+            <div class="tableCell" id="mxResult"></div>
+          </div>
+        </div>
+      </div>
+      <div id="spfPane" class="tab-pane fade" role="tabpanel" aria-labelledby="spfTab">
+        <div class="divTable">
+          <div class="tableRow">
+            <div class="tableCell" id="spfTable"></div>
+            <div class="tableCell" id="spfResult"></div>
+          </div>
+        </div>
+      </div>
+      <div id="dkimPane" class="tab-pane fade" role="tabpanel" aria-labelledby="dkimTab">
+        <div class="divTable">
+          <div class="tableRow">
+            <div class="tableCell" id="dkimTable"></div>
+            <div class="tableCell" id="dkimResult"></div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-  <div id="spfPane" class="tab-pane fade" role="tabpanel" aria-labelledby="spfTab">
-    <div class="divTable">
-      <div class="tableRow">
-          <div class="tableCell" id="spfTable"></div>
-          <div class="tableCell" id="spfResult"></div>
-      </div>
-    </div>
-  </div>
-  <div id="dkimPane" class="tab-pane fade" role="tabpanel" aria-labelledby="dkimTab">
-    <div class="divTable">
-      <div class="tableRow">
-          <div class="tableCell" id="dkimTable"></div>
-          <div class="tableCell" id="dkimResult"></div>
-      </div>
-    </div>
-  </div>
-</div>
 
 
-<% include ../../partials/footer %>
+    <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

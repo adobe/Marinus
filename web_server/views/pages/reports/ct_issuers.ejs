@@ -1,33 +1,37 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Certificate CA issuer list</title>
-    <% include ../../partials/head %>
-    <script src="/javascripts/certs.js"></script>
+    <%- include('../../partials/head') %>
+        <script src="/javascripts/certs.js"></script>
 </head>
+
 <body>
-    
-<% include ../../partials/header %>
 
-<h3>CAs for Adobe certificates (Source: Certificate Transparency)</h3>
-<p>This is a list of all the CA's found to have issued certificates for Adobe properties. This list excludes historical,
-    expired certificates. The left hand side is the CA followed by the number of certificates they issued.
-    By clicking on the CA name, the individual certificates will be listed on the right.</p>
+    <%- include('../../partials/header') %>
 
-<section class="divTable">
- <div class="tableRow">
-  <div class="tableCell">
-      <div id="summaryList"></div>
-  </div>
-  <div class="tableCell">  
-      <div id="tableTitle"></div>
-      <div id="report_details"></div>
-  </div>
- </div>
-</section>
-    
-<% include ../../partials/footer %>
+        <h3>CAs for Adobe certificates (Source: Certificate Transparency)</h3>
+        <p>This is a list of all the CA's found to have issued certificates for Adobe properties. This list excludes
+            historical,
+            expired certificates. The left hand side is the CA followed by the number of certificates they issued.
+            By clicking on the CA name, the individual certificates will be listed on the right.</p>
+
+        <section class="divTable">
+            <div class="tableRow">
+                <div class="tableCell">
+                    <div id="summaryList"></div>
+                </div>
+                <div class="tableCell">
+                    <div id="tableTitle"></div>
+                    <div id="report_details"></div>
+                </div>
+            </div>
+        </section>
+
+        <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

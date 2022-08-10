@@ -1,25 +1,29 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Expired SSL Data</title>
-    <% include ../../partials/head %>
-    <script src="/javascripts/certs.js"></script>
+    <%- include('../../partials/head') %>
+        <script src="/javascripts/certs.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
-    
-<h3>SSL Information: Public IPs with expired certificates</h3>
-Note: The page may take a minute to load.<br><br>
-<br>
-<b>Expired certificates from the 2000s</b>
-<div id="scan_expired_certs_2k"><img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation" alt="timer"/></div><br>
-    
-<b>Expired certificates from the 2010s</b><br/>
-<div id="scan_expired_certs"></div><br>
+    <%- include('../../partials/header') %>
 
-<% include ../../partials/footer %>
+        <h3>SSL Information: Public IPs with expired certificates</h3>
+        Note: The page may take a minute to load.<br><br>
+        <br>
+        <b>Expired certificates from the 2000s</b>
+        <div id="scan_expired_certs_2k"><img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation"
+                alt="timer" /></div><br>
+
+        <b>Expired certificates from the 2010s</b><br />
+        <div id="scan_expired_certs"></div><br>
+
+        <%- include('../../partials/footer') %>
 
 </body>
+
 </html>

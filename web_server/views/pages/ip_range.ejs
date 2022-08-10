@@ -1,53 +1,56 @@
 <!doctype html>
 <html>
+
 <head>
-    <meta charset="UTF-8">
-    <title>IP Range List</title>
-    <% include ../partials/head %>
+  <meta charset="UTF-8">
+  <title>IP Range List</title>
+  <%- include('../partials/head') %>
     <script src="/javascripts/ip_range.js"></script>
 </head>
+
 <body>
 
-<% include ../partials/header %>
-    
-<form id="search_form">
-  <section>
-    <label for="search_input">Please enter a CIDR.</label>
-    <div class="input-group col-3">
-        <div class="input-group-prepend">
-          <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+  <%- include('../partials/header') %>
+
+    <form id="search_form">
+      <section>
+        <label for="search_input">Please enter a CIDR.</label>
+        <div class="input-group col-3">
+          <div class="input-group-prepend">
+            <div class="input-group-text"><img src="/stylesheets/octicons/svg/search.svg" alt="search"></div>
+          </div>
+
+          <input class="form-control" type="text" value="" name="search" id="search_input"></input>
         </div>
+      </section>
+    </form>
 
-      <input class="form-control" type="text" value="" name="search" id="search_input"></input>
-    </div>
-  </section>
-</form>
+    <br />
 
-<br/>
-
-<div class="divTable">
-  <div class="tableRow">
-    <div id="rangeCounts" class="tableCell">
-        <table class="table" id="ipRangeTable">
+    <div class="divTable">
+      <div class="tableRow">
+        <div id="rangeCounts" class="tableCell">
+          <table class="table" id="ipRangeTable">
             <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Count</th>
-                </tr>
+              <tr>
+                <th>Type</th>
+                <th>Count</th>
+              </tr>
             </thead>
             <tbody id="ipRangeBody">
             </tbody>
-        </table>
+          </table>
+        </div>
+        <div id="rangeInfo" class="tableCell">
+        </div>
+      </div>
     </div>
-    <div id="rangeInfo" class="tableCell">
-    </div>
-  </div>
-</div>
-<br/>
+    <br />
 
-<div id="dynamic_whois_section"></div>
+    <div id="dynamic_whois_section"></div>
 
-<% include ../partials/footer %>
+    <%- include('../partials/footer') %>
 
 </body>
+
 </html>

@@ -1,19 +1,23 @@
 <!doctype html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Amazon DNS entries</title>
-    <% include ../../partials/head %>
-    <script src="/javascripts/reports.js"></script>
+    <%- include('../../partials/head') %>
+        <script src="/javascripts/reports.js"></script>
 </head>
+
 <body>
 
-<% include ../../partials/header %>
-    
-<h2>DNS CNAME entries that point to AWS</h2>
-<div id="sonar_amazonaws"><img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation" alt="timer"/></div><br>
+    <%- include('../../partials/header') %>
 
-<% include ../../partials/footer %>
+        <h2>DNS CNAME entries that point to AWS</h2>
+        <div id="sonar_amazonaws"><img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation" alt="timer" />
+        </div><br>
+
+        <%- include('../../partials/footer') %>
 
 </body>
+
 </html>
