@@ -42,7 +42,6 @@ import time
 from datetime import datetime, timedelta
 
 from dateutil.parser import parse
-
 from libs3 import IPManager, JobsManager, RemoteMongoConnector
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
@@ -305,14 +304,15 @@ def check_save_location(save_location):
         os.makedirs(save_location)
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
     global global_exit_flag
     global global_zgrab_path
 
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     parser = argparse.ArgumentParser(
         description="Launch zgrab against domains using port 80 or 443."
@@ -428,4 +428,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
