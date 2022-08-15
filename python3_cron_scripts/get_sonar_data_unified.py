@@ -27,7 +27,6 @@ import time
 from datetime import datetime
 
 import requests
-
 from libs3 import (
     DNSManager,
     GoogleDNS,
@@ -90,7 +89,9 @@ def update_dns(logger, dns_file, zones, dns_mgr):
                 data = json.loads(line)
             except ValueError:
                 continue
-            except:
+            except Exception as e:
+                logger.error("Error parsing file...")
+                logger.error("Exception: " + str(e))
                 raise
 
             dtype = data["type"]
@@ -168,7 +169,9 @@ def update_rdns(logger, rdns_file, zones, dns_mgr, mongo_connector):
                 data = json.loads(line)
             except ValueError:
                 continue
-            except:
+            except Exception as e:
+                logger.error("Error parsing file...")
+                logger.error("Exception: " + str(e))
                 raise
 
             try:
@@ -196,7 +199,7 @@ def update_rdns(logger, rdns_file, zones, dns_mgr, mongo_connector):
                     insert_json["updated"] = datetime.now()
                     mongo_connector.perform_insert(rdns_collection, insert_json)
                 else:
-                    rdns_collection.update(
+                    rdns_collection.update_one(
                         {"ip": ip_addr},
                         {"$set": {"fqdn": domain}, "$currentDate": {"updated": True}},
                     )
@@ -235,11 +238,12 @@ def check_save_location(location):
         os.makedirs(location)
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     if is_running(os.path.basename(__file__)):
         logger.warning("Already running...")
@@ -273,8 +277,6 @@ def main():
     )
     args = parser.parse_args()
 
-    r7 = Rapid7.Rapid7()
-
     if args.database == "remote":
         mongo_connector = RemoteMongoConnector.RemoteMongoConnector()
         dns_manager = DNSManager.DNSManager(mongo_connector, "get_sonar_data_dns")
@@ -283,6 +285,8 @@ def main():
         dns_manager = DNSManager.DNSManager(mongo_connector)
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
+
+    r7 = Rapid7.Rapid7()
 
     save_directory = args.download_location
     check_save_location(save_directory)
@@ -374,4 +378,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)

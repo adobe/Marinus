@@ -22,12 +22,11 @@ import logging
 from datetime import datetime
 
 import requests
-from netaddr import IPAddress
-from netaddr.core import AddrFormatError
-
 from libs3 import APIHelper, DNSManager, UltraDNSHelper
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
+from netaddr import IPAddress
+from netaddr.core import AddrFormatError
 
 
 class UltraDNSZonesInfo(object):
@@ -114,9 +113,9 @@ class UltraDNSZonesInfo(object):
         except requests.exceptions.HTTPError as herr:
             message = json.loads(response.text)
             if isinstance(message, list):
-                err_msg = json.loads(response.text)[0]["errorMessage"]
+                err_msg = message[0]["errorMessage"]
             else:
-                err_msg = json.loads(response.text)["errorMessage"]
+                err_msg = message["errorMessage"]
 
             if (
                 response.status_code == 401
@@ -139,9 +138,6 @@ class UltraDNSZonesInfo(object):
         """
         Extracts the zone DNS information from UltraDNS in a paginated manner for the UltraDNS zones.
         """
-        print("Starting: " + str(datetime.now()))
-        self._logger.info("Starting...")
-
         self.UH.jobs_manager.record_job_start()
         self.UH.get_previous_zones()
 
@@ -156,14 +152,30 @@ class UltraDNSZonesInfo(object):
 
         # Record status
         self.UH.jobs_manager.record_job_complete()
-        print("Ending: " + str(datetime.now()))
-        self._logger.info("Complete.")
 
     def __init__(self):
-        self._logger = LoggingUtil.create_log(__name__)
+        self._logger = logging.getLogger(__name__)
         self.__get_ultradns_zones_info()
+
+
+def main(logger=None):
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
+
+    print("Starting: " + str(datetime.now()))
+    logger.info("Starting...")
+
+    UltraDNSZI = UltraDNSZonesInfo()
+
+    print("Ending: " + str(datetime.now()))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":
     logger = LoggingUtil.create_log(__name__)
-    UltraDNSZonesInfo = UltraDNSZonesInfo()
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)

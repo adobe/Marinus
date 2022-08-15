@@ -22,7 +22,6 @@ import logging
 from datetime import datetime
 
 import requests
-
 from libs3 import APIHelper, UltraDNSHelper, ZoneIngestor
 from libs3.LoggingUtil import LoggingUtil
 
@@ -112,10 +111,7 @@ class UltraDNSZone(object):
         """
         Extracts the zones listing from UltraDNS in a paginated manner.
         """
-        self._logger = LoggingUtil.create_log(__name__)
 
-        print("Starting: " + str(datetime.now()))
-        self._logger.info("Starting...")
         self.UH.jobs_manager.record_job_start()
 
         # Part of clean_collection code.
@@ -128,13 +124,29 @@ class UltraDNSZone(object):
         # Record status
         self.UH.jobs_manager.record_job_complete()
 
-        print("Ending: " + str(datetime.now()))
-        self._logger.info("Complete.")
-
     def __init__(self):
+        self._logger = logging.getLogger(__name__)
         self.get_ultradns_zones()
+
+
+def main(logger=None):
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
+
+    print("Starting: " + str(datetime.now()))
+    logger.info("Starting...")
+
+    LocalUltraDNSZone = UltraDNSZone()
+
+    print("Ending: " + str(datetime.now()))
+    logger.info("Complete.")
 
 
 if __name__ == "__main__":
     logger = LoggingUtil.create_log(__name__)
-    UltraDNSZone = UltraDNSZone()
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)

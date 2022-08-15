@@ -24,16 +24,13 @@ At the moment, this is configured for traditional TLDs because the Python whois 
 with international domains.
 """
 
-import json
 import logging
-import re
 from datetime import datetime, timedelta
-
-from tld import get_tld
 
 from libs3 import JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
+from tld import get_tld
 
 
 def get_primary_zones(logger, zones):
@@ -58,11 +55,12 @@ def get_primary_zones(logger, zones):
     return new_zones
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -191,4 +189,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
