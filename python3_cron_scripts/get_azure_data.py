@@ -30,7 +30,6 @@ from datetime import datetime
 from html.parser import HTMLParser
 
 import requests
-
 from libs3 import JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 
@@ -59,11 +58,12 @@ class MyHTMLParser(HTMLParser):
                         self.URL = attr[1]
 
 
-def main():
+def main(logger=None):
     """
     Begin main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -74,10 +74,10 @@ def main():
     jobs_manager.record_job_start()
 
     # Download the XML file
-    req = requests.get(XML_LOCATION)
+    req = requests.get(XML_LOCATION, timeout=60)
 
     if req.status_code != 200:
-        logger.error("Bad Request")
+        logger.error("FATAL: Bad XML Request")
         jobs_manager.record_job_error()
         exit(1)
 
@@ -85,14 +85,14 @@ def main():
     parser.feed(req.text)
 
     if parser.URL == "":
-        logger.error("Unable to identify URL in Microsoft HTML")
+        logger.error("FATAL: Unable to identify URL in Microsoft HTML")
         jobs_manager.record_job_error()
         exit(1)
 
-    req = requests.get(parser.URL)
+    req = requests.get(parser.URL, timeout=60)
 
     if req.status_code != 200:
-        logger.error("Bad Request")
+        logger.error("FATAL: Bad Parser URL Request")
         jobs_manager.record_job_error()
         exit(1)
 
@@ -121,4 +121,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
