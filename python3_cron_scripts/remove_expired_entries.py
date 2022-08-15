@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Adobe. All rights reserved.
+# Copyright 2022 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -24,7 +24,8 @@ The original source is removed because it technically no longer exists there.
 The "{source}_saved" indicates the original source while also indicating that Marinus is now tracking the entry its own.
 """
 import logging
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 
 from libs3 import DNSManager, GoogleDNS, IPManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
@@ -143,11 +144,12 @@ def insert_current_results(dns_result, dns_manager, zones, result, source):
                 dns_manager.insert_record(new_entry, source + "_saved")
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -183,17 +185,21 @@ def main():
     # Rather than throw away valid information, this will archive it.
     for entry in sources:
         removal_date = monthdelta(datetime.now(), entry["diff"])
+
         source = entry["name"]
         logger.debug("Removing " + source + " as of: " + str(removal_date))
 
         last_domain = ""
-        results = all_dns_collection.find(
+        results = mongo_connector.perform_find(
+            all_dns_collection,
             {
                 "sources": {"$size": 1},
                 "sources.source": source,
                 "sources.updated": {"$lt": removal_date},
-            }
+            },
+            batch_size=10,
         )
+
         for result in results:
             if result["fqdn"] != last_domain:
                 last_domain = result["fqdn"]
@@ -228,4 +234,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
