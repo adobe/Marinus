@@ -23,11 +23,12 @@ from libs3 import InfobloxDNSManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     print("Starting: " + str(datetime.now()))
     logger.info("Starting...")
@@ -48,4 +49,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)

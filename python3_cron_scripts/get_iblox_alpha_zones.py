@@ -30,10 +30,9 @@ from datetime import datetime
 
 import backoff
 import requests
-from requests.auth import HTTPBasicAuth
-
 from libs3 import APIHelper, InfobloxHelper, JobsManager, MongoConnector, ZoneIngestor
 from libs3.LoggingUtil import LoggingUtil
+from requests.auth import HTTPBasicAuth
 
 
 class InfobloxZone(object):
@@ -268,11 +267,28 @@ class InfobloxZone(object):
         self._logger.info("Complete")
 
     def __init__(self):
-        self._logger = LoggingUtil.create_log(__name__)
+        self._logger = logging.getLogger(__name__)
+
         self.incorrect_response_json_allowed = self.APIH.INCORRECT_RESPONSE_JSON_ALLOWED
         self.get_infoblox_zones()
 
 
+def main(logger=None):
+    """
+    Begin Main function...
+    """
+
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
+
+    IZ = InfobloxZone()
+
+
 if __name__ == "__main__":
     logger = LoggingUtil.create_log(__name__)
-    IZ = InfobloxZone()
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)

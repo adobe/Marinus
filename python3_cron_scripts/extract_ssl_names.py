@@ -223,11 +223,12 @@ def extract_zgrab2_certificate_names(logger, dns_names, mongo_connector):
             logger.debug("ZGrab2: DNS Name key not found.")
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -259,7 +260,10 @@ def main():
 
     # Collect the list of domains from the SSL Certificates
     extract_ct_certificate_names(dns_names, mongo_connector)
+
+    # Retired
     # extract_censys_certificate_names(dns_names, mongo_connector)
+
     if args.zgrab_version == 1:
         extract_zgrab_certificate_names(logger, dns_names, mongo_connector)
     else:
@@ -349,4 +353,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)

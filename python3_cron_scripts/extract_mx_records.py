@@ -21,7 +21,6 @@ import time
 from datetime import datetime
 
 import requests
-
 from libs3 import DNSManager, GoogleDNS, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
@@ -86,11 +85,12 @@ def extract_mx_names(dns_names, dns_manager):
         add_to_list(name, dns_names)
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -190,4 +190,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
