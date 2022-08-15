@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2022 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -29,15 +29,12 @@ Common Crawl methodology is not consistent from run to run.
 """
 
 import argparse
-import json
 import logging
 import string
 import subprocess
-import time
 from datetime import datetime
 
 import requests
-
 from libs3 import DNSManager, GoogleDNS, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
@@ -59,6 +56,8 @@ from libs3.ZoneManager import ZoneManager
 # CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2021-jun-jul-sep/host/cc-main-2021-jun-jul-sep-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2021-jun-jul-sep/host/cc-main-2021-jun-jul-sep-host-vertices.paths.gz"
 CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2021-22-oct-nov-jan/host/cc-main-2021-22-oct-nov-jan-host-vertices.paths.gz"
+
+ROOT_DOMAIN = "https://data.commoncrawl.org/"
 
 
 def download_file(logger, url, save_location):
@@ -195,11 +194,12 @@ def get_zone_sublist(logger, fc, lc, grouped_zones):
     return new_zone_list
 
 
-def main():
+def main(logger=None):
     """
     Begin main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     parser = argparse.ArgumentParser(
         description="Search the Common Crawl graph dataset for new domains"
@@ -263,14 +263,14 @@ def main():
 
     for entry in vertices_file_entries:
         # Download file
-        vert_file_url = "https://data.commoncrawl.org/" + entry.rstrip("\n")
+        vert_file_url = ROOT_DOMAIN + entry.rstrip("\n")
         compressed_vertices_file = download_file(logger, vert_file_url, save_location)
 
         # Decompress file
         try:
             subprocess.check_call(["gunzip", "-f", compressed_vertices_file])
         except Exception as e:
-            logger.error("Could not unzip vertices file")
+            logger.error("Could not unzip vertices file: " + compressed_vertices_file)
             logger.error(str(e))
             jobs_manager.record_job_error()
             exit(1)
@@ -311,4 +311,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
