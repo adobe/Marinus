@@ -24,7 +24,6 @@ import logging
 from datetime import datetime
 
 from azure.mgmt.dns.models import ZoneType
-
 from libs3 import AzureConnector, DNSManager, JobsManager, MongoConnector, ZoneIngestor
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
@@ -205,11 +204,12 @@ def extract_record_set_value(logger, field, entry):
         logger.warning("Unknown Record Set Type")
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -288,4 +288,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
