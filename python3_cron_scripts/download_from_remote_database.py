@@ -221,7 +221,7 @@ def download_sonar_dns(logger, dns_manager, remote_mongo_connector):
     # Get all dns records where
     results = remote_sonar_dns_collection.find(
         {"updated": {"$gt": scrub_date}}, {"_id": 0, "sources": 0}
-    ).batch_size(50)
+    ).batch_size(10)
 
     for result in results:
         new_record = {}
@@ -275,11 +275,12 @@ def download_sonar_rdns(logger, mongo_connector, remote_mongo_connector):
     remote_sonar_rdns_collection.delete_many({"updated": {"$lt": scrub_date}})
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -372,10 +373,10 @@ def main():
     download_jobs_status(logger, jobs_manager._jobs_collection, remote_jobs_collection)
 
     # Download remote sonar DNS findings
-    download_sonar_dns(logger, dns_manager, rm_connector)
+    # download_sonar_dns(logger, dns_manager, rm_connector)
 
     # Download remote sonar RDNS findings
-    download_sonar_rdns(logger, mongo_connector, rm_connector)
+    # download_sonar_rdns(logger, mongo_connector, rm_connector)
 
     # Update the local jobs database to done
     jobs_manager.record_job_complete()
@@ -386,4 +387,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
