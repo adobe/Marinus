@@ -32,8 +32,8 @@ from libs3 import (
     FacebookConnector,
     JobsManager,
     MongoConnector,
-    X509Parser,
     StorageManager,
+    X509Parser,
 )
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
@@ -117,11 +117,12 @@ def check_save_location(storage_manager, save_location):
     storage_manager.create_folder(save_location)
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -155,7 +156,7 @@ def main():
         "--cert_save_location",
         required=False,
         default=file_path,
-        help="Indicates where to save the certificates on disk when choosing dbAndSave",
+        help="Indicates the folder when choosing dbAndSave",
     )
     parser.add_argument(
         "--storage_system",
@@ -242,4 +243,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
