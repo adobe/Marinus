@@ -27,7 +27,6 @@ import time
 from datetime import datetime
 
 import requests
-
 from libs3 import (
     DNSManager,
     GoogleDNS,
@@ -115,7 +114,9 @@ def update_dns(logger, dns_file, dns_manager, ip_manager, zones):
                 data = json.loads(line)
             except ValueError:
                 continue
-            except:
+            except Exception as e:
+                logger.error("Error parsing file...")
+                logger.error("Exception: " + str(e))
                 raise
 
             try:
@@ -187,7 +188,9 @@ def update_rdns(logger, rdns_file, mongo_connection, dns_manager, ip_manager, zo
                 data = json.loads(line)
             except ValueError:
                 continue
-            except:
+            except Exception as e:
+                logger.error("Error parsing file...")
+                logger.error("Exception: " + str(e))
                 raise
 
             if "type" in data and data["type"] != "ptr":
@@ -262,11 +265,12 @@ def check_save_location(location):
         os.makedirs(location)
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     if is_running(os.path.basename(__file__)):
         logger.warning("Already running...")
@@ -345,7 +349,7 @@ def main():
         logger.info("RDNS Complete")
         jobs_manager.record_job_complete()
 
-    elif args.sonar_file_type == "dns":
+    elif args.sonar_file_type == "dns-any":
         jobs_manager = JobsManager.JobsManager(mongo_connection, "get_data_by_cidr_dns")
         jobs_manager.record_job_start()
 
@@ -401,4 +405,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)

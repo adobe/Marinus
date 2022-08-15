@@ -24,23 +24,23 @@ saving certificates. The default is "/mnt/workspace/crt_sh" but this can be over
 import argparse
 import json
 import logging
+import os
 import time
 from datetime import datetime
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util import Retry
-
 from libs3 import (
     DNSManager,
     GoogleDNS,
     JobsManager,
     MongoConnector,
-    X509Parser,
     StorageManager,
+    X509Parser,
 )
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 
 def requests_retry_session(
@@ -245,11 +245,12 @@ def check_save_location(storage_manager, save_location):
     storage_manager.create_folder(save_location)
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -283,7 +284,7 @@ def main():
         "--cert_save_location",
         required=False,
         default=save_location,
-        help="Indicates where to save the certificates on disk when choosing dbAndSave",
+        help="Indicates the folder name when choosing dbAndSave",
     )
     parser.add_argument(
         "--storage_system",
@@ -304,8 +305,8 @@ def main():
             if "/" not in save_location:
                 save_location = "./" + save_location
 
-        if not save_location.endswith("/"):
-            save_location = save_location + "/"
+            if not save_location.endswith("/"):
+                save_location = save_location + "/"
 
     storage_manager = StorageManager.StorageManager(location=args.storage_system)
 
@@ -314,7 +315,7 @@ def main():
 
     for zone in zones:
         # Pace out requests so as not to DoS crt.sh and Google DNS
-        time.sleep(5)
+        time.sleep(10)
 
         # This could be done with backoff but we don't want to be overly aggressive.
         json_result = make_https_request(
@@ -350,7 +351,7 @@ def main():
             )
         elif args.download_methods == "dbOnly":
             add_new_certificate_values(
-                logger, jobs_manager, new_ids, ct_collection, zones, None
+                logger, jobs_manager, new_ids, ct_collection, zones, None, None
             )
 
     # Set isExpired for any entries that have recently expired.
@@ -367,4 +368,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)

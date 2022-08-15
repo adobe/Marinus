@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Adobe. All rights reserved.
+# Copyright 2022 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -46,15 +46,14 @@ import time
 from datetime import datetime
 
 import requests
-from OpenSSL import crypto
-from requests.adapters import HTTPAdapter
-from requests.exceptions import Timeout
-from urllib3.util import Retry
-
 from libs3 import JobsManager, MongoConnector, X509Parser
 from libs3.LoggingUtil import LoggingUtil
 from libs3.StorageManager import StorageManager
 from libs3.ZoneManager import ZoneManager
+from OpenSSL import crypto
+from requests.adapters import HTTPAdapter
+from requests.exceptions import Timeout
+from urllib3.util import Retry
 
 
 def requests_retry_session(
@@ -167,6 +166,7 @@ def fetch_certificate_batch(logger, url, starting_index, ending_index, jobs_mana
 
     if result is None:
         jobs_manager.record_job_error()
+        logger.error("FATAL: No result from get-entries", exc_info=True)
         exit(1)
 
     return json.loads(result)
@@ -360,11 +360,12 @@ def check_save_location(storage_manager, save_location, source):
         storage_manager.create_folder("ct-" + source)
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -415,7 +416,7 @@ def main():
         "--cert_save_location",
         required=False,
         default=save_location,
-        help="Indicates where to save the certificates on disk when choosing dbAndSave",
+        help="Indicates where to save the certificates on disk when choosing dbAndSave with local filesystem storage",
     )
     parser.add_argument(
         "--save_type",
@@ -548,4 +549,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)

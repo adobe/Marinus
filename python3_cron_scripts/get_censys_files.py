@@ -24,10 +24,9 @@ import time
 from datetime import datetime
 
 import requests
-from requests.auth import HTTPBasicAuth
-
 from libs3 import RemoteMongoConnector
 from libs3.LoggingUtil import LoggingUtil
+from requests.auth import HTTPBasicAuth
 
 # Censys authentication information
 CENSYS_API = "https://www.censys.io/api/v1/"
@@ -67,11 +66,12 @@ def download_file(logger, url):
     return local_filename
 
 
-def main():
+def main(logger=None):
     """
     Begin main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     # Don't run if the search files script is working on the existing file.
     if is_running("search_censys_files_new.py"):
@@ -184,6 +184,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
 
 exit(0)

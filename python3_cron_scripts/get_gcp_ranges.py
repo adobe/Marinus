@@ -53,12 +53,13 @@ def recursive_search(logger, target, google_dns):
     return ranges
 
 
-def main():
+def main(logger=None):
     """
     This function extract the IP address ranges from the TXT records
     and stores them in gcp_ips collection within the database.
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -102,4 +103,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
