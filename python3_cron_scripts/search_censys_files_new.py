@@ -142,11 +142,12 @@ def insert_result(entry, results_collection):
     results_collection.update_one({"ip": entry["ip"]}, entry, upsert=True)
 
 
-def main():
+def main(logger=None):
     """
     Begin main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     if is_running("get_censys_files.py"):
         """
@@ -272,6 +273,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
 
 exit(0)
