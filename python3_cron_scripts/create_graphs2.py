@@ -21,7 +21,6 @@ The data is split up across three collections because graphs for large domains c
 the maximum size of allowed JSON objects in MongoDB.
 """
 
-from hashlib import new
 import json
 import logging
 import math
@@ -30,12 +29,11 @@ import time
 from datetime import datetime, timedelta
 
 import networkx as nx
-from networkx.readwrite import json_graph
-from tld import get_fld
-
 from libs3 import DNSManager, IPManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
+from networkx.readwrite import json_graph
+from tld import get_fld
 
 # Constant for dealing with Mongo not allowing "." in key names
 REPLACE_CHAR = "!"
@@ -309,11 +307,12 @@ def reformat_data(data, zone, groups):
         data["nodes"][i]["group"] = groups[data["nodes"][i]["type"]]
 
 
-def main():
+def main(logger=None):
     """
     Begin Main
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -480,4 +479,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
