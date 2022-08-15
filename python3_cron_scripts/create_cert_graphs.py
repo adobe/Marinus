@@ -24,11 +24,10 @@ import logging
 from datetime import datetime
 
 import networkx as nx
-from networkx.readwrite import json_graph
-
 from libs3 import DNSManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
+from networkx.readwrite import json_graph
 
 
 def get_current_ct_certificates(ct_connection, zone):
@@ -191,14 +190,17 @@ def get_scan_count(zgrab_collection, sha256_hash, version):
     return result_count
 
 
-def add_terminal_zgrab_certificates(zgrab_collection, zone, current_certs):
+def add_terminal_zgrab_certificates(
+    mongo_connector, zgrab_collection, zone, current_certs
+):
     """
     Get the list of current certificates from zgrab scans for the specified zones.
     Append any new entries to the provided array of current_certs.
     This currently does not check
     """
 
-    results = zgrab_collection.find(
+    results = mongo_connector.perform_find(
+        zgrab_collection,
         {
             "$or": [
                 {
@@ -213,11 +215,12 @@ def add_terminal_zgrab_certificates(zgrab_collection, zone, current_certs):
                 },
             ]
         },
-        {
+        filter={
             "data.http.response.request.tls_handshake.server_certificates.certificate.parsed.subject.common_name": 1,
             "data.http.response.request.tls_handshake.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names": 1,
             "data.http.response.request.tls_handshake.server_certificates.certificate.parsed.fingerprint_sha256": 1,
         },
+        batch_size=40,
     )
 
     for result in results:
@@ -291,14 +294,17 @@ def add_terminal_zgrab_certificates(zgrab_collection, zone, current_certs):
     return current_certs
 
 
-def add_initial_zgrab_certificates(zgrab_collection, zone, current_certs):
+def add_initial_zgrab_certificates(
+    mongo_connector, zgrab_collection, zone, current_certs
+):
     """
     Get the list of current certificates from zgrab scans for the specified zones.
     Append any new entries to the provided array of current_certs.
     This currently does not check
     """
 
-    results = zgrab_collection.find(
+    results = mongo_connector.perform_find(
+        zgrab_collection,
         {
             "$or": [
                 {
@@ -313,7 +319,7 @@ def add_initial_zgrab_certificates(zgrab_collection, zone, current_certs):
                 },
             ]
         },
-        {"data.http.redirect_response_chain": 1},
+        filter={"data.http.redirect_response_chain": 1},
     )
 
     for result in results:
@@ -393,14 +399,17 @@ def add_initial_zgrab_certificates(zgrab_collection, zone, current_certs):
     return current_certs
 
 
-def add_terminal_zgrab2_certificates(zgrab_collection, zone, current_certs):
+def add_terminal_zgrab2_certificates(
+    mongo_connector, zgrab_collection, zone, current_certs
+):
     """
     Get the list of current certificates from zgrab scans for the specified zones.
     Append any new entries to the provided array of current_certs.
     This currently does not check
     """
 
-    results = zgrab_collection.find(
+    results = mongo_connector.perform_find(
+        zgrab_collection,
         {
             "$or": [
                 {
@@ -415,11 +424,12 @@ def add_terminal_zgrab2_certificates(zgrab_collection, zone, current_certs):
                 },
             ]
         },
-        {
+        filter={
             "data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.subject.common_name": 1,
             "data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names": 1,
             "data.http.result.response.request.tls_log.handshake_log.server_certificates.certificate.parsed.fingerprint_sha256": 1,
         },
+        batch_size=40,
     )
 
     for result in results:
@@ -501,14 +511,17 @@ def add_terminal_zgrab2_certificates(zgrab_collection, zone, current_certs):
     return current_certs
 
 
-def add_initial_zgrab2_certificates(zgrab_collection, zone, current_certs):
+def add_initial_zgrab2_certificates(
+    mongo_connector, zgrab_collection, zone, current_certs
+):
     """
     Get the list of current certificates from zgrab scans for the specified zones.
     Append any new entries to the provided array of current_certs.
     This currently does not check
     """
 
-    results = zgrab_collection.find(
+    results = mongo_connector.perform_find(
+        zgrab_collection,
         {
             "$or": [
                 {
@@ -523,7 +536,7 @@ def add_initial_zgrab2_certificates(zgrab_collection, zone, current_certs):
                 },
             ]
         },
-        {"data.http.result.redirect_response_chain": 1},
+        filter={"data.http.result.redirect_response_chain": 1},
     )
 
     for result in results:
@@ -675,11 +688,12 @@ def create_nodes(graph, mongo_connector, zone, all_certs):
     return graph
 
 
-def main():
+def main(logger=None):
     """
     Begin Main()
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -746,17 +760,17 @@ def main():
         if args.check_443_scans:
             if args.zgrab_version == 1:
                 certs_list = add_terminal_zgrab_certificates(
-                    zgrab_collection, zone, certs_list
+                    mongo_connector, zgrab_collection, zone, certs_list
                 )
                 certs_list = add_initial_zgrab_certificates(
-                    zgrab_collection, zone, certs_list
+                    mongo_connector, zgrab_collection, zone, certs_list
                 )
             else:
                 certs_list = add_terminal_zgrab2_certificates(
-                    zgrab_collection, zone, certs_list
+                    mongo_connector, zgrab_collection, zone, certs_list
                 )
                 certs_list = add_initial_zgrab2_certificates(
-                    zgrab_collection, zone, certs_list
+                    mongo_connector, zgrab_collection, zone, certs_list
                 )
 
         graph = create_nodes(graph, mongo_connector, zone, certs_list)
@@ -780,4 +794,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
