@@ -48,7 +48,6 @@ from datetime import datetime, timedelta
 
 from bson.objectid import ObjectId
 from dateutil.parser import parse
-
 from libs3 import IPManager, JobsManager, RemoteMongoConnector
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
@@ -799,7 +798,7 @@ def check_save_location(save_location):
         os.makedirs(save_location)
 
 
-def main():
+def main(logger=None):
     """
     Beging Main...
     """
@@ -809,7 +808,8 @@ def main():
     global global_queue_size
     global global_zgrab_path
 
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     global_retest_list = []
 
@@ -891,7 +891,9 @@ def main():
     elif args.zones_only:
         (ips, ip_context) = get_only_ipzones(ip_manager.Tracked_CIDRs)
     else:
-        (ips, ip_context) = get_ips(ip_manager, all_dns_collection)
+        (ips, ip_context) = get_ips(
+            ip_manager, all_dns_collection
+        )
 
     if args.s and int(args.s) > 0:
         global_sleep_time = int(args.s)
@@ -1019,4 +1021,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
