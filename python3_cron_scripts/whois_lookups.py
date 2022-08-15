@@ -24,17 +24,15 @@ Old records are replaced via an upsert.
 This script assumes that all the tracked zones have already been collected.
 """
 
-import json
 import logging
 import time
 from datetime import datetime, timedelta
 
 import whois
-from tld import get_fld
-
 from libs3 import JobsManager, RemoteMongoConnector
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
+from tld import get_fld
 
 
 def get_zones(mongo_connector):
@@ -160,11 +158,12 @@ def do_whois_lookup(logger, zone, whois_collection):
     time.sleep(45)
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -217,4 +216,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
