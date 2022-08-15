@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2019 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -30,7 +30,6 @@ import logging
 from datetime import datetime
 
 import requests
-
 from libs3 import JobsManager, MongoConnector, SplunkHECManager
 from libs3.LoggingUtil import LoggingUtil
 
@@ -45,7 +44,7 @@ def upload_zgrab_443(logger, splunk_manager, mongo_connector):
     zgrab_443_collection = mongo_connector.get_zgrab_443_data_connection()
 
     results = mongo_connector.perform_find(
-        zgrab_443_collection, {"domain": {"$ne": "<nil>"}}, batch_size=100
+        zgrab_443_collection, {"domain": {"$ne": "<nil>"}}, batch_size=80
     )
 
     for result in results:
@@ -127,14 +126,16 @@ def upload_zgrab_80(logger, splunk_manager, mongo_connector):
         splunk_manager.push_to_splunk_hec("marinus_80_domain_headers", data)
 
 
-def main():
+def main(logger=None):
     """
     Begin main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
+    logger.info("Starting...")
 
     parser = argparse.ArgumentParser(description="Search Splunk logs for IP address")
     parser.add_argument(
@@ -149,7 +150,9 @@ def main():
     mongo_connector = MongoConnector.MongoConnector()
     splunk_manager = SplunkHECManager.SplunkHECManager()
 
-    jobs_manager = JobsManager.JobsManager(mongo_connector, "splunk_headers_upload")
+    jobs_manager = JobsManager.JobsManager(
+        mongo_connector, "splunk_headers_upload_" + args.collection_name
+    )
     jobs_manager.record_job_start()
 
     if args.collection_name == "http_443":
@@ -165,4 +168,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
