@@ -31,12 +31,11 @@ import time
 from datetime import datetime, timedelta
 
 import networkx as nx
-from netaddr import IPAddress, IPNetwork
-from networkx.readwrite import json_graph
-
 from libs3 import JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
+from netaddr import IPAddress, IPNetwork
+from networkx.readwrite import json_graph
 
 REPLACE_CHAR = "!"
 
@@ -169,11 +168,12 @@ def get_tpds(mongo_connector):
     return tpds
 
 
-def main():
+def main(logger=None):
     """
     The main thread for this program.
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -328,4 +328,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
