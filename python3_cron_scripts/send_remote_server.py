@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2022 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -156,10 +156,11 @@ def update_gcp_cidrs(logger, mongo_connector, rm_connector):
 
 def update_all_dns(logger, mongo_connector, rm_connector, zone_list):
     """
-    Remove all previous records and replace with new records.
+    Update the entire collection by deleting all previous records before
+    inserting new records.
 
     Performing a zone by zone upload to minimize the chances of the zgrab script
-    pulling a zone at the same time as it is being deleted.
+    pulling a zone at the same time it is being deleted.
     """
     logger.info("Starting All DNS..")
     all_dns_collection = mongo_connector.get_all_dns_connection()
@@ -177,10 +178,11 @@ def update_all_dns_diff_mode(
     logger, mongo_connector, rm_connector, zone_list, date_diff
 ):
     """
-    Only upload records if the number of records changed or if there has been a recent update
+    Only update the origial records if the number of records has changed or if there
+    has been a recent update to the zone.
 
     Performing a zone by zone upload to minimize the chances of the zgrab script
-    pulling a zone at the same time as it is being deleted.
+    pulling a zone at the same time it is being deleted.
     """
     logger.info("Starting All DNS diff mode..")
     all_dns_collection = mongo_connector.get_all_dns_connection()
@@ -224,11 +226,12 @@ def update_all_dns_diff_mode(
             )
 
 
-def main():
+def main(logger=None):
     """
     Begin Main...
     """
-    logger = LoggingUtil.create_log(__name__)
+    if logger is None:
+        logger = LoggingUtil.create_log(__name__)
 
     now = datetime.now()
     print("Starting: " + str(now))
@@ -265,6 +268,12 @@ def main():
         help="Send new DNS records",
     )
     parser.add_argument(
+        "--send_all",
+        action="store_true",
+        required=False,
+        help="Send all records",
+    )
+    parser.add_argument(
         "--date_diff",
         default=2,
         type=int,
@@ -273,7 +282,7 @@ def main():
     args = parser.parse_args()
 
     send_all = False
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 1 or args.send_all:
         send_all = True
 
     mongo_connector = MongoConnector.MongoConnector()
@@ -329,7 +338,7 @@ def main():
             jobs_manager.record_job_error()
             exit(1)
 
-    # This will completely repopulate the DNS records table.
+    # Resend the entire DNS collection
     if args.send_dns_records is not False:
         try:
             update_all_dns(logger, mongo_connector, remote_mongo_connector, zone_list)
@@ -340,7 +349,7 @@ def main():
             jobs_manager.record_job_error()
             exit(1)
 
-    # If you have a large data set, then you may only want to send updated records
+    # Only send DNS records that have recently changed.
     if send_all or args.send_dns_diff:
         try:
             update_all_dns_diff_mode(
@@ -366,4 +375,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    logger = LoggingUtil.create_log(__name__)
+
+    try:
+        main(logger)
+    except Exception as e:
+        logger.error("FATAL: " + str(e), exc_info=True)
+        exit(1)
