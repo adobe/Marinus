@@ -13,7 +13,6 @@
 """
 This script queries Infoblox for all its DNS Zone records.
 
-This verify=False is set because the Infoblox SSL configuration is lower than what Python accepts.
 This script tries to re-issue failed requests because Infoblox is consistently flaky.
 This script sleeps a lot to reduce the flakiness.
 The search is based on an alphabet because Infoblox limits the number of values it can return.
@@ -221,7 +220,6 @@ class InfobloxZone(object):
             url,
             params,
             auth=HTTPBasicAuth(self.IH.IBLOX_UNAME, self.IH.IBLOX_PASSWD),
-            verify=False,
         )
 
     def __infoblox_paginated_request(self):
