@@ -146,7 +146,7 @@ function fetch_zone_pattern(event) {
 
 function fetch_zone_list(txtSearch) {
     var url = "/api/v1.0/zones/list";
-    var query = "?include_false_positives=1";
+    var query = "?include_all=1";
 
     if (txtSearch != null && txtSearch.length > 0) {
         query += "&pattern=" + txtSearch;
