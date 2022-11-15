@@ -124,6 +124,10 @@ class X509Parser(object):
             "id": "6D7Q2j71BjUy51covIlryQPTy9ERa+zraeF3fW0GvW4=",
             "url": "ct.googleapis.com/logs/argon2023",
         },
+        "argon2024": {
+            "id": "7s3QZNXbGs7FXLedtM0TojKHRny87N7DUUhZRnEftZs=",
+            "url": "https://ct.googleapis.com/logs/us1/argon2024/",
+        },
         "xenon2018": {
             "id": "sQzVWabWeEaBH335pRUyc5rEjXA76gMj2l04dVvArU4=",
             "url": "ct.googleapis.com/logs/xenon2018",
@@ -147,6 +151,10 @@ class X509Parser(object):
         "xenon2023": {
             "id": "rfe++nz/EMiLnT2cHj4YarRnKV3PsQwkyoWGNOvcgoo=",
             "url": "ct.googleapis.com/logs/xenon2023",
+        },
+        "xenon2024": {
+            "id": "dv+IPwq2+5VRwmHM9Ye6NLSkzbsp3GhCCp/mZ0xaOnQ=",
+            "url": "https://ct.googleapis.com/logs/eu1/xenon2024/",
         },
         # DigiCert
         "digicert-ct1": {
@@ -185,6 +193,14 @@ class X509Parser(object):
             "id": "Nc8ZG7+xbFe/D61MbULLu7YnICZR6j/hKu+oA8M71kw=",
             "url": "yeti2023.ct.digicert.com/log",
         },
+        "yeti2024": {
+            "id": "SLDja9qmRzQP5WoC+p0w6xxSActW3SyB2bu/qznYhHM=",
+            "url": "https://yeti2024.ct.digicert.com/log/",
+        },
+        "yeti2025": {
+            "id": "fVkeEuF4KnscYWd8Xv340IdcFKBOlZ65Ay/ZDowuebg=",
+            "url": "https://yeti2025.ct.digicert.com/log/",
+        },
         "nessie2018": {
             "id": "b/FBtWR+QiL37wUs7658If1gjifSr1pun0uKN9ZjPuU=",
             "url": "nessie2018.ct.digicert.com/log",
@@ -208,6 +224,14 @@ class X509Parser(object):
         "nessie2023": {
             "id": "s3N3B+GEUPhjhtYFqdwRCUp5LbFnDAuH3PADDnk2pZo=",
             "url": "nessie2023.ct.digicert.com/log",
+        },
+        "nessie2024": {
+            "id": "c9meiRtMlnigIH1HneayxhzQUV5xGSqMa4AQesF3crU=",
+            "url": "https://nessie2024.ct.digicert.com/log/",
+        },
+        "nessie2025": {
+            "id": "fVkeEuF4KnscYWd8Xv340IdcFKBOlZ65Ay/ZDowuebg=",
+            "url": "https://nessie2025.ct.digicert.com/log/",
         },
         # Symantec [Retired]
         "symantec-ct": {
@@ -265,6 +289,10 @@ class X509Parser(object):
             "id": "ejKMVNi3LbYg6jjgUh7phBZwMhOFTTvSK8E6V6NS61I=",
             "url": "ct.cloudflare.com/logs/nimbus2023",
         },
+        "nimbus2024": {
+            "id": "2ra/az+1tiKfm8K7XGvocJFxbLtRhIU0vaQ9MEjX+6s=",
+            "url": "https://ct.cloudflare.com/logs/nimbus2024",
+        },
         # Let's Encrypt
         "le-oak2021": {
             "id": "lCC8Ho7VjWyIcx+CiyIsDdHaTV5sT5Q9YdtOL1hNosI=",
@@ -277,6 +305,14 @@ class X509Parser(object):
         "le-oak2023": {
             "id": "tz77JN+cTbp18jnFulj0bF38Qs96nzXEnh0JgSXttJk=",
             "url": "oak.ct.letsencrypt.org/2023",
+        },
+        "le-oak2024H1": {
+            "id": "O1N3dT4tuYBOizBbBv5AO2fYT8P0x70ADS1yb+H61Bc=",
+            "url": "https://oak.ct.letsencrypt.org/2024h1",
+        },
+        "le-oak2024H2": {
+            "id": "PxdLT9ciR1iUHWUchL4NEu2QN38fhWrrwb8ohez4ZG4=",
+            "url": "https://oak.ct.letsencrypt.org/2024h2",
         },
         # Misc [Retired]
         "venafi-ctlog-gen2": {
@@ -747,9 +783,10 @@ class X509Parser(object):
             try:
                 cert = x509.load_der_x509_certificate(data, default_backend())
                 openssl_cert = crypto.load_certificate(crypto.FILETYPE_ASN1, data)
-            except:
+            except Exception as e:
                 self._logger.error(
-                    "ERROR: Could not parse certificate as a PEM or DER File"
+                    "ERROR: Could not parse certificate as a PEM or DER file - "
+                    + str(e)
                 )
                 return None
 
@@ -800,3 +837,4 @@ class X509Parser(object):
 
         cert_object = self.__parse(data, certSource)
         return cert_object
+
