@@ -306,11 +306,11 @@ class X509Parser(object):
             "id": "tz77JN+cTbp18jnFulj0bF38Qs96nzXEnh0JgSXttJk=",
             "url": "oak.ct.letsencrypt.org/2023",
         },
-        "le-oak2024H1": {
+        "le-oak2024h1": {
             "id": "O1N3dT4tuYBOizBbBv5AO2fYT8P0x70ADS1yb+H61Bc=",
             "url": "oak.ct.letsencrypt.org/2024h1",
         },
-        "le-oak2024H2": {
+        "le-oak2024h2": {
             "id": "PxdLT9ciR1iUHWUchL4NEu2QN38fhWrrwb8ohez4ZG4=",
             "url": "oak.ct.letsencrypt.org/2024h2",
         },
@@ -422,7 +422,7 @@ class X509Parser(object):
                     return
 
         self._logger.warning(
-            "WARNING: Unrecognined Signature Alogrithm: " + str(sig_oid)
+            "WARNING: Unrecognized Signature Alogrithm: " + str(sig_oid)
         )
         cert_object["signature_algorithm"] = ""
 
@@ -837,4 +837,3 @@ class X509Parser(object):
 
         cert_object = self.__parse(data, certSource)
         return cert_object
-
