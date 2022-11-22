@@ -23,10 +23,9 @@ from datetime import datetime
 
 import backoff
 import requests
-from requests.auth import HTTPBasicAuth
-
 from libs3 import APIHelper, DNSManager, InfobloxHelper, MongoConnector
 from libs3.ZoneManager import ZoneManager
+from requests.auth import HTTPBasicAuth
 
 
 class InfobloxDNSManager(object):
@@ -97,22 +96,46 @@ class InfobloxDNSManager(object):
 
         if self.record_type == "host":
             # In order to resolve multiple ipv4addrs
-            for ipv4 in dns_information["ipv4addrs"]:
-                dns_info = dict()
-                dns_info["zone"] = dns_information["zone"]
-                dns_info["type"] = "a"
-                dns_info["value"] = ipv4["ipv4addr"]
-                dns_info["fqdn"] = ipv4["host"]
-                dns_info["status"] = "unknown"
-                dns_info["created"] = datetime.now()
-                self.DNS_MGR.insert_record(dns_info, "infoblox-host")
+            if "ipv4addrs" in dns_information:
+                for ipv4 in dns_information["ipv4addrs"]:
+                    dns_info = dict()
+                    dns_info["zone"] = dns_information["zone"]
+                    dns_info["type"] = "a"
+                    dns_info["value"] = ipv4["ipv4addr"]
+                    dns_info["fqdn"] = ipv4["host"]
+                    dns_info["status"] = "unknown"
+                    dns_info["created"] = datetime.now()
+                    self.DNS_MGR.insert_record(dns_info, "infoblox-host")
+            elif "ipv6addrs" in dns_information:
+                for ipv6 in dns_information["ipv6addrs"]:
+                    dns_info = dict()
+                    dns_info["zone"] = dns_information["zone"]
+                    dns_info["type"] = "aaaa"
+                    dns_info["value"] = ipv6["ipv6addr"]
+                    dns_info["fqdn"] = ipv6["host"]
+                    dns_info["status"] = "unknown"
+                    dns_info["created"] = datetime.now()
+                    self.DNS_MGR.insert_record(dns_info, "infoblox-host")
+            else:
+                self._logger.error(
+                    "FATAL: No IPv4 or IPv6 informaiton found in host records for: "
+                    + str(dns_information["zone"])
+                )
         else:
             # Removing the 'preference' key from the 'mx' records
-            if self.record_type == "mx":
-                del dns_information["preference"]
             dns_information["value"] = dns_information[
                 self.dns_value_mapper[self.record_type]
             ]
+            # Reconstruct the actual MX record
+            if self.record_type == "mx":
+                dns_information["value"] = (
+                    str(dns_information["preference"])
+                    + " "
+                    + dns_information["value"]
+                    + "."
+                )
+                del dns_information["preference"]
+
             del dns_information[self.dns_value_mapper[self.record_type]]
             dns_information["fqdn"] = dns_information["name"]
             del dns_information["name"]
@@ -162,6 +185,11 @@ class InfobloxDNSManager(object):
                     "Unable to parse response JSON for 20 zones: " + repr(err),
                     "get_iblox_" + self.record_type.lower(),
                 )
+        except Exception as unk_err:
+            self.APIH.handle_api_error(
+                "Unknown_exception occurred: " + repr(unk_err),
+                "get_iblox_" + self.record_type.lower(),
+            )
         else:
             # Add the zone parameter to each record and insert
             for entry in response_result:
@@ -178,6 +206,7 @@ class InfobloxDNSManager(object):
         max_tries=4,
         factor=10,
         on_backoff=APIH.connection_error_retry,
+        on_giveup=APIH.backoff_giveup,
     )
     def __backoff_api_retry(self):
         """
@@ -204,6 +233,8 @@ class InfobloxDNSManager(object):
             self.APIH.handle_api_error(herr, "get_iblox_" + self.record_type.lower())
         except requests.exceptions.RequestException as err:
             self.APIH.handle_api_error(err, "get_iblox_" + self.record_type.lower())
+        except Exception as unk_err:
+            self.APIH.handle_api_error(unk_err, "get_iblox_" + self.record_type.lower())
         else:
             self.next_page_id = None
             self.__infoblox_response_handler(response)

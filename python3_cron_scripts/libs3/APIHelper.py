@@ -23,13 +23,15 @@ class APIHelper(object):
 
     INCORRECT_RESPONSE_JSON_ALLOWED = 20
 
+    _allowed_giveup_failures = 20
+
     def handle_api_error(self, err, jobs_reference):
         """
         Exits the script execution post setting the status in database.
         :param err: Exception causing script exit.
         :param jobs_reference: A string with the job name or the JobsManager for the exiting script.
         """
-        self._logger.error(err)
+        self._logger.error("FATAL: " + str(err))
         self._logger.error("Exiting script execution.")
         if isinstance(jobs_reference, str):
             jobs_manager = JobsManager.JobsManager(self.MC, jobs_reference)
@@ -45,3 +47,19 @@ class APIHelper(object):
                 **details
             )
         )
+
+    def backoff_giveup(self, details):
+        """
+        This is a temporary addition to see how often the system calls this function.
+        It will need tuning.
+        """
+        self._logger.error(
+            "FATAL: Calling function {target} could not connect with args {args} and kwargs "
+            "{kwargs}".format(**details)
+        )
+
+        # This is temporary addition that will require tuning to get the correct threshold
+        self._allowed_giveup_failures = self._allowed_giveup_failures - 1
+        if self._allowed_giveup_failures <= 0:
+            self._logger.error("FATAL: Number of allowed failures reached. Exiting.")
+            exit(1)
