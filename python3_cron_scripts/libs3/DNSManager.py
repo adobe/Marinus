@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2018 Adobe. All rights reserved.
+# Copyright 2022 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -18,8 +18,7 @@ import logging
 from datetime import datetime
 
 from bson.objectid import ObjectId
-
-from libs3 import IPManager, MongoConnector
+from libs3 import IPManager
 
 
 class DNSManager(object):
@@ -56,7 +55,9 @@ class DNSManager(object):
                     mongo_connector, alternative_collection
                 )()
             except:
-                self._logger.error("Could not fetch dynamic collection in DNS Manager")
+                self._logger.error(
+                    "FATAL: Could not fetch dynamic collection in DNS Manager"
+                )
                 exit(1)
         else:
             self.all_dns_collection = mongo_connector.get_all_dns_connection()
@@ -91,12 +92,14 @@ class DNSManager(object):
         )
         return date.replace(day=d, month=m, year=y)
 
-    def insert_record(self, result, source_name):
+    def insert_record(self, result, source_name, source_metadata=None):
         """
         Insert the provided source as a record from the provided source name.
         :param result: The result of a DNS lookup as a JSON object including
                        the fqdn, type, value, zone, and created values.
         :param source_name: The DNS record source ("ssl","virustotal","sonar_dns","common_crawl")
+        :param source_metadata: An optional record for additional source metadata
+                        [{"key": "foo1", "value", "bar1"}, {"key": "foo2", "value", "bar2"}]
         """
         query = {
             "fqdn": result["fqdn"],
@@ -110,6 +113,9 @@ class DNSManager(object):
             result["sources"].append({})
             result["sources"][0]["source"] = source_name
             result["sources"][0]["updated"] = datetime.now()
+            if source_metadata is not None and len(source_metadata) > 0:
+                for entry in source_metadata:
+                    result["sources"][0][entry["key"]] = entry["value"]
             result["updated"] = datetime.now()
             self.mongo_connector.perform_insert(self.all_dns_collection, result)
         else:
@@ -128,10 +134,27 @@ class DNSManager(object):
                     {"_id": ObjectId(check["_id"])},
                     {"$set": {"updated": datetime.now()}},
                 )
+                if source_metadata is not None and len(source_metadata) > 0:
+                    for metadata in source_metadata:
+                        self.all_dns_collection.update_one(
+                            {
+                                "_id": ObjectId(check["_id"]),
+                                "sources.source": source_name,
+                            },
+                            {
+                                "$set": {
+                                    "sources.$." + metadata["key"]: metadata["value"],
+                                }
+                            },
+                        )
             else:
                 entry = {}
                 entry["source"] = source_name
                 entry["updated"] = datetime.now()
+                if source_metadata is not None and len(source_metadata) > 0:
+                    for metadata in source_metadata:
+                        entry[metadata["key"]] = metadata["value"]
+
                 self.all_dns_collection.update_one(
                     {"_id": ObjectId(check["_id"])}, {"$push": {"sources": entry}}
                 )
@@ -155,7 +178,9 @@ class DNSManager(object):
         if source != None:
             criteria["sources.source"] = source
 
-        check = self.mongo_connector.perform_find(self.all_dns_collection, criteria)
+        check = self.mongo_connector.perform_find(
+            self.all_dns_collection, criteria, batch_size=25
+        )
         return check
 
     def find_one(self, criteria, source):
