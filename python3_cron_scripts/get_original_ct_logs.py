@@ -127,7 +127,11 @@ def fetch_sth(logger, url, jobs_manager):
     Fetch the initial STH record from the CT Log.
     """
     result = make_https_request(logger, url + "/ct/v1/get-sth", jobs_manager)
-    return json.loads(result)
+
+    if result is None:
+        return None
+    else:
+        return json.loads(result)
 
 
 def fetch_certificate_batch(logger, url, starting_index, ending_index, jobs_manager):
@@ -469,6 +473,11 @@ def main(logger=None):
     logger.info("Starting Index: " + str(starting_index))
 
     sth_data = fetch_sth(logger, "https://" + ct_log_map["url"], jobs_manager)
+    if sth_data is None:
+        logger.error("FATAL: Failed to retrieve sth_data")
+        jobs_manager.record_job_error()
+        exit(1)
+
     logger.info("Tree size: " + str(sth_data["tree_size"]))
 
     current_index = starting_index
