@@ -11,6 +11,8 @@
 # governing permissions and limitations under the License.
 
 """
+NOTE: This script has been deprecated.
+
 This script is responsible for downloading and unpacking the huge file from Censys.io.
 This will take a little over 11 hours to download and unpack a one gig Censys file.
 The second stage script, search_censys_files, takes approximately two days to run.
