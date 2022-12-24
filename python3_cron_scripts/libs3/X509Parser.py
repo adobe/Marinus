@@ -195,11 +195,11 @@ class X509Parser(object):
         },
         "yeti2024": {
             "id": "SLDja9qmRzQP5WoC+p0w6xxSActW3SyB2bu/qznYhHM=",
-            "url": "yeti2024.ct.digicert.com/log/",
+            "url": "yeti2024.ct.digicert.com/log",
         },
         "yeti2025": {
             "id": "fVkeEuF4KnscYWd8Xv340IdcFKBOlZ65Ay/ZDowuebg=",
-            "url": "yeti2025.ct.digicert.com/log/",
+            "url": "yeti2025.ct.digicert.com/log",
         },
         "nessie2018": {
             "id": "b/FBtWR+QiL37wUs7658If1gjifSr1pun0uKN9ZjPuU=",
@@ -227,11 +227,11 @@ class X509Parser(object):
         },
         "nessie2024": {
             "id": "c9meiRtMlnigIH1HneayxhzQUV5xGSqMa4AQesF3crU=",
-            "url": "nessie2024.ct.digicert.com/log/",
+            "url": "nessie2024.ct.digicert.com/log",
         },
         "nessie2025": {
             "id": "fVkeEuF4KnscYWd8Xv340IdcFKBOlZ65Ay/ZDowuebg=",
-            "url": "nessie2025.ct.digicert.com/log/",
+            "url": "nessie2025.ct.digicert.com/log",
         },
         # Symantec [Retired]
         "symantec-ct": {
