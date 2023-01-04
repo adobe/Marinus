@@ -34,8 +34,8 @@ def add_to_list(str_to_add, round_two):
     This will add a string to the round_two array if it does not exist.
     It will then return the index of the string within the Array
     """
-    if str_to_add not in round_two:
-        round_two.append(str_to_add)
+    if str_to_add.lower() not in round_two:
+        round_two.append(str_to_add.lower())
     return round_two.index(str_to_add)
 
 
