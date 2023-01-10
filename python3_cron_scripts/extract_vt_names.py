@@ -36,7 +36,7 @@ def add_to_list(str_to_add, round_two):
     """
     if str_to_add.lower() not in round_two:
         round_two.append(str_to_add.lower())
-    return round_two.index(str_to_add)
+    return round_two.index(str_to_add.lower())
 
 
 def is_tracked_zone(cname, zones):

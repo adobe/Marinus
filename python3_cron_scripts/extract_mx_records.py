@@ -33,7 +33,7 @@ def add_to_list(str_to_add, dns_names):
     """
     if str_to_add.lower() not in dns_names:
         dns_names.append(str_to_add.lower())
-    return dns_names.index(str_to_add)
+    return dns_names.index(str_to_add.lower())
 
 
 def add_to_round_two(str_to_add, round_two):
@@ -43,7 +43,7 @@ def add_to_round_two(str_to_add, round_two):
     """
     if str_to_add.lower() not in round_two:
         round_two.append(str_to_add.lower())
-    return round_two.index(str_to_add)
+    return round_two.index(str_to_add.lower())
 
 
 def is_tracked_zone(cname, zones):
