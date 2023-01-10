@@ -101,6 +101,9 @@ class DNSManager(object):
         :param source_metadata: An optional record for additional source metadata
                         [{"key": "foo1", "value", "bar1"}, {"key": "foo2", "value", "bar2"}]
         """
+        # Ensure all inserted records are lowercase
+        result["fqdn"] = result["fqdn"].lower()
+
         query = {
             "fqdn": result["fqdn"],
             "type": result["type"],

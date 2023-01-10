@@ -106,7 +106,7 @@ class ZoneIngestor(object):
             sub_zones.extend(self.__create_sub_zone_entries(sub_zone))
 
         insert_zone = dict()
-        insert_zone["zone"] = parent
+        insert_zone["zone"] = parent.lower()
         insert_zone["reporting_sources"] = list()
         insert_zone["reporting_sources"].append(
             {
