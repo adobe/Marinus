@@ -55,6 +55,6 @@ class LoggingUtil:
                 level = None
 
             if level is not None:
-                logger.setLevel(level)
+                logger.setLevel(int(level))
 
         return logger
