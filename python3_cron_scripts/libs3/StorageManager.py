@@ -27,7 +27,6 @@ from libs3.ConnectorUtil import ConnectorUtil
 
 
 class StorageManager(object):
-
     AZURE_BLOB = "azure_blob"
     AWS_S3 = "aws_s3"
     LOCAL_FILESYSTEM = "local_filesystem"

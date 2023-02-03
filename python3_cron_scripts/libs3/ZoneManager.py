@@ -23,7 +23,6 @@ from tld import get_fld
 
 
 class ZoneManager(object):
-
     # A status of confirmed typically means it was entered by a human
     CONFIRMED = "confirmed"
 

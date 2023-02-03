@@ -20,7 +20,6 @@ from libs3 import InfobloxConnector, MongoConnector
 
 
 class InfobloxHelper(object):
-
     MC = MongoConnector.MongoConnector()
 
     IC = InfobloxConnector.InfobloxConnector()

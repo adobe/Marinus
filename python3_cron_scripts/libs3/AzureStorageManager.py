@@ -157,7 +157,6 @@ class AzureStorageManager(object):
 
         return data
 
-
     def delete_file(self, foldername: str, filename: str):
         """
         Delete a file within Azure

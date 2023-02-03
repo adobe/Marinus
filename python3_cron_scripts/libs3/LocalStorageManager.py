@@ -33,7 +33,6 @@ class LocalStorageManager(object):
         return logging.getLogger(__name__)
 
     def __init__(self, config_file="", log_level=None) -> None:
-
         self._logger = self._log()
         if log_level is not None:
             self._logger.setLevel(log_level)
@@ -142,4 +141,3 @@ class LocalStorageManager(object):
             return None
 
         return True
-

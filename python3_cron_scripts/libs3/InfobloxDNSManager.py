@@ -29,7 +29,6 @@ from requests.auth import HTTPBasicAuth
 
 
 class InfobloxDNSManager(object):
-
     # Make database connections
     MC = MongoConnector.MongoConnector()
     zone_collection = MC.get_zone_connection()

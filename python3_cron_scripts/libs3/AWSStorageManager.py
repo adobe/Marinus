@@ -26,7 +26,6 @@ from libs3.ConnectorUtil import ConnectorUtil
 
 
 class AWSStorageManager(object):
-
     _storage_config_file = "connector.config"
     _logger = None
 
@@ -171,7 +170,6 @@ class AWSStorageManager(object):
 
         return data
 
-
     def delete_file(self, foldername: str, filename: str):
         """
         Delete a file within AWS
@@ -206,4 +204,3 @@ class AWSStorageManager(object):
             self._logger.error("Could not not list files in Bucket: " + foldername)
             self._logger.error(str(err))
             return False
-

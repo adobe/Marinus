@@ -28,7 +28,6 @@ from libs3 import SplunkConnector
 
 
 class SplunkQueryManager(object):
-
     # The offset within the query
     _OFFSET = 0
 

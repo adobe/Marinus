@@ -28,7 +28,6 @@ from libs3 import MongoConnector, ZoneManager
 
 
 class ZoneIngestor(object):
-
     # Connect to the database
     MC = MongoConnector.MongoConnector()
     zone_collection = MC.get_zone_connection()

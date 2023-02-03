@@ -16,7 +16,6 @@ from libs3 import JobsManager, MongoConnector
 
 
 class APIHelper(object):
-
     _logger = logging.getLogger(__name__)
 
     MC = MongoConnector.MongoConnector()

@@ -88,7 +88,6 @@ class JobsManager(object):
                 {"job_name": job_name, "status": self.NOT_RUN, "updated": now},
             )
 
-
     def create_job(self, job_name):
         """
         Create a new job in the jobs_collection.

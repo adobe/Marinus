@@ -25,7 +25,6 @@ from urllib3.util import Retry
 
 
 class GoogleDNS(object):
-
     DNS_TYPES = {
         "a": 1,
         "ns": 2,
