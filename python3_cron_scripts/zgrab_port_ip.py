@@ -891,9 +891,7 @@ def main(logger=None):
     elif args.zones_only:
         (ips, ip_context) = get_only_ipzones(ip_manager.Tracked_CIDRs)
     else:
-        (ips, ip_context) = get_ips(
-            ip_manager, all_dns_collection
-        )
+        (ips, ip_context) = get_ips(ip_manager, all_dns_collection)
 
     if args.s and int(args.s) > 0:
         global_sleep_time = int(args.s)

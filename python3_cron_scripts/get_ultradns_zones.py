@@ -27,7 +27,6 @@ from libs3.LoggingUtil import LoggingUtil
 
 
 class UltraDNSZone(object):
-
     UH = UltraDNSHelper.UltraDNSHelper("get_ultradns_zones")
     APIH = APIHelper.APIHelper()
     ZI = ZoneIngestor.ZoneIngestor()

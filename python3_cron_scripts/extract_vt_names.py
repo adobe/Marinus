@@ -90,7 +90,6 @@ def main(logger=None):
 
     # For each result found in the first pass across VirusTotal
     for result in vt_results:
-
         # Pause to prevent DoS-ing of Google's HTTPS DNS Service
         time.sleep(1)
 

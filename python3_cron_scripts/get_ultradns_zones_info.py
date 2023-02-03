@@ -30,7 +30,6 @@ from netaddr.core import AddrFormatError
 
 
 class UltraDNSZonesInfo(object):
-
     UH = UltraDNSHelper.UltraDNSHelper("get_ultradns_zones_info")
     APIH = APIHelper.APIHelper()
     DNS_MGR = DNSManager.DNSManager(UH.MC)

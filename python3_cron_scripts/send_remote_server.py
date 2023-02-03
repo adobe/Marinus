@@ -189,7 +189,6 @@ def update_all_dns_diff_mode(
     remote_all_dns_collection = rm_connector.get_all_dns_connection()
 
     for zone in zone_list:
-
         all_dns_count = mongo_connector.perform_count(
             all_dns_collection, {"zone": zone}
         )

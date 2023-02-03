@@ -181,7 +181,6 @@ def main(logger=None):
     for zone in zones:
         # Ensure the zone contains at least one dot. This is left over from an old bug.
         if zone.find(".") > 0:
-
             logger.debug(zone)
             zone_result = whois_collection.find_one({"zone": zone})
 
