@@ -284,7 +284,7 @@ module.exports = function (envConfig) {
             } else if (count) {
                 promise = ipRecs.getAllIPRecordsCountPromise();
             } else {
-                promise = ipRecs.getAllIPRecordsPromise();
+                promise = ipRecs.getAllIPRecordsPromise(limit, page);
             }
 
             promise.then(function (data) {
