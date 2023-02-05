@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2022 Adobe. All rights reserved.
+# Copyright 2023 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -83,7 +83,7 @@ def make_https_request(logger, url, jobs_manager, download=False, timeout_attemp
         req = requests_retry_session().get(url, timeout=120)
         req.raise_for_status()
     except requests.exceptions.ConnectionError as c_err:
-        logger.error("Connection Error while fetching the cert list")
+        logger.error("FATAL: Connection Error while fetching the cert list")
         logger.error(str(c_err))
         jobs_manager.record_job_error()
         exit(1)
@@ -92,11 +92,11 @@ def make_https_request(logger, url, jobs_manager, download=False, timeout_attemp
         logger.warning(str(h_err))
         return None
     except requests.exceptions.RequestException as err:
-        logger.error("Request exception while fetching the cert list")
-        logger.error(str(err))
-        jobs_manager.record_job_error()
-        exit(1)
-    except Timeout:
+        # Allow to pass through to capture last index
+        logger.warning("HTTP Error while fetching the cert list")
+        logger.warning(str(err))
+        return None
+    except Timeout as t_err:
         if timeout_attempt == 0:
             logger.warning("Timeout occurred. Attempting again...")
             result = make_https_request(
@@ -104,11 +104,11 @@ def make_https_request(logger, url, jobs_manager, download=False, timeout_attemp
             )
             return result
         else:
-            logger.error("Too many timeouts. Exiting")
+            logger.error("FATAL: Too many timeouts. Exiting")
             jobs_manager.record_job_error()
             exit(1)
     except Exception as e:
-        logger.error("UNKNOWN ERROR with the HTTP Request: " + str(e))
+        logger.error("FATAL: UNKNOWN ERROR with the HTTP Request: " + str(e))
         jobs_manager.record_job_error()
         exit(1)
 
@@ -127,14 +127,35 @@ def fetch_sth(logger, url, jobs_manager):
     Fetch the initial STH record from the CT Log.
     """
     result = make_https_request(logger, url + "/ct/v1/get-sth", jobs_manager)
-
     if result is None:
         return None
     else:
         return json.loads(result)
 
 
-def fetch_certificate_batch(logger, url, starting_index, ending_index, jobs_manager):
+def set_last_index(last_index_collection, source, index):
+    """
+    Record the last successful index value searched.
+    The sleep commands are unsuccessful in avoiding all 429 errors for too many requests
+    Certs are now frequently spaced out to far to use the trick of the last cert found.
+    Therefore, it is important to track the last successful index when errors are encountered.
+    """
+    last_index_collection.update_one(
+        {"log_source": source},
+        {"$set": {"last_index": index}},
+        upsert=True,
+    )
+
+
+def fetch_certificate_batch(
+    logger,
+    url,
+    starting_index,
+    ending_index,
+    jobs_manager,
+    last_index_collection,
+    source,
+):
     """
     Fetch a range of records from the CT Log.
     Each log has its own limits on the number of records returned which means
@@ -157,7 +178,10 @@ def fetch_certificate_batch(logger, url, starting_index, ending_index, jobs_mana
             + " and ending index "
             + str(ending_index)
         )
-        time.sleep(600)
+
+        # Some logs rate limit. Therefore, pause before giving it one more shot.
+        time.sleep(3610)
+
         result = make_https_request(
             logger,
             url
@@ -171,17 +195,24 @@ def fetch_certificate_batch(logger, url, starting_index, ending_index, jobs_mana
     if result is None:
         jobs_manager.record_job_error()
         logger.error("FATAL: No result from get-entries", exc_info=True)
+        # Start one search back on the next round just to be sure
+        set_last_index(last_index_collection, source, starting_index - 256)
         exit(1)
 
     return json.loads(result)
 
 
-def fetch_starting_index(ct_collection, source):
+def fetch_starting_index(ct_collection, last_index_collection, source):
     """
     Try to determine if we have the IDs from previous searches of this log.
     This will allow us to limit log searches to only those records that
     have been added since the last matched certificate ID.
     """
+
+    last_index_result = last_index_collection.find_one({"log_source": source})
+    if last_index_result is not None:
+        return last_index_result["last_index"]
+
     result = (
         ct_collection.find(
             {source + "_id": {"$exists": True}}, {source + "_id": 1, "_id": 0}
@@ -379,6 +410,7 @@ def main(logger=None):
     mongo_connector = MongoConnector.MongoConnector()
     ct_collection = mongo_connector.get_certificate_transparency_connection()
     config_collection = mongo_connector.get_config_connection()
+    last_index_collection = mongo_connector.get_ct_last_index_connection()
     x509parser = X509Parser.X509Parser()
 
     zones = ZoneManager.get_distinct_zones(mongo_connector)
@@ -438,13 +470,19 @@ def main(logger=None):
         default=StorageManager.LOCAL_FILESYSTEM,
         help="Indicates where to save the files when dbAndSave is chosen",
     )
+    parser.add_argument(
+        "--loop_delay",
+        type=int,
+        default=0,
+        help="Add a delay between requests for rate-limited logs",
+    )
     args = parser.parse_args()
 
     source = args.log_source
     try:
         ct_log_map = x509parser.CT_LOG_MAP[source]
     except:
-        logger.error("ERROR: UNKNOWN LOG SOURCE: " + source)
+        logger.error("FATAL: ERROR: UNKNOWN LOG SOURCE: " + source)
         exit(1)
 
     if args.cert_save_location:
@@ -467,7 +505,9 @@ def main(logger=None):
         check_save_location(storage_manager, save_location, source)
 
     if args.starting_index == -1:
-        starting_index = fetch_starting_index(ct_collection, source)
+        starting_index = fetch_starting_index(
+            ct_collection, last_index_collection, source
+        )
     else:
         starting_index = args.starting_index
     logger.info("Starting Index: " + str(starting_index))
@@ -482,6 +522,11 @@ def main(logger=None):
 
     current_index = starting_index
     while current_index < sth_data["tree_size"]:
+        # Some CT logs will rate limit the number of requests.
+        # This will allow the requests to be spaced out.
+        if args.loop_delay > 0:
+            time.sleep(args.loop_delay)
+
         ending_index = current_index + 256
         if ending_index > sth_data["tree_size"]:
             ending_index = sth_data["tree_size"]
@@ -498,6 +543,8 @@ def main(logger=None):
             current_index,
             ending_index,
             jobs_manager,
+            last_index_collection,
+            source,
         )
 
         for entry in certs["entries"]:
@@ -543,6 +590,9 @@ def main(logger=None):
                     )
 
             current_index = current_index + 1
+
+        # Record the last successful index
+        set_last_index(last_index_collection, source, current_index - 1)
 
     # Set isExpired for any entries that have recently expired.
     ct_collection.update_many(

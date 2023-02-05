@@ -81,6 +81,10 @@ class MongoConnector(MongoConnectorBase):
         """Returns a connection to the ct_certs collection in MongoDB"""
         return self.m_connection.ct_certs
 
+    def get_ct_last_index_connection(self):
+        """Returns a connection to the last_ct_ids collection in MongoDB"""
+        return self.m_connection.ct_last_index
+
     def get_cidr_graphs_connection(self):
         """Returns a connection to the cidr_graphs collection in MongoDB"""
         return self.m_connection.cidr_graphs
