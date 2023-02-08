@@ -7,7 +7,7 @@ boto3
 bson
 certifi
 configparser
-cryptography==3.4.8
+cryptography==39.0.1
 HTMLParser
 netaddr
 networkx
