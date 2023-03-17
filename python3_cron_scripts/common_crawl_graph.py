@@ -56,7 +56,8 @@ from libs3.ZoneManager import ZoneManager
 # CURRENT_FILE_LIST = "https://commoncrawl.s3.amazonaws.com/projects/hyperlinkgraph/cc-main-2021-jun-jul-sep/host/cc-main-2021-jun-jul-sep-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2021-jun-jul-sep/host/cc-main-2021-jun-jul-sep-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2021-22-oct-nov-jan/host/cc-main-2021-22-oct-nov-jan-host-vertices.paths.gz"
-CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2022-may-jun-aug/host/cc-main-2022-may-jun-aug-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2022-may-jun-aug/host/cc-main-2022-may-jun-aug-host-vertices.paths.gz"
+CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2022-23-sep-nov-jan/host/cc-main-2022-23-sep-nov-jan-host-vertices.paths.gz"
 
 ROOT_DOMAIN = "https://data.commoncrawl.org/"
 
