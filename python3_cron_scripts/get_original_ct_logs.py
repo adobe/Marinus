@@ -133,18 +133,25 @@ def fetch_sth(logger, url, jobs_manager):
         return json.loads(result)
 
 
-def set_last_index(last_index_collection, source, index):
+def set_last_index(last_index_collection, source, index, job_number):
     """
     Record the last successful index value searched.
     The sleep commands are unsuccessful in avoiding all 429 errors for too many requests
     Certs are now frequently spaced out to far to use the trick of the last cert found.
     Therefore, it is important to track the last successful index when errors are encountered.
     """
-    last_index_collection.update_one(
-        {"log_source": source},
-        {"$set": {"last_index": index}},
-        upsert=True,
-    )
+    if job_number == 0:
+        last_index_collection.update_one(
+            {"log_source": source},
+            {"$set": {"last_index": index}},
+            upsert=True,
+        )
+    else:
+        last_index_collection.update_one(
+            {"log_source": source},
+            {"$set": {"last_index_job_" + str(job_number): index}},
+            upsert=True,
+        )
 
 
 def fetch_certificate_batch(
@@ -155,6 +162,7 @@ def fetch_certificate_batch(
     jobs_manager,
     last_index_collection,
     source,
+    job_number,
 ):
     """
     Fetch a range of records from the CT Log.
@@ -196,13 +204,15 @@ def fetch_certificate_batch(
         jobs_manager.record_job_error()
         logger.error("FATAL: No result from get-entries", exc_info=True)
         # Start one search back on the next round just to be sure
-        set_last_index(last_index_collection, source, starting_index - 256)
+        set_last_index(last_index_collection, source, starting_index - 256, job_number)
         exit(1)
 
     return json.loads(result)
 
 
-def fetch_starting_index(ct_collection, last_index_collection, source):
+def fetch_starting_index(
+    ct_collection, last_index_collection, source, job_number, starting_index
+):
     """
     Try to determine if we have the IDs from previous searches of this log.
     This will allow us to limit log searches to only those records that
@@ -211,7 +221,20 @@ def fetch_starting_index(ct_collection, last_index_collection, source):
 
     last_index_result = last_index_collection.find_one({"log_source": source})
     if last_index_result is not None:
-        return last_index_result["last_index"]
+        if job_number == 0:
+            if last_index_result["last_index"] >= starting_index:
+                return last_index_result["last_index"]
+            else:
+                return starting_index
+        else:
+            index_name = "last_index_job_" + str(job_number)
+            if (
+                index_name in last_index_result
+                and last_index_result[index_name] >= starting_index
+            ):
+                return last_index_result[index_name]
+            else:
+                return starting_index
 
     result = (
         ct_collection.find(
@@ -223,6 +246,9 @@ def fetch_starting_index(ct_collection, last_index_collection, source):
 
     for entry in result:
         return entry[source + "_id"]
+
+    if starting_index > 0:
+        return starting_index
 
     return 0
 
@@ -446,7 +472,14 @@ def main(logger=None):
         required=False,
         default=-1,
         type=int,
-        help="Force the script to start at specific index within the log.",
+        help="Start at specific index within the log. This will be overridden if previous runs have already surpassed this point",
+    )
+    parser.add_argument(
+        "--ending_index",
+        required=False,
+        default=-1,
+        type=int,
+        help="Force the script to stop at specific index within the log.",
     )
     parser.add_argument(
         "--cert_save_location",
@@ -476,6 +509,14 @@ def main(logger=None):
         default=0,
         help="Add a delay between requests for rate-limited logs",
     )
+    parser.add_argument(
+        "--job_number",
+        required=False,
+        type=int,
+        default=0,
+        help="If multiple concurrent instances of this script are run against the same CT log,\
+          then an unique number must be provided for tracking each job",
+    )
     args = parser.parse_args()
 
     source = args.log_source
@@ -504,12 +545,13 @@ def main(logger=None):
     if download_method == "dbAndSave":
         check_save_location(storage_manager, save_location, source)
 
-    if args.starting_index == -1:
-        starting_index = fetch_starting_index(
-            ct_collection, last_index_collection, source
-        )
-    else:
-        starting_index = args.starting_index
+    starting_index = fetch_starting_index(
+        ct_collection,
+        last_index_collection,
+        source,
+        args.job_number,
+        args.starting_index,
+    )
     logger.info("Starting Index: " + str(starting_index))
 
     sth_data = fetch_sth(logger, "https://" + ct_log_map["url"], jobs_manager)
@@ -520,16 +562,22 @@ def main(logger=None):
 
     logger.info("Tree size: " + str(sth_data["tree_size"]))
 
+    if args.ending_index == -1:
+        stop_index = sth_data["tree_size"]
+    else:
+        stop_index = args.ending_index
+    logger.info("Ending Index: " + str(stop_index))
+
     current_index = starting_index
-    while current_index < sth_data["tree_size"]:
+    while current_index < stop_index:
         # Some CT logs will rate limit the number of requests.
         # This will allow the requests to be spaced out.
         if args.loop_delay > 0:
             time.sleep(args.loop_delay)
 
         ending_index = current_index + 256
-        if ending_index > sth_data["tree_size"]:
-            ending_index = sth_data["tree_size"]
+        if ending_index > stop_index:
+            ending_index = stop_index
 
         logger.debug(
             "Checking from index: "
@@ -545,6 +593,7 @@ def main(logger=None):
             jobs_manager,
             last_index_collection,
             source,
+            args.job_number,
         )
 
         for entry in certs["entries"]:
@@ -592,7 +641,9 @@ def main(logger=None):
             current_index = current_index + 1
 
         # Record the last successful index
-        set_last_index(last_index_collection, source, current_index - 1)
+        set_last_index(
+            last_index_collection, source, current_index - 1, args.job_number
+        )
 
     # Set isExpired for any entries that have recently expired.
     ct_collection.update_many(
