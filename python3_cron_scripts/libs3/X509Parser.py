@@ -28,17 +28,13 @@ import sys
 from datetime import datetime
 
 from cryptography import x509
+from cryptography.hazmat._oid import _OID_NAMES
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.bindings.openssl import binding
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.x509 import ExtensionNotFound
-from cryptography.x509.oid import (
-    _OID_NAMES,
-    ExtensionOID,
-    NameOID,
-    SignatureAlgorithmOID,
-)
+from cryptography.x509.oid import ExtensionOID, NameOID, SignatureAlgorithmOID
 from OpenSSL import crypto
 
 
