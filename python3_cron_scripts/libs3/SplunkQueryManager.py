@@ -22,9 +22,8 @@ from socket import error as SocketError
 
 import splunklib.client as client
 import splunklib.results as results
-from splunklib.binding import HTTPError
-
 from libs3 import SplunkConnector
+from splunklib.binding import HTTPError
 
 
 class SplunkQueryManager(object):
@@ -65,7 +64,8 @@ class SplunkQueryManager(object):
             self._CLIENT = splunk_connector.get_splunk_client()
 
         if self._CLIENT is None:
-            self._logger.error("Could not create Splunk client")
+            self._logger.error("FATAL: Could not create Splunk client")
+            exit(1)
 
         self._OFFSET = 0
         self._COUNT = 100
@@ -74,7 +74,9 @@ class SplunkQueryManager(object):
         """
         Create the new job
         """
-        return self._CLIENT.jobs.create(search_query, **{"exec_mode": "blocking"})
+        return self._CLIENT.jobs.create(
+            search_query, **{"exec_mode": "blocking", "output_mode": "json"}
+        )
 
     def do_search(self, search_query, count):
         """
@@ -89,16 +91,20 @@ class SplunkQueryManager(object):
         self.RESULTCOUNT = int(self._JOB["resultCount"])
 
         if self.RESULTCOUNT < self._COUNT:
-            result_stream = self._JOB.results()
-            return results.ResultsReader(result_stream)
+            result_stream = self._JOB.results(output_mode="json")
+            return results.JSONResultsReader(result_stream)
 
-        kwargs_paginate = {"count": self._COUNT, "offset": self._OFFSET}
+        kwargs_paginate = {
+            "count": self._COUNT,
+            "offset": self._OFFSET,
+            "output_mode": "json",
+        }
 
         blocksearch_results = self._JOB.results(**kwargs_paginate)
 
         self._OFFSET = self._OFFSET + self._COUNT
 
-        return results.ResultsReader(blocksearch_results)
+        return results.JSONResultsReader(blocksearch_results)
 
     def get_next_page(self):
         """
@@ -107,7 +113,11 @@ class SplunkQueryManager(object):
         if self._OFFSET >= self.RESULTCOUNT:
             return None
 
-        kwargs_paginate = {"count": self._COUNT, "offset": self._OFFSET}
+        kwargs_paginate = {
+            "count": self._COUNT,
+            "offset": self._OFFSET,
+            "output_mode": "json",
+        }
 
         try:
             blocksearch_results = self._JOB.results(**kwargs_paginate)
@@ -117,7 +127,7 @@ class SplunkQueryManager(object):
             try:
                 blocksearch_results = self._JOB.results(**kwargs_paginate)
             except HTTPError as http_error:
-                self._logger.error("Second HTTP Error! " + str(http_error))
+                self._logger.error("FATAL: Second HTTP Error! " + str(http_error))
                 exit(1)
         except SocketError as socket_error:
             if socket_error.errno != errno.ECONNRESET:
@@ -129,10 +139,10 @@ class SplunkQueryManager(object):
                     blocksearch_results = self._JOB.results(**kwargs_paginate)
                 except SocketError as socket_error:
                     self._logger.error(
-                        "Second Socket Timeout Error! " + str(socket_error)
+                        "FATAL: Second Socket Timeout Error! " + str(socket_error)
                     )
                     exit(1)
 
         self._OFFSET = self._OFFSET + self._COUNT
 
-        return results.ResultsReader(blocksearch_results)
+        return results.JSONResultsReader(blocksearch_results)
