@@ -18,7 +18,6 @@ Having it centralized, means that the included and excluded status' can be manag
 import logging
 from datetime import datetime
 
-from pymongo import MongoClient
 from tld import get_fld
 
 
