@@ -726,13 +726,14 @@ class X509Parser(object):
 
         try:
             self.__get_extensions(cert_object, cert.extensions, openssl_cert)
-        except ValueError:
+        except ValueError as ve:
             # The X509 parser struggles with some certificates
             # Python cryptography will throw an error if the path_length is not None when ca is False
             # There could also be an issue with parsing SCTS entries
             self._logger.warning(
                 "WARNING: Could not parse extensions for certificate due to ValueError."
             )
+            self._logger.warning("Value error: " + str(ve))
             return None
         except x509.DuplicateExtension:
             # Python cryptography will error out if it finds a duplicate extension

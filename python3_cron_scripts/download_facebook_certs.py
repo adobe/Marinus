@@ -48,7 +48,7 @@ def make_https_request(logger, jobs_manager, fb_url, timeout_attempt=0):
         req = requests.get(fb_url)
         req.raise_for_status()
     except requests.exceptions.ConnectionError:
-        logger.error("Connection Error while fetching the cert list")
+        logger.error("FATAL: Connection Error while fetching the cert list")
         jobs_manager.record_job_error()
         exit(1)
     except requests.exceptions.HTTPError:
@@ -63,11 +63,11 @@ def make_https_request(logger, jobs_manager, fb_url, timeout_attempt=0):
             result = make_https_request(logger, jobs_manager, fb_url, timeout_attempt=1)
             return result
         else:
-            logger.error("Too many timeouts. Exiting")
+            logger.error("FATAL: Too many timeouts. Exiting")
             jobs_manager.record_job_error()
             exit(1)
     except requests.exceptions.RequestException as err:
-        logger.error("Request exception while fetching the cert list")
+        logger.error("FATAL: Request exception while fetching the cert list")
         logger.error(str(err))
         jobs_manager.record_job_error()
         exit(1)
@@ -176,9 +176,7 @@ def main(logger=None):
         if args.storage_system == StorageManager.StorageManager.LOCAL_FILESYSTEM:
             if "/" not in save_location:
                 save_location = "./" + save_location
-
-        if not save_location.endswith("/"):
-            save_location = save_location + "/"
+                save_location = save_location + "/"
 
     storage_manager = StorageManager.StorageManager(location=args.storage_system)
 
@@ -204,6 +202,12 @@ def main(logger=None):
                 )
 
             cert = x509_parser.parse_data(result["certificate_pem"], "facebook")
+            if cert is None:
+                logger.error(
+                    "Could not parse Facebook certificate: " + str(result["id"])
+                )
+                continue
+
             cert["facebook_id"] = result["id"]
 
             if (
