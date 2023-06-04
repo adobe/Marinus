@@ -19,6 +19,25 @@ const htmlEscape = require('secure-filters').html;
 const vt = require('../config/models/virustotal');
 
 /**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * @swagger
  * securityDefinitions:
  *   # X-API-Key: abcdef12345
@@ -339,6 +358,12 @@ module.exports = function (envConfig) {
      */
     router.route('/virustotal/domainDetected')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('type'))) {
                 res.status(400).json({ 'message': 'A type must be provided' });
                 return;
@@ -436,6 +461,12 @@ module.exports = function (envConfig) {
      */
     router.route('/virustotal/domainReport')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
@@ -536,6 +567,12 @@ module.exports = function (envConfig) {
      */
     router.route('/virustotal/domainMetaReport')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
@@ -644,6 +681,12 @@ module.exports = function (envConfig) {
     router.route('/virustotal/domainPcaps')
         .get(function (req, res) {
             let promise;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('zone')) {
                 let count = false;
                 if (req.query.hasOwnProperty('count') &&
@@ -718,6 +761,12 @@ module.exports = function (envConfig) {
      */
     router.route('/virustotal/domainWhois')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
@@ -816,6 +865,12 @@ module.exports = function (envConfig) {
      */
     router.route('/virustotal/domainIPs')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
@@ -920,6 +975,12 @@ module.exports = function (envConfig) {
      */
     router.route('/virustotal/domainSubdomains')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;

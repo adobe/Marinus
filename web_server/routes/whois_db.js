@@ -17,6 +17,25 @@ const router = express.Router();
 const whoisDB = require('../config/models/whois_db');
 
 /**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * @swagger
  *
  * definitions:
@@ -317,6 +336,12 @@ module.exports = function (envConfig) {
     router.route('/whois_db')
         .get(function (req, res) {
             let promise;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('zone')) {
                 promise = whoisDB.getRecordByZonePromise(req.query.zone);
             } else if (req.query.hasOwnProperty('name_server')) {
@@ -439,4 +464,3 @@ module.exports = function (envConfig) {
 
     return (router);
 };
-
