@@ -39,6 +39,25 @@ function reformatResponse(results) {
 }
 
 /**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * @swagger
  *
  * definitions:
@@ -208,7 +227,7 @@ function reformatResponse(results) {
  *         count:
  *           type: int
  *           example: 5
- *
+ *                           
  */
 
 module.exports = function (envConfig) {
@@ -335,6 +354,12 @@ module.exports = function (envConfig) {
     router.route('/zgrab/ip')
         // get the port data for the provided IP.
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({ 'message': 'An IP must be provided' });
                 return;
@@ -495,6 +520,12 @@ module.exports = function (envConfig) {
     router.route('/zgrab/domain')
         // get the port data for the provided IP.
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('domain'))) {
                 res.status(400).json({ 'message': 'A domain must be provided' });
                 return;
@@ -658,6 +689,12 @@ module.exports = function (envConfig) {
     router.route('/zgrab/zone')
         // get the port data for the provided zone
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
@@ -802,6 +839,12 @@ module.exports = function (envConfig) {
     router.route('/zgrab/22/ips')
         // get list of IPs that respond to port 22
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
@@ -941,6 +984,12 @@ module.exports = function (envConfig) {
         // get list of IPs that respond to port 25
         .get(function (req, res) {
             let count = false;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
             }
@@ -1080,6 +1129,12 @@ module.exports = function (envConfig) {
         // get list of IPs that respond to port 465
         .get(function (req, res) {
             let count = false;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
             }
@@ -1275,6 +1330,12 @@ module.exports = function (envConfig) {
     router.route('/zgrab/443/zones/:zone')
         // get info on a specific zones
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.params.hasOwnProperty('zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
@@ -1412,6 +1473,12 @@ module.exports = function (envConfig) {
         // get list of domains that respond to 443
         .get(function (req, res) {
             let count = false;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
             }
@@ -1550,6 +1617,12 @@ module.exports = function (envConfig) {
         // get list of IPs that respond to port 443
         .get(function (req, res) {
             let count = false;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
             }
@@ -1795,6 +1868,11 @@ module.exports = function (envConfig) {
             let promise;
             let count = false;
 
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             let zone = '';
             if (req.query.hasOwnProperty('zone') && req.query.zone !== '') {
                 zone = req.query.zone;
@@ -1950,6 +2028,12 @@ module.exports = function (envConfig) {
                 res.status(400).json({ 'message': 'An algorithm must be provided.' });
                 return;
             }
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
@@ -2174,6 +2258,10 @@ module.exports = function (envConfig) {
                 recursive = true;
             }
 
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
 
             let limit = 0;
             if (req.query.hasOwnProperty('limit')) {
@@ -2324,6 +2412,12 @@ module.exports = function (envConfig) {
     router.route('/zgrab/443/cert_ca')
         // Get unique CA values from chain[0]
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             let recursive = false;
             if (req.query.hasOwnProperty('recursive') && req.query.recursive === "1") {
                 recursive = true;
@@ -2455,6 +2549,11 @@ module.exports = function (envConfig) {
         .get(function (req, res) {
             if (!(req.params.hasOwnProperty('ca'))) {
                 res.status(400).json({ 'message': 'A CA value must be provided.' });
+                return;
+            }
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
                 return;
             }
 
@@ -2632,6 +2731,11 @@ module.exports = function (envConfig) {
         .get(function (req, res) {
             let recursive = false;
 
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('year'))) {
                 res.status(400).json({ 'message': 'A year must be provided.' });
                 return;
@@ -2765,6 +2869,12 @@ module.exports = function (envConfig) {
         // get info on corporate certs
         .get(function (req, res) {
             let count = false;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true
             }
@@ -2929,6 +3039,11 @@ module.exports = function (envConfig) {
                 return;
             }
 
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true
@@ -3036,6 +3151,12 @@ module.exports = function (envConfig) {
         // get list of domains that respond to port 80
         .get(function (req, res) {
             let count = false;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
             }
@@ -3165,6 +3286,12 @@ module.exports = function (envConfig) {
     router.route('/zgrab/80/ips')
         // get list of IPs that respond to Port 80
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             let count = false;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
@@ -3406,6 +3533,11 @@ module.exports = function (envConfig) {
                 return;
             }
 
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             let header = req.params.header;
             let promise;
             let count = false;
@@ -3486,6 +3618,11 @@ module.exports = function (envConfig) {
 
     router.route('/zgrab/counts')
         .get(function (req, res) {
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('collection'))) {
                 res.status(400).json({
                     'message': 'A collection value must be provided.',

@@ -17,6 +17,25 @@ const router = express.Router();
 const tpdRecs = require('../config/models/tpds');
 
 /**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * @swagger
  *
  * definitions:
@@ -328,6 +347,12 @@ module.exports = function (envConfig) {
     router.route('/tpds/search')
         .get(function (req, res) {
             let promise;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if ((req.query.hasOwnProperty('dataType'))) {
                 if (!req.query.hasOwnProperty('value')) {
                     res.status(400).json({ 'message': 'A value must be provided.' });
