@@ -46,6 +46,28 @@ function createRange(range) {
     return (searchRange);
 }
 
+function isValidDate(d) {
+    return d instanceof Date && !isNaN(d);
+}
+
+/**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 /**
  * @swagger
@@ -136,7 +158,7 @@ module.exports = function (envConfig) {
      *     security:
      *       - APIKeyHeader: []
      *     description: Retrieves information regarding DNS records based on the provided parameters. The parameters range,
-     *                  ipv6_range, domain, ip, ipv6, amazonSearch, txtSearch, dnsType, and cnameTLD are mutually exclusive.
+     *                  ipv6_range, domain, ip, ipv6, amazonSearch, txtSearch, dnsType, created, and cnameTLD are mutually exclusive.
      *     tags: [DNS - DNS Search]
      *     produces:
      *       - application/json
@@ -213,6 +235,31 @@ module.exports = function (envConfig) {
      *         required: false
      *         description: Fetch all DNS parameters associated with this zone. Also works in conjunction with txtSearch, dnsType,
      *                      and cnameTLD queries.
+     *         in: query
+     *       - name: subdomain
+     *         type: string
+     *         required: false
+     *         description: Fetch all DNS parameters associated with this subdomain. This will search for all FQDNs that end with
+     *                      the provided subdomain. For instance, if "foo.example.org" is provided, then it will search for
+     *                      .*\.foo.example.org. There is no need to add the wildcards or leading dots. You only need to
+     *                      provide "foo.example.org".
+     *         in: query
+     *       - name: created
+     *         type: string
+     *         required: false
+     *         description: Fetch all DNS entries whose created value is greater than the provided value. The value must have the
+     *                      format YYYY-MM-DD (or any valid field for the new Date() JavaScript function). Limit and page
+     *                      are supported. A created field can be used in conjunction with the zone parameter.
+     *         in: query
+     *       - name: limit
+     *         type: number
+     *         required: false
+     *         description: Limit the number of records per page when requesting information by zone. Does not apply to other queries. Default 1,000.
+     *         in: query
+     *       - name: page
+     *         type: number
+     *         required: false
+     *         description: The page to request. This must be set in conjunction with the limit parameter. This only applies to zone queries. The default is 1.
      *         in: query
      *     responses:
      *       200:
@@ -352,9 +399,51 @@ module.exports = function (envConfig) {
         .get(function (req, res) {
             let promise;
             let source = null;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('source')) {
                 source = req.query.source;
             }
+
+            let limit = 1000;
+            if (req.query.hasOwnProperty('limit')) {
+                limit = parseInt(req.query.limit);
+                if (isNaN(limit)) {
+                    res.status(400).json({ 'message': 'A valid limit value must be provided.' });
+                    return;
+                }
+                if (limit < 0) {
+                    limit = 0;
+                }
+            }
+
+            let page = 1;
+            if (req.query.hasOwnProperty('page')) {
+                page = parseInt(req.query.page);
+                if (isNaN(page)) {
+                    res.status(400).json({ 'message': 'A valid page value must be provided.' });
+                    return;
+                }
+                if (page < 1) {
+                    page = 1;
+                }
+            }
+
+            let created_date = null;
+            if (req.query.hasOwnProperty('created')) {
+                created_date = new Date(req.query.created);
+                if (!isValidDate(created_date)) {
+                    res.status(400).json({
+                        'message': 'A valid date must be provided',
+                    });
+                    return;
+                }
+            }
+
             if (req.query.hasOwnProperty('range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
@@ -476,9 +565,14 @@ module.exports = function (envConfig) {
                     promise = allDNS.getAllDNSCount(null, source);
                 }
             } else if (req.query.hasOwnProperty('zone')) {
-                promise = allDNS.getAllDNSByZonePromise(req.query.zone, source);
+                promise = allDNS.getAllDNSByZonePromise(req.query.zone, source, created_date, limit, page);
             } else if (req.query.hasOwnProperty('accountInfoValue')) {
                 promise = allDNS.getByAccountInfo(req.query.accountInfoValue);
+            } else if (req.query.hasOwnProperty('subdomain')) {
+                let escaped_domain = req.query.subdomain.replace(/\./g, "\\.");
+                promise = allDNS.getRegexDNSWithCreatedPromise(escaped_domain, created_date, limit, page);
+            } else if (created_date != null) {
+                promise = allDNS.getAllDNSByCreatedPromise(req.query.created, limit, page);
             } else {
                 res.status(400).json({
                     'message': 'A domain, ip, or zone must be provided',
@@ -689,6 +783,12 @@ module.exports = function (envConfig) {
         .get(function (req, res) {
             let promise;
             let source = null;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('source')) {
                 source = req.query.source;
             }

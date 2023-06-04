@@ -36,7 +36,7 @@ const allDnsModel = mongoose.model('allDnsModel', allDnsSchema);
 
 module.exports = {
     AllDnsModel: allDnsModel,
-    getAllDNSByZonePromise: function (zone, source) {
+    getAllDNSByZonePromise: function (zone, source, created_date, limit, page) {
         /**
          * Fetch all DNS records for the provided zone.
          * (Optional) Limit to the provided source.
@@ -45,7 +45,14 @@ module.exports = {
         if (source != null) {
             query['sources.source'] = source;
         }
-        return allDnsModel.find(query).exec();
+        if (created_date != null) {
+            query['created'] = { "$gt": new Date(created_date) };
+        }
+        if (limit !== undefined && limit > 0) {
+            return allDnsModel.find(query).skip(limit * (page - 1)).limit(limit).exec();
+        } else {
+            return allDnsModel.find(query).exec();
+        }
     },
     getAllDNSByDomainPromise: function (domain, source) {
         /**
@@ -296,6 +303,40 @@ module.exports = {
             promise = allDnsModel.find(query).exec();
         }
         return promise;
+    },
+    getAllDNSByCreatedPromise: function (created, limit, page) {
+        /**
+         * Fetch all DNS records for the provided zone.
+         * (Optional) Limit to the provided source.
+         */
+        let query = { 'created': { "$gt": new Date(created) } };
+
+        if (limit !== undefined && limit > 0) {
+            return allDnsModel.find(query).skip(limit * (page - 1)).limit(limit).exec();
+        } else {
+            return allDnsModel.find(query).exec();
+        }
+    },
+    getRegexDNSWithCreatedPromise: function (domain_ending, created, limit, page) {
+        /**
+         * Fetch all DNS records for the provided zone.
+         * (Optional) Limit to the provided source.
+         */
+        let query = {};
+
+        let reDomain = new RegExp('.*\.' + domain_ending + '$');
+
+        query['fqdn'] = { "$regex": reDomain };
+
+        if (created !== undefined) {
+            query['created'] = { "$gt": new Date(created) };
+        }
+
+        if (limit !== undefined && limit > 0) {
+            return allDnsModel.find(query).skip(limit * (page - 1)).limit(limit).exec();
+        } else {
+            return allDnsModel.find(query).exec();
+        }
     },
     getDistinctDNSSources: function () {
         /**
