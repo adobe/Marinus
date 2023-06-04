@@ -108,7 +108,7 @@ module.exports = function (envConfig, passport) {
             failureFlash: true,
         }),
             function (req, res) {
-                let promise = user.getUserIdPromise(req.session.passport.user.userid);
+                let promise = user.getUserIdPromise(req.session.passport.user.userid, true);
                 promise.then(function (userData) {
                     if (!userData) {
                         res.redirect('/logout');
