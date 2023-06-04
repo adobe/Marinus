@@ -81,6 +81,25 @@ function checkDataAdmin(req, res) {
 }
 
 /**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * @swagger
  *
  * definitions:
@@ -329,14 +348,56 @@ module.exports = function (envConfig) {
      *         description: Server error.
      *         schema:
      *           $ref: '#/definitions/ServerError'
+     *   post:
+     *   # Operation-specific security:
+     *     security:
+     *       - APIKeyHeader: []
+     *     description: "[Admin-only] Change the status of a user. You must be an admin to use this API."
+     *     tags: [Admin - Change a user's status]
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - name: userid
+     *         type: string
+     *         required: true
+     *         description: The userid to find in the database.
+     *         in: path
+     *       - name: status
+     *         type: string
+     *         required: true
+     *         description: Must be 'active' or 'inactive'
+     *         in: body
+     *     responses:
+     *       201:
+     *         description: A message indicating whether the change succeeded.
+     *         type: object
+     *         properties:
+     *           message:
+     *             type: string
+     *             example: "User updated!"
+     *             description: A status message indicating success or failure
+     *       400:
+     *         description: Bad request parameters.
+     *         schema:
+     *           $ref: '#/definitions/BadInputError'
+     *       404:
+     *         description: Results not found.
+     *         schema:
+     *           $ref: '#/definitions/ResultsNotFound'
+     *       500:
+     *         description: Server error.
+     *         schema:
+     *           $ref: '#/definitions/ServerError'
      */
     router.route('/admin/users/:userid')
         .get(function (req, res) {
             checkAdmin(req, res);
+
             if (!(req.params.hasOwnProperty('userid'))) {
                 res.status(400).json({ 'message': 'A userid must be provided!' });
                 return;
             }
+
             let userPromise = user.getUserIdPromise(req.params.userid, false);
             userPromise.then(
                 function (userInDB) {
@@ -349,6 +410,44 @@ module.exports = function (envConfig) {
                     res.status(200).json(userInDB);
                     return;
                 });
+        })
+        .post(function (req, res) {
+            checkAdmin(req, res);
+            if (!(req.params.hasOwnProperty('userid'))) {
+                res.status(400).json({ 'message': 'A userid must be provided!' });
+                return;
+            }
+            if (!('status' in req.body)) {
+                res.status(400).json({ 'message': 'A status must be provided!' });
+                return;
+            }
+
+            if (req.body.status != 'active' && req.body.status != 'inactive') {
+                res.status(400).json({ 'message': 'A status can only be "active" or "inactive"!' });
+                return;
+            }
+
+            let userPromise = user.getUserIdPromise(req.params.userid, false);
+            userPromise.then(function (user) {
+                if (!user) {
+                    res.status(404).json({
+                        'message': 'User not found!',
+                    });
+                    return;
+                }
+                user.updated = Date.now();
+                user.status = req.body.status;
+                user.save(function (err) {
+                    if (err) {
+                        res.status(500).send(err);
+                        return;
+                    }
+
+                    res.status(201).json({
+                        message: 'User updated!',
+                    });
+                });
+            });
         });
 
     /**
@@ -428,6 +527,12 @@ module.exports = function (envConfig) {
         .get(function (req, res) {
             checkAdmin(req, res);
             let activeOnly = true;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('active')) {
                 if (req.query.active === 'false') {
                     activeOnly = false;
@@ -452,7 +557,7 @@ module.exports = function (envConfig) {
                 res.status(400).json({ 'message': 'A userid must be provided!' });
                 return;
             }
-            let userPromise = user.getUserIdPromise(req.body.userid);
+            let userPromise = user.getUserIdPromise(req.body.userid, false);
             userPromise.then(
                 function (userInDB) {
                     if (!userInDB) {
@@ -971,6 +1076,7 @@ module.exports = function (envConfig) {
                     newZone.updated = Date.now();
                     newZone.created = Date.now();
                     newZone.status = 'confirmed';
+                    newZone.sources = { "source": 'manual', "updated": Date.now() };
                     newZone.source = 'manual';
                     newZone.zone = req.body.zone;
                     newZone.notes = [];
@@ -1170,7 +1276,7 @@ module.exports = function (envConfig) {
                     newZone.updated = Date.now();
                     newZone.created = Date.now();
                     newZone.status = 'confirmed';
-                    newZone.source = 'manual';
+                    newZone.sources = { "source": 'manual', "updated": Date.now() };
                     newZone.zone = req.body.zone;
                     newZone.notes = [];
                     newZone.save(function (err) {
@@ -1469,6 +1575,12 @@ module.exports = function (envConfig) {
     router.route('/admin/config')
         .get(function (req, res) {
             let configField = '';
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty("field")) {
                 configField = req.query.field;
             }

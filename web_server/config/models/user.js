@@ -30,12 +30,12 @@ const userModel = mongoose.model('userModel', userSchema);
 
 module.exports = {
     UserModel: userModel,
-    getUserIdPromise: function (userid, isActive) {
-        if (typeof isActive === 'undefined') {
-            isActive = true;
+    getUserIdPromise: function (userid, onlyIsActive) {
+        if (typeof onlyIsActive === 'undefined') {
+            onlyIsActive = true;
         }
         let promise;
-        if (isActive) {
+        if (onlyIsActive) {
             promise = userModel.findOne({
                 'userid': userid,
                 'status': 'active',
