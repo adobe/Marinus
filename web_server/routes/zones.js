@@ -21,6 +21,26 @@ const CIDRMatcher = require('cidr-matcher');
 const rangeCheck = require('range_check');
 
 /**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+/**
  * @swagger
  *
  * definitions:
@@ -210,6 +230,12 @@ module.exports = function (envConfig) {
         .get(function (req, res) {
             let source = '';
             let status = '';
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('source')) {
                 source = req.query.source;
             }
@@ -339,6 +365,12 @@ module.exports = function (envConfig) {
     router.route('/zones/list')
         .get(function (req, res) {
             let includeAll = false;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('include_all')
                 && req.query.include_all === '1') {
                 includeAll = true;
@@ -566,6 +598,12 @@ module.exports = function (envConfig) {
     router.route('/zones/ip_list')
         .get(function (req, res) {
             let includeFalsePositives = false;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('include_fp')
                 && req.query.include_fp === '1') {
                 includeFalsePositives = true;
@@ -680,6 +718,12 @@ module.exports = function (envConfig) {
      */
     router.route('/zones/ip_zone_check')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({ 'message': 'An IP must be provided.' });
                 return;
@@ -756,6 +800,12 @@ module.exports = function (envConfig) {
      */
     router.route('/zones/ipv6_zone_check')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({ 'message': 'An IPv6 address must be provided.' });
                 return;
@@ -833,6 +883,12 @@ module.exports = function (envConfig) {
         .get(function (req, res) {
             let source = '';
             let status = '';
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('source')) {
                 source = req.query.source;
             }
@@ -900,6 +956,12 @@ module.exports = function (envConfig) {
         .get(function (req, res) {
             let source = '';
             let status = '';
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('source')) {
                 source = req.query.source;
             }

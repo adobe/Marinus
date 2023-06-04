@@ -24,6 +24,27 @@ const azureiIPs = require('../config/models/azure_ips');
 const gcpIPs = require('../config/models/gcp_ips');
 const custom_errors = require('../config/error');
 
+
+/**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
 module.exports = function (envConfig) {
     /**
      * @swagger
@@ -80,6 +101,12 @@ module.exports = function (envConfig) {
      */
     router.route('/aws/ip_check')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({
                     'message': 'An IP must be provided',
@@ -173,6 +200,12 @@ module.exports = function (envConfig) {
      */
     router.route('/aws/ipv6_check')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({
                     'message': 'An IPv6 IP must be provided',
@@ -266,6 +299,12 @@ module.exports = function (envConfig) {
      */
     router.route('/akamai/ip_check')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({ 'message': 'An IP must be provided' });
                 return;
@@ -348,6 +387,12 @@ module.exports = function (envConfig) {
      */
     router.route('/akamai/ipv6_check')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({ 'message': 'An IP must be provided' });
                 return;
@@ -427,6 +472,12 @@ module.exports = function (envConfig) {
      */
     router.route('/azure/ip_check')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({
                     'message': 'An IP must be provided',
@@ -520,6 +571,12 @@ module.exports = function (envConfig) {
      */
     router.route('/gcp/ip_check')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({
                     'message': 'An IP must be provided',
@@ -613,6 +670,12 @@ module.exports = function (envConfig) {
      */
     router.route('/gcp/ipv6_check')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({
                     'message': 'An IPv6 IP must be provided',
