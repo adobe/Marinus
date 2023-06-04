@@ -24,6 +24,25 @@ const cidrGraphRecs = require('../config/models/cidr_graphs');
 const certGraphRecs = require('../config/models/cert_graphs');
 
 /**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * @swagger
  *
  * definitions:
@@ -519,6 +538,11 @@ module.exports = function (envConfig) {
                 return;
             }
 
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             let graphPromise;
             let count = false;
             if (req.query.hasOwnProperty('dataType') &&
@@ -682,6 +706,12 @@ module.exports = function (envConfig) {
      */
     router.route('/tpd_graphs/:tpd')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.params.hasOwnProperty('tpd'))) {
                 res.status(400).json({ 'message': 'A TPD TLD must be provided.' });
                 return;
@@ -838,6 +868,12 @@ module.exports = function (envConfig) {
          */
     router.route('/cidr_graphs/:cidr')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.params.hasOwnProperty('cidr'))) {
                 res.status(400).json({ 'message': 'A Class 3 zone (e.g. "8.8.8") must be provided.' });
                 return;

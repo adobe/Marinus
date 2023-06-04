@@ -24,6 +24,26 @@ function isValidDate(d_string) {
 }
 
 /**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+/**
  * @swagger
  * securityDefinitions:
  *   # X-API-Key: abcdef12345
@@ -258,6 +278,12 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/org')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('org'))) {
                 res.status(400).json({ 'message': 'An org must be provided.' });
                 return;
@@ -366,6 +392,12 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/zone')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('zone'))) {
                 res.status(400).json({ 'message': 'A zone name must be provided.' });
                 return;
@@ -436,6 +468,12 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/common_name')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('cn'))) {
                 res.status(400).json({ 'message': 'A CN/DNS name must be provided.' });
                 return;
@@ -499,6 +537,12 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/ip')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('ip'))) {
                 res.status(400).json({ 'message': 'An IP address must be provided.' });
                 return;
@@ -601,6 +645,12 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/serial_number/:sn')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.params.hasOwnProperty('sn'))) {
                 res.status(400).json({ 'message': 'A serial_number name must be provided.' });
                 return;
@@ -713,6 +763,12 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/fingerprint/:fingerprint')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.params.hasOwnProperty('fingerprint'))) {
                 res.status(400).json({
                     'message': 'An fingerprint value must be provided.',
@@ -876,6 +932,12 @@ module.exports = function (envConfig) {
    */
     router.route('/ct/marinus_dates')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (!(req.query.hasOwnProperty('search_type'))) {
                 res.status(400).json({
                     'message': 'A search type must be provided.',
@@ -1091,6 +1153,12 @@ module.exports = function (envConfig) {
     router.route('/ct/issuers/:issuer')
         .get(function (req, res) {
             let count = false;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
             }
@@ -1318,6 +1386,12 @@ module.exports = function (envConfig) {
     router.route('/ct/corp_certs')
         .get(function (req, res) {
             let count = false;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty("count") && req.query.count === "1") {
                 count = true;
             }
@@ -1420,6 +1494,12 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/signature_algorithm')
         .get(function (req, res) {
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             let alg = 'RSA-SHA1';
             if (req.query.hasOwnProperty('algorithm')) {
                 alg = req.query.algorithm;

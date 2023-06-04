@@ -52,6 +52,25 @@ function createRange(range) {
 }
 
 /**
+ * Confirm that all parameters are a string and not an array.
+ * This helps prevent NoSQL injection since NoSQL will honor arrays as parameters.
+ * @param {*} req The Express request.query object representing the GET parameters.
+ */
+function is_valid_strings(params) {
+    for (var prop in params) {
+        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+            if (typeof params[prop] != "string") {
+                return false;
+            }
+            if (params[prop].includes("[") || params[prop].includes["$"] || params[prop].includes["{"]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * @swagger
  *
  * definitions:
@@ -234,6 +253,12 @@ module.exports = function (envConfig) {
     router.route('/iblox/addresses')
         .get(function (req, res) {
             let promise;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
@@ -437,6 +462,12 @@ module.exports = function (envConfig) {
     router.route('/iblox/aaaa')
         .get(function (req, res) {
             let promise;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('range')) {
                 let searchRange = rangeCheck.isRange(req.query.range);
                 if (searchRange === false) {
@@ -657,6 +688,12 @@ module.exports = function (envConfig) {
     router.route('/iblox/hosts')
         .get(function (req, res) {
             let promise;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
@@ -858,6 +895,12 @@ module.exports = function (envConfig) {
     router.route('/iblox/cnames')
         .get(function (req, res) {
             let promise;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('zone')) {
                 if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                     promise = ibloxCnameRecs.getIBCNameCountPromise(req.query.zone);
@@ -1029,6 +1072,12 @@ module.exports = function (envConfig) {
     router.route('/iblox/mx')
         .get(function (req, res) {
             let promise;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('zone')) {
                 if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                     promise = ibloxMXRecs.getIBMXCountPromise(req.query.zone);
@@ -1198,6 +1247,12 @@ module.exports = function (envConfig) {
     router.route('/iblox/txt')
         .get(function (req, res) {
             let promise;
+
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
             if (req.query.hasOwnProperty('zone')) {
                 if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                     promise = ibloxTXTRecs.getIBTXTCountPromise(req.query.zone);
