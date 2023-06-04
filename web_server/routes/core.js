@@ -63,6 +63,11 @@ module.exports = function (envConfig) {
         res.render('pages/index', params);
     });
 
+    router.get('/health', function (req, res) {
+        res.status(200).json({ 'status': 'ok' });
+        return
+    });
+
     router.get('/cert', function (req, res) {
         setHeaders(res);
         let params = getSessionParams(req);
