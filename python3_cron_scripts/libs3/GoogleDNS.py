@@ -34,15 +34,38 @@ class GoogleDNS(object):
         "hinfo": 13,
         "mx": 15,
         "txt": 16,
+        "rp": 17,
+        "key": 25,
         "aaaa": 28,
+        "loc": 29,
         "srv": 33,
         "naptr": 35,
+        "kx": 36,
+        "dname": 39,
         "ds": 43,
+        "sshfp": 44,
+        "ipseckey": 45,
         "rrsig": 46,
+        "nsec": 47,
         "dnskey": 48,
+        "dhcid": 49,
+        "nsec3": 50,
+        "nsec3param": 51,
+        "tlsa": 52,
+        "smimea": 53,
+        "hip": 55,
+        "openpgpkey": 61,
+        "svcb": 64,
+        "https": 65,
         "spf": 99,
+        "tkey": 249,
+        "tsig": 250,
         "any": 255,
+        "uri": 256,
         "caa": 257,
+        "ta": 32768,
+        "dlv": 32769,
+        "apexalias": 65282,  # This is not an RFC specified DNS type. It is used to indicate the apex record by some DNS implementations.
     }
 
     @staticmethod
@@ -112,7 +135,7 @@ class GoogleDNS(object):
 
         if "Answer" not in nslookup_results:
             logger.warning("Could not find Answer in DNS result for " + host)
-            # logger.debug (req.text)
+            # logger.warning (req.text)
             return []
 
         results = []
