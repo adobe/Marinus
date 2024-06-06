@@ -348,7 +348,7 @@ module.exports = {
     },
     getSSLAlgorithmByZonePromise: function (algorithm, zone, count, recursive, limit, page) {
         let escZone = zone.replace('.', '\\.');
-        let reZone = new RegExp('^.*\.' + escZone + '$');
+        let reZone = new RegExp('^.*\\.' + escZone + '$');
         let promise;
         if (recursive === true) {
             if (count === true) {
