@@ -211,7 +211,7 @@ module.exports = {
     },
     getSSLByZonePromise: function (zone, count, recursive) {
         let escZone = zone.replace('.', '\\.');
-        let reZone = new RegExp('^.*\.' + escZone + '$');
+        let reZone = new RegExp('^.*\\.' + escZone + '$');
         let promise;
         if (recursive === true) {
             if (count) {
