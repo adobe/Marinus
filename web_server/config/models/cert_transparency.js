@@ -85,7 +85,7 @@ module.exports = {
     return promise;
   },
   getCertTransCorpPromise: function (corp_domain, excludeExpired, count) {
-    let reCorp = new RegExp('^.*\.' + corp_domain);
+    let reCorp = new RegExp('^.*\\.' + corp_domain);
     let promise;
     if (excludeExpired != null && excludeExpired === true) {
       if (count) {
