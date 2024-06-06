@@ -124,7 +124,7 @@ module.exports = {
         }, { 'ip': 1, 'p443': 1 }).exec();
     },
     getCorpSSLCountPromise: function (internalDomain) {
-        let reCorp = new RegExp('^.*\.' + internalDomain);
+        let reCorp = new RegExp('^.*\\.' + internalDomain);
         return cSchema.censysModel.find({
             '$or': [{ 'p443.https.tls.certificate.parsed.subject.common_name': reCorp },
             { 'p443.https.tls.certificate.parsed.extensions.subject_alt_name.dns_names': reCorp }],
