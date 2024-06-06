@@ -324,7 +324,7 @@ module.exports = {
          */
         let query = {};
 
-        let reDomain = new RegExp('.*\.' + domain_ending + '$');
+        let reDomain = new RegExp('.*\\.' + domain_ending + '$');
 
         query['fqdn'] = { "$regex": reDomain };
 
