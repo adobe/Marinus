@@ -84,7 +84,7 @@ module.exports = {
     },
     getSSLByZonePromise: function (zone, count) {
         let escZone = zone.replace('.', '\\.');
-        let reZone = new RegExp('^.*\.' + escZone + '$');
+        let reZone = new RegExp('^.*\\.' + escZone + '$');
         let promise;
         if (count) {
             promise = cSchema.censysModel.find({
