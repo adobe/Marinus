@@ -412,7 +412,7 @@ module.exports = function (envConfig) {
                 }
             } else if (req.query.hasOwnProperty('email')) {
                 let email = req.query.email;
-                let re = new RegExp('^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\.([a-zA-Z]{2,5})$');
+                let re = new RegExp('^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$');
                 if (email !== 'none' && !(re.test(email))) {
                     res.status(400).json({
                         'message': 'An invalid email has been provided',
