@@ -181,7 +181,7 @@ module.exports = {
     return promise;
   },
   getCorpCount: function (corp_domain) {
-    let reCorp = new RegExp('^.*\.' + corp_domain);
+    let reCorp = new RegExp('^.*\\.' + corp_domain);
     return certTransModel.find({
       '$or': [{ 'subject_common_names': reCorp },
       { 'subject_dns_names': reCorp }],
