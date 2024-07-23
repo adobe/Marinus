@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2022 Adobe. All rights reserved.
+# Copyright 2024 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -57,7 +57,10 @@ from libs3.ZoneManager import ZoneManager
 # CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2021-jun-jul-sep/host/cc-main-2021-jun-jul-sep-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2021-22-oct-nov-jan/host/cc-main-2021-22-oct-nov-jan-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2022-may-jun-aug/host/cc-main-2022-may-jun-aug-host-vertices.paths.gz"
-CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2022-23-sep-nov-jan/host/cc-main-2022-23-sep-nov-jan-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2022-23-sep-nov-jan/host/cc-main-2022-23-sep-nov-jan-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2023-24-sep-nov-feb/host/cc-main-2023-24-sep-nov-feb-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2024-feb-apr-may/host/cc-main-2024-feb-apr-may-host-vertices.paths.gz"
+CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2024-apr-may-jun/host/cc-main-2024-apr-may-jun-host-vertices.paths.gz"
 
 ROOT_DOMAIN = "https://data.commoncrawl.org/"
 
