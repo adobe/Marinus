@@ -124,6 +124,14 @@ class X509Parser(object):
             "id": "7s3QZNXbGs7FXLedtM0TojKHRny87N7DUUhZRnEftZs=",
             "url": "ct.googleapis.com/logs/us1/argon2024/",
         },
+        "argon2025h1": {
+            "id": "TnWjJ1yaEMM4W2zU3z9S6x3w4I4bjWnAsfpksWKaOd8=",
+            "url": "ct.googleapis.com/logs/us1/argon2025h1/",
+        },
+        "argon2025h2": {
+            "id": "EvFONL1TckyEBhnDjz96E/jntWKHiJxtMAWE6+WGJjo=",
+            "url": "ct.googleapis.com/logs/us1/argon2025h2/",
+        },
         "xenon2018": {
             "id": "sQzVWabWeEaBH335pRUyc5rEjXA76gMj2l04dVvArU4=",
             "url": "ct.googleapis.com/logs/xenon2018",
@@ -226,7 +234,7 @@ class X509Parser(object):
             "url": "nessie2024.ct.digicert.com/log",
         },
         "nessie2025": {
-            "id": "fVkeEuF4KnscYWd8Xv340IdcFKBOlZ65Ay/ZDowuebg=",
+            "id": "5tIxY0B3jMEQQQbXcbnOwdJA9paEhvu6hzId/R43jlA=",
             "url": "nessie2025.ct.digicert.com/log",
         },
         # Symantec [Retired]
@@ -309,6 +317,14 @@ class X509Parser(object):
         "le-oak2024h2": {
             "id": "PxdLT9ciR1iUHWUchL4NEu2QN38fhWrrwb8ohez4ZG4=",
             "url": "oak.ct.letsencrypt.org/2024h2",
+        },
+        "le-oak2025h1": {
+            "id": "ouMK5EXvva2bfjjtR2d3U9eCW4SU1yteGyzEuVCkR+c=",
+            "url": "oak.ct.letsencrypt.org/2025h1/",
+        },
+        "le-oak2025h2": {
+            "id": "DeHyMCvTDcFAYhIJ6lUu/Ed0fLHX6TDvDkIetH5OqjQ=",
+            "url": "oak.ct.letsencrypt.org/2025h2/",
         },
         # Misc [Retired]
         "venafi-ctlog-gen2": {
