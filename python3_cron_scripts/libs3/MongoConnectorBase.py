@@ -17,7 +17,7 @@ This module manages the connection to the primary, authoritative MongoDB.
 import configparser
 import logging
 import time
-
+import urllib.parse
 from pymongo import MongoClient
 from pymongo.errors import AutoReconnect, DocumentTooLarge
 
@@ -68,7 +68,13 @@ class MongoConnectorBase(object):
 
         if username != "" and password != "":
             connection_string = (
-                protocol + username + ":" + password + "@" + endpoint + path
+                protocol
+                + username
+                + ":"
+                + urllib.parse.quote(password)
+                + "@"
+                + endpoint
+                + path
             )
         else:
             connection_string = protocol + endpoint + path
