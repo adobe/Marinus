@@ -195,7 +195,7 @@ class AWSStorageManager(object):
             remote_bucket = self._s3_resource.Bucket(foldername)
 
             results = []
-            for bucket in remote_bucket.objects_all():
+            for bucket in remote_bucket.objects.all():
                 results.append(bucket.key)
 
             return results
