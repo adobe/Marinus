@@ -20,6 +20,7 @@ import logging
 import os
 import shutil
 from ast import Bytes
+from pathlib import Path
 
 
 class LocalStorageManager(object):
@@ -132,7 +133,10 @@ class LocalStorageManager(object):
         """
         try:
             if os.path.exists(foldername):
-                return os.listdir(foldername)
+                results = []
+                for p in Path( '.' ).rglob( '*' ):
+                    if not p.is_dir():
+                        results.append(str(p))
             else:
                 return None
         except Exception as err:
