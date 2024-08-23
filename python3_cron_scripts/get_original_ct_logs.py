@@ -608,6 +608,15 @@ def main(logger=None):
                 der_cert = get_cert_from_extra_data(entry["extra_data"])
 
             cert = x509parser.parse_data(der_cert, source)
+
+            # Check for terminating null. Newer versions of cryptography don't like it.
+            if cert is None and der_cert[-1] == 0:
+                cert = x509parser.parse_data(der_cert[:-1], source)
+
+            # Sometimes they have two trailing nulls
+            if cert is None and der_cert[-1] == 0 and der_cert[-2] == 0:
+                cert = x509parser.parse_data(der_cert[:-2], source)
+
             if cert is None:
                 logger.warning("Skipping certificate index: " + str(current_index))
                 current_index = current_index + 1
