@@ -797,7 +797,7 @@ class X509Parser(object):
                 cert = x509.load_der_x509_certificate(data, default_backend())
                 openssl_cert = crypto.load_certificate(crypto.FILETYPE_ASN1, data)
             except Exception as e:
-                self._logger.error(
+                self._logger.debug(
                     "ERROR: Could not parse certificate as a PEM or DER file - "
                     + str(e)
                 )
