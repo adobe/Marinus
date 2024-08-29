@@ -565,12 +565,12 @@ class IPManager(object):
             ip_addr = ip
             ip = str(ip_addr)
 
-        if self.is_local_ip(ip):
-            self._logger.warning("WARNING: all_ips does not track local IP addresses")
-            return
-
         if ip_addr is None:
             self._logger.error("ERROR: Could not insert: " + str(ip))
+            return
+
+        if self.is_local_ip(ip):
+            self._logger.warning("WARNING: all_ips does not track local IP addresses")
             return
 
         record = {}
