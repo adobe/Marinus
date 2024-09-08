@@ -30,11 +30,10 @@ from datetime import datetime
 from html.parser import HTMLParser
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util import Retry
-
 from libs3 import JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 XML_LOCATION = "https://www.microsoft.com/en-us/download/confirmation.aspx?id=41653"
 
