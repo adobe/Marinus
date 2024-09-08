@@ -30,6 +30,9 @@ from datetime import datetime
 from html.parser import HTMLParser
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
+
 from libs3 import JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
 
@@ -58,6 +61,29 @@ class MyHTMLParser(HTMLParser):
                         self.URL = attr[1]
 
 
+def requests_retry_session(
+    retries=5,
+    backoff_factor=7,
+    status_forcelist=[408, 500, 502, 503, 504],
+    session=None,
+):
+    """
+    A Closure method for this static method.
+    """
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    return session
+
+
 def main(logger=None):
     """
     Begin main...
@@ -73,8 +99,20 @@ def main(logger=None):
     jobs_manager = JobsManager.JobsManager(mongo_connector, "get_azure_data")
     jobs_manager.record_job_start()
 
-    # Download the XML file
-    req = requests.get(XML_LOCATION, timeout=60)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.3",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+    }
+
+    # Find the XML file location
+    try:
+        req = requests_retry_session().get(XML_LOCATION, timeout=120, headers=headers)
+    except Exception as ex:
+        logger.error("Zure XML request attempts failed!")
+        logger.error(str(ex))
+        return None
 
     if req.status_code != 200:
         logger.error("FATAL: Bad XML Request")
@@ -89,8 +127,13 @@ def main(logger=None):
         jobs_manager.record_job_error()
         exit(1)
 
-    req = requests.get(parser.URL, timeout=60)
-
+    # Download the XML file
+    try:
+        req = requests_retry_session().get(parser.URL, timeout=120, headers=headers)
+    except Exception as ex:
+        logger.error("Zure XML request attempts failed!")
+        logger.error(str(ex))
+        return None
     if req.status_code != 200:
         logger.error("FATAL: Bad Parser URL Request")
         jobs_manager.record_job_error()
