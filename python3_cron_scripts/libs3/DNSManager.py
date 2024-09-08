@@ -267,7 +267,7 @@ class DNSManager(object):
 
     def remove_all_by_source_and_date(self, source, month_delta=-2):
         """
-        Remove a specific all_dns entry by providing the object_id and source to be removed.
+        Remove a specific all_dns entry by providing the source and the date difference.
         If an entry is associated with multiple sources,
         then only the association with the specified source will be removed.
 
