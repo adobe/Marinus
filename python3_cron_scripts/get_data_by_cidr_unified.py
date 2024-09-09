@@ -161,7 +161,7 @@ def check_for_ptr_record(ipaddr, dns_manager, g_dns, zones):
     """
     arpa_record = ipaddress.ip_address(ipaddr).reverse_pointer
     dns_result = g_dns.fetch_DNS_records(arpa_record, g_dns.DNS_TYPES["ptr"])
-    if dns_result == []:
+    if dns_result is None or dns_result == []:
         # Lookup failed
         return
 

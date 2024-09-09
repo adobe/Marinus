@@ -137,7 +137,7 @@ def main(logger=None):
             logger.debug(value + " not found")
             time.sleep(1)
             result = google_dns.fetch_DNS_records(value)
-            if result == []:
+            if result is None or result == []:
                 logger.debug("Unable to resolve")
                 original_records = dns_manager.find_multiple(
                     {"value": value}, "sonar_dns"
@@ -171,7 +171,7 @@ def main(logger=None):
         if zone != None and zone != "":
             ips = google_dns.fetch_DNS_records(hostname)
             time.sleep(1)
-            if ips != []:
+            if ips is not None and ips != []:
                 for ip_addr in ips:
                     if is_tracked_zone(ip_addr["fqdn"], zones):
                         record = {"fqdn": ip_addr["fqdn"]}

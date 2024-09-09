@@ -32,6 +32,7 @@ import argparse
 import logging
 import string
 import subprocess
+import time
 from datetime import datetime
 
 import requests
@@ -125,16 +126,25 @@ def parse_file(logger, vertices_file, reversed_zones, dns_manager):
                 matched_zone = swap_order(reversed_zone)
 
                 results = google_dns.fetch_DNS_records(matched_domain)
-                for result in results:
-                    if (
-                        result["fqdn"].endswith("." + matched_zone)
-                        or result["fqdn"] == matched_zone
-                    ):
-                        logger.debug("Inserting: " + matched_domain)
-                        result["created"] = datetime.now()
-                        result["status"] = "confirmed"
-                        result["zone"] = matched_zone
-                        dns_manager.insert_record(result, "common_crawl")
+                if results is None:
+                    time.sleep(1)
+                    # Try again
+                    results = google_dns.fetch_DNS_records(matched_domain)
+
+                    if results is None:
+                        # Not going to work
+                        continue
+                else:
+                    for result in results:
+                        if (
+                            result["fqdn"].endswith("." + matched_zone)
+                            or result["fqdn"] == matched_zone
+                        ):
+                            logger.debug("Inserting: " + matched_domain)
+                            result["created"] = datetime.now()
+                            result["status"] = "confirmed"
+                            result["zone"] = matched_zone
+                            dns_manager.insert_record(result, "common_crawl")
 
 
 def get_first_and_last_line(fname):

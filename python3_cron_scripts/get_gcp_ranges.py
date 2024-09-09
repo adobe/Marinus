@@ -32,23 +32,24 @@ def recursive_search(logger, target, google_dns):
 
     ranges = []
 
-    for result in results:
-        values = result["value"].split(" ")
-        for value in values:
-            if "spf" in value or "?all" in value:
-                continue
-            elif "include" in value:
-                parts = value.split(":")
-                logger.debug("Checking: " + parts[1])
-                temp = recursive_search(logger, parts[1], google_dns)
-                for entry in temp:
-                    if entry not in ranges:
-                        ranges.append(entry)
-            elif "/" in value:
-                if value not in ranges:
-                    ranges.append(value)
-            else:
-                logger.warning("Unrecognized string: " + value)
+    if results is not None:
+        for result in results:
+            values = result["value"].split(" ")
+            for value in values:
+                if "spf" in value or "?all" in value:
+                    continue
+                elif "include" in value:
+                    parts = value.split(":")
+                    logger.debug("Checking: " + parts[1])
+                    temp = recursive_search(logger, parts[1], google_dns)
+                    for entry in temp:
+                        if entry not in ranges:
+                            ranges.append(entry)
+                elif "/" in value:
+                    if value not in ranges:
+                        ranges.append(value)
+                else:
+                    logger.warning("Unrecognized string: " + value)
 
     return ranges
 

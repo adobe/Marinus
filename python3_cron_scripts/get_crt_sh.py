@@ -105,7 +105,7 @@ def add_new_domain_names(hostnames, zones, mongo_connector):
     for hostname in hostnames:
         results = google_dns.fetch_DNS_records(hostname)
 
-        if results != []:
+        if results is not None and results != []:
             for result in results:
                 temp_zone = get_tracked_zone(result["fqdn"], zones)
                 if temp_zone is not None:

@@ -96,7 +96,7 @@ def main(logger=None):
         for hostname in result["subdomains"]:
             ips = google_dns.fetch_DNS_records(hostname)
 
-            if ips != []:
+            if ips is not None and ips != []:
                 for ip_addr in ips:
                     temp_zone = get_tracked_zone(ip_addr["fqdn"], zones)
                     if temp_zone is not None:
@@ -124,7 +124,7 @@ def main(logger=None):
         if zone != None:
             ips = google_dns.fetch_DNS_records(hostname)
             time.sleep(1)
-            if ips != []:
+            if ips is not None and ips != []:
                 for ip_addr in ips:
                     temp_zone = get_tracked_zone(ip_addr["fqdn"], zones)
                     if temp_zone is not None:

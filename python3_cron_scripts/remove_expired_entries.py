@@ -23,23 +23,24 @@ If the entry still exists, then it will add "{source_name}_saved" as a source an
 The original source is removed because it technically no longer exists there.
 The "{source}_saved" indicates the original source while also indicating that Marinus is now tracking the entry its own.
 """
+import argparse
 import logging
 import time
 from datetime import datetime, timedelta
 
 from libs3 import DNSManager, GoogleDNS, IPManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
-from libs3.ZoneManager import ZoneManager
+
+# from libs3.ZoneManager import ZoneManager
 
 
-def is_tracked_zone(cname, zones):
+def is_tracked_zone(fqdn, zone):
     """
-    Is the root domain for the provided cname one of the known domains?
+    Is the root domain for the provided fqdn one of the known domains?
     """
 
-    for zone in zones:
-        if cname.endswith("." + zone) or cname == zone:
-            return True
+    if fqdn.endswith("." + zone) or fqdn == zone:
+        return True
     return False
 
 
@@ -117,12 +118,12 @@ def get_lookup_int(logger, result, GDNS):
     return lookup_int
 
 
-def insert_current_results(dns_result, dns_manager, zones, result, source):
+def insert_current_results(logger, dns_result, dns_manager, result, source):
     """
     Insert results so that their entries are current
     """
     for dns_entry in dns_result:
-        if is_tracked_zone(dns_entry["fqdn"], zones):
+        if is_tracked_zone(dns_entry["fqdn"], result["zone"]):
             new_entry = {}
             new_entry["updated"] = datetime.now()
             new_entry["zone"] = result["zone"]
@@ -142,6 +143,15 @@ def insert_current_results(dns_result, dns_manager, zones, result, source):
                 dns_manager.insert_record(new_entry, source)
             else:
                 dns_manager.insert_record(new_entry, source + "_saved")
+        else:
+            logger.debug(
+                "Failed to insert record for "
+                + dns_entry["fqdn"]
+                + " because it is not in the tracked zone:"
+                + result["zone"]
+                + " for the domain: "
+                + result["fqdn"]
+            )
 
 
 def main(logger=None):
@@ -164,13 +174,31 @@ def main(logger=None):
     jobs_manager = JobsManager.JobsManager(mongo_connector, "remove_expired_entries")
     jobs_manager.record_job_start()
 
-    zones = ZoneManager.get_distinct_zones(mongo_connector)
+    # zones = ZoneManager.get_distinct_zones(mongo_connector)
 
-    # The sources for which to remove expired entries
+    parser = argparse.ArgumentParser(description="Remove expired entries from Marinus")
+    parser.add_argument(
+        "--source",
+        required=False,
+        help="Only run the script for a specific data source",
+    )
+    args = parser.parse_args()
+
     results = mongo_connector.perform_distinct(all_dns_collection, "sources.source")
 
+    sources_list = None
+    if args.source is not None and args.source != "":
+        if args.source not in results:
+            logger.error("FATAL: Unrecognized source value provided")
+            exit(1)
+
+        sources_list = [args.source]
+    else:
+        # The sources for which to remove expired entries
+        sources_list = results
+
     sources = []
-    for source in results:
+    for source in sources_list:
         temp = {}
         temp["name"] = source
         if "common_crawl" in source:
@@ -184,35 +212,113 @@ def main(logger=None):
     # Occasionally, a host name will still be valid but, for whatever reason, is no longer tracked by a source.
     # Rather than throw away valid information, this will archive it.
     for entry in sources:
-        removal_date = monthdelta(datetime.now(), entry["diff"])
+        if "route53" in entry:
+            removal_date = datetime.now() - timedelta(days=2)
+        else:
+            removal_date = monthdelta(datetime.now(), entry["diff"])
 
         source = entry["name"]
         logger.debug("Removing " + source + " as of: " + str(removal_date))
 
         last_domain = ""
+        last_type = ""
+
+        # Get the records that haven't been updated in the last two months
+        #                 "sources": {"$size": 1},
+        # Needs to be from the same sub-group
         results = mongo_connector.perform_find(
             all_dns_collection,
-            {
-                "sources": {"$size": 1},
-                "sources.source": source,
-                "sources.updated": {"$lt": removal_date},
-            },
+            {"sources.source": source, "updated": {"$lt": removal_date}},
             batch_size=10,
         )
 
         for result in results:
-            if result["fqdn"] != last_domain:
+            # Some DNS fields have multiple entries for the same type.
+            # When the Google DNS query is made, it will return all entries for that type.
+            # To avoid making multiple queries for the same type, this will only make one query
+            if result["fqdn"] != last_domain or result["type"] != last_type:
                 last_domain = result["fqdn"]
+                last_type = result["type"]
 
+                # Find the DNS integer for the given type
                 lookup_int = get_lookup_int(logger, result, GDNS)
+                # Search for only those types of records
                 dns_result = GDNS.fetch_DNS_records(result["fqdn"], lookup_int)
 
-                if dns_result != []:
+                # If Google DNS returns a result, then the record is still valid.
+                if dns_result is not None and dns_result != []:
+                    # Insert the current results by updating the record in place.
                     insert_current_results(
-                        dns_result, dns_manager, zones, result, source
+                        logger, dns_result, dns_manager, result, source
                     )
+                    # Pause to ensure there is no rate limiting by Google
+                    # Waiting a second also allows for updates to be reflected in DB.
+                    time.sleep(1)
 
-        dns_manager.remove_all_by_source_and_date(source, entry["diff"])
+                    # Check if the insert updated the original record
+                    # If the record was updated, then this will return None
+                    # If the record was not updated, then this will return the original record
+                    # which can now be removed since it is no longer valid.
+                    test_result = mongo_connector.perform_find_one(
+                        all_dns_collection,
+                        {
+                            "_id": result["_id"],
+                            "updated": {"$lt": removal_date},
+                        },
+                    )
+                elif dns_result == []:
+                    # Allow space for next DNS query
+                    time.sleep(1)
+
+                    # The DNS record no longer exists because it was not found by Google DNS.
+                    # Remove it in the next step by ensuring test_result is not None.
+                    # If there were multiple sources that had reported it, then the record is
+                    # still removed because GoogleDNS didn't find it.
+                    test_result = {"foo": "bar"}
+                    logger.debug(
+                        "DNS lookup returned no results for : " + result["fqdn"]
+                    )
+                else:
+                    # The DNS lookup had a failure. This could be due to a network issue or the host being down.
+                    # Allow the record to persist until the next run to see if it is still valid.
+                    test_result = None
+                    logger.debug("DNS lookup failed for: " + result["fqdn"])
+
+                # Test_result checks to see if the record was updated in place or
+                # whether the DNS lookup resulted in brand new entries. If the DNS lookup
+                # only added new entries, then the original record is removed.
+                # Also, if Google DNS failed to find the record, then the record is removed
+                # since it is no longer valid.
+                if test_result is not None:
+                    # This will only remove the source entry if the source entry is stale.
+                    # If there was only one source entry, then the record will be removed.
+                    # During the insert step, the source was updated to "{source}_saved" if
+                    # the record was still valid but the source is no longer tracking it.
+                    query_res = dns_manager.remove_by_object_id_and_source(
+                        result["_id"], source
+                    )
+                    if query_res is True:
+                        logger.warning(
+                            "Removed entry for: "
+                            + result["fqdn"]
+                            + " and type "
+                            + result["type"]
+                            + " and updated "
+                            + str(result["updated"])
+                            + " from source "
+                            + source
+                        )
+                    else:
+                        logger.warning(
+                            "Failed to remove entry for: "
+                            + result["fqdn"]
+                            + " and type "
+                            + result["type"]
+                            + " and updated "
+                            + str(result["updated"])
+                            + " from source "
+                            + source
+                        )
 
     # Get the date for today minus two months
     d_minus_2m = monthdelta(datetime.now(), -2)

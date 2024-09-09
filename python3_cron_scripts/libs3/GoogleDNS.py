@@ -69,7 +69,7 @@ class GoogleDNS(object):
     }
 
     @staticmethod
-    def fetch_DNS_records(host, dns_type=None):
+    def fetch_DNS_records(host, dns_type=None, log_level=None):
         """
         Use Google DNS over HTTPS to lookup host
         DNS Type mappings: "a":1, "ns":2, "cname":5, "soa":6, "ptr":12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33,
@@ -82,6 +82,7 @@ class GoogleDNS(object):
         :param host: The host
         :param dns_type: Either a string (e.g. "AAAA") or the corresponding number for that type.
         :return: An array of results containing the "fqdn", type", and "value" parameters or [] if nothing matched
+        :param log_level: The log level to use for logging
         """
 
         def _requests_retry_session(
@@ -115,28 +116,45 @@ class GoogleDNS(object):
             url = url + "&type=" + str(dns_type)
 
         logger = logging.getLogger(__name__)
+        if log_level is not None:
+            logger.setLevel(log_level)
 
         try:
             req = _requests_retry_session().get(url, timeout=120)
         except Exception as ex:
-            logger.error("Google DNS request attempts failed!")
+            logger.error("Google DNS request attempts failed for " + str(host) + "!")
             logger.error(str(ex))
-            return []
+            return None
 
         if req.status_code != 200:
-            logger.debug("Error looking up: " + host)
-            return []
+            logger.debug("HTTP Error looking up: " + host)
+            return None
 
         nslookup_results = json.loads(req.text)
 
-        if nslookup_results["Status"] != 0:
-            logger.debug("Status error looking up: " + host)
+        # Status 3 is NXDomain or non-existant domain.
+        # This happens a lot with in.addr.arpa queries and dead DNS records.
+        if nslookup_results["Status"] == 3:
+            logger.debug("NXDomain status error looking up: " + host)
             return []
+        elif nslookup_results["Status"] == 2:
+            logger.warning("SERVFAIL status error looking up: " + host)
+            return None
+        elif nslookup_results["Status"] != 0:
+            # All other status codes are defined here:
+            # https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml#dns-parameters-6
+            logger.warning(
+                "Status error "
+                + str(nslookup_results["Status"])
+                + " when looking up: "
+                + host
+            )
+            return None
 
         if "Answer" not in nslookup_results:
             logger.warning("Could not find Answer in DNS result for " + host)
             # logger.warning (req.text)
-            return []
+            return None
 
         results = []
         for answer in nslookup_results["Answer"]:

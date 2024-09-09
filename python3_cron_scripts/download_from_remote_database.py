@@ -146,9 +146,19 @@ def record_finding(logger, dns_manager, google_dns, zone, finding):
     Results from amass squash the cname records and only provides the final IPs.
     Therefore, we have to re-do the DNS lookup to get the complete chain.
     """
-    results = google_dns.fetch_DNS_records(finding["name"])
 
     inserted = False
+
+    results = google_dns.fetch_DNS_records(finding["name"])
+
+    if results is None:
+        time.sleep(1)
+        # Try again
+        results = google_dns.fetch_DNS_records(finding["name"])
+
+        if results is None:
+            # Not going to work
+            return inserted
 
     for result in results:
         if result["fqdn"].endswith("." + zone) or result["fqdn"] == zone:

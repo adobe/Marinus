@@ -469,13 +469,13 @@ class IPManager(object):
         if isinstance(ip, str):
             ip_addr = IPAddress(ip)
 
-        google_gns = GoogleDNS.GoogleDNS()
+        google_dns = GoogleDNS.GoogleDNS()
 
-        results = google_gns.fetch_DNS_records(
-            ip_addr.reverse_dns, google_gns.DNS_TYPES["ptr"]
+        results = google_dns.fetch_DNS_records(
+            ip_addr.reverse_dns, google_dns.DNS_TYPES["ptr"]
         )
 
-        if len(results) > 0:
+        if results is not None and len(results) > 0:
             return results[0]["value"]
 
         return None
