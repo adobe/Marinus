@@ -69,7 +69,9 @@ class GoogleDNS(object):
     }
 
     @staticmethod
-    def fetch_DNS_records(host, dns_type=None, log_level=None):
+    def fetch_DNS_records(
+        host, dns_type=None, alternative_search=False, log_level=None
+    ):
         """
         Use Google DNS over HTTPS to lookup host
         DNS Type mappings: "a":1, "ns":2, "cname":5, "soa":6, "ptr":12, "hinfo": 13, "mx": 15, "txt":16, "aaaa":28, "srv":33,
@@ -81,8 +83,9 @@ class GoogleDNS(object):
 
         :param host: The host
         :param dns_type: Either a string (e.g. "AAAA") or the corresponding number for that type.
-        :return: An array of results containing the "fqdn", type", and "value" parameters or [] if nothing matched
+        :param alternative_search: If a search for the initial DNS type fails, then try to look up the host regardless of DNS type (Only for A, CNAME, and AAAA)
         :param log_level: The log level to use for logging
+        :return: An array of results containing the "fqdn", type", and "value" parameters or [] if nothing matched
         """
 
         def _requests_retry_session(
@@ -152,8 +155,25 @@ class GoogleDNS(object):
             return None
 
         if "Answer" not in nslookup_results:
+            # This can happen when the DNS record is not found in a condition that is separate
+            # from NXDomain. This sometimes occurs when a DNS record exists for the FQDN but
+            # it exists as a separate type
+            # Example response:
+            # {"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"foo.bar.org.","type":1}],
+            # "Authority":[{...}]}, {"Comment": "Response from 1.2.3.4."}
+
             logger.warning("Could not find Answer in DNS result for " + host)
-            # logger.warning (req.text)
+            # logger.warning("Answer not found in: " + str(req.text))
+
+            # If alternative search is enabled, then try to look up the host with a different DNS type
+            if (
+                alternative_search
+                and dns_type is not None
+                and (dns_type == 1 or dns_type == 5 or dns_type == 28)
+            ):
+                results = GoogleDNS.fetch_DNS_records(host)
+                return results
+
             return None
 
         results = []
