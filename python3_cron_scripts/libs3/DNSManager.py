@@ -35,6 +35,7 @@ class DNSManager(object):
 
     all_dns_collection = None
     mongo_connector = None
+    ip_manager = None
     _logger = None
 
     def _log(self):
@@ -167,7 +168,9 @@ class DNSManager(object):
                 )
 
         if result["type"] == "a" or result["type"] == "aaaa":
-            ip_manager = IPManager.IPManager(self.mongo_connector)
+            if self.ip_manager is None:
+                self.ip_manager = IPManager.IPManager(self.mongo_connector)
+
             ip_manager.insert_record(result["value"], source_name)
 
     def find_multiple(self, criteria, source):
