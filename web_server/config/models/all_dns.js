@@ -220,7 +220,7 @@ module.exports = {
         if (subdomain === undefined || subdomain === null || subdomain === 'all') {
             subdomain = '';
         }
-        let reAmazon = new RegExp('^.*' + subdomain + '\.amazonaws\.com');
+        let reAmazon = new RegExp('^.*' + subdomain + '\\.amazonaws\\.com');
 
         let query = {
             'type': 'cname',
@@ -324,7 +324,7 @@ module.exports = {
          */
         let query = {};
 
-        let reDomain = new RegExp('.*\.' + domain_ending + '$');
+        let reDomain = new RegExp('.*\\.' + domain_ending + '$');
 
         query['fqdn'] = { "$regex": reDomain };
 
