@@ -34,8 +34,8 @@ class DNSManager(object):
     """
 
     all_dns_collection = None
-    mongo_connector = None
-    ip_manager = None
+    _mongo_connector = None
+    _ip_manager = None
     _logger = None
 
     def _log(self):
@@ -49,7 +49,7 @@ class DNSManager(object):
         Initialize the object with the necessary database configurations
         """
         self._logger = self._log()
-        self.mongo_connector = mongo_connector
+        self._mongo_connector = mongo_connector
         if alternative_collection is not None:
             try:
                 self.all_dns_collection = getattr(
@@ -110,7 +110,7 @@ class DNSManager(object):
             "type": result["type"],
             "value": result["value"],
         }
-        check = self.mongo_connector.perform_find_one(self.all_dns_collection, query)
+        check = self._mongo_connector.perform_find_one(self.all_dns_collection, query)
 
         if check is None:
             result["sources"] = []
@@ -121,7 +121,7 @@ class DNSManager(object):
                 for entry in source_metadata:
                     result["sources"][0][entry["key"]] = entry["value"]
             result["updated"] = datetime.now()
-            self.mongo_connector.perform_insert(self.all_dns_collection, result)
+            self._mongo_connector.perform_insert(self.all_dns_collection, result)
         else:
             source_index = -1
             for i in range(0, len(check["sources"])):
@@ -168,10 +168,10 @@ class DNSManager(object):
                 )
 
         if result["type"] == "a" or result["type"] == "aaaa":
-            if self.ip_manager is None:
-                self.ip_manager = IPManager.IPManager(self.mongo_connector)
+            if self._ip_manager is None:
+                self._ip_manager = IPManager.IPManager(self._mongo_connector)
 
-            ip_manager.insert_record(result["value"], source_name)
+            self._ip_manager.insert_record(result["value"], source_name)
 
     def find_multiple(self, criteria, source):
         """
@@ -184,7 +184,7 @@ class DNSManager(object):
         if source != None:
             criteria["sources.source"] = source
 
-        check = self.mongo_connector.perform_find(
+        check = self._mongo_connector.perform_find(
             self.all_dns_collection, criteria, batch_size=25
         )
         return check
@@ -200,7 +200,9 @@ class DNSManager(object):
         if source != None:
             criteria["sources.source"] = source
 
-        check = self.mongo_connector.perform_find_one(self.all_dns_collection, criteria)
+        check = self._mongo_connector.perform_find_one(
+            self.all_dns_collection, criteria
+        )
         return check
 
     def find_count(self, criteria, source):
@@ -214,7 +216,7 @@ class DNSManager(object):
         if source != None:
             criteria["sources.source"] = source
 
-        check = self.mongo_connector.perform_count(self.all_dns_collection, criteria)
+        check = self._mongo_connector.perform_count(self.all_dns_collection, criteria)
         return check
 
     def remove_by_domain_and_source(self, domain, dns_type, dns_value, source):
