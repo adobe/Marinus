@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2021 Adobe. All rights reserved.
+# Copyright 2024 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -47,6 +47,8 @@ class X509Parser(object):
     This class supports both DER and PEM certificate formats.
 
     Certificates can be provided as a file location
+
+    Certificate log IDs and URLs can be found here: https://source.chromium.org/chromium/chromium/src/+/main:components/certificate_transparency/data/log_list.json
     """
 
     _logger = None
@@ -132,6 +134,14 @@ class X509Parser(object):
             "id": "EvFONL1TckyEBhnDjz96E/jntWKHiJxtMAWE6+WGJjo=",
             "url": "ct.googleapis.com/logs/us1/argon2025h2/",
         },
+        "argon2026h1": {
+            "id": "DleUvPOuqT4zGyyZB7P3kN+bwj1xMiXdIaklrGHFTiE=",
+            "url": "ct.googleapis.com/logs/us1/argon2026h1/",
+        },
+        "argon2026h2": {
+            "id": "1219ENGn9XfCx+lf1wC/+YLJM1pl4dCzAXMXwMjFaXc=",
+            "url": "ct.googleapis.com/logs/us1/argon2026h2/",
+        },
         "xenon2018": {
             "id": "sQzVWabWeEaBH335pRUyc5rEjXA76gMj2l04dVvArU4=",
             "url": "ct.googleapis.com/logs/xenon2018",
@@ -159,6 +169,22 @@ class X509Parser(object):
         "xenon2024": {
             "id": "dv+IPwq2+5VRwmHM9Ye6NLSkzbsp3GhCCp/mZ0xaOnQ=",
             "url": "ct.googleapis.com/logs/eu1/xenon2024/",
+        },
+        "xenon2025h1": {
+            "id": "zxFW7tUufK/zh1vZaS6b6RpxZ0qwF+ysAdJbd87MOwg=",
+            "url": "ct.googleapis.com/logs/eu1/xenon2025h1/",
+        },
+        "xenon2025h2": {
+            "id": "3dzKNJXX4RYF55Uy+sef+D0cUN/bADoUEnYKLKy7yCo=",
+            "url": "ct.googleapis.com/logs/eu1/xenon2025h2/",
+        },
+        "xenon2026h1": {
+            "id": "lpdkv1VYl633Q4doNwhCd+nwOtX2pPM2bkakPw/KqcY=",
+            "url": "ct.googleapis.com/logs/eu1/xenon2026h1/",
+        },
+        "xenon2026h2": {
+            "id": "2AlVO5RPev/IFhlvlE+Fq7D4/F6HVSYPFdEucrtFSxQ=",
+            "url": "ct.googleapis.com/logs/eu1/xenon2026h2/",
         },
         # DigiCert
         "digicert-ct1": {
@@ -237,6 +263,22 @@ class X509Parser(object):
             "id": "5tIxY0B3jMEQQQbXcbnOwdJA9paEhvu6hzId/R43jlA=",
             "url": "nessie2025.ct.digicert.com/log",
         },
+        "sphinx2026h1": {
+            "id": "SZybad4dfOz8Nt7Nh2SmuFuvCoeAGdFVUvvp6ynd+MM=",
+            "url": "sphinx.ct.digicert.com/2026h1/",
+        },
+        "sphinx2026h2": {
+            "id": "lE5Dh/rswe+B8xkkJqgYZQHH0184AgE/cmd9VTcuGdg=",
+            "url": "sphinx.ct.digicert.com/2026h2/",
+        },
+        "wyvern2026h1": {
+            "id": "ZBHEbKQS7KeJHKICLgC8q08oB9QeNSer6v7VA8l9zfA=",
+            "url": "wyvern.ct.digicert.com/2026h1/",
+        },
+        "wyvern2026h2": {
+            "id": "wjF+V0UZo0XufzjespBB68fCIVoiv3/Vta12mtkOUs0=",
+            "url": "wyvern.ct.digicert.com/2026h2/",
+        },
         # Symantec [Retired]
         "symantec-ct": {
             "id": "3esdK3oNT6Ygi4GtgWhwfi6OnQHVXIiNPRHEzbbsvsw=",
@@ -297,6 +339,14 @@ class X509Parser(object):
             "id": "2ra/az+1tiKfm8K7XGvocJFxbLtRhIU0vaQ9MEjX+6s=",
             "url": "ct.cloudflare.com/logs/nimbus2024",
         },
+        "nimbus2025": {
+            "id": "zPsPaoVxCWX+lZtTzumyfCLphVwNl422qX5UwP5MDbA=",
+            "url": "ct.cloudflare.com/logs/nimbus2025",
+        },
+        "nimbus2026": {
+            "id": "yzj3FYl8hKFEX1vB3fvJbvKaWc1HCmkFhbDLFMMUWOc=",
+            "url": "ct.cloudflare.com/logs/nimbus2026",
+        },
         # Let's Encrypt
         "le-oak2021": {
             "id": "lCC8Ho7VjWyIcx+CiyIsDdHaTV5sT5Q9YdtOL1hNosI=",
@@ -325,6 +375,14 @@ class X509Parser(object):
         "le-oak2025h2": {
             "id": "DeHyMCvTDcFAYhIJ6lUu/Ed0fLHX6TDvDkIetH5OqjQ=",
             "url": "oak.ct.letsencrypt.org/2025h2/",
+        },
+        "le-oak2026h1": {
+            "id": "GYbUxyiqb/66A294Kk0BkarOLXIxD67OXXBBLSVMx9Q=",
+            "url": "oak.ct.letsencrypt.org/2026h1/",
+        },
+        "le-oak2026h2": {
+            "id": "rKswcGzr7IQx9BPS9JFfER5CJEOx8qaMTzwrO6ceAsM=",
+            "url": "oak.ct.letsencrypt.org/2026h2/",
         },
         # Misc [Retired]
         "venafi-ctlog-gen2": {
@@ -682,12 +740,12 @@ class X509Parser(object):
         ).decode("utf-8")
 
         try:
-            cert_object["not_before"] = cert.not_valid_before
+            cert_object["not_before"] = cert.not_valid_before_utc
         except ValueError:
             self._logger.warning("WARNING: Invalid not_before date")
 
         try:
-            cert_object["not_after"] = cert.not_valid_after
+            cert_object["not_after"] = cert.not_valid_after_utc
         except ValueError:
             self._logger.warning("WARNING: Invalid not_after date")
             return None
@@ -798,7 +856,7 @@ class X509Parser(object):
                 openssl_cert = crypto.load_certificate(crypto.FILETYPE_ASN1, data)
             except Exception as e:
                 self._logger.debug(
-                    "ERROR: Could not parse certificate as a PEM or DER file - "
+                    "WARNING: Could not parse certificate as a PEM or DER file - "
                     + str(e)
                 )
                 return None
