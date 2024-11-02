@@ -549,9 +549,6 @@ class IPManager(object):
         if rnds_value is None:
             return "", None
 
-        if self._ZONES is None:
-            self._ZONES = ZoneManager.get_distinct_zones(self._mongo_connector)
-
         rdns_zone = ZoneManager.get_root_domain(rnds_value, None)
 
         return rnds_value, rdns_zone
@@ -615,6 +612,9 @@ class IPManager(object):
                     )
             else:
                 record["sources"] = [{"source": source, "updated": datetime.now()}]
+
+        if self._ZONES is None:
+            self._ZONES = ZoneManager.get_distinct_zones(self._mongo_connector)
 
         record["zones"], record["domains"] = self.find_dns_zones(ip)
 
