@@ -2630,19 +2630,25 @@ module.exports = function (envConfig) {
      *   - APIKeyHeader: []
      *
      * tags:
-     *   - name: Port 443 scans - Expired 200x certs
-     *     description: Find expired certs from the 200x era
+     *   - name: Port 443 scans - Expired 200x and 201x certs
+     *     description: Find expired certs from the 200x and 201x eras
      *
      * /api/v1.0/zgrab/443/expired_certs_2k:
      *   get:
      *   # Operation-specific security:
      *     security:
      *       - APIKeyHeader: []
-     *     description: Find expired certs from the 200x era. This returns the full scan response which is quite large.
+     *     description: Find expired certs from the 200x and 201x eras. This returns the full scan response which is quite large.
      *                  If testing via Swagger, set the limit to a small number (<5) because the response body will be large.
-     *     tags: [Port 443 scans - Expired 200x certs]
+     *     tags: [Port 443 scans - Expired 200x and 201x certs]
      *     produces:
      *       - application/json
+     *     parameters:
+     *       - name: decade
+     *         type: string
+     *         required: false
+     *         description: A decade value to search which must be either 2k or 2k10. If not provided, it searches for 2k certs.
+     *         in: query
      *     responses:
      *       200:
      *         description: Returns the relevant expired certs.
@@ -2663,7 +2669,23 @@ module.exports = function (envConfig) {
         .get(function (req, res) {
             let recursive = false;
 
-            let promise = zgrab443.getSSLByValidity2kPromise(recursive);
+            if (!is_valid_strings(req.query)) {
+                res.status(400).json({ 'message': 'Multiple query parameters are not allowed.' });
+                return;
+            }
+
+            let decade = "2k";
+
+            if (!(req.query.hasOwnProperty('decade'))) {
+                decade = req.query.decade;
+            }
+
+            if (decade != "2k" && decade != "2k10") {
+                res.status(400).json({ 'message': 'The supplied decade must be 2k or 2k10' });
+                return;
+            }
+
+            let promise = zgrab443.getSSLByValidity2kPromise(decade, recursive);
 
             promise.then(function (data) {
                 if (!data) {
@@ -2674,8 +2696,7 @@ module.exports = function (envConfig) {
                 if (recursive === true) {
                     res.status(200).json(data);
                 } else {
-                    let result = reformatResponse(data);
-                    res.status(200).json(result);
+                    res.status(200).json(data);
                 }
                 return;
             });
@@ -2696,7 +2717,7 @@ module.exports = function (envConfig) {
      *   # Operation-specific security:
      *     security:
      *       - APIKeyHeader: []
-     *     description: Find expired certs from the 201x era. This returns the full scan response which is quite large.
+     *     description: Find expired certs from the 202x era. This returns the full scan response which is quite large.
      *                  If testing via Swagger, set the limit to a small number (<5) because the response body will be large.
      *     tags: [Port 443 scans - Expired certs by year]
      *     produces:
@@ -2705,7 +2726,7 @@ module.exports = function (envConfig) {
      *       - name: year
      *         type: string
      *         required: true
-     *         description: A year in the 201x format. This is a regex search so you can optionally make it year + month.
+     *         description: A year in the 202x format. This is a regex search so you can optionally make it year + month.
      *         in: query
      *     responses:
      *       200:
@@ -2752,35 +2773,35 @@ module.exports = function (envConfig) {
                     return;
                 }
 
-                if (recursive === false) {
-                    data = reformatResponse(data);
-                }
+                // if (recursive === false) {
+                //    data = reformatResponse(data);
+                // }
 
-                let results = [];
                 let today = new Date();
                 let thisYear = today.getFullYear().toString();
                 let test;
-                if (data[0]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
-                    test = data[0]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'].startsWith(thisYear);
+                if (data[0]['data']['http'].hasOwnProperty('request') && data[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                    test = data[0]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'].startsWith(thisYear);
                 } else {
                     test = data[0]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end'].startsWith(thisYear);
                 }
-                for (let i = 0; i < data.length; i++) {
-                    if (test) {
+                if (test) {
+                    let results = [];
+                    for (let i = 0; i < data.length; i++) {
                         let tempDate;
-                        if (data[0]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
-                            tempDate = new Date(data[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end']);
+                        if (data[i]['data']['http'].hasOwnProperty('request') && data[i]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                            tempDate = new Date(data[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end']);
                         } else {
                             tempDate = new Date(data[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end']);
                         }
                         if (tempDate < today) {
                             results.push(data[i]);
                         }
-                    } else {
-                        results.push(data[i]);
                     }
+                    res.status(200).json(results)
+                } else {
+                    res.status(200).json(data);
                 }
-                res.status(200).json(results);
                 return;
             });
         });

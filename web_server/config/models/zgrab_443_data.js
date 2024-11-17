@@ -145,7 +145,7 @@ module.exports = {
     },
     getSSLByZonePromise: function (zone, count, recursive) {
         let escZone = zone.replace('.', '\\.');
-        let reZone = new RegExp('^.*\.' + escZone + '$');
+        let reZone = new RegExp('^.*\\.' + escZone + '$');
         let promise;
         if (recursive === true) {
             if (count) {
@@ -216,8 +216,14 @@ module.exports = {
         }
         return (promise);
     },
-    getSSLByValidity2kPromise: function (recursive) {
-        let isBefore2010 = new RegExp('^200.*');
+    getSSLByValidity2kPromise: function (decade, recursive) {
+        let search;
+        if (decade == "2k10") {
+            search = new RegExp('^201.*');
+        } else {
+            search = new RegExp('^200.*');
+        }
+
         let promise;
         if (recursive === true) {
             promise = zSchema.zgrab443Model.find({
@@ -348,7 +354,7 @@ module.exports = {
     },
     getSSLAlgorithmByZonePromise: function (algorithm, zone, count, recursive, limit, page) {
         let escZone = zone.replace('.', '\\.');
-        let reZone = new RegExp('^.*\.' + escZone + '$');
+        let reZone = new RegExp('^.*\\.' + escZone + '$');
         let promise;
         if (recursive === true) {
             if (count === true) {
