@@ -85,7 +85,7 @@ module.exports = {
     return promise;
   },
   getCertTransCorpPromise: function (corp_domain, excludeExpired, count) {
-    let reCorp = new RegExp('^.*\.' + corp_domain);
+    let reCorp = new RegExp('^.*\\.' + corp_domain);
     let promise;
     if (excludeExpired != null && excludeExpired === true) {
       if (count) {
@@ -181,7 +181,7 @@ module.exports = {
     return promise;
   },
   getCorpCount: function (corp_domain) {
-    let reCorp = new RegExp('^.*\.' + corp_domain);
+    let reCorp = new RegExp('^.*\\.' + corp_domain);
     return certTransModel.find({
       '$or': [{ 'subject_common_names': reCorp },
       { 'subject_dns_names': reCorp }],
