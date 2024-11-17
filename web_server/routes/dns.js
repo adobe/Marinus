@@ -249,17 +249,17 @@ module.exports = function (envConfig) {
      *         required: false
      *         description: Fetch all DNS entries whose created value is greater than the provided value. The value must have the
      *                      format YYYY-MM-DD (or any valid field for the new Date() JavaScript function). Limit and page
-     *                      are supported. A created field can be used in conjunction with the zone parameter.
+     *                      are supported. A created field can be used in conjunction with the zone or dnsType parameter.
      *         in: query
      *       - name: limit
      *         type: number
      *         required: false
-     *         description: Limit the number of records per page when requesting information by zone. Does not apply to other queries. Default 1,000.
+     *         description: Limit the number of records per page when requesting information by zone or dnsType. Does not apply to other queries. Default 1,000.
      *         in: query
      *       - name: page
      *         type: number
      *         required: false
-     *         description: The page to request. This must be set in conjunction with the limit parameter. This only applies to zone queries. The default is 1.
+     *         description: The page to request. This must be set in conjunction with the limit parameter. This only applies to zone or dnsType queries. The default is 1.
      *         in: query
      *     responses:
      *       200:
@@ -543,7 +543,7 @@ module.exports = function (envConfig) {
                 if (req.query.hasOwnProperty('list') && req.query.list === '1') {
                     promise = allDNS.getAllDNSTypeByZoneCountPromise(req.query.dnsType, source);
                 } else {
-                    promise = allDNS.getAllDNSByTypePromise(req.query.dnsType, zone, source, count);
+                    promise = allDNS.getAllDNSByTypePromise(req.query.dnsType, zone, source, count, created_date, limit, page);
                 }
             } else if (req.query.hasOwnProperty('cnameTLD')) {
                 if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
