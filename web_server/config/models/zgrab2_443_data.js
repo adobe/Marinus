@@ -211,7 +211,7 @@ module.exports = {
     },
     getSSLByZonePromise: function (zone, count, recursive) {
         let escZone = zone.replace('.', '\\.');
-        let reZone = new RegExp('^.*\.' + escZone + '$');
+        let reZone = new RegExp('^.*\\.' + escZone + '$');
         let promise;
         if (recursive === true) {
             if (count) {
@@ -299,7 +299,22 @@ module.exports = {
                         { "$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]] }
                 }
             },
-            { "$match": { 'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.validity.end': isBefore2010 } }]
+            { "$match": { 'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.validity.end': isBefore2010 } },
+            {
+                "$project": {
+                    'domain': 1,
+                    'ip': 1,
+                    'data.http': { "$arrayElemAt": ["$data.http", 0] }
+                }
+            },
+            {
+                "$project": {
+                    'domain': 1,
+                    'ip': 1,
+                    'data.http.request.tls_log': "$data.http.request.tls_log"
+                }
+            }
+            ]
             ).exec();
         }
         return (promise);
@@ -321,7 +336,22 @@ module.exports = {
                         { "$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]] }
                 }
             },
-            { "$match": { 'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.validity.end': thisDecade } }]
+            { "$match": { 'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.validity.end': thisDecade } },
+            {
+                "$project": {
+                    'domain': 1,
+                    'ip': 1,
+                    'data.http': { "$arrayElemAt": ["$data.http", 0] }
+                }
+            },
+            {
+                "$project": {
+                    'domain': 1,
+                    'ip': 1,
+                    'data.http.request.tls_log': "$data.http.request.tls_log"
+                }
+            }
+            ]
             ).exec();
         }
         return (promise);
@@ -414,7 +444,7 @@ module.exports = {
     },
     getSSLAlgorithmByZonePromise: function (algorithm, zone, count, recursive, limit, page) {
         let escZone = zone.replace('.', '\\.');
-        let reZone = new RegExp('^.*\.' + escZone + '$');
+        let reZone = new RegExp('^.*\\.' + escZone + '$');
         let promise;
         if (recursive === true) {
             if (count === true) {
