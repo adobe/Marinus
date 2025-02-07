@@ -198,9 +198,9 @@ class AWSStorageManager(object):
             for bucket in remote_bucket.objects.all():
                 results.append(bucket.key)
 
-            return results
-
         except Exception as err:
             self._logger.error("Could not not list files in Bucket: " + foldername)
             self._logger.error(str(err))
-            return False
+            return None
+
+	return results

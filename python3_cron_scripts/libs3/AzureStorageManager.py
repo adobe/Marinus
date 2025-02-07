@@ -200,9 +200,9 @@ class AzureStorageManager(object):
             for blob in blob_pager:
                 results.append(blob.name)
 
-            return results
-
         except Exception as err:
             self._logger.error("Could not list files from container: " + foldername)
             self._logger.error(str(err))
             return None
+
+	return results

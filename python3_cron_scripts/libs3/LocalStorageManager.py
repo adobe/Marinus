@@ -144,4 +144,4 @@ class LocalStorageManager(object):
             self._logger.error(str(err))
             return None
 
-        return True
+        return results
