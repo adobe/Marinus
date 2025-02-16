@@ -16,13 +16,10 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 
 module.exports = function (envConfig) {
-    const db_options = {
-        reconnectTries: 10,
-        keepAlive: true,
-    };
+    const db_options = {};
 
     if (envConfig.hasOwnProperty('mongodbSSLCA') && envConfig.mongodbSSLCA !== "") {
-        db_options['sslCA'] = envConfig.mongodbSSLCA;
+        db_options['tlsCAFile'] = envConfig.mongodbSSLCA;
     }
 
     // connect to the database
@@ -30,6 +27,9 @@ module.exports = function (envConfig) {
 
     // Use a better Promise provider
     mongoose.Promise = global.Promise;
+
+    // Preparing for Mongoose 7.0
+    mongoose.set('strictQuery', false);
 
     // Acknowledge a successful connection to the console
     mongoose.connection.on('connected', function () {
