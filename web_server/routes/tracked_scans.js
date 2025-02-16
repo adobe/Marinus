@@ -2696,6 +2696,10 @@ module.exports = function (envConfig) {
                 if (recursive === true) {
                     res.status(200).json(data);
                 } else {
+                    /**
+                    let result = reformatResponse(data);
+                    res.status(200).json(result);
+                    **/
                     res.status(200).json(data);
                 }
                 return;
