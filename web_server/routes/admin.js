@@ -167,6 +167,14 @@ function is_valid_strings(params) {
  *         type: string
  *         example: "COMPLETED"
  *         description: The status of the job
+ *       last_completed:
+ *         type: string
+ *         example: 2016-06-22T02:08:46.893Z
+ *         description: The last time the job successfully completed
+ *      last_error:
+ *        type: string
+ *        example: "Error: Could not connect to the database"
+ *        description: The last error message from the job
  *
  *   ConfigRecord:
  *     type: object
@@ -437,16 +445,16 @@ module.exports = function (envConfig) {
                 }
                 user.updated = Date.now();
                 user.status = req.body.status;
-                user.save(function (err) {
-                    if (err) {
-                        res.status(500).send(err);
-                        return;
-                    }
-
+                user.save().then(function () {
                     res.status(201).json({
                         message: 'User updated!',
                     });
+                }).catch(function (errorMsg) {
+                    res.status(500).json({
+                        'message': errorMsg.toString(),
+                    });
                 });
+                return;
             });
         });
 
@@ -568,15 +576,16 @@ module.exports = function (envConfig) {
                         newUser.updated = Date.now();
                         newUser.status = 'active';
                         // save the user and check for errors
-                        newUser.save(function (err) {
-                            if (err) {
-                                res.status(500).send(err);
-                                return;
-                            }
+                        newUser.save().then(function () {
                             res.status(201).json({
                                 message: 'User created!',
                             });
+                        }).catch(function (errorMsg) {
+                            res.status(500).json({
+                                'message': errorMsg.toString(),
+                            });
                         });
+                        return;
                     } else {
                         res.status(400).json({
                             message: 'User ' + htmlEscape(userInDB.userid) + ' already exists!',
@@ -695,16 +704,16 @@ module.exports = function (envConfig) {
                     newGroup.updated = Date.now();
 
                     // save the domain and check for errors
-                    newGroup.save(function (err) {
-                        if (err) {
-                            res.status(500).send(err);
-                            return;
-                        }
-
+                    newGroup.save().then(function () {
                         res.status(201).json({
                             message: 'Group created!',
                         });
+                    }).catch(function (errorMsg) {
+                        res.status(500).json({
+                            'message': errorMsg.toString(),
+                        });
                     });
+                    return;
                 } else {
                     res.status(500).json({
                         'message': 'Group  ' + htmlEscape(groupInDB.name) + ' already exists!',
@@ -793,16 +802,16 @@ module.exports = function (envConfig) {
                     group['members'].push(req.body.member.replace(/ /g, ''));
                 }
                 group.updated = Date.now();
-                group.save(function (err) {
-                    if (err) {
-                        res.status(500).send(err);
-                        return;
-                    }
-
+                group.save().then(function () {
                     res.status(201).json({
                         message: 'Group updated!',
                     });
+                }).catch(function (errorMsg) {
+                    res.status(500).json({
+                        'message': errorMsg.toString(),
+                    });
                 });
+                return;
             });
         });
 
@@ -877,18 +886,16 @@ module.exports = function (envConfig) {
                     reporting_sources['status'] = 'unconfirmed';
                     newZone.reporting_sources.push(reporting_sources);
                     newZone.zone = req.body.zone;
-                    newZone.save(function (err) {
-                        if (err) {
-                            res.status(500);
-                            res.send(err);
-                            return;
-                        }
-
-                        res.status(201);
-                        res.json({
+                    newZone.save().then(function () {
+                        res.status(201).json({
                             message: 'Zone created!',
                         });
+                    }).catch(function (errorMsg) {
+                        res.status(500).json({
+                            'message': errorMsg.toString(),
+                        });
                     });
+                    return;
                 } else {
                     res.status(500).json({
                         'message': 'Zone ' + htmlEscape(zoneInDB.zone) + ' already exists!',
@@ -985,16 +992,16 @@ module.exports = function (envConfig) {
                         zoneInDB['status'] = req.body.status;
                     }
                     zoneInDB.updated = Date.now();
-                    zoneInDB.save(function (err) {
-                        if (err) {
-                            res.status(500).send(err);
-                            return;
-                        }
-
+                    zoneInDB.save().then(function () {
                         res.status(201).json({
                             message: 'Zone updated!',
                         });
+                    }).catch(function (errorMsg) {
+                        res.status(500).json({
+                            'message': errorMsg.toString(),
+                        });
                     });
+                    return;
                 } else {
                     res.status(500).json({
                         'message': 'Error updating ' + htmlEscape(zoneInDB.zone),
@@ -1080,16 +1087,16 @@ module.exports = function (envConfig) {
                     newZone.source = 'manual';
                     newZone.zone = req.body.zone;
                     newZone.notes = [];
-                    newZone.save(function (err) {
-                        if (err) {
-                            res.status(500).send(err);
-                            return;
-                        }
-
+                    newZone.save().then(function () {
                         res.status(201).json({
                             message: 'IPv4 zone created!',
                         });
+                    }).catch(function (errorMsg) {
+                        res.status(500).json({
+                            'message': errorMsg.toString(),
+                        });
                     });
+                    return;
                 } else {
                     res.status(500).json({
                         'message': 'IPv4 Zone ' + htmlEscape(zoneInDB.zone) + ' already exists!',
@@ -1185,16 +1192,16 @@ module.exports = function (envConfig) {
                         zoneInDB['status'] = req.body.status;
                     }
                     zoneInDB.updated = Date.now();
-                    zoneInDB.save(function (err) {
-                        if (err) {
-                            res.status(500).send(err);
-                            return;
-                        }
-
+                    zoneInDB.save().then(function () {
                         res.status(201).json({
                             message: 'IPv4 zone updated!',
                         });
+                    }).catch(function (errorMsg) {
+                        res.status(500).json({
+                            'message': errorMsg.toString(),
+                        });
                     });
+                    return;
                 } else {
                     res.status(500).json({
                         'message': 'Error updating ' + htmlEscape(zoneInDB.zone),
@@ -1279,16 +1286,16 @@ module.exports = function (envConfig) {
                     newZone.sources = { "source": 'manual', "updated": Date.now() };
                     newZone.zone = req.body.zone;
                     newZone.notes = [];
-                    newZone.save(function (err) {
-                        if (err) {
-                            res.status(500).send(err);
-                            return;
-                        }
-
+                    newZone.save().then(function () {
                         res.status(201).json({
                             message: 'IPv6 zone created!',
                         });
+                    }).catch(function (errorMsg) {
+                        res.status(500).json({
+                            'message': errorMsg.toString(),
+                        });
                     });
+                    return;
                 } else {
                     res.status(500).json({
                         'message': 'IPv6 Zone ' + htmlEscape(zoneInDB.zone) + ' already exists!',
@@ -1384,16 +1391,16 @@ module.exports = function (envConfig) {
                         zoneInDB['status'] = req.body.status;
                     }
                     zoneInDB.updated = Date.now();
-                    zoneInDB.save(function (err) {
-                        if (err) {
-                            res.status(500).send(err);
-                            return;
-                        }
-
+                    zoneInDB.save().then(function () {
                         res.status(201).json({
                             message: 'IPv6 zone updated!',
                         });
+                    }).catch(function (errorMsg) {
+                        res.status(500).json({
+                            'message': errorMsg.toString(),
+                        });
                     });
+                    return;
                 } else {
                     res.status(500).json({
                         'message': 'Error updating ' + htmlEscape(zoneInDB.zone),
