@@ -64,7 +64,7 @@ $(function () {
                     return;
                 }
 
-                graph.data = d3.values(data.data);
+                graph.data = Object.values(data.data);
                 drawGraph(z_type);
             })
         } else if (this.readyState === 4 && this.status !== 200) {
@@ -195,7 +195,7 @@ function drawGraph(z_type) {
         }
         cat.count++;
     }
-    graph.categoryKeys = d3.keys(graph.categories);
+    graph.categoryKeys = Object.keys(graph.categories);
 
     graph.colors = []
     for (let i = 1; i < config.graph.numColors + 2; i++) {
@@ -279,24 +279,24 @@ function drawGraph(z_type) {
 
     graph.drag = d3.drag()
         .subject(function (d) { return d; })
-        .on('start', function (d) {
-            if (!d3.event.active) graph.simulation.alphaTarget(0.3).restart();
+        .on('start', function (event, d) {
+            if (!event.active) graph.simulation.alphaTarget(0.3).restart();
             d.oldX = d.x;
             d.oldY = d.y;
             d.dragged = false;
             d.fixed |= 2;
         })
-        .on('drag', function (d) {
-            d.x = d3.event.x;
-            d.y = d3.event.y;
+        .on('drag', function (event, d) {
+            d.x = event.x;
+            d.y = event.y;
             if (dragged(d)) {
                 if (!graph.simulation.alpha()) {
                     graph.simulation.alpha(.025);
                 }
             }
         })
-        .on('end', function (d) {
-            if (!d3.event.active) graph.simulation.alphaTarget(0);
+        .on('end', function (event, d) {
+            if (!event.active) graph.simulation.alphaTarget(0);
             if (!dragged(d)) {
                 selectObject(d, this);
             }
@@ -434,7 +434,7 @@ function drawGraph(z_type) {
         .attr('x', 0)
         .attr('y', 0)
         .selectAll('.category')
-        .data(d3.values(graph.categories))
+        .data(Object.values(graph.categories))
         .enter().append('g')
         .attr('class', 'category')
         .on("click", function (d) {
@@ -785,8 +785,8 @@ function resize(showDocs) {
     });
 }
 
-function doZoom() {
-    graph.svg.attr("transform", "translate(" + d3.event.transform.x + ", " + d3.event.transform.y + ") scale(" + d3.event.transform.k + ")");
+function doZoom(event) {
+    graph.svg.attr("transform", "translate(" + event.transform.x + ", " + event.transform.y + ") scale(" + event.transform.k + ")");
 }
 
 function doSearch() {
@@ -809,19 +809,19 @@ function doReload() {
 }
 
 var drag_table = d3.drag().subject(this)
-    .on('start', function (d) {
+    .on('start', function (event, d) {
         if (d.x1) {
-            d.x1 = d3.event.x - d.xt;
-            d.y1 = d3.event.y - d.yt;
+            d.x1 = event.x - d.xt;
+            d.y1 = event.y - d.yt;
         } else {
-            d.x1 = d3.event.x;
-            d.y1 = d3.event.y;
+            d.x1 = event.x;
+            d.y1 = event.y;
         }
     })
-    .on('drag', function (d) {
-        d3.select(this).attr("transform", "translate(" + (d3.event.x - d.x1) + "," + (d3.event.y - d.y1) + ")");
+    .on('drag', function (event, d) {
+        d3.select(this).attr("transform", "translate(" + (event.x - d.x1) + "," + (event.y - d.y1) + ")");
 
-        d.xt = d3.event.x - d.x1;
-        d.yt = d3.event.y - d.y1;
+        d.xt = event.x - d.x1;
+        d.yt = event.y - d.y1;
     });
 
