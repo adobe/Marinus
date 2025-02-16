@@ -17,7 +17,7 @@
  */
 
 module.exports = function (passport, envConfig) {
-   const SamlStrategy = require('passport-saml').Strategy;
+   const SamlStrategy = require('@node-saml/passport-saml').Strategy;
    const user = require('../config/models/user');
 
    passport.serializeUser(function (user, done) {
@@ -32,10 +32,10 @@ module.exports = function (passport, envConfig) {
    fs.readFile('config/keys/sso.cert', function (err, data) {
       passport.use(new SamlStrategy(
          {
-            path: '/auth/okta',
+            callbackUrl: '/auth/okta',
             entryPoint: envConfig.sso_url,
-            cert: data.toString(),
-            issuer: 'passport-saml',
+            idpCert: data.toString(),
+            issuer: 'https://' + envConfig.auth_callback_domain,
          },
          function (profile, done) {
             let promise = user.getUserIdPromise(profile.userid);
