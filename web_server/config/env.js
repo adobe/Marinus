@@ -55,6 +55,7 @@ module.exports = {
       'hostname': process.env.DEVELOPMENT_HOST_NAME || '127.0.0.1:' + port
     },
     internalDomain: 'INTERNAL_DOMAIN_NAME',
+    auth_callback_domain: process.env.DEVELOPMENT_HOST_NAME || '127.0.0.1:' + port,
     api_key_length: 32,
     zgrabVersion: 2,
   },
@@ -73,6 +74,7 @@ module.exports = {
       'hostname': process.env.PRODUCTION_HOST_NAME || '127.0.0.1'
     },
     internalDomain: 'INTERNAL_DOMAIN_NAME',
+    auth_callback_domain: process.env.PRODUCTION_HOST_NAME || '127.0.0.1',
     api_key_length: 32,
     splunk_url: 'SPLUNK_PROD_URL',
     splunk_token: 'SPLUNK_PROD_TOKEN',
