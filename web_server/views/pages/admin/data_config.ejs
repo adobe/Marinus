@@ -13,11 +13,11 @@
     <%- include('../../partials/header') %>
 
         <nav class="nav nav-tabs" role="tabList">
-            <a id="domainTab" class="nav-link active" href="#domainPane" role="tab" data-toggle="tab"
+            <a id="domainTab" class="nav-link active" href="#domainPane" role="tab" data-bs-toggle="tab"
                 aria-controls="domainPane" aria-selected="true">Root Domains</a>
-            <a id="ipv4Tab" class="nav-link" href="#ipv4Pane" role="tab" data-toggle="tab" aria-controls="ipv4Pane"
+            <a id="ipv4Tab" class="nav-link" href="#ipv4Pane" role="tab" data-bs-toggle="tab" aria-controls="ipv4Pane"
                 aria-selected="false">IPv4 CIDRs</a>
-            <a id="ipv6Tab" class="nav-link" href="#ipv6Pane" role="tab" data-toggle="tab" aria-controls="ipv6Pane"
+            <a id="ipv6Tab" class="nav-link" href="#ipv6Pane" role="tab" data-bs-toggle="tab" aria-controls="ipv6Pane"
                 aria-selected="false">IPv6 CIDRs</a>
         </nav>
         <div class="tab-content">
@@ -37,16 +37,16 @@
                 <div id="zoneUpdateResult"></div>
                 <h3>Modify an existing root domain record</h3>
                 <div class="bg-light">
-                    <form class="form-inline mb-2 mr-sm-2" id="modify_domain">
+                    <form class="form-inline mb-2 me-sm-2" id="modify_domain">
                         <label id="zoneLabel" for="search_zone_input">Please enter the root domain to
                             modify:</label>&nbsp;
                         <div class="input-group-prepend">
                             <div class="input-group-text"><img src="/stylesheets/octicons/svg/search-24.svg"
                                     alt="search">
+                                <input type="text" class="form-control col-3" value="" name="zoneSearch"
+                                    id="zone_search_input"></input>
                             </div>
                         </div>
-                        <input type="text" class="form-control col-3" value="" name="zoneSearch"
-                            id="zone_search_input"></input>
                     </form>
                     <br />
                     <div id="zoneResult"></div>
@@ -91,10 +91,10 @@
                         <div class="input-group-prepend">
                             <div class="input-group-text"><img src="/stylesheets/octicons/svg/search-24.svg"
                                     alt="search">
+                                <input type="text" value="" name="cidrSearch" id="cidr_search_input"
+                                    class="form-control col-3"></input>
                             </div>
                         </div>
-                        <input type="text" value="" name="cidrSearch" id="cidr_search_input"
-                            class="form-control col-3"></input>
                     </form>
                     <br />
                     <div id="ipZoneResult"></div>
@@ -138,10 +138,10 @@
                         <div class="input-group-prepend">
                             <div class="input-group-text"><img src="/stylesheets/octicons/svg/search-24.svg"
                                     alt="search">
+                                <input type="text" value="" name="ipv6Search" id="ipv6_search_input"
+                                    class="form-control col-3"></input>
                             </div>
                         </div>
-                        <input type="text" value="" name="ipv6Search" id="ipv6_search_input"
-                            class="form-control col-3"></input>
                     </form>
                     <br />
                     <div id="ipv6ZoneResult"></div>
