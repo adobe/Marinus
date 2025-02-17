@@ -1,91 +1,91 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="navbar-brand" id="appName"><a href="/">Marinus</a></div>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false">
-                    Host Details
-                </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="/domain">Hostname</a>
-                    <a class="dropdown-item" href="/ip">IP Address</a>
-                    <a class="dropdown-item" href="/ipv6">IPv6 Address</a>
-                    <a class="dropdown-item" href="/zone">Root Domain</a>
-                    <a class="dropdown-item" href="/ip_range">CIDR</a>
-                    <a class="dropdown-item" href="/cert">Certificate</a>
-                    <%- include('custom/custom_host_header') %>
-                </div>
-            </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false">
-                    Meta Search
-                </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="/meta/port_list">Port List</a>
-                    <a class="dropdown-item" href="/meta/zone_list">Zone List</a>
-                    <a class="dropdown-item" href="/meta/ip_zone_list">IP Zone List</a>
-                    <a class="dropdown-item" href="/meta/ipv6_zone_list">IPv6 Zone List</a>
-                    <a class="dropdown-item" href="/meta/whois_dns_list">Whois DNS List</a>
-                    <a class="dropdown-item" href="/meta/tpd_list">Third-Party Domain List</a>
-                    <a class="dropdown-item" href="/meta/headers">HTTP response headers</a>
-                </div>
-            </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false">
-                    Reports
-                </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="/reports/ct_corp_ssl">CT Corp Certs</a>
-                    <a class="dropdown-item" href="/reports/ct_issuers">CT CA Issuers</a>
-                    <a class="dropdown-item" href="/reports/hosts_by_cas">Hosts by CA</a>
-                    <a class="dropdown-item" href="/reports/scan_corp_certs">Corporate Certs</a>
-                    <a class="dropdown-item" href="/reports/scan_expired_ssl">Expired Certs</a>
-                    <a class="dropdown-item" href="/reports/scan_algorithm_ssl">RSA-SHA1 Certs</a>
-                    <!--<a class="dropdown-item" href="/reports/heartbleed">Heartbleed Detections</a><br/><br/>-->
-                    <a class="dropdown-item" href="/reports/dead_dns">Dead DNS records</a>
-                    <a class="dropdown-item" href="/reports/amazon">Amazon Services</a>
-                    <a class="dropdown-item" href="/reports/virustotal_threats">VirusTotal Detections</a>
-                    <a class="dropdown-item" href="/reports/email">Email servers and SPF/DKIM</a>
-                    <%- include('custom/custom_reports_header') %>
-                </div>
-            </li>
-        </ul>
-        <ul class="navbar-nav">
-            <% if (username) { %>
+    <div class="container-fluid">
+        <div class="navbar-brand" id="appName"><a href="/">Marinus</a></div>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto">
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Settings
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Host Details
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="/admin/user">View <%= username %></a>
-                        <% if (isAdmin) { %>
-                            <a class="dropdown-item" href="/admin/user_config">User Admin</a>
-                            <% } %>
-                                <% if (isDataAdmin) { %>
-                                    <a class="dropdown-item" href="/admin/data_config">Zone Admin</a>
-                                    <% } %>
-                                        <% if (isAdmin) { %>
-                                            <a class="dropdown-item" href="/admin/stats">Data Statistics</a>
-                                            <a class="dropdown-item" href="/admin/jobs">Job Status</a>
-                                            <% } %>
-                                                <a class="dropdown-item" href="/auth/logout">Logout</a>
+                        <a class="dropdown-item" href="/domain">Hostname</a>
+                        <a class="dropdown-item" href="/ip">IP Address</a>
+                        <a class="dropdown-item" href="/ipv6">IPv6 Address</a>
+                        <a class="dropdown-item" href="/zone">Root Domain</a>
+                        <a class="dropdown-item" href="/ip_range">CIDR</a>
+                        <a class="dropdown-item" href="/cert">Certificate</a>
+                        <%- include('custom/custom_host_header') %>
                     </div>
                 </li>
-
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Meta Search
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="/meta/port_list">Port List</a>
+                        <a class="dropdown-item" href="/meta/zone_list">Zone List</a>
+                        <a class="dropdown-item" href="/meta/ip_zone_list">IP Zone List</a>
+                        <a class="dropdown-item" href="/meta/ipv6_zone_list">IPv6 Zone List</a>
+                        <a class="dropdown-item" href="/meta/whois_dns_list">Whois DNS List</a>
+                        <a class="dropdown-item" href="/meta/tpd_list">Third-Party Domain List</a>
+                        <a class="dropdown-item" href="/meta/headers">HTTP response headers</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Reports
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="/reports/ct_corp_ssl">CT Corp Certs</a>
+                        <a class="dropdown-item" href="/reports/ct_issuers">CT CA Issuers</a>
+                        <a class="dropdown-item" href="/reports/hosts_by_cas">Hosts by CA</a>
+                        <a class="dropdown-item" href="/reports/scan_corp_certs">Corporate Certs</a>
+                        <a class="dropdown-item" href="/reports/scan_expired_ssl">Expired Certs</a>
+                        <a class="dropdown-item" href="/reports/scan_algorithm_ssl">RSA-SHA1 Certs</a>
+                        <!--<a class="dropdown-item" href="/reports/heartbleed">Heartbleed Detections</a><br/><br/>-->
+                        <a class="dropdown-item" href="/reports/dead_dns">Dead DNS records</a>
+                        <a class="dropdown-item" href="/reports/amazon">Amazon Services</a>
+                        <a class="dropdown-item" href="/reports/virustotal_threats">VirusTotal Detections</a>
+                        <a class="dropdown-item" href="/reports/email">Email servers and SPF/DKIM</a>
+                        <%- include('custom/custom_reports_header') %>
+                    </div>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <% if (username) { %>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Settings
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="/admin/user">View <%= username %></a>
+                            <% if (isAdmin) { %>
+                                <a class="dropdown-item" href="/admin/user_config">User Admin</a>
+                            <% } %>
+                            <% if (isDataAdmin) { %>
+                                <a class="dropdown-item" href="/admin/data_config">Zone Admin</a>
+                            <% } %>
+                            <% if (isAdmin) { %>
+                                <a class="dropdown-item" href="/admin/stats">Data Statistics</a>
+                                <a class="dropdown-item" href="/admin/jobs">Job Status</a>
+                            <% } %>
+                            <a class="dropdown-item" href="/auth/logout">Logout</a>
+                        </div>
+                    </li>
                 <% } else { %>
                     <li class="nav-item">
                         <a class="nav-link" href="/auth/login">Sign In</a>
                     </li>
-                    <% } %>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/help">Help</a>
-    </div>
-    </li>
-    </ul>
+                <% } %>
+                <li class="nav-item">
+                    <a class="nav-link" href="/help">Help</a>
+                </li>
+            </ul>
+        </div>
     </div>
 </nav>
 <br />
