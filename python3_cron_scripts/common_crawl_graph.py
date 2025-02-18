@@ -61,7 +61,11 @@ from libs3.ZoneManager import ZoneManager
 # CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2022-23-sep-nov-jan/host/cc-main-2022-23-sep-nov-jan-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2023-24-sep-nov-feb/host/cc-main-2023-24-sep-nov-feb-host-vertices.paths.gz"
 # CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2024-feb-apr-may/host/cc-main-2024-feb-apr-may-host-vertices.paths.gz"
-CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2024-apr-may-jun/host/cc-main-2024-apr-may-jun-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2024-apr-may-jun/host/cc-main-2024-apr-may-jun-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2024-jun-jul-aug/host/cc-main-2024-jun-jul-aug-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2024-jul-aug-sep/host/cc-main-2024-jul-aug-sep-host-vertices.paths.gz"
+# CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2024-aug-sep-oct/host/cc-main-2024-aug-sep-oct-host-vertices.paths.gz"
+CURRENT_FILE_LIST = "https://data.commoncrawl.org/projects/hyperlinkgraph/cc-main-2024-25-nov-dec-jan/host/cc-main-2024-25-nov-dec-jan-host-vertices.paths.gz"
 
 ROOT_DOMAIN = "https://data.commoncrawl.org/"
 
