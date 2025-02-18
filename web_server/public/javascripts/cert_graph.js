@@ -202,7 +202,7 @@ function drawGraph(z_type) {
         }
     }
 
-    graph.categoryKeys = d3.keys(graph.categories);
+    graph.categoryKeys = Object.keys(graph.categories);
 
     graph.colors = []
     for (let i = 1; i < Object.keys(graph.categories).length + 2; i++) {
@@ -287,24 +287,24 @@ function drawGraph(z_type) {
 
     graph.drag = d3.drag()
         .subject(function (d) { return d; })
-        .on('start', function (d) {
-            if (!d3.event.active) graph.simulation.alphaTarget(0.3).restart();
+        .on('start', function (event, d) {
+            if (!event.active) graph.simulation.alphaTarget(0.3).restart();
             d.oldX = d.x;
             d.oldY = d.y;
             d.dragged = false;
             d.fixed |= 2;
         })
-        .on('drag', function (d) {
-            d.x = d3.event.x;
-            d.y = d3.event.y;
+        .on('drag', function (event, d) {
+            d.x = event.x;
+            d.y = event.y;
             if (dragged(d)) {
                 if (!graph.simulation.alpha()) {
                     graph.simulation.alpha(.025);
                 }
             }
         })
-        .on('end', function (d) {
-            if (!d3.event.active) graph.simulation.alphaTarget(0);
+        .on('end', function (event, d) {
+            if (!event.active) graph.simulation.alphaTarget(0);
             if (!dragged(d)) {
                 selectObject(d, this);
             }
@@ -322,23 +322,23 @@ function drawGraph(z_type) {
         .enter().append('g')
         .attr('class', 'node')
         .call(graph.drag)
-        .on('mouseover', function (d) {
+        .on('mouseover', function (event, d) {
             if (!selected.obj) {
                 if (graph.mouseoutTimeout) {
                     clearTimeout(graph.mouseoutTimeout);
                     graph.mouseoutTimeout = null;
                 }
-                highlightObject(d);
+                highlightObject(event, d);
             }
         })
-        .on('mouseout', function () {
+        .on('mouseout', function (event, d) {
             if (!selected.obj) {
                 if (graph.mouseoutTimeout) {
                     clearTimeout(graph.mouseoutTimeout);
                     graph.mouseoutTimeout = null;
                 }
                 graph.mouseoutTimeout = setTimeout(function () {
-                    highlightObject(null);
+                    highlightObject(null, null);
                 }, 300);
             }
         });
@@ -441,7 +441,7 @@ function drawGraph(z_type) {
         .attr('x', 0)
         .attr('y', 0)
         .selectAll('.category')
-        .data(d3.values(graph.categories))
+        .data(Object.values(graph.categories))
         .enter().append('g')
         .attr('class', 'category')
         .call(drag_table);
@@ -471,11 +471,11 @@ function drawGraph(z_type) {
         .attr('stroke', function (d) {
             return graph.strokeColor(d.key);
         })
-        .on('mouseover', function (d) {
-            highlightGroup(d);
+        .on('mouseover', function (event, d) {
+            highlightGroup(event, d);
         })
-        .on('mouseout', function (d) {
-            highlightGroup(null);
+        .on('mouseout', function (event, d) {
+            highlightGroup(null, null);
         });
 
     graph.legend.append('text')
@@ -655,7 +655,7 @@ function selectObject(obj, el) {
         el: el
     };
 
-    highlightObject(obj);
+    highlightObject(null, obj);
 
     node.classed('selected', true);
     $('#docs').html(createDocs(obj));
@@ -693,7 +693,7 @@ function deselectObject(doResize) {
     }
     graph.node.classed('selected', false);
     selected = {};
-    highlightObject(null);
+    highlightObject(null, null);
 }
 
 
@@ -710,7 +710,7 @@ function findLinkedNodes(d, id) {
     return false;
 }
 
-function highlightGroup(obj) {
+function highlightGroup(event, obj) {
     if (obj) {
         if (obj !== highlighted) {
             graph.node.classed('inactive', function (d) {
@@ -733,7 +733,7 @@ function highlightGroup(obj) {
     }
 }
 
-function highlightObject(obj) {
+function highlightObject(event, obj) {
     if (obj) {
         if (obj !== highlighted) {
             graph.node.classed('inactive', function (d) {
@@ -795,8 +795,8 @@ function resize(showDocs) {
     });
 }
 
-function doZoom() {
-    graph.svg.attr("transform", "translate(" + d3.event.transform.x + ", " + d3.event.transform.y + ") scale(" + d3.event.transform.k + ")");
+function doZoom(event, obj) {
+    graph.svg.attr("transform", "translate(" + event.transform.x + ", " + event.transform.y + ") scale(" + event.transform.k + ")");
 }
 
 function doSearch() {
@@ -859,19 +859,19 @@ function doReload() {
 }
 
 var drag_table = d3.drag().subject(this)
-    .on('start', function (d) {
+    .on('start', function (event, d) {
         if (d.x1) {
-            d.x1 = d3.event.x - d.xt;
-            d.y1 = d3.event.y - d.yt;
+            d.x1 = event.x - d.xt;
+            d.y1 = event.y - d.yt;
         } else {
-            d.x1 = d3.event.x;
-            d.y1 = d3.event.y;
+            d.x1 = event.x;
+            d.y1 = event.y;
         }
     })
-    .on('drag', function (d) {
-        d3.select(this).attr("transform", "translate(" + (d3.event.x - d.x1) + "," + (d3.event.y - d.y1) + ")");
+    .on('drag', function (event, d) {
+        d3.select(this).attr("transform", "translate(" + (event.x - d.x1) + "," + (event.y - d.y1) + ")");
 
-        d.xt = d3.event.x - d.x1;
-        d.yt = d3.event.y - d.y1;
+        d.xt = event.x - d.x1;
+        d.yt = event.y - d.y1;
     });
 

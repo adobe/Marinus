@@ -314,23 +314,23 @@ function drawGraph(z_type) {
         .enter().append('g')
         .attr('class', 'node')
         .call(graph.drag)
-        .on('mouseover', function (d) {
+        .on('mouseover', function (event, d) {
             if (!selected.obj) {
                 if (graph.mouseoutTimeout) {
                     clearTimeout(graph.mouseoutTimeout);
                     graph.mouseoutTimeout = null;
                 }
-                highlightObject(d);
+                highlightObject(event, d);
             }
         })
-        .on('mouseout', function () {
+        .on('mouseout', function (event, d) {
             if (!selected.obj) {
                 if (graph.mouseoutTimeout) {
                     clearTimeout(graph.mouseoutTimeout);
                     graph.mouseoutTimeout = null;
                 }
                 graph.mouseoutTimeout = setTimeout(function () {
-                    highlightObject(null);
+                    highlightObject(null, null);
                 }, 300);
             }
         });
@@ -472,11 +472,11 @@ function drawGraph(z_type) {
         .attr('stroke', function (d) {
             return graph.strokeColor(d.key);
         })
-        .on('mouseover', function (d) {
-            highlightGroup(d);
+        .on('mouseover', function (event, d) {
+            highlightGroup(event, d);
         })
-        .on('mouseout', function (d) {
-            highlightGroup(null);
+        .on('mouseout', function (event, d) {
+            highlightGroup(null, null);
         });
 
     graph.legend.append('text')
@@ -655,7 +655,7 @@ function selectObject(obj, el) {
         el: el
     };
 
-    highlightObject(obj);
+    highlightObject(null, obj);
 
     node.classed('selected', true);
     if (z_type !== 'zone') {
@@ -697,10 +697,10 @@ function deselectObject(doResize) {
     }
     graph.node.classed('selected', false);
     selected = {};
-    highlightObject(null);
+    highlightObject(null, null);
 }
 
-function highlightGroup(obj) {
+function highlightGroup(event, obj) {
     if (obj) {
         if (obj !== highlighted) {
             graph.node.classed('inactive', function (d) {
@@ -722,7 +722,7 @@ function highlightGroup(obj) {
     }
 }
 
-function highlightObject(obj) {
+function highlightObject(event, obj) {
     if (obj) {
         if (obj !== highlighted) {
             graph.node.classed('inactive', function (d) {
@@ -785,7 +785,7 @@ function resize(showDocs) {
     });
 }
 
-function doZoom(event) {
+function doZoom(event, obj) {
     graph.svg.attr("transform", "translate(" + event.transform.x + ", " + event.transform.y + ") scale(" + event.transform.k + ")");
 }
 
