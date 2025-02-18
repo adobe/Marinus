@@ -441,8 +441,8 @@ module.exports = function (envConfig) {
                     } else {
                         res.status(200).json(data);
                     }
-                    return;
                 });
+                return;
             } else {
                 res.status(400).json({ 'message': 'A zone, count, email, dnssec, distinct, distinct_groups, or name_server value must be provided.' });
                 return;
@@ -458,8 +458,8 @@ module.exports = function (envConfig) {
                 } else {
                     res.status(200).json(data);
                 }
-                return;
             });
+            return;
         });
 
     return (router);
