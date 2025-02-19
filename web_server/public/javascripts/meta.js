@@ -236,7 +236,7 @@ function update_aws_ip(result_data, ip) {
     }
     knownNotes.innerHTML += dynHTML;
 
-    knownResult.src = '/stylesheets/octicons/svg/check.svg';
+    knownResult.src = '/stylesheets/octicons/svg/check-24.svg';
 }
 
 
@@ -265,7 +265,7 @@ function update_azure_ip(result_data, ip) {
     }
     knownNotes.innerHTML = dynHTML;
 
-    knownResult.src = '/stylesheets/octicons/svg/check.svg';
+    knownResult.src = '/stylesheets/octicons/svg/check-24.svg';
 }
 
 
@@ -290,7 +290,7 @@ function update_gcp_ip(result_data, ip) {
     }
     knownNotes.innerHTML += dynHTML;
 
-    knownResult.src = '/stylesheets/octicons/svg/check.svg';
+    knownResult.src = '/stylesheets/octicons/svg/check-24.svg';
 }
 
 
@@ -304,7 +304,7 @@ function check_gcp_ip(ip) {
 function update_known_ip(results, ip) {
     var knownResult = document.getElementById(ip + "-tracked-mark");
     if (results['result'] === true) {
-        knownResult.src = '/stylesheets/octicons/svg/check.svg';
+        knownResult.src = '/stylesheets/octicons/svg/check-24.svg';
         var knownNotes = document.getElementById(ip + "-notes");
         var dynHTML = results['zone'];
         if (results['notes'] && results['notes'].length > 0) {
@@ -343,13 +343,13 @@ function displayIPList(json_results) {
         var cell5 = row.insertCell(4);
         var cell6 = row.insertCell(5);
         cell1.innerHTML = create_anchor("/ip?search=" + json_results[i]['ip'], json_results[i]['ip']);
-        cell2.innerHTML = "<img id='" + json_results[i]['ip'] + "-tracked-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
+        cell2.innerHTML = "<img id='" + json_results[i]['ip'] + "-tracked-mark' src='/stylesheets/octicons/svg/x-24.svg'/><br/>";
         cell2.style = "text-align:center";
-        cell3.innerHTML = "<img id='" + json_results[i]['ip'] + "-aws-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
+        cell3.innerHTML = "<img id='" + json_results[i]['ip'] + "-aws-mark' src='/stylesheets/octicons/svg/x-24.svg'/><br/>";
         cell3.style = "text-align:center";
-        cell4.innerHTML = "<img id='" + json_results[i]['ip'] + "-azure-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
+        cell4.innerHTML = "<img id='" + json_results[i]['ip'] + "-azure-mark' src='/stylesheets/octicons/svg/x-24.svg'/><br/>";
         cell4.style = "text-align:center";
-        cell5.innerHTML = "<img id='" + json_results[i]['ip'] + "-gcp-mark' src='/stylesheets/octicons/svg/x.svg'/><br/>";
+        cell5.innerHTML = "<img id='" + json_results[i]['ip'] + "-gcp-mark' src='/stylesheets/octicons/svg/x-24.svg'/><br/>";
         cell5.style = "text-align:center";
         cell6.innerHTML = "<span id='" + json_results[i]['ip'] + "-notes'></span><br/>";
 

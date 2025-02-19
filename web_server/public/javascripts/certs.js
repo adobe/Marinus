@@ -99,7 +99,7 @@ function display_ct_corp_certs(results) {
 
 function reload_corp_certs(ev) {
     toggleState = !toggleState;
-    document.getElementById("ct_corp_certs").innerHTML = '<img src="/stylesheets/octicons/svg/gear.svg" class="rotateAnimation" alt="timer"/>';
+    document.getElementById("ct_corp_certs").innerHTML = '<img src="/stylesheets/octicons/svg/gear-24.svg" class="rotateAnimation" alt="timer"/>';
     fetch_ct_corp_certs(toggleState);
 }
 

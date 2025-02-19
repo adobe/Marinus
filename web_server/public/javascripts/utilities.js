@@ -201,9 +201,9 @@ function create_list_entry(row_name, visible_text, href, include_count = false, 
 
     let output_image = "";
     if (icon_name === "chevronRight") {
-        output_image = '<img src="/stylesheets/octicons/svg/chevron-right.svg" alt="entry"/>&nbsp;';
+        output_image = '<img src="/stylesheets/octicons/svg/chevron-right-24.svg" alt="entry"/>&nbsp;';
     } else if (icon_name === "lockOn") {
-        output_image = '<img src="/stylesheets/octicons/svg/lock.svg" alt="lock"/>&nbsp;';
+        output_image = '<img src="/stylesheets/octicons/svg/lock-24.svg" alt="lock"/>&nbsp;';
     }
     let output_text = '<a class="list-group-item list-group-item-action" id="' + row_name + '_link" href="' + href + '"' + target_code + '>';
     output_text = output_text + output_image + visible_text;
@@ -295,7 +295,7 @@ function end_table() {
 }
 
 function create_check_mark() {
-    return ('<img src="/stylesheets/octicons/svg/check.svg" alt="check"/>');
+    return ('<img src="/stylesheets/octicons/svg/check-24.svg" alt="check"/>');
 }
 
 function create_button(visible_text, button_id, button_type = "icon", size = "S", icon = "search") {
@@ -303,7 +303,7 @@ function create_button(visible_text, button_id, button_type = "icon", size = "S"
     let settings = { "label": { "innerHTML": visible_text } };
 
     if (button_type === "icon" && icon === "search") {
-        visible_text = visible_text + '&nbsp;<img src="/stylesheets/octicons/svg/search.svg" alt="search"/>';
+        visible_text = visible_text + '&nbsp;<img src="/stylesheets/octicons/svg/search-24.svg" alt="search"/>';
     }
 
     var newButton = document.createElement("button");

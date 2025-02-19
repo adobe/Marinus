@@ -584,7 +584,7 @@ function censysResult(results) {
                 if (staticList.indexOf(val) != -1) {
                     htmlOut += create_list_entry(val + ':' + i.toString(), val, "#");
                 } else if ((val.startsWith("p")) && val !== "ports" && (results[i]["tags"].indexOf(portList[val]) !== -1)) {
-                    htmlOut += create_list_entry(val + ':' + i.toString(), '<img src="/stylesheets/octicons/svg/file.svg" alt="data"></img>&nbsp;' + val + ' (' + portList[val] + ')', "#");
+                    htmlOut += create_list_entry(val + ':' + i.toString(), '<img src="/stylesheets/octicons/svg/file-24.svg" alt="data"></img>&nbsp;' + val + ' (' + portList[val] + ')', "#");
                 } else if (val.startsWith("p") && val !== "ports") {
                     htmlOut += create_list_entry(val + ':' + i.toString(), val + ' (' + portList[val] + ')', "#");
                 }
