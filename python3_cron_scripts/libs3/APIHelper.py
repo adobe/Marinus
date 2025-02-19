@@ -34,9 +34,9 @@ class APIHelper(object):
         self._logger.error("Exiting script execution.")
         if isinstance(jobs_reference, str):
             jobs_manager = JobsManager.JobsManager(self.MC, jobs_reference)
-            jobs_manager.record_job_error()
+            jobs_manager.record_job_error(str(err))
         else:
-            jobs_reference.record_job_error()
+            jobs_reference.record_job_error(str(err))
 
         exit(1)
 
