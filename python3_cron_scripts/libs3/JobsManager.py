@@ -104,7 +104,7 @@ class JobsManager(object):
             {"$currentDate": {"updated": True}, "$set": {"status": self.RUNNING}},
         )
 
-    def record_job_error(self):
+    def record_job_error(self, reason=None):
         """
         This will record the job as having encountered an ERROR during its run.
         """
@@ -113,6 +113,11 @@ class JobsManager(object):
             {"job_name": self._job_name},
             {"$currentDate": {"updated": True}, "$set": {"status": self.ERROR}},
         )
+        if reason is not None:
+            self._jobs_collection.update_one(
+                {"job_name": self._job_name},
+                {"$set": {"last_error": str(reason)}},
+            )
 
     def record_job_complete(self):
         """
@@ -121,5 +126,8 @@ class JobsManager(object):
         self.__check_job_exists(self._job_name)
         self._jobs_collection.update_one(
             {"job_name": self._job_name},
-            {"$currentDate": {"updated": True}, "$set": {"status": self.COMPLETE}},
+            {
+                "$currentDate": {"updated": True, "last_completed": True},
+                "$set": {"status": self.COMPLETE},
+            },
         )
