@@ -40,7 +40,7 @@ function normalizePort(val) {
 
 module.exports = {
   development: {
-    version: '1.0.1',
+    version: '1.0.3',
     build: '1331',
     state: 'development',
     rootPath: rootPath,
@@ -60,7 +60,7 @@ module.exports = {
     zgrabVersion: 2,
   },
   production: {
-    version: '1.0.1',
+    version: '1.0.3',
     build: '1331',
     state: 'production',
     rootPath: rootPath,
