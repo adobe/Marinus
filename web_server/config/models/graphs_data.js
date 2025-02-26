@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // graph model
 const graphDataSchema = new Schema({
@@ -29,7 +29,7 @@ const graphDataSchema = new Schema({
 
 const graphDataModel = mongoose.model('graphDataModel', graphDataSchema);
 
-module.exports = {
+export const graphs_data = {
     GraphDataModel: graphDataModel,
     getGraphDataByZone: function (zone) {
         let limitQuery = { 'data': 1, 'errs': 1 };

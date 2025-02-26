@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 /**
  * This model represents dead DNS records.
@@ -34,7 +34,7 @@ const deadDnsSchema = new Schema({
 
 const deadDnsModel = mongoose.model('deadDnsModel', deadDnsSchema);
 
-module.exports = {
+export const dead_dns = {
     DeadDnsModel: deadDnsModel,
     getAllDeadDNSPromise: function () {
         return deadDnsModel.find({}).exec();

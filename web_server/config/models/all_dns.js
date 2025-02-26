@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 /**
  * This model represents all of the DNS records.
@@ -34,7 +34,7 @@ const allDnsSchema = new Schema({
 
 const allDnsModel = mongoose.model('allDnsModel', allDnsSchema);
 
-module.exports = {
+export const all_dns = {
     AllDnsModel: allDnsModel,
     getAllDNSByZonePromise: function (zone, source, created_date, limit, page) {
         /**

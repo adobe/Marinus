@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // Infoblox aaaa model
 const ipv6AddrSchema = new Schema({
@@ -31,7 +31,7 @@ const ipv6AddrSchema = new Schema({
 
 const ipv6AddrModel = mongoose.model('ipv6AddrModel', ipv6AddrSchema);
 
-module.exports = {
+export const iblox_aaaa_records = {
     ipv6AddrModel: ipv6AddrModel,
     getIBIPv6AddrByZonePromise: function (zone) {
         return ipv6AddrModel.find({

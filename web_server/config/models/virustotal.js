@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const virustotalSchema = new Schema({
     'zone': String,
@@ -102,7 +102,7 @@ const virustotalSchema = new Schema({
 
 const virustotalModel = mongoose.model('virustotalModel', virustotalSchema);
 
-module.exports = {
+export const virustotal = {
     VirustotalModel: virustotalModel,
     getRecordByZonePromise: function (zone) {
         return virustotalModel.findOne({

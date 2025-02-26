@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // IPv4 model
 const ipZoneSchema = new Schema({
@@ -30,7 +30,7 @@ const ipZoneSchema = new Schema({
 
 const ipZoneModel = mongoose.model('ipZoneModel', ipZoneSchema);
 
-module.exports = {
+export const ip_zone = {
     IpZoneModel: ipZoneModel,
     getZoneByNamePromise: function (name) {
         return ipZoneModel.findOne({

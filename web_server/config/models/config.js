@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const configSchema = new Schema({
     updated: Date,
@@ -26,7 +26,7 @@ const configSchema = new Schema({
 
 const configModel = mongoose.model('configModel', configSchema);
 
-module.exports = {
+export const config = {
     configModel: configModel,
     getDNSAdminsPromise: function () {
         return configModel.find({}, { 'DNS_Admins': 1, '_id': 0 }).exec();

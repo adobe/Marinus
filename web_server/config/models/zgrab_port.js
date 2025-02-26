@@ -12,10 +12,10 @@
  * governing permissions and limitations under the License.
  */
 
-const zPortSchema = require('./zgrab_port_schema.js');
+import { zgrab_port_schema as zPortSchema } from './zgrab_port_schema.js';
 
 // zgrab port scan module
-module.exports = {
+export const zgrab_port = {
     zgrabPortModel: zPortSchema.zgrabPortModel,
     getRecordByIPPromise: function (ip, port, count) {
         if (port === "22") {

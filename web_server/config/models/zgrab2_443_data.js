@@ -12,7 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const z2_443_schema = require('./zgrab2_443_data_schema.js');
+import { zgrab2_443_data_schema as z2_443_schema } from './zgrab2_443_data_schema.js';
+
 const zgrab2_cert_path = 'data.http.result.response.request.tls_log.handshake_log.server_certificates.';
 
 /**
@@ -28,7 +29,7 @@ const zgrab2_cert_path = 'data.http.result.response.request.tls_log.handshake_lo
  */
 
 // ZGrab 2.0 port 443 Module
-module.exports = {
+export const zgrab2_443_data = {
     zgrab2Model: z2_443_schema.zgrab2_443_model,
     getRecordByDomainPromise: function (domain) {
         return z2_443_schema.zgrab2_443_model.find({ 'domain': domain }).exec();

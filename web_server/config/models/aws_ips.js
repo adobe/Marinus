@@ -12,8 +12,9 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
+
 
 const awsIpSchema = new Schema({
     syncToken: String,
@@ -34,7 +35,7 @@ const awsIpSchema = new Schema({
 
 const awsIpModel = mongoose.model('awsIpModel', awsIpSchema);
 
-module.exports = {
+export const aws_ips = {
     AwsIpModel: awsIpModel,
     getAwsIpZonesPromise: function () {
         return awsIpModel.find({}, { 'prefixes': 1, '_id': 0 }).exec();

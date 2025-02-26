@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // All_IPs model
 const allIPsSchema = new Schema({
@@ -35,11 +35,11 @@ const allIPsSchema = new Schema({
     collection: 'all_ips',
 });
 
-
 const allIPsModel = mongoose.model('allIPsModel', allIPsSchema);
 
-module.exports = {
+export const ip = {
     AllIPsModel: allIPsModel,
+
     getAllIPRecordsPromise: function (limit, page) {
         if (limit !== undefined && limit > 0) {
             return allIPsModel.find({}).skip(limit * (page - 1)).limit(limit).exec();
@@ -135,5 +135,5 @@ module.exports = {
     },
     getAllIPRecordsCountPromise: function () {
         return allIPsModel.find({}).countDocuments().exec();
-    },
-}
+    }
+};

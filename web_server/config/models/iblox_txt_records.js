@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // Infoblox TXT model
 const txtSchema = new Schema({
@@ -31,7 +31,7 @@ const txtSchema = new Schema({
 
 const txtModel = mongoose.model('txtModel', txtSchema);
 
-module.exports = {
+export const iblox_txt_records = {
     txtModel: txtModel,
     getIBTXTByZonePromise: function (zone) {
         return txtModel.find({

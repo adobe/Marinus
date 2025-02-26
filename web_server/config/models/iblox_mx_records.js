@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // Infoblox MX model
 const mxSchema = new Schema({
@@ -32,7 +32,7 @@ const mxSchema = new Schema({
 
 const mxModel = mongoose.model('mxModel', mxSchema);
 
-module.exports = {
+export const iblox_mx_records = {
     mxModel: mxModel,
     getIBMXByZonePromise: function (zone) {
         return mxModel.find({

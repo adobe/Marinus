@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const gcpIpSchema = new Schema({
     created: Date,
@@ -29,7 +29,7 @@ const gcpIpSchema = new Schema({
 
 const gcpIpModel = mongoose.model('gcpIpModel', gcpIpSchema);
 
-module.exports = {
+export const gcp_ips = {
     gcpIpModel: gcpIpModel,
     getGCPIpZonesPromise: function () {
         return gcpIpModel.find({}, { 'prefixes': 1, '_id': 0 });

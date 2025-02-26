@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-var mongoose = require('mongoose'),
-  Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // Censys Schema
 // - The core is based on a variety.js dump of data collected in the database.
@@ -2260,4 +2260,4 @@ var censysSchema = new Schema(
 
 var censysModel = mongoose.model('censysModel', censysSchema);
 
-module.exports = { censysModel: censysModel }
+export const censys_schema2 = { censysModel: censysModel }

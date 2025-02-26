@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // CIDR graph model
 const cidrGraphSchema = new Schema({
@@ -31,7 +31,7 @@ const cidrGraphSchema = new Schema({
 
 const cidrGraphModel = mongoose.model('cidr_graphModel', cidrGraphSchema);
 
-module.exports = {
+export const cidr_graphs = {
     CIDR_graphModel: cidrGraphModel,
     getCIDRGraphDataByZone: function (zone) {
         let limitQuery = { 'data': 1, 'errs': 1 };

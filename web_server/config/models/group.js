@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // group model
 const groupSchema = new Schema({
@@ -30,8 +30,9 @@ const groupSchema = new Schema({
 
 const groupModel = mongoose.model('groupModel', groupSchema);
 
-module.exports = {
+export const group = {
     GroupModel: groupModel,
+
     getGroupByNamePromise: function (name) {
         return groupModel.findOne({
             'name': name,

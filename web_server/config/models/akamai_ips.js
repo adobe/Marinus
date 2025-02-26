@@ -11,8 +11,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const akamaiIpSchema = new Schema({
     createDate: Date,
@@ -31,7 +31,7 @@ const akamaiIpSchema = new Schema({
 
 const akamaiIpModel = mongoose.model('akamaiIpModel', akamaiIpSchema);
 
-module.exports = {
+export const akamai_ips = {
     AkamaiIpModel: akamaiIpModel,
     getAkamaiIpZonesPromise: function () {
         return akamaiIpModel.find({}, { 'ranges': 1, '_id': 0 }).exec();

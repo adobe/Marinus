@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // zone model
 const zoneSchema = new Schema({
@@ -30,7 +30,7 @@ const zoneSchema = new Schema({
 
 const zoneModel = mongoose.model('zoneModel', zoneSchema);
 
-module.exports = {
+export const zone = {
     ZoneModel: zoneModel,
     getZoneByNamePromise: function (name) {
         return zoneModel.findOne({

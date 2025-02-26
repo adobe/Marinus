@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // certificate graph model
 const certGraphSchema = new Schema({
@@ -28,7 +28,7 @@ const certGraphSchema = new Schema({
 
 const certGraphModel = mongoose.model('certGraphModel', certGraphSchema);
 
-module.exports = {
+export const cert_graphs = {
     CertGraphModel: certGraphModel,
     getGraphDataByZone: function (zone) {
         return certGraphModel.findOne({ 'zone': zone }).exec();

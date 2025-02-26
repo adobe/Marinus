@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const jobsSchema = new Schema({
     job_name: String,
@@ -25,7 +25,7 @@ const jobsSchema = new Schema({
 
 const jobsModel = mongoose.model('jobsModel', jobsSchema);
 
-module.exports = {
+export const jobs = {
     JobsModel: jobsModel,
     getAllJobsPromise: function (name) {
         return jobsModel.find({}).exec();

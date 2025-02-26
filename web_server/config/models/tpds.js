@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const tpdSchema = new Schema({
     total: Number,
@@ -31,7 +31,7 @@ const tpdSchema = new Schema({
 
 const tpdModel = mongoose.model('tpdModel', tpdSchema);
 
-module.exports = {
+export const tpds = {
     TPDModel: tpdModel,
     getTPDsByZone: function (zone, listOnly) {
         let promise;

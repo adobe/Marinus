@@ -12,9 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
-
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const extattrSchema = new Schema({
     zone: String,
@@ -31,7 +30,7 @@ const extattrSchema = new Schema({
 
 const extattrModel = mongoose.model('extattrModel', extattrSchema);
 
-module.exports = {
+export const iblox_extattr_records = {
     extattrModel: extattrModel,
     /**
      * Returns the owner information for the host or cname value queried.

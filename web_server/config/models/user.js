@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // user model
 const userSchema = new Schema({
@@ -28,7 +28,7 @@ const userSchema = new Schema({
 
 const userModel = mongoose.model('userModel', userSchema);
 
-module.exports = {
+export const user = {
     UserModel: userModel,
     getUserIdPromise: function (userid, onlyIsActive) {
         if (typeof onlyIsActive === 'undefined') {

@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-var mongoose = require('mongoose'),
-      Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // Zgrab 443 Schema
 // - The core is based on a variety.js dump of data collected in the database.
@@ -964,4 +964,4 @@ var zgrab443Schema = new Schema(
 
 var zgrab443Model = mongoose.model('zgrab443Model', zgrab443Schema);
 
-module.exports = { zgrab443Model: zgrab443Model };
+export const zgrab_443_data_schema = { zgrab443Model: zgrab443Model };

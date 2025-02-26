@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // graph model
 const tpdGraphSchema = new Schema({
@@ -31,7 +31,7 @@ const tpdGraphSchema = new Schema({
 
 const tpdGraphModel = mongoose.model('tpd_graphModel', tpdGraphSchema);
 
-module.exports = {
+export const tpd_graphs = {
     TPD_graphModel: tpdGraphModel,
     getTPDGraphDataByTPD: function (tpd) {
         let limitQuery = { 'data': 1, 'errs': 1 };

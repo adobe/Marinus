@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // Zgrab 80 Schema
 // - The core is based on a variety.js dump of data collected in the database.
@@ -901,4 +901,4 @@ var zgrab80Schema = new Schema(
 
 var zgrab80Model = mongoose.model('zgrab80Model', zgrab80Schema);
 
-module.exports = { zgrab80Model: zgrab80Model };
+export const zgrab_80_data_schema = { zgrab80Model: zgrab80Model };

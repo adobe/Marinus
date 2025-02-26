@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const whoisSchema = new Schema({
     domain: String,
@@ -42,7 +42,7 @@ const whoisSchema = new Schema({
 
 const whoisModel = mongoose.model('whoisModel', whoisSchema);
 
-module.exports = {
+export const whois_db = {
     WhoisModel: whoisModel,
     getRecordByZonePromise: function (zone) {
         return whoisModel.findOne({

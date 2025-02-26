@@ -12,10 +12,10 @@
  * governing permissions and limitations under the License.
  */
 
-const z80Schema = require('./zgrab_80_data_schema.js');
+import { zgrab_80_data_schema as z80Schema } from './zgrab_80_data_schema.js';
 
 // zgrab port 80 Module
-module.exports = {
+export const zgrab_80_data = {
     zgrabModel: z80Schema.zgrab80Model,
     getRecordByDomainPromise: function (domain, count) {
         if (count) {

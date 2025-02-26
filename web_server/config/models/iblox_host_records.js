@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // Infoblox host model
 const hostSchema = new Schema({
@@ -35,7 +35,7 @@ const hostSchema = new Schema({
 
 const hostModel = mongoose.model('hostModel', hostSchema);
 
-module.exports = {
+export const iblox_host_records = {
     HostModel: hostModel,
     getIBHostByZonePromise: function (zone) {
         return hostModel.find({

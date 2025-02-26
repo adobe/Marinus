@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-var mongoose = require('mongoose'),
-      Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // Zgrab 2.0 Port Schema
 // - The core is based on a variety.js dump of data collected in the database.
@@ -1146,4 +1146,4 @@ var zgrab2PortSchema = new Schema(
 
 var zgrab2PortModel = mongoose.model('zgrab2PortModel', zgrab2PortSchema);
 
-module.exports = { zgrab2PortModel: zgrab2PortModel };
+export const zgrab2_port_schema = { zgrab2PortModel: zgrab2PortModel };

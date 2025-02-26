@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 /**
  * This model represents the relevant records from the Sonar RDNS service.
@@ -32,7 +32,7 @@ const rdnsSchema = new Schema({
 
 const rdnsModel = mongoose.model('rdnsModel', rdnsSchema);
 
-module.exports = {
+export const sonar_rdns = {
     RdnsModel: rdnsModel,
     getSRDNSByZonePromise: function (zone) {
         return rdnsModel.find({

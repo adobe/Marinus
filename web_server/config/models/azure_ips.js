@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const azureIpSchema = new Schema({
     createDate: Date,
@@ -27,7 +27,7 @@ const azureIpSchema = new Schema({
 
 const azureIpModel = mongoose.model('azureIpModel', azureIpSchema);
 
-module.exports = {
+export const azure_ips = {
     AzureIpModel: azureIpModel,
     getAzureIpZonesPromise: function () {
         return azureIpModel.find({}, { 'prefixes': 1, '_id': 0 }).exec();

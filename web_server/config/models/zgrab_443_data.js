@@ -12,7 +12,7 @@
  * governing permissions and limitations under the License.
  */
 
-const zSchema = require('./zgrab_443_data_schema.js');
+import { zgrab_443_data_schema as zSchema } from './zgrab_443_data_schema.js';
 const zgrab_cert_path = 'data.http.response.request.tls_handshake.server_certificates.';
 
 /**
@@ -28,7 +28,7 @@ const zgrab_cert_path = 'data.http.response.request.tls_handshake.server_certifi
  */
 
 // zgrab port 443 Module
-module.exports = {
+export const zgrab_443_data = {
     zgrabModel: zSchema.zgrab443Model,
     getRecordByDomainPromise: function (domain) {
         return zSchema.zgrab443Model.find({ 'domain': domain }).exec();

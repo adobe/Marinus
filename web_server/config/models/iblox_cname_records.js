@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 // Infoblox cname model
 const cnameSchema = new Schema({
@@ -29,7 +29,7 @@ const cnameSchema = new Schema({
 
 const cnameModel = mongoose.model('cnameModel', cnameSchema);
 
-module.exports = {
+export const iblox_cname_records = {
     CnameModel: cnameModel,
     getIBCNameByZonePromise: function (zone) {
         return cnameModel.find({

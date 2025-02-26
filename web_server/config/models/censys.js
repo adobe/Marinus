@@ -12,10 +12,10 @@
  * governing permissions and limitations under the License.
  */
 
-const cSchema = require('./censys_schema2');
+import { censys_schema2 as cSchema } from './censys_schema2.js';
 
 // CensysModel
-module.exports = {
+export const censys = {
     CensysModel: cSchema.censysModel,
     getRecordByIpPromise: function (ip) {
         return cSchema.censysModel.find({ 'ip': ip }).exec();

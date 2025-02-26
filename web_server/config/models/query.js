@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 /**
  * This is a placeholder for an upcoming feature around saved queries.
@@ -34,6 +34,6 @@ const querySchema = new Schema({
 
 const queryModel = mongoose.model('queryModel', querySchema);
 
-module.exports = {
+export const saved_query = {
     QueryModel: queryModel,
 };

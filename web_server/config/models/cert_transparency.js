@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const certTransparencySchema = new Schema({
   basic_constraint_ca: Boolean,
@@ -61,7 +61,7 @@ const certTransparencySchema = new Schema({
 
 const certTransModel = mongoose.model('certTransModel', certTransparencySchema);
 
-module.exports = {
+export const cert_transparency = {
   CertTransModel: certTransModel,
   getCertTransOrgPromise: function (org) {
     return certTransModel.find({
