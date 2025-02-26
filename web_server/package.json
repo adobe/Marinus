@@ -34,7 +34,6 @@
     "mongoose": "^8.10.0",
     "morgan": "^1.10.0",
     "newrelic": "^12.13.0",
-    "node-vault": "^0.10.2",
     "@primer/octicons": "^19.15.0",
     "passport": "^0.7.0",
     "@node-saml/passport-saml": "^5.0.0",
