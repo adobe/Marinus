@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2024 Adobe. All rights reserved.
+# Copyright 2025 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -11,7 +11,7 @@
 
 """
 This class handles common IP comparisons with known network ranges.
-The class manages the entries within the all_ips collection.
+In addition, it manages the entries within the all_ips collection.
 The all_ips collection contains the list of unique public IP addresses identified in DNS records.
 In addition, it can include any IP addresses identified through internal tools.
 """
@@ -23,12 +23,13 @@ from bson.objectid import ObjectId
 from libs3 import DNSManager, GoogleDNS
 from libs3.ZoneManager import ZoneManager
 from netaddr import IPAddress, IPNetwork
+from tld import get_fld
 
 
 class IPManager(object):
     """
     This class provides utilities for common IP comparisons against known network ranges.
-    In addtion, it manages the data within the all_ips collection.
+    The class manages the data within the all_ips collection.
     IPs within the all_ips collection are limited to a single unique entry and must be a public IP.
     In addition, metadata surrounding the IPs is stored for contextual understanding of its relevance.
     """
@@ -527,6 +528,7 @@ class IPManager(object):
         if self._dns_manager is None:
             self._dns_manager = DNSManager.DNSManager(self._mongo_connector)
 
+        # This can take multiple seconds in some scenarios.
         results = self._dns_manager.find_multiple({"value": ip}, None)
 
         zones = []
@@ -553,7 +555,15 @@ class IPManager(object):
 
         return rnds_value, rdns_zone
 
-    def insert_record(self, ip, source=None, account_id=None, cloud_env=None):
+    def insert_record(
+        self,
+        ip,
+        source=None,
+        account_id=None,
+        cloud_env=None,
+        account_info=None,
+        fqdn=None,
+    ):
         """
         Insert an IP into the tracking table
         This function completely rebuilds the record because it is simpler and cleaner than tracking which
@@ -582,6 +592,14 @@ class IPManager(object):
         record["ip"] = ip
         record["version"] = ip_addr.version
         record["updated"] = datetime.now()
+
+        if account_info is not None:
+            record["accountInfo"] = account_info
+
+        if account_id is None and account_info is not None:
+            for entry in account_info:
+                if entry["key"] == "accountId":
+                    account_id = entry["value"]
 
         # Check existance
         result = self._mongo_connector.perform_find_one(
@@ -612,22 +630,6 @@ class IPManager(object):
                     )
             else:
                 record["sources"] = [{"source": source, "updated": datetime.now()}]
-
-        if self._ZONES is None:
-            self._ZONES = ZoneManager.get_distinct_zones(self._mongo_connector)
-
-        record["zones"], record["domains"] = self.find_dns_zones(ip)
-
-        rdns_value, rdns_zone = self.extract_rdns_info(ip)
-        if rdns_value != "":
-            record["reverse_dns"] = rdns_value
-
-            if (
-                rdns_zone is not None
-                and rdns_zone in self._ZONES
-                and rdns_zone not in record["zones"]
-            ):
-                record["zones"].append(rdns_zone)
 
         partner, cidr = self.find_partner_range(ip_addr)
 
@@ -683,7 +685,7 @@ class IPManager(object):
                     record["host"]["hosting_partner"] = cloud_env
                 else:
                     self._logger.error(
-                        "Unrecognized cloud ennvironment: "
+                        "Unrecognized cloud environment: "
                         + str(cloud_env)
                         + " for: "
                         + str(ip)
@@ -696,6 +698,56 @@ class IPManager(object):
                     + str(ip)
                     + " will not be included in the updated record."
                 )
+
+        if self._ZONES is None:
+            self._ZONES = ZoneManager.get_distinct_zones(self._mongo_connector)
+
+        rdns_value, rdns_zone = self.extract_rdns_info(ip)
+
+        fqdn_zone = None
+
+        if fqdn is not None:
+            res = get_fld(fqdn, fix_protocol=True, fail_silently=True)
+            if res is not None:
+                if res in self._ZONES:
+                    fqdn_zone = res
+                else:
+                    self._logger.debug("Could not find a known FLD for: " + fqdn)
+
+        if result is None:
+            if fqdn is None:
+                # This is a lengthy search
+                # Therefore, we only do it if we have no better information.
+                record["zones"], record["domains"] = self.find_dns_zones(ip)
+            elif fqdn_zone is not None:
+                # We were able to determine the domain and zone from the FQDN
+                record["zones"] = [fqdn_zone]
+                record["domains"] = [fqdn]
+            else:
+                # We were not able to determine the zone from the FQDN
+                # Therefore, we will not include it in the record
+                record["zones"] = []
+                record["domains"] = []
+        else:
+            # Capture the previous records
+            record["zones"] = result["zones"]
+            record["domains"] = result["domains"]
+            # Add the new zones and domains if applicable
+            if fqdn is not None and fqdn_zone is not None:
+                if fqdn_zone not in record["zones"]:
+                    record["zones"].append(fqdn_zone)
+                if fqdn not in record["domains"]:
+                    record["domains"].append(fqdn)
+
+        if rdns_value != "":
+            record["reverse_dns"] = rdns_value
+
+            if (
+                rdns_zone is not None
+                and rdns_zone in self._ZONES
+                and rdns_zone not in record["zones"]
+            ):
+                record["zones"].append(rdns_zone)
 
         return self.all_ips_collection.replace_one({"ip": ip}, record, upsert=True)
 

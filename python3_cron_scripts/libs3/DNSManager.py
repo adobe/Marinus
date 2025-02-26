@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2022 Adobe. All rights reserved.
+# Copyright 2025 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -123,10 +123,44 @@ class DNSManager(object):
             result["updated"] = datetime.now()
             self._mongo_connector.perform_insert(self.all_dns_collection, result)
         else:
+            # If the update has accountInfo
+            if "accountInfo" in result:
+                # And if the existing record does not have accountInfo
+                # or the accountInfo is different
+                # then update the record
+                account_id_test = False
+                if "accountInfo" in check:
+                    for c_entry in check["accountInfo"]:
+                        if c_entry["key"] == "accountId":
+                            for r_entry in result["accountInfo"]:
+                                if r_entry["key"] == "accountId":
+                                    if c_entry["value"] == r_entry["value"]:
+                                        account_id_test = True
+                                        break
+
+                if "accountInfo" not in check or not account_id_test:
+                    self.all_dns_collection.update_one(
+                        {"_id": ObjectId(check["_id"])},
+                        {
+                            "$set": {
+                                "accountInfo": result["accountInfo"],
+                            }
+                        },
+                    )
+
+            # Update the record's updated time
+            self.all_dns_collection.update_one(
+                {"_id": ObjectId(check["_id"])},
+                {"$set": {"updated": datetime.now()}},
+            )
+
+            # Is this reporting source already in the record?
             source_index = -1
             for i in range(0, len(check["sources"])):
                 if check["sources"][i]["source"] == source_name:
                     source_index = i
+
+            # The reporting source exists in the record
             if source_index != -1:
                 name = "sources." + str(source_index) + ".updated"
                 entry = {}
@@ -134,10 +168,8 @@ class DNSManager(object):
                 self.all_dns_collection.update_one(
                     {"_id": ObjectId(check["_id"])}, {"$set": entry}
                 )
-                self.all_dns_collection.update_one(
-                    {"_id": ObjectId(check["_id"])},
-                    {"$set": {"updated": datetime.now()}},
-                )
+
+                # Add the metadata if it exists
                 if source_metadata is not None and len(source_metadata) > 0:
                     for metadata in source_metadata:
                         self.all_dns_collection.update_one(
@@ -151,27 +183,39 @@ class DNSManager(object):
                                 }
                             },
                         )
+
+            # The reporting source for this existing record is new
             else:
                 entry = {}
                 entry["source"] = source_name
                 entry["updated"] = datetime.now()
+
+                # Add the metadata for the new source
                 if source_metadata is not None and len(source_metadata) > 0:
                     for metadata in source_metadata:
                         entry[metadata["key"]] = metadata["value"]
 
+                # Add the new source to the record
                 self.all_dns_collection.update_one(
                     {"_id": ObjectId(check["_id"])}, {"$push": {"sources": entry}}
                 )
-                self.all_dns_collection.update_one(
-                    {"_id": ObjectId(check["_id"])},
-                    {"$set": {"updated": datetime.now()}},
-                )
 
+        # For A records, insert the IP address into the IPs collection
         if result["type"] == "a" or result["type"] == "aaaa":
             if self._ip_manager is None:
                 self._ip_manager = IPManager.IPManager(self._mongo_connector)
 
-            self._ip_manager.insert_record(result["value"], source_name)
+            if "accountInfo" in result:
+                account_info = result["accountInfo"]
+            else:
+                account_info = None
+
+            self._ip_manager.insert_record(
+                result["value"],
+                source=source_name,
+                fqdn=result["fqdn"].lower(),
+                account_info=account_info,
+            )
 
     def find_multiple(self, criteria, source):
         """
