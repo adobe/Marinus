@@ -13,17 +13,24 @@
  */
 
 // Express config
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const expressSession = require('express-session');
-const MongoDBStore = require('connect-mongodb-session')(expressSession);
-const path = require('path');
-const mlogger = require('morgan');
-const sLogger = require("splunk-logging").Logger;
+import express from 'express';
+import bodyParser from 'body-parser';
+
+import cookieParser from 'cookie-parser';
+import expressSession from 'express-session';
+import { default as connectMongoDBSession } from 'connect-mongodb-session';
+const MongoDBStore = connectMongoDBSession(expressSession);
+import * as path from 'path'
+import mlogger from 'morgan';
+import * as splunk_logger from 'splunk-logging';
+const sLogger = splunk_logger.Logger;
+
+import passport from 'passport';
+import passport_conf from './passport_conf.js';
+
 // var favicon = require('serve-favicon');
-const bodyParser = require('body-parser');
-const fs = require('fs');
-const assert = require('assert');
+
+import * as assert from 'assert';
 
 function setUpLogger(app, envConfig) {
 
@@ -58,9 +65,8 @@ function setUpLogger(app, envConfig) {
   }
 }
 
-module.exports = function (app, envConfig) {
-  const passport = require('passport');
-  require('./passport_conf')(passport, envConfig);
+export default function (app, envConfig) {
+  passport_conf(passport, envConfig);
 
   // view engine setup
   app.set('views', path.join(envConfig.rootPath, 'views'));
