@@ -1,8 +1,9 @@
 {
   "name": "marinus",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Marinus web application",
-  "main": "server.js",
+  "type": "module",
+  "exports": "./server.js",
   "url": "https://github.com/adobe/Marinus/",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -27,7 +28,7 @@
     "d3-scale-chromatic": "^3.1.0",
     "debug": "4.4.0",
     "ejs": "^3.1.10",
-    "escape-string-regexp": "^4.0.0",
+    "escape-string-regexp": "^5.0.0",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "jquery": "^3.7.1",
@@ -37,7 +38,7 @@
     "@primer/octicons": "^19.15.0",
     "passport": "^0.7.0",
     "@node-saml/passport-saml": "^5.0.0",
-    "range_check": "^2.0.0",
+    "range_check": "^3.2.0",
     "secure-filters": "^1.1.0",
     "splunk-logging": "^0.11.1",
     "swagger-jsdoc": "^6.2.8",
