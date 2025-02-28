@@ -438,7 +438,8 @@ export default function ctRouter(envConfig) {
      *     security:
      *       - APIKeyHeader: []
      *     description: Check whether the provided value (e.g. "www.example.org") is in the common name or
-     *                  subject_dns_names of any saved certificate transparency logs.
+     *                  subject_dns_names of any saved certificate transparency logs. By default, only non-expired
+     *                  certificates are returned.
      *     tags: [CT - Common name search]
      *     produces:
      *       - application/json
@@ -447,6 +448,11 @@ export default function ctRouter(envConfig) {
      *         type: string
      *         required: true
      *         description: The common name value to search (e.g. "www.example.org", etc.)
+     *         in: query
+     *       - name: include_expired
+     *         type: integer
+     *         required: false
+     *         description: Set to 1 to include expired certificates
      *         in: query
      *     responses:
      *       200:
@@ -478,7 +484,12 @@ export default function ctRouter(envConfig) {
                 res.status(400).json({ 'message': 'A CN/DNS name must be provided.' });
                 return;
             }
-            let promise = cert_transparency.getCertTransCNPromise(req.query.cn);
+
+            let includeExpired = false;
+            if (req.query.hasOwnProperty('include_expired') && req.query.include_expired === '1') {
+                includeExpired = true;
+            }
+            let promise = cert_transparency.getCertTransCNPromise(req.query.cn, includeExpired);
 
             promise.then(function (data) {
                 if (data === null) {
@@ -499,7 +510,7 @@ export default function ctRouter(envConfig) {
      * tags:
      *   - name: CT - Common name IP search
      *     description: Check whether the provided IP (e.g "1.2.3.4") is in the common name/subject_dns_names of any
-     *                  saved certificate transparency logs.
+     *                  saved certificate transparency logs. By default, only non-expired certificates are returned.
      *
      * /api/v1.0/ct/ip:
      *   get:
@@ -516,6 +527,11 @@ export default function ctRouter(envConfig) {
      *         type: string
      *         required: true
      *         description: The IP value to search (e.g. "1.2.3.4" etc.)
+     *         in: query
+     *       - name: include_expired
+     *         type: integer
+     *         required: false
+     *         description: Set to 1 to include expired certificates
      *         in: query
      *     responses:
      *       200:
@@ -547,7 +563,12 @@ export default function ctRouter(envConfig) {
                 res.status(400).json({ 'message': 'An IP address must be provided.' });
                 return;
             }
-            let promise = cert_transparency.getCertTransCNPromise(req.query.ip);
+
+            let includeExpired = false;
+            if (req.query.hasOwnProperty('include_expired') && req.query.include_expired === '1') {
+                includeExpired = true;
+            }
+            let promise = cert_transparency.getCertTransIPPromise(req.query.ip, includeExpired);
 
             promise.then(function (data) {
                 if (data === null) {

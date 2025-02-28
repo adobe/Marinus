@@ -68,12 +68,22 @@ export const cert_transparency = {
       'subject_organization_name': { $in: org },
     }).exec();
   },
-  getCertTransCNPromise: function (domain) {
-    return certTransModel.find().or([{
-      'subject_common_names': domain,
-    }, {
-      'subject_dns_names': domain,
-    }]).exec();
+  getCertTransCNPromise: function (domain, includeExpired = false) {
+    if (includeExpired) {
+      return certTransModel.find().or([{
+        'subject_common_names': domain,
+      }, {
+        'subject_dns_names': domain,
+      }]).exec();
+    } else {
+      return certTransModel.find({
+        '$or': [{
+          'subject_common_names': domain,
+        }, {
+          'subject_dns_names': domain,
+        }], 'isExpired': false
+      }).exec();
+    }
   },
   getCertTransZonePromise: function (zone, count) {
     let promise;
@@ -116,10 +126,16 @@ export const cert_transparency = {
     }
     return promise;
   },
-  getCertTransIPPromise: function (ip) {
-    return certTransModel.find({
-      'subject_ip_addresses': ip,
-    }).exec();
+  getCertTransIPPromise: function (ip, includeExpired = false) {
+    if (includeExpired) {
+      return certTransModel.find({
+        'subject_ip_addresses': ip
+      }).exec();
+    } else {
+      return certTransModel.find({
+        'subject_ip_addresses': ip, 'isExpired': false
+      }).exec();
+    }
   },
   getCertTransById: function (id) {
     return certTransModel.findById(id).exec();
