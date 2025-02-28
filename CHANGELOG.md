@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## February 28, 2025
+The changelog fell behind for awhile but Marinus has had continuous improvements since the last entry. These changes include:
+* Migration of the web server to ECMAScript Modules (ESM). This allowed all of the packages to be updated to the latest version and should make it forward compatible for the future.
+* New support for recording account information with DNS records.
+* Added support for stage environments and a dedicated http_only a flag.
+* Performance improvements on database queries such as IP insertions.
+* SECURITY: Improvements to the web server for handling array URL parameters and tightened regex matching. The sameSite flag was changed from 'none' to 'lax'.
+* A large number of other miscellaneous bug fixes and minor improvements.
+
+
 ## September 18, 2019
 * The scripts have been updated to leverage Python logging. This allows more control of the output levels of the scripts. In addition, the new format adds line numbers and timestamps to the output. Please see the python3_cron_scripts/README.md file for more information.
 
