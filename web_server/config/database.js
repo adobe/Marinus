@@ -12,10 +12,9 @@
  * governing permissions and limitations under the License.
  */
 
-const mongoose = require('mongoose');
-const fs = require('fs');
+import mongoose from 'mongoose';
 
-module.exports = function (envConfig) {
+export default function database(envConfig) {
     const db_options = {};
 
     if (envConfig.hasOwnProperty('mongodbSSLCA') && envConfig.mongodbSSLCA !== "") {
