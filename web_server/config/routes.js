@@ -12,10 +12,10 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
-const group = require('../config/models/group');
-const user = require('../config/models/user');
-const errors = require('celebrate').errors;
+//import express from 'express';
+import { group } from '../config/models/group.js';
+import { user } from '../config/models/user.js';
+import { errors } from 'celebrate';
 
 /**
  * Checks whether the request was sent with a valid API key
@@ -158,61 +158,79 @@ function checkAuthorization(req, res, next) {
     }
 }
 
-module.exports = function (app, envConfig, passport) {
+import coreRouter from '../routes/core.js';
+import adminRouter from '../routes/admin.js';
+import authRouter from '../routes/auth.js';
+import censysRouter from '../routes/censys.js';
+import cloudServicesRouter from '../routes/cloud_services.js';
+import ctRouter from '../routes/ct.js';
+import dnsRouter from '../routes/dns.js';
+import graphsRouter from '../routes/graphs.js';
+import ibloxRouter from '../routes/iblox.js';
+import ipRouter from '../routes/ip.js';
+import sonarRouter from '../routes/sonar.js';
+import tpdRouter from '../routes/tpds.js';
+import trackedScansRouter from '../routes/tracked_scans.js';
+import utilitiesRouter from '../routes/utilities.js';
+import virustotalRouter from '../routes/virustotal.js';
+import whoisDBRouter from '../routes/whois_db.js';
+import zonesRouter from '../routes/zones.js';
+
+export default function routes(app, envConfig, passport) {
     app.use(checkAuthentication);
     app.use(checkAuthorization);
 
     // register route controllers
-    const indexRouter = require('../routes/core')(envConfig);
-    app.use('/', indexRouter);
+    const index_router = coreRouter(envConfig);
+    app.use('/', index_router);
 
-    const adminRouter = require('../routes/admin')(envConfig);
-    app.use('/api/v1.0/', adminRouter);
+    const admin_router = adminRouter(envConfig);
+    app.use('/api/v1.0/', admin_router);
 
-    const authRouter = require('../routes/auth')(envConfig, passport);
-    app.use('/auth/', authRouter);
+    const auth_router = authRouter(envConfig, passport);
+    app.use('/auth/', auth_router);
 
-    const censysRouter = require('../routes/censys')(envConfig);
-    app.use('/api/v1.0/', censysRouter);
+    const censys_router = censysRouter(envConfig);
+    app.use('/api/v1.0/', censys_router);
 
-    const cloudServicesRouter = require('../routes/cloud_services')(envConfig);
-    app.use('/api/v1.0/', cloudServicesRouter);
+    const cloud_services_router = cloudServicesRouter(envConfig);
+    app.use('/api/v1.0/', cloud_services_router);
 
-    const ctRouter = require('../routes/ct')(envConfig);
-    app.use('/api/v1.0/', ctRouter);
+    const ct_router = ctRouter(envConfig);
+    app.use('/api/v1.0/', ct_router);
 
-    const dnsRouter = require('../routes/dns')(envConfig);
-    app.use('/api/v1.0/', dnsRouter);
+    const dns_router = dnsRouter(envConfig);
+    app.use('/api/v1.0/', dns_router);
 
-    const graphRouter = require('../routes/graphs')(envConfig);
-    app.use('/api/v1.0/', graphRouter);
+    const graphs_router = graphsRouter(envConfig);
+    app.use('/api/v1.0/', graphs_router);
 
-    const ibloxRouter = require('../routes/iblox')(envConfig);
-    app.use('/api/v1.0/', ibloxRouter);
+    const iblox_router = ibloxRouter(envConfig);
+    app.use('/api/v1.0/', iblox_router);
 
-    const ipRouter = require('../routes/ip')(envConfig);
-    app.use('/api/v1.0/', ipRouter);
+    const ip_router = ipRouter(envConfig);
+    app.use('/api/v1.0/', ip_router);
 
-    const sonarRouter = require('../routes/sonar')(envConfig);
-    app.use('/api/v1.0/', sonarRouter);
+    const sonar_router = sonarRouter(envConfig);
+    app.use('/api/v1.0/', sonar_router);
 
-    const tpdRouter = require('../routes/tpds')(envConfig);
-    app.use('/api/v1.0/', tpdRouter);
+    const tpd_router = tpdRouter(envConfig);
+    app.use('/api/v1.0/', tpd_router);
 
-    const trackedScansRouter = require('../routes/tracked_scans')(envConfig);
-    app.use('/api/v1.0/', trackedScansRouter);
+    const tracked_scans_router = trackedScansRouter(envConfig);
+    app.use('/api/v1.0/', tracked_scans_router);
 
-    const utilitiesRouter = require('../routes/utilities')(envConfig);
-    app.use('/api/v1.0/', utilitiesRouter);
+    const utilities_router = utilitiesRouter(envConfig);
+    app.use('/api/v1.0/', utilities_router);
 
-    const virustotalRouter = require('../routes/virustotal')(envConfig);
-    app.use('/api/v1.0/', virustotalRouter);
+    const virustotal_router = virustotalRouter(envConfig);
+    app.use('/api/v1.0/', virustotal_router);
 
-    const whoisRouter = require('../routes/whois_db')(envConfig);
-    app.use('/api/v1.0/', whoisRouter);
+    const whois_router = whoisDBRouter(envConfig);
+    app.use('/api/v1.0/', whois_router);
 
-    const zoneRouter = require('../routes/zones')(envConfig);
-    app.use('/api/v1.0/', zoneRouter);
+    const zones_router = zonesRouter(envConfig);
+    app.use('/api/v1.0/', zones_router);
 
     app.use(errors());
 };
