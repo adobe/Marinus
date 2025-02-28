@@ -12,7 +12,14 @@
  * governing permissions and limitations under the License.
  */
 
-const path = require('path');
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+import * as path from 'path';
+
 const rootPath = path.normalize(__dirname + '/../'); // normalizes to base path
 const port = normalizePort(process.env.PORT) || 3005;
 
@@ -38,9 +45,9 @@ function normalizePort(val) {
 }
 
 
-module.exports = {
+const envConfigurations = {
   development: {
-    version: '1.0.3',
+    version: '1.0.4',
     build: '1331',
     state: 'development',
     rootPath: rootPath,
@@ -60,7 +67,7 @@ module.exports = {
     zgrabVersion: 2,
   },
   production: {
-    version: '1.0.3',
+    version: '1.0.4',
     build: '1331',
     state: 'production',
     rootPath: rootPath,
