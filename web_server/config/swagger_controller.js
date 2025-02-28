@@ -12,9 +12,16 @@
  * governing permissions and limitations under the License.
  */
 
-const swaggerJSDoc = require('swagger-jsdoc');
+import swaggerJSDoc from 'swagger-jsdoc';
 
-class SwaggerController {
+import APIKeyHeader from './swagger_defs/APIKeyHeader.json' with { type: 'json' };
+import CountResponse from './swagger_defs/countResponse.json' with { type: 'json' };
+import Error400 from './swagger_defs/error_400.json' with { type: 'json' };
+import Error404 from './swagger_defs/error_404.json' with { type: 'json' };
+import Error500 from './swagger_defs/error_500.json' with { type: 'json' };
+
+
+export default class SwaggerController {
     constructor(envConfig) {
         // swagger definition
         const swaggerDefinition = {
@@ -57,15 +64,15 @@ class SwaggerController {
         this._swaggerSpec = swaggerJSDoc(options);
 
         // Errors
-        this._swaggerSpec.definitions.BadInputError = require("./swagger_defs/error_400.json");
-        this._swaggerSpec.definitions.ResultsNotFound = require("./swagger_defs/error_404.json");
-        this._swaggerSpec.definitions.ServerError = require("./swagger_defs/error_500.json");
+        this._swaggerSpec.definitions.BadInputError = Error400;
+        this._swaggerSpec.definitions.ResultsNotFound = Error404;
+        this._swaggerSpec.definitions.ServerError = Error500;
 
         // Valid responses
-        this._swaggerSpec.definitions.CountResponse = require("./swagger_defs/countResponse.json");
+        this._swaggerSpec.definitions.CountResponse = CountResponse;
 
         // Common defintions
-        this._swaggerSpec.securityDefinitions.APIKeyHeader = require("./swagger_defs/APIKeyHeader.json");
+        this._swaggerSpec.securityDefinitions.APIKeyHeader = APIKeyHeader;
     }
 
     setup(app, express) {
@@ -78,5 +85,3 @@ class SwaggerController {
         }.bind(this));
     }
 }
-
-module.exports = SwaggerController;
