@@ -16,9 +16,13 @@
  * The SAML SSO configuration for Passport.
  */
 
-module.exports = function (passport, envConfig) {
-   const SamlStrategy = require('@node-saml/passport-saml').Strategy;
-   const user = require('../config/models/user');
+import { readFile } from 'node:fs';
+
+import { user } from '../config/models/user.js';
+import passport_saml from '@node-saml/passport-saml';
+
+export default function passport_conf(passport, envConfig) {
+   const SamlStrategy = passport_saml.Strategy;
 
    passport.serializeUser(function (user, done) {
       done(null, user);
@@ -28,8 +32,7 @@ module.exports = function (passport, envConfig) {
       done(null, user);
    });
 
-   const fs = require('fs');
-   fs.readFile('config/keys/sso.cert', function (err, data) {
+   readFile('config/keys/sso.cert', function (err, data) {
       passport.use(new SamlStrategy(
          {
             callbackUrl: '/auth/okta',
