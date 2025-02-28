@@ -33,4 +33,4 @@ class IncorrectOrMissingRequestParameter extends Error {
     }
 }
 
-module.exports = { IncorrectOrMissingRequestParameter };
+export const error = { IncorrectOrMissingRequestParameter };
