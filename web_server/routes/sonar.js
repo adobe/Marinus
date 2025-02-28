@@ -12,11 +12,11 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const CIDRMatcher = require('cidr-matcher');
+import CIDRMatcher from 'cidr-matcher';
 
-const sonarRdns = require('../config/models/sonar_rdns');
+import { sonar_rdns as sonarRdns } from '../config/models/sonar_rdns.js';
 
 /**
  * Confirm that all parameters are a string and not an array.
@@ -96,7 +96,7 @@ function createRange(range) {
  *
  */
 
-module.exports = function (envConfig) {
+export default function sonarRouter(envConfig) {
     /**
   * @swagger
   *

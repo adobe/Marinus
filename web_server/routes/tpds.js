@@ -12,9 +12,10 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const tpdRecs = require('../config/models/tpds');
+
+import { tpds as tpdRecs } from '../config/models/tpds.js';
 
 /**
  * Confirm that all parameters are a string and not an array.
@@ -92,7 +93,7 @@ function is_valid_strings(params) {
  *
  */
 
-module.exports = function (envConfig) {
+export default function tpdsRouter(envConfig) {
 
     /**
      * @swagger

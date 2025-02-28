@@ -12,20 +12,20 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { celebrate, Joi } = require('celebrate');
+import { celebrate, Joi } from 'celebrate';
 
-const ibloxARecs = require('../config/models/iblox_a_records');
-const ibloxAAAARecs = require('../config/models/iblox_aaaa_records');
-const ibloxHostRecs = require('../config/models/iblox_host_records');
-const ibloxCnameRecs = require('../config/models/iblox_cname_records');
-const ibloxMXRecs = require('../config/models/iblox_mx_records');
-const ibloxTXTRecs = require('../config/models/iblox_txt_records');
-const ibloxExtattrRecs = require('../config/models/iblox_extattr_records');
+import { iblox_a_records as ibloxARecs } from '../config/models/iblox_a_records.js';
+import { iblox_aaaa_records as ibloxAAAARecs } from '../config/models/iblox_aaaa_records.js';
+import { iblox_host_records as ibloxHostRecs } from '../config/models/iblox_host_records.js';
+import { iblox_cname_records as ibloxCnameRecs } from '../config/models/iblox_cname_records.js';
+import { iblox_mx_records as ibloxMXRecs } from '../config/models/iblox_mx_records.js';
+import { iblox_txt_records as ibloxTXTRecs } from '../config/models/iblox_txt_records.js';
+import { iblox_extattr_records as ibloxExtattrRecs } from '../config/models/iblox_extattr_records.js';
 
-const CIDRMatcher = require('cidr-matcher');
-const rangeCheck = require('range_check');
+import CIDRMatcher from 'cidr-matcher';
+import { isRange, inRange } from 'range_check';
 
 /**
  * Converts a CIDR range into a string for text searches.
@@ -109,8 +109,7 @@ function is_valid_strings(params) {
  *
  */
 
-
-module.exports = function (envConfig) {
+export default function ibloxRouter(envConfig) {
 
     /**
      * Swagger is commented out because these APIs are being deprecated.
@@ -469,7 +468,7 @@ module.exports = function (envConfig) {
             }
 
             if (req.query.hasOwnProperty('range')) {
-                let searchRange = rangeCheck.isRange(req.query.range);
+                let searchRange = isRange(req.query.range);
                 if (searchRange === false) {
                     res.status(400).json({ 'message': "Invalid IPv6 range" });
                     return;
@@ -486,7 +485,7 @@ module.exports = function (envConfig) {
                     }
                     let returnData = [];
                     for (let i = 0; i < data.length; i++) {
-                        if (rangeCheck.inRange(data[i]['ipv6addr'], req.query.range)) {
+                        if (inRange(data[i]['ipv6addr'], req.query.range)) {
                             returnData.push(data[i]);
                         }
                     }

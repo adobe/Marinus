@@ -12,15 +12,17 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const htmlEscape = require('secure-filters').html;
 
-const allDNS = require('../config/models/all_dns');
-const deadDNS = require('../config/models/dead_dns');
+import secureFilters from 'secure-filters';
+const escapeHTML = secureFilters.html;
 
-const CIDRMatcher = require('cidr-matcher');
-const rangeCheck = require('range_check');
+import { all_dns as allDNS } from '../config/models/all_dns.js';
+import { dead_dns as deadDNS } from '../config/models/dead_dns.js';
+
+import CIDRMatcher from 'cidr-matcher';
+import { isRange, inRange } from 'range_check';
 
 /**
  * Converts a CIDR range into a string for text searches.
@@ -136,7 +138,7 @@ function is_valid_strings(params) {
  *
  */
 
-module.exports = function (envConfig) {
+export default function dnsRouter(envConfig) {
 
     /**
      * @swagger
@@ -447,7 +449,7 @@ module.exports = function (envConfig) {
             if (req.query.hasOwnProperty('range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
-                    res.status(400).json({ 'message': htmlEscape(searchRange) });
+                    res.status(400).json({ 'message': escapeHTML(searchRange) });
                     return;
                 }
                 promise = allDNS.getAllDNSByIPRangePromise(searchRange, source);
@@ -473,7 +475,7 @@ module.exports = function (envConfig) {
                 });
                 return;
             } else if (req.query.hasOwnProperty('ipv6_range')) {
-                if (!rangeCheck.isRange(req.query.ipv6_range)) {
+                if (!isRange(req.query.ipv6_range)) {
                     res.status(400).json({ 'message': 'A valid IPv6 range must be provided' });
                     return;
                 }
@@ -486,7 +488,7 @@ module.exports = function (envConfig) {
                     }
                     let returnData = [];
                     for (let i = 0; i < data.length; i++) {
-                        if (rangeCheck.inRange(data[i]['value'], req.query.ipv6_range)) {
+                        if (inRange(data[i]['value'], req.query.ipv6_range)) {
                             returnData.push(data[i]);
                         }
                     }
@@ -795,7 +797,7 @@ module.exports = function (envConfig) {
             if (req.query.hasOwnProperty('range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
-                    res.status(500).json({ 'message': htmlEscape(searchRange) });
+                    res.status(500).json({ 'message': escapeHTML(searchRange) });
                     return;
                 }
                 promise = deadDNS.getDeadDNSByIPRangePromise(searchRange, source);

@@ -12,18 +12,21 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const crypto = require('crypto');
-const htmlEscape = require('secure-filters').html;
+import crypto from 'crypto';
 
-const user = require('../config/models/user');
-const group = require('../config/models/group');
-const zone = require('../config/models/zone');
-const ipZone = require('../config/models/ip_zone');
-const ipv6Zone = require('../config/models/ipv6_zone');
-const jobs = require('../config/models/jobs');
-const marinusConfig = require('../config/models/config.js')
+import { user } from '../config/models/user.js';
+import { group } from '../config/models/group.js';
+// import querystring from 'node:querystring';
+import { zone } from '../config/models/zone.js';
+import { ip_zone as ipZone } from '../config/models/ip_zone.js';
+import { ipv6_zone as ipv6Zone } from '../config/models/ipv6_zone.js';
+import { jobs } from '../config/models/jobs.js';
+import { config as marinusConfig } from '../config/models/config.js';
+
+import secureFilters from 'secure-filters';
+const escapeHTML = secureFilters.html;
 
 const statusValues = ['confirmed', 'unconfirmed', 'false_positive', 'expired'];
 
@@ -202,7 +205,7 @@ function is_valid_strings(params) {
  *           example: "Acme, Inc."
  */
 
-module.exports = function (envConfig) {
+export default function adminRouter(envConfig) {
     /**
      * @swagger
      *
@@ -588,7 +591,7 @@ module.exports = function (envConfig) {
                         return;
                     } else {
                         res.status(400).json({
-                            message: 'User ' + htmlEscape(userInDB.userid) + ' already exists!',
+                            message: 'User ' + escapeHTML(userInDB.userid) + ' already exists!',
                         });
                     }
                 }).catch(function (errorMsg) {
@@ -716,7 +719,7 @@ module.exports = function (envConfig) {
                     return;
                 } else {
                     res.status(500).json({
-                        'message': 'Group  ' + htmlEscape(groupInDB.name) + ' already exists!',
+                        'message': 'Group  ' + escapeHTML(groupInDB.name) + ' already exists!',
                     });
                 }
             }).catch(function (errorMsg) {
@@ -898,7 +901,7 @@ module.exports = function (envConfig) {
                     return;
                 } else {
                     res.status(500).json({
-                        'message': 'Zone ' + htmlEscape(zoneInDB.zone) + ' already exists!',
+                        'message': 'Zone ' + escapeHTML(zoneInDB.zone) + ' already exists!',
                     });
                 }
             }).catch(function (errorMsg) {
@@ -1004,7 +1007,7 @@ module.exports = function (envConfig) {
                     return;
                 } else {
                     res.status(500).json({
-                        'message': 'Error updating ' + htmlEscape(zoneInDB.zone),
+                        'message': 'Error updating ' + escapeHTML(zoneInDB.zone),
                     });
                 }
             }).catch(function (errorMsg) {
@@ -1099,7 +1102,7 @@ module.exports = function (envConfig) {
                     return;
                 } else {
                     res.status(500).json({
-                        'message': 'IPv4 Zone ' + htmlEscape(zoneInDB.zone) + ' already exists!',
+                        'message': 'IPv4 Zone ' + escapeHTML(zoneInDB.zone) + ' already exists!',
                     });
                 }
             }).catch(function (errorMsg) {
@@ -1204,7 +1207,7 @@ module.exports = function (envConfig) {
                     return;
                 } else {
                     res.status(500).json({
-                        'message': 'Error updating ' + htmlEscape(zoneInDB.zone),
+                        'message': 'Error updating ' + escapeHTML(zoneInDB.zone),
                     });
                 }
             }).catch(function (errorMsg) {
@@ -1298,7 +1301,7 @@ module.exports = function (envConfig) {
                     return;
                 } else {
                     res.status(500).json({
-                        'message': 'IPv6 Zone ' + htmlEscape(zoneInDB.zone) + ' already exists!',
+                        'message': 'IPv6 Zone ' + escapeHTML(zoneInDB.zone) + ' already exists!',
                     });
                 }
             }).catch(function (errorMsg) {
@@ -1403,7 +1406,7 @@ module.exports = function (envConfig) {
                     return;
                 } else {
                     res.status(500).json({
-                        'message': 'Error updating ' + htmlEscape(zoneInDB.zone),
+                        'message': 'Error updating ' + escapeHTML(zoneInDB.zone),
                     });
                 }
             }).catch(function (errorMsg) {

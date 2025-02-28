@@ -12,9 +12,9 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const ct = require('../config/models/cert_transparency');
+import { cert_transparency } from '../config/models/cert_transparency.js';
 
 
 function isValidDate(d_string) {
@@ -194,7 +194,7 @@ function is_valid_strings(params) {
  *
  */
 
-module.exports = function (envConfig) {
+export default function ctRouter(envConfig) {
     /**
      * @swagger
      *
@@ -291,9 +291,9 @@ module.exports = function (envConfig) {
             let org = req.query.org;
             let promise;
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
-                promise = ct.getSSLOrgCountPromise(org);
+                promise = cert_transparency.getSSLOrgCountPromise(org);
             } else {
-                promise = ct.getCertTransOrgPromise(org);
+                promise = cert_transparency.getCertTransOrgPromise(org);
             }
             promise.then(function (data) {
                 if (data === null) {
@@ -406,7 +406,7 @@ module.exports = function (envConfig) {
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
             }
-            let promise = ct.getCertTransZonePromise(req.query.zone, count);
+            let promise = cert_transparency.getCertTransZonePromise(req.query.zone, count);
 
             promise.then(function (data) {
                 if (data === null) {
@@ -478,7 +478,7 @@ module.exports = function (envConfig) {
                 res.status(400).json({ 'message': 'A CN/DNS name must be provided.' });
                 return;
             }
-            let promise = ct.getCertTransCNPromise(req.query.cn);
+            let promise = cert_transparency.getCertTransCNPromise(req.query.cn);
 
             promise.then(function (data) {
                 if (data === null) {
@@ -547,7 +547,7 @@ module.exports = function (envConfig) {
                 res.status(400).json({ 'message': 'An IP address must be provided.' });
                 return;
             }
-            let promise = ct.getCertTransCNPromise(req.query.ip);
+            let promise = cert_transparency.getCertTransCNPromise(req.query.ip);
 
             promise.then(function (data) {
                 if (data === null) {
@@ -661,7 +661,7 @@ module.exports = function (envConfig) {
                 count = true;
             }
 
-            let promise = ct.getCertTransBySerialNumberPromise(req.params.sn.toLowerCase(), count);
+            let promise = cert_transparency.getCertTransBySerialNumberPromise(req.params.sn.toLowerCase(), count);
 
             promise.then(function (data) {
                 if (data === null) {
@@ -783,9 +783,9 @@ module.exports = function (envConfig) {
 
             let promise;
             if (req.params.fingerprint.length === 64) {
-                promise = ct.getCTCertByFingerprintSHA256(req.params.fingerprint, count);
+                promise = cert_transparency.getCTCertByFingerprintSHA256(req.params.fingerprint, count);
             } else if (req.params.fingerprint.length === 40) {
-                promise = ct.getCTCertByFingerprintSHA1(req.params.fingerprint, count);
+                promise = cert_transparency.getCTCertByFingerprintSHA1(req.params.fingerprint, count);
             } else {
                 res.status(400).json({ 'message': 'Invalid fingerprint value.' });
                 return;
@@ -983,15 +983,15 @@ module.exports = function (envConfig) {
             let promise;
             if (search_type === "gt") {
                 if (date_type == "created") {
-                    promise = ct.getCTCertByGTMarinusUpdated(timestamp, count);
+                    promise = cert_transparency.getCTCertByGTMarinusUpdated(timestamp, count);
                 } else {
-                    promise = ct.getCTCertByGTMarinusCreate(timestamp, count);
+                    promise = cert_transparency.getCTCertByGTMarinusCreate(timestamp, count);
                 }
             } else if (search_type === "lt") {
                 if (date_type == "created") {
-                    promise = ct.getCTCertByLTMarinusUpdated(timestamp, count);
+                    promise = cert_transparency.getCTCertByLTMarinusUpdated(timestamp, count);
                 } else {
-                    promise = ct.getCTCertByLTMarinusCreate(timestamp, count);
+                    promise = cert_transparency.getCTCertByLTMarinusCreate(timestamp, count);
                 }
             } else {
                 if (!(req.query.hasOwnProperty('end_date'))) {
@@ -1011,9 +1011,9 @@ module.exports = function (envConfig) {
                 let end_timestamp = parseInt(req.query.end_date);
 
                 if (date_type == "created") {
-                    promise = ct.getCTCertByMarinusCreateRange(timestamp, end_timestamp, count);
+                    promise = cert_transparency.getCTCertByMarinusCreateRange(timestamp, end_timestamp, count);
                 } else {
-                    promise = ct.getCTCertByMarinusUpdateRange(timestamp, end_timestamp, count);
+                    promise = cert_transparency.getCTCertByMarinusUpdateRange(timestamp, end_timestamp, count);
                 }
             }
 
@@ -1066,7 +1066,7 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/issuers')
         .get(function (req, res) {
-            let promise = ct.getDistinctIssuers(true);
+            let promise = cert_transparency.getDistinctIssuers(true);
             promise.then(function (data) {
                 if (data === null) {
                     res.status(500).json({ 'message': 'Error with query' });
@@ -1162,7 +1162,7 @@ module.exports = function (envConfig) {
             if (req.query.hasOwnProperty('count') && req.query.count === '1') {
                 count = true;
             }
-            let promise = ct.getCertTransIssuers(req.params.issuer, count, true);
+            let promise = cert_transparency.getCertTransIssuers(req.params.issuer, count, true);
             promise.then(function (data) {
                 if (data == null) {
                     res.status(404).json({ 'message': 'Issuer not found' });
@@ -1218,7 +1218,7 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/id/:id')
         .get(function (req, res) {
-            let promise = ct.getCertTransById(req.params.id);
+            let promise = cert_transparency.getCertTransById(req.params.id);
 
             promise.then(function (data) {
                 if (data == null) {
@@ -1280,11 +1280,11 @@ module.exports = function (envConfig) {
         .get(function (req, res) {
             let promise;
             if (req.params.id.length === 24) {
-                promise = ct.getCertTransById(req.params.id);
+                promise = cert_transparency.getCertTransById(req.params.id);
             } else if (req.params.id.length === 40) {
-                promise = ct.getCTCertByFingerprintSHA1(req.params.id);
+                promise = cert_transparency.getCTCertByFingerprintSHA1(req.params.id);
             } else if (req.params.id.length === 64) {
-                promise = ct.getCTCertByFingerprintSHA256(req.params.id);
+                promise = cert_transparency.getCTCertByFingerprintSHA256(req.params.id);
             } else {
                 res.status(400);
                 res.res.json({ 'message': 'Unrecognized ID' });
@@ -1397,9 +1397,9 @@ module.exports = function (envConfig) {
             }
             let promise;
             if (req.query.hasOwnProperty('exclude_expired') && req.query.exclude_expired === "1") {
-                promise = ct.getCertTransCorpPromise(envConfig.internalDomain, true, count);
+                promise = cert_transparency.getCertTransCorpPromise(envConfig.internalDomain, true, count);
             } else {
-                promise = ct.getCertTransCorpPromise(envConfig.internalDomain, false, count);
+                promise = cert_transparency.getCertTransCorpPromise(envConfig.internalDomain, false, count);
             }
 
             promise.then(function (data) {
@@ -1510,7 +1510,7 @@ module.exports = function (envConfig) {
                 count = true;
             }
 
-            let promise = ct.getUnexpiredSigAlg(alg, count);
+            let promise = cert_transparency.getUnexpiredSigAlg(alg, count);
             promise.then(function (data) {
                 if (!data) {
                     res.status(500).json({ 'message': 'Error during query' });
@@ -1563,7 +1563,7 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/corp_count')
         .get(function (req, res) {
-            let promise = ct.getCorpCount(envConfig.internalDomain);
+            let promise = cert_transparency.getCorpCount(envConfig.internalDomain);
             promise.then(function (data) {
                 if (!data) {
                     res.status(500).json({ 'message': 'Error during query' });
@@ -1605,7 +1605,7 @@ module.exports = function (envConfig) {
      */
     router.route('/ct/total_count')
         .get(function (req, res) {
-            let promise = ct.getCertCount();
+            let promise = cert_transparency.getCertCount();
             promise.then(function (data) {
                 if (!data) {
                     res.status(500).json({ 'message': 'Error during query' });

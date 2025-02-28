@@ -12,12 +12,12 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const group = require('../config/models/group');
-const user = require('../config/models/user');
+import { user } from '../config/models/user.js';
+import { group } from '../config/models/group.js';
 
-module.exports = function (envConfig, passport) {
+export default function authRouter(envConfig, passport) {
     router.route('/logout')
         .get(function (req, res) {
             if (req.session) {

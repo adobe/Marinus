@@ -12,11 +12,12 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const dns = require('dns');
-const htmlEscape = require('secure-filters').html;
+import dns from 'dns';
 
+import secureFilters from 'secure-filters';
+const escapeHTML = secureFilters.html;
 
 /**
  * Confirm that all parameters are a string and not an array.
@@ -37,7 +38,7 @@ function is_valid_strings(params) {
   return true;
 }
 
-module.exports = function (envConfig) {
+export default function utilitiesRouter(envConfig) {
   router.route('/utilities/whois')
     /**
      * Do a local Whois loookup.
@@ -108,10 +109,10 @@ module.exports = function (envConfig) {
       if (req.query.hasOwnProperty('dnsType') && req.query.dnsType.length > 0) {
         dns.resolve(domain, recordType, function (err, hostnames) {
           if (err && err.code === dns.NOTFOUND) {
-            res.status(404).json({ 'Error': htmlEscape(err) });
+            res.status(404).json({ 'Error': escapeHTML(err) });
             return;
           } else if (err) {
-            res.status(500).json({ 'Error': htmlEscape(err) });
+            res.status(500).json({ 'Error': escapeHTML(err) });
             return;
           }
           res.status(200).json({ 'results': hostnames });
@@ -124,23 +125,23 @@ module.exports = function (envConfig) {
           try {
             dns.reverse(domain, function (err, hostnames) {
               if (err && err.code === dns.NOTFOUND) {
-                res.status(404).json({ 'Error': htmlEscape(err) });
+                res.status(404).json({ 'Error': escapeHTML(err) });
                 return;
               } else if (err) {
-                res.status(500).json({ 'Error': htmlEscape(err) });
+                res.status(500).json({ 'Error': escapeHTML(err) });
                 return;
               }
               res.status(200).json({ 'domains': hostnames });
               return;
             }.bind(res));
           } catch (err) {
-            res.status(500).json({ 'Error': htmlEscape(err.message) });
+            res.status(500).json({ 'Error': escapeHTML(err.message) });
             return;
           }
         } else {
           dns.lookup(domain, { all: true }, function (err, addresses) {
             if (err) {
-              res.status(500).json({ 'Error': htmlEscape(err) });
+              res.status(500).json({ 'Error': escapeHTML(err) });
               return;
             }
             res.status(200).json({ 'ips': addresses });

@@ -12,11 +12,14 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const censys = require('../config/models/censys.js');
-const htmlEscape = require('secure-filters').html;
-const CIDRMatcher = require('cidr-matcher');
+
+import secureFilters from 'secure-filters';
+const escapeHTML = secureFilters.html;
+
+import { censys } from '../config/models/censys.js';
+import CIDRMatcher from 'cidr-matcher';
 
 /**
  * Converts a CIDR range into a string for text searches.
@@ -200,7 +203,7 @@ function createRange(range) {
  *         description: The IP for the record
  *         example: "12.34.56.78"
  */
-module.exports = function (envConfig) {
+export default function censysRouter(envConfig) {
     /**
      * @swagger
      *
@@ -700,7 +703,7 @@ module.exports = function (envConfig) {
             if (req.query.hasOwnProperty('range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
-                    res.status(400).json({ 'message': htmlEscape(searchRange) });
+                    res.status(400).json({ 'message': escapeHTML(searchRange) });
                     return;
                 }
                 let count = false;

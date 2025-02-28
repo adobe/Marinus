@@ -12,9 +12,9 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const whoisDB = require('../config/models/whois_db');
+import { whois_db as whoisDB } from '../config/models/whois_db.js';
 
 /**
  * Confirm that all parameters are a string and not an array.
@@ -129,7 +129,7 @@ function is_valid_strings(params) {
  *
  */
 
-module.exports = function (envConfig) {
+export default function whoisDBRouter(envConfig) {
     /**
      * @swagger
      *

@@ -12,13 +12,14 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+
+import express from 'express';
 const router = express.Router();
-const zones = require('../config/models/zone');
-const ipZones = require('../config/models/ip_zone');
-const ipv6Zones = require('../config/models/ipv6_zone');
-const CIDRMatcher = require('cidr-matcher');
-const rangeCheck = require('range_check');
+import { zone as zones } from '../config/models/zone.js';
+import { ip_zone as ipZones } from '../config/models/ip_zone.js';
+import { ipv6_zone as ipv6Zones } from '../config/models/ipv6_zone.js';
+import CIDRMatcher from 'cidr-matcher';
+import { inRange } from 'range_check';
 
 /**
  * Confirm that all parameters are a string and not an array.
@@ -182,7 +183,7 @@ function is_valid_strings(params) {
  *
  */
 
-module.exports = function (envConfig) {
+export default function zonesRouter(envConfig) {
     /**
      * @swagger
      *
@@ -822,7 +823,7 @@ module.exports = function (envConfig) {
                     return;
                 }
                 for (let i = 0; i < ipzones.length; i++) {
-                    if (rangeCheck.inRange(req.query.ip, ipzones[i]['zone'])) {
+                    if (inRange(req.query.ip, ipzones[i]['zone'])) {
                         res.status(200).json({
                             'result': true,
                             'zone': ipzones[i]['zone'],

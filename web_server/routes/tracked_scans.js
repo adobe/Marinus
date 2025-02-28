@@ -12,12 +12,15 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
-var zgrab443 = require('../config/models/zgrab_443_data');
-var zgrab80 = require('../config/models/zgrab_80_data');
-var zgrabPort = require('../config/models/zgrab_port');
+import { zgrab_443_data } from '../config/models/zgrab_443_data.js';
+import { zgrab_80_data } from '../config/models/zgrab_80_data.js';
+import { zgrab_port } from '../config/models/zgrab_port.js';
+import { zgrab2_443_data } from '../config/models/zgrab2_443_data.js';
+import { zgrab2_80_data } from '../config/models/zgrab2_80_data.js';
+import { zgrab2_port } from '../config/models/zgrab2_port.js';
 
 function reformatResponse(results) {
     /**
@@ -230,15 +233,22 @@ function is_valid_strings(params) {
  *                           
  */
 
-module.exports = function (envConfig) {
+export default function trackedScansRouter(envConfig) {
+
+    var zgrab443 = null;
+    var zgrab80 = null;
+    var zgrabPort = null;
 
     // Zgrab 2.0 support
     if (envConfig.hasOwnProperty("zgrabVersion") && envConfig.zgrabVersion == 2) {
-        zgrab443 = require('../config/models/zgrab2_443_data');
-        zgrab80 = require('../config/models/zgrab2_80_data');
-        zgrabPort = require('../config/models/zgrab2_port');
+        zgrab443 = zgrab2_443_data;
+        zgrab80 = zgrab2_80_data;
+        zgrabPort = zgrab2_port;
+    } else {
+        zgrab443 = zgrab_443_data;
+        zgrab80 = zgrab_80_data;
+        zgrabPort = zgrab_port;
     }
-
 
     /**
       * @swagger

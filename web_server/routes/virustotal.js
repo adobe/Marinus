@@ -12,11 +12,12 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const htmlEscape = require('secure-filters').html;
+// import secureFilters from 'secure-filters';
+// const escapeHTML = secureFilters.html;
 
-const vt = require('../config/models/virustotal');
+import { virustotal as vt } from '../config/models/virustotal.js';
 
 /**
  * Confirm that all parameters are a string and not an array.
@@ -262,7 +263,7 @@ function is_valid_strings(params) {
  *       - $ref: '#/definitions/VT-DomainRecord'
  *
  */
-module.exports = function (envConfig) {
+export default function virustotalRouter(envConfig) {
     /**
      * @swagger
      *

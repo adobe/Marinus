@@ -12,17 +12,17 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const CIDRMatcher = require('cidr-matcher');
-const rangeCheck = require('range_check');
-const escapeStringRegexp = require('escape-string-regexp');
+import CIDRMatcher from 'cidr-matcher';
+import { inRange } from 'range_check';
+// import escapeStringRegexp from 'escape-string-regexp';
 
-const awsIPs = require('../config/models/aws_ips');
-const akamaiIPs = require('../config/models/akamai_ips');
-const azureiIPs = require('../config/models/azure_ips');
-const gcpIPs = require('../config/models/gcp_ips');
-const custom_errors = require('../config/error');
+import { aws_ips as awsIPs } from '../config/models/aws_ips.js';
+import { akamai_ips as akamaiIPs } from '../config/models/akamai_ips.js';
+import { azure_ips as azureiIPs } from '../config/models/azure_ips.js';
+import { gcp_ips as gcpIPs } from '../config/models/gcp_ips.js';
+// import { error as custom_errors } from '../config/error.js';
 
 
 /**
@@ -45,7 +45,7 @@ function is_valid_strings(params) {
 }
 
 
-module.exports = function (envConfig) {
+export default function cloudServicesRouter(envConfig) {
     /**
      * @swagger
      *
@@ -228,7 +228,7 @@ module.exports = function (envConfig) {
                      * to a single rangecheck call.
                      * However, then you would not know which record was matched.
                      */
-                    if (rangeCheck.inRange(req.query.ip, results[0]['ipv6_prefixes'][i]['ipv6_prefix'])) {
+                    if (inRange(req.query.ip, results[0]['ipv6_prefixes'][i]['ipv6_prefix'])) {
                         res.status(200).json({
                             'result': true,
                             'record': results[0]['ipv6_prefixes'][i],
@@ -407,7 +407,7 @@ module.exports = function (envConfig) {
                     return;
                 }
                 for (let i = 0; i < results[0]['ipv6_ranges'].length; i++) {
-                    if (rangeCheck.inRange(req.query.ip, results[0]['ipv6_ranges'][i]['cidr'])) {
+                    if (inRange(req.query.ip, results[0]['ipv6_ranges'][i]['cidr'])) {
                         res.status(200).json({ 'result': true });
                         return;
                     }
@@ -698,7 +698,7 @@ module.exports = function (envConfig) {
                      * to a single rangecheck call.
                      * However, then you would not know which record was matched.
                      */
-                    if (rangeCheck.inRange(req.query.ip, results[0]['ipv6_prefixes'][i]['ipv6_prefix'])) {
+                    if (inRange(req.query.ip, results[0]['ipv6_prefixes'][i]['ipv6_prefix'])) {
                         res.status(200).json({
                             'result': true,
                             'record': results[0]['ipv6_prefixes'][i],

@@ -12,16 +12,16 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
-const graphRecs = require('../config/models/graphs');
-const graphDataRecs = require('../config/models/graphs_data');
-const graphLinksRecs = require('../config/models/graphs_links');
-const graphDocsRecs = require('../config/models/graphs_docs');
-const tpdGraphRecs = require('../config/models/tpd_graphs');
-const cidrGraphRecs = require('../config/models/cidr_graphs');
-const certGraphRecs = require('../config/models/cert_graphs');
+import { graphs as graphRecs } from '../config/models/graphs.js';
+import { graphs_data as graphDataRecs } from '../config/models/graphs_data.js';
+import { graphs_links as graphLinksRecs } from '../config/models/graphs_links.js';
+import { graphs_docs as graphDocsRecs } from '../config/models/graphs_docs.js';
+import { tpd_graphs as tpdGraphRecs } from '../config/models/tpd_graphs.js';
+import { cidr_graphs as cidrGraphRecs } from '../config/models/cidr_graphs.js';
+import { cert_graphs as certGraphRecs } from '../config/models/cert_graphs.js';
 
 /**
  * Confirm that all parameters are a string and not an array.
@@ -320,7 +320,7 @@ function is_valid_strings(params) {
  *
  */
 
-module.exports = function (envConfig) {
+export default function graphsRouter(envConfig) {
 
     /**
      * @swagger

@@ -12,11 +12,10 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
-const ipRecs = require('../config/models/ip');
-
+import { ip as ipRecs } from '../config/models/ip.js';
 
 /**
  * @swagger
@@ -74,7 +73,7 @@ const ipRecs = require('../config/models/ip');
  *             example: ["The raw splunk records for the associated host"]
  */
 
-module.exports = function (envConfig) {
+export default function ipRouter(envConfig) {
     /**
      * @swagger
      *

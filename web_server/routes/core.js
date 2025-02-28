@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-const express = require('express');
-const router = express.Router();
+import { Router } from 'express';
+const router = Router();
 
 /**
  * Sets security headers on the response object
@@ -56,7 +56,7 @@ function getSessionParams(req) {
     return (params);
 }
 
-module.exports = function (envConfig) {
+export default function coreRouter(envConfig) {
     router.get('/', function (req, res) {
         setHeaders(res);
         let params = getSessionParams(req);
