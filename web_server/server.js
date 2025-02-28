@@ -1,6 +1,6 @@
 
 /**
- * Copyright 2022 Adobe. All rights reserved.
+ * Copyright 2025 Adobe. All rights reserved.
  * This file is licensed to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License. You may obtain a copy
  * of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -11,49 +11,61 @@
  * governing permissions and limitations under the License.
  */
 
-var express = require('express');
+import express from 'express';
 var app = express();
-var debug = require('debug')('ip_app:server');
 
-const fs = require('fs');
+import debug from 'debug'
+const logger = debug('ip_app:server');
+
+// import { createSecureServer } from 'node:http2';
+import { readFileSync } from 'node:fs';
 
 const options = {
-    key: fs.readFileSync('config/keys/server.key'),
-    cert: fs.readFileSync('config/keys/server.crt')
+    key: readFileSync('config/keys/server.key'),
+    cert: readFileSync('config/keys/server.crt')
 };
 
+let https;
+try {
+    https = await import('node:https');
+} catch (err) {
+    console.error('https support is disabled!');
+}
 
-//var http = require('http');
-const https = require('https');
+import * as http from 'http';
 
 //Swagger Controller
-const swaggerController = require('./config/swagger_controller');
-
-// Would like to support HTTP2 but can't due to: https://github.com/molnarg/node-http2/issues/100
-// const http2 = require('http2');
+import swaggerController from './config/swagger_controller.js';
 
 /**
  *  This determines whether Marinus is in production or development mode
  */
 var env = process.env.NODE_ENV || 'production';
-var envConfig = require('./config/env')[env];
 
+/**
+ *  Initialize configuration parameters
+ */
+import envConfigurations from './config/env.js';
+var envConfig = envConfigurations[env];
 
 /**
  * New Relic support.
  */
 if (envConfig.state === 'production' && envConfig.hasOwnProperty("new_relic_enabled") && envConfig.new_relic_enabled) {
-    require('newrelic');
+    await import('newrelic');
 }
 
-// Express configuration
-var passport = require('./config/config')(app, envConfig);
+// Express configuration returns the passport object
+import config from './config/config.js';
+var passport = config(app, envConfig);
 
 // Database
-require('./config/database')(envConfig);
+import database from './config/database.js';
+database(envConfig);
 
 // Routes
-require('./config/routes')(app, envConfig, passport);
+import routes from './config/routes.js';
+routes(app, envConfig, passport);
 
 // Swagger
 const controller = new swaggerController(envConfig);
@@ -69,16 +81,21 @@ app.disable("x-powered-by");
  * Listens on the provided port, on all network interfaces.
  */
 
-//var server = http.createServer(app);
-//var server = http2.createServer(options, app).listen(envConfig.port);
-var server = https.createServer(options, app).listen(envConfig.port);
+var server;
+if (envConfig === 'production') {
+    server = https.createServer(options, app).listen(envConfig.port);
+} else {
+    server = http.createServer(app).listen(envConfig.port);
+}
+
+// HTTP/2 is not yet supported
+// server = createSecureServer(tls_options, app).listen(envConfig.port);
 
 /**
  * Register event listeners to confirm a successful setup and catch errors.
  */
 server.on('error', onError);
 server.on('listening', onListening);
-
 
 /**
  * Event listener for HTTP server "error" event.
