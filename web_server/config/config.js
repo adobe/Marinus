@@ -81,6 +81,11 @@ export default function (app, envConfig) {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: false }));
 
+  let secure = true;
+  if (envConfig.hasOwnProperty('use_http') && envConfig.use_http === true) {
+    secure = false;
+  }
+
   // Set up sessions
   app.use(cookieParser());
 
@@ -102,7 +107,7 @@ export default function (app, envConfig) {
     app.use(expressSession({
       secret: envConfig.cookieSecret,
       cookie: {
-        secure: true, sameSite: "None",
+        secure: secure, sameSite: "lax",
         maxAge: 1000 * 60 * 60 * 24 * 1
       },
       store: store,
@@ -127,7 +132,7 @@ export default function (app, envConfig) {
     app.use(expressSession({
       secret: envConfig.cookieSecret,
       cookie: {
-        secure: true, sameSite: "None",
+        secure: secure, sameSite: "lax",
         maxAge: 1000 * 60 * 60 * 24 * 1
       },
       store: store,
@@ -144,7 +149,7 @@ export default function (app, envConfig) {
     app.use(expressSession({
       secret: envConfig.cookieSecret,
       cookie: {
-        secure: true, sameSite: "None",
+        secure: secure, sameSite: "lax",
         maxAge: 1000 * 60 * 60 * 24 * 1
       },
       resave: false,

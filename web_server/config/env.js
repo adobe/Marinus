@@ -65,6 +65,7 @@ const envConfigurations = {
     auth_callback_domain: process.env.DEVELOPMENT_HOST_NAME || '127.0.0.1:' + port,
     api_key_length: 32,
     zgrabVersion: 2,
+    use_http: true,
   },
   stage: {
     version: '1.0.4',

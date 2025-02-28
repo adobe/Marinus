@@ -83,10 +83,10 @@ app.disable("x-powered-by");
  */
 
 var server;
-if (envConfig.state === 'production' || envConfig.state === 'stage') {
-    server = https.createServer(options, app).listen(envConfig.port);
-} else {
+if (envConfig.hasOwnProperty('use_http') && envConfig.use_http === true) {
     server = http.createServer(app).listen(envConfig.port);
+} else {
+    server = https.createServer(options, app).listen(envConfig.port);
 }
 
 // HTTP/2 is not yet supported
