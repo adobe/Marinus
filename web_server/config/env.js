@@ -55,7 +55,7 @@ const envConfigurations = {
     port: port,
     ip: '127.0.0.1',
     cookieSecret: 'DEV_COOKIE_SECRET',
-    localAdminPassword: 'LOCAL_ADMIN_PASSWORD',
+    localAdminPassword: process.env.LOCAL_ADMIN_PASSWORD,
     pretty: true,
     sso_url: 'SSO_URL',
     swagger: {
@@ -64,6 +64,30 @@ const envConfigurations = {
     internalDomain: 'INTERNAL_DOMAIN_NAME',
     auth_callback_domain: process.env.DEVELOPMENT_HOST_NAME || '127.0.0.1:' + port,
     api_key_length: 32,
+    zgrabVersion: 2,
+  },
+  stage: {
+    version: '1.0.4',
+    build: '1331',
+    state: 'stage',
+    rootPath: rootPath,
+    database: 'mongodb://STAGE_DATABASE_USERNAME:STAGE_DATABASE_PASSWORD@localhost:27017/DOMAINS',
+    port: port,
+    ip: '127.0.0.1',
+    cookieSecret: 'STAGE_COOKIE_SECRET',
+    pretty: true,
+    sso_url: 'SSO_URL',
+    swagger: {
+      'hostname': process.env.STAGE_HOST_NAME || '127.0.0.1'
+    },
+    internalDomain: 'INTERNAL_DOMAIN_NAME',
+    auth_callback_domain: process.env.STAGE_HOST_NAME || '127.0.0.1',
+    api_key_length: 32,
+    splunk_url: 'SPLUNK_STAGE_URL',
+    splunk_token: 'SPLUNK_STAGE_TOKEN',
+    splunk_index: 'SPLUNK_INDEX',
+    new_relic_enabled: true,
+    mongodbSSLCA: '',
     zgrabVersion: 2,
   },
   production: {
@@ -91,3 +115,5 @@ const envConfigurations = {
     zgrabVersion: 2,
   }
 }
+
+export default envConfigurations;

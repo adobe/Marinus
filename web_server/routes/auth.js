@@ -59,9 +59,9 @@ export default function authRouter(envConfig, passport) {
             /*
              * This section only applies when run in development mode.
              */
-            if (envConfig.state === 'production') {
+            if (envConfig.state === 'production' || envConfig.state === 'stage') {
                 res.status(500).json({
-                    'message': 'Not supported in production.',
+                    'message': 'Local authentication is only supported in development mode.',
                 });
                 return;
             }

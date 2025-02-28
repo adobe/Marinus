@@ -51,7 +51,8 @@ var envConfig = envConfigurations[env];
 /**
  * New Relic support.
  */
-if (envConfig.state === 'production' && envConfig.hasOwnProperty("new_relic_enabled") && envConfig.new_relic_enabled) {
+if ((envConfig.state === 'production' || envConfig.state === 'stage')
+    && envConfig.hasOwnProperty("new_relic_enabled") && envConfig.new_relic_enabled) {
     await import('newrelic');
 }
 
@@ -82,7 +83,7 @@ app.disable("x-powered-by");
  */
 
 var server;
-if (envConfig === 'production') {
+if (envConfig.state === 'production' || envConfig.state === 'stage') {
     server = https.createServer(options, app).listen(envConfig.port);
 } else {
     server = http.createServer(app).listen(envConfig.port);

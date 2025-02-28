@@ -24,13 +24,12 @@ import * as path from 'path'
 import mlogger from 'morgan';
 import * as splunk_logger from 'splunk-logging';
 const sLogger = splunk_logger.Logger;
-
-import passport from 'passport';
-import passport_conf from './passport_conf.js';
-
 // var favicon = require('serve-favicon');
 
 import * as assert from 'assert';
+
+import passport from 'passport';
+import passport_conf from './passport_conf.js';
 
 function setUpLogger(app, envConfig) {
 
@@ -44,6 +43,12 @@ function setUpLogger(app, envConfig) {
 
     splunk_logger.requestOptions.strictSSL = true;
 
+    let sourcetype = 'marinus-ui';
+
+    if (envConfig.state === 'stage') {
+      sourcetype = 'marinus-ui-stage';
+    }
+
     app.set('trust proxy', true);
     app.use(mlogger("combined", {
       "format": "combined",
@@ -53,7 +58,7 @@ function setUpLogger(app, envConfig) {
             message,
             metadata: {
               source: envConfig.splunk_index,
-              sourcetype: 'marinus-ui'
+              sourcetype: sourcetype
             }
           };
           splunk_logger.send(payload);
@@ -87,6 +92,31 @@ export default function (app, envConfig) {
       {
         uri: envConfig.database,
         collection: 'sessions',
+      });
+
+    store.on('error', function (error) {
+      assert.ifError(error);
+      assert.ok(false);
+    });
+
+    app.use(expressSession({
+      secret: envConfig.cookieSecret,
+      cookie: {
+        secure: true, sameSite: "None",
+        maxAge: 1000 * 60 * 60 * 24 * 1
+      },
+      store: store,
+      resave: false,
+      saveUninitialized: false
+    }));
+  } else if (envConfig.state === 'stage') {
+
+    setUpLogger(app, envConfig);
+
+    const store = new MongoDBStore(
+      {
+        uri: envConfig.database,
+        collection: 'sessions-stage',
       });
 
     store.on('error', function (error) {
