@@ -140,7 +140,10 @@ export default function utilitiesRouter(envConfig) {
           }
         } else {
           dns.lookup(domain, { all: true }, function (err, addresses) {
-            if (err) {
+            if (err && err.code === dns.NOTFOUND) {
+              res.status(404).json({ 'Error': escapeHTML(err) });
+              return;
+            } else if (err) {
               res.status(500).json({ 'Error': escapeHTML(err) });
               return;
             }
