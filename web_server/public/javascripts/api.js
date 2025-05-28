@@ -439,7 +439,13 @@ function owner_detail_renderer(owner_details, type, div_id) {
  */
 function host_owner_detail_renderer(owner_details, div_id) {
     var displayHTML = create_h3("Infoblox Owner Information");
-    displayHTML += "Owner(s): " + owner_details[0]['owners'];
+    displayHTML += "Owner(s): ";
+    for (let i = 0; i < owner_details.length; i++) {
+        displayHTML += owner_details[i]['owners'];
+        if (i < owner_details.length - 1) {
+            displayHTML += ", ";
+        }
+    }
     document.getElementById(div_id).innerHTML += displayHTML + "<br/><br/>";
 }
 
