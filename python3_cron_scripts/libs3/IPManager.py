@@ -165,12 +165,18 @@ class IPManager(object):
         """
         Get the list of GCP IPv4 CIDRs.
         """
-        self.GCP_IPs = []
+        if self.GCP_IPs is None:
+            self.GCP_IPs = []
+
         gcp_ips_collection = self._mongo_connector.get_gcp_ips_connection()
 
         results = self._mongo_connector.perform_find_one(gcp_ips_collection, {})
 
-        if results is not None:
+        if (
+            results is not None
+            and "prefixes" in results
+            and len(results["prefixes"]) > 0
+        ):
             for result in results["prefixes"]:
                 self.GCP_IPs.append(IPNetwork(result["ip_prefix"]))
 
@@ -185,7 +191,11 @@ class IPManager(object):
 
         results = self._mongo_connector.perform_find_one(gcp_ips_collection, {})
 
-        if results is not None:
+        if (
+            results is not None
+            and "ipv6_prefixes" in results
+            and len(results["ipv6_prefixes"]) > 0
+        ):
             for result in results["ipv6_prefixes"]:
                 self.GCP_IPs.append(IPNetwork(result["ipv6_prefix"]))
 
