@@ -234,7 +234,8 @@ class IPManager(object):
             for network in cidrs:
                 if local_ip in network:
                     return True
-        except:
+        except Exception as e:
+            self._logger.debug(f"Error checking CIDR: {e}")
             return False
 
         return False
