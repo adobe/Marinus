@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Adobe. All rights reserved.
+# Copyright 2025 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -11,21 +11,17 @@
 # governing permissions and limitations under the License.
 
 """
-This script parses an Azure IP list such as the XML File that can be found at:
-https://www.microsoft.com/en-us/download/details.aspx?id=41653
+This script parses an Azure IP list provided in the JSON file that can be found at:
+https://www.microsoft.com/en-us/download/details.aspx?id=56519
 
 Unfortunately, Microsoft doesn't provide an API to retrieve the list.
 Therefore, this script parses the web page looking for the link.
 This technique is bound to break over time.
 However, it is what is possible until a better solution is provided.
-
-The XML etree module in Python 3.x is vulnerable to DoS attacks.
-It was preferable over the alternatives which were vulnerable to XXE attacks.
-https://docs.python.org/3/library/xml.html#xml-vulnerabilities
 """
 
+import json
 import logging
-import xml.etree.ElementTree as ET
 from datetime import datetime
 from html.parser import HTMLParser
 
@@ -35,7 +31,7 @@ from libs3.LoggingUtil import LoggingUtil
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
-XML_LOCATION = "https://www.microsoft.com/en-us/download/confirmation.aspx?id=41653"
+JSON_LOCATION = "https://www.microsoft.com/en-us/download/details.aspx?id=56519"
 
 
 class MyHTMLParser(HTMLParser):
@@ -50,7 +46,10 @@ class MyHTMLParser(HTMLParser):
         found = False
         if tag == "a":
             for attr in attrs:
-                if attr[0] == "class" and attr[1] == "mscom-link failoverLink":
+                if (
+                    attr[0] == "data-m"
+                    and attr[1].find("Azure IP Ranges and Service Tags") != -1
+                ):
                     found = True
 
             if found:
@@ -105,16 +104,20 @@ def main(logger=None):
         "Accept-Encoding": "gzip, deflate, br",
     }
 
-    # Find the XML file location
+    # Find the JSON file location
     try:
-        req = requests_retry_session().get(XML_LOCATION, timeout=120, headers=headers)
+        req = requests_retry_session().get(JSON_LOCATION, timeout=120, headers=headers)
     except Exception as ex:
-        logger.error("Zure XML request attempts failed!")
+        logger.error(
+            "FATAL: Azure HTTP request for HTML page failed multiple attempts!"
+        )
         logger.error(str(ex))
-        return None
+        exit(1)
 
     if req.status_code != 200:
-        logger.error("FATAL: Bad XML Request")
+        logger.error(
+            "FATAL: Unexpected response for Azure HTML page: " + str(req.status_code)
+        )
         jobs_manager.record_job_error()
         exit(1)
 
@@ -130,25 +133,31 @@ def main(logger=None):
     try:
         req = requests_retry_session().get(parser.URL, timeout=120, headers=headers)
     except Exception as ex:
-        logger.error("Zure XML request attempts failed!")
+        logger.error("Azure request for JSON data failed multiple attempts!")
         logger.error(str(ex))
         return None
+
     if req.status_code != 200:
-        logger.error("FATAL: Bad Parser URL Request")
+        logger.error(
+            "FATAL: Unexpected response for Azure JSON data: " + str(req.status_code)
+        )
         jobs_manager.record_job_error()
         exit(1)
 
-    root = ET.fromstring(req.text)
+    root = json.loads(req.text)
 
     insert_json = {}
     insert_json["created"] = datetime.now()
     insert_json["prefixes"] = []
 
-    for region in root.findall("Region"):
-        region_name = region.get("Name")
-        for iprange in region.findall("IpRange"):
-            cidr = iprange.get("Subnet")
-            insert_json["prefixes"].append({"region": region_name, "ip_prefix": cidr})
+    for value in root["values"]:
+        # Just import the regional data for now
+        if value["name"].find("AzureCloud.") == 0:
+            region_name = value["properties"]["region"]
+            for iprange in value["properties"]["addressPrefixes"]:
+                insert_json["prefixes"].append(
+                    {"region": region_name, "ip_prefix": iprange}
+                )
 
     azure_ips = mongo_connector.get_azure_ips_connection()
     azure_ips.delete_many({})
