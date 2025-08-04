@@ -7,7 +7,7 @@ Those are all very good options. If one of these is easily deployable within you
 The optional zgrab scripts are the only utilities where Marinus performs scanning itself. The majority of information collected comes from data collected by third-parties such as Common Crawl, Censys, Rapid7 Open Data, VirusTotal, etc. Marinus is not intended to replace any network security scanner.
 
 ## Does Marinus have a defined coding standard?
-Marinus uses standard lint tools, such as pyLint. There is some older code within Marinus that is not 100% clean according according to these tools. The Marinus project is slowly converting the code to be compatible as updates are made.
+Marinus uses black and isort for Python code. ESLint is used for JavaScript code.
 
 ## Will Marinus support additional services such as Shodan, Google Compute, etc.?
 The Marinus project is continually adding new data sources.
