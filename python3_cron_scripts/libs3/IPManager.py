@@ -596,7 +596,14 @@ class IPManager(object):
             return
 
         if self.is_local_ip(ip):
-            self._logger.warning("WARNING: all_ips does not track local IP addresses")
+            if fqdn is not None:
+                self._logger.warning(
+                    "WARNING: all_ips does not track local IP addresses: " + str(fqdn)
+                )
+            else:
+                self._logger.warning(
+                    "WARNING: all_ips does not track local IP addresses"
+                )
             return
 
         record = {}
