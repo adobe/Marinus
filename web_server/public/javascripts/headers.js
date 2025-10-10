@@ -175,7 +175,7 @@ function updateFilter(ev) {
 
     //Rebuild select menu with new values
     let selectDiv = document.getElementById("selectDiv");
-    selectDiv.innerHTML = '<select class="custom-select" id="headerSelect" name="headerSelect" placeholder="Choose a header"></select>';
+    selectDiv.innerHTML = '<select class="custom-select" id="headerSelect" name="headerSelect" placeholder="Choose a header"><option value="" selected disabled>Choose an option</option></select>';
     for (let name in zgrab_http_headers) {
         buildReportsSelect(name, zone, header);
     }
