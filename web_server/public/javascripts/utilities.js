@@ -416,3 +416,8 @@ function page_forward(url, base_query, formName) {
     PAGE = PAGE + 1;
     refresh(url, base_query, formName);
 }
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+

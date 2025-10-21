@@ -2686,7 +2686,7 @@ export default function trackedScansRouter(envConfig) {
 
             let decade = "2k";
 
-            if (!(req.query.hasOwnProperty('decade'))) {
+            if (req.query.hasOwnProperty('decade')) {
                 decade = req.query.decade;
             }
 

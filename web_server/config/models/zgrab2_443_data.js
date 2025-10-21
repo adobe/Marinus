@@ -283,12 +283,16 @@ export const zgrab2_443_data = {
         }
         return (promise);
     },
-    getSSLByValidity2kPromise: function (recursive) {
-        let isBefore2010 = new RegExp('^200.*');
+    getSSLByValidity2kPromise: function (decade, recursive) {
+        let isBefore = new RegExp('^201.*');;
+        if (decade === "2k") {
+            isBefore = new RegExp('^200.*');
+        }
+
         let promise;
         if (recursive === true) {
             promise = z2_443_schema.zgrab2_443_model.find({
-                [zgrab2_cert_path + 'certificate.parsed.validity.end']: isBefore2010,
+                [zgrab2_cert_path + 'certificate.parsed.validity.end']: isBefore,
             }, { 'domain': 1, 'ip': 1, 'data.http': 1 }).exec();
         } else {
             promise = z2_443_schema.zgrab2_443_model.aggregate([{
@@ -300,7 +304,7 @@ export const zgrab2_443_data = {
                         { "$ifNull": ["$data.http.result.redirect_response_chain", ["$data.http.result.response"]] }
                 }
             },
-            { "$match": { 'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.validity.end': isBefore2010 } },
+            { "$match": { 'data.http.0.request.tls_log.handshake_log.server_certificates.certificate.parsed.validity.end': isBefore } },
             {
                 "$project": {
                     'domain': 1,

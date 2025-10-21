@@ -202,7 +202,7 @@ function fetch_corp_certs(exclude_expired = false) {
 
 function display_expired_certs(results, year) {
     if (results.length === 0) {
-        document.getElementById("scan_expired_certs").innerHTML = '<b>Displaying results for ' + year + '</b><br/><b>N/A</b><br/>';
+        document.getElementById("scan_expired_certs_2k20").innerHTML += '<div id="empty-' + year + '"><b>Displaying results for ' + year + '</b><br/><b>N/A</b><br/></div>';
         return;
     }
 
@@ -210,7 +210,9 @@ function display_expired_certs(results, year) {
     if (certSource === "censys") {
         end = results[0]['p443']['https']['tls']['certificate']['parsed']['validity']['end'];
     } else {
-        if (results[0]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+        if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+            end = results[0]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'];
+        } else if (results[0]['data']['http']['response'].hasOwnProperty('request') && results[0]['data']['http']['response']['request'].hasOwnProperty('tls_handshake')) {
             end = results[0]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'];
         } else {
             end = results[0]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end'];
@@ -293,7 +295,10 @@ function display_expired_certs(results, year) {
             let zgrab_self_signed = false;
             let end;
 
-            if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+            if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                zgrab_self_signed = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
+                end = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'];
+            } else if (results[i]['data']['http'].hasOwnProperty('response') && results[i]['data']['http']['response'].hasOwnProperty('request') && results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
                 zgrab_self_signed = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
                 end = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'];
             } else {
@@ -317,12 +322,14 @@ function display_expired_certs(results, year) {
     yearDiv.innerHTML = displayHTML;
 }
 
-function fetch_expired_certs() {
+async function fetch_expired_certs() {
     var today = new Date();
-    for (let i = 2010; i < today.getFullYear(); i++) {
+    for (let i = 2020; i < today.getFullYear(); i++) {
         let newDiv = document.createElement("div");
         newDiv.id = i.toString();
         document.getElementById("scan_expired_certs").appendChild(newDiv);
+        // Pause for 500ms to avoid overwhelming the server
+        await sleep(2000);
         fetch_expired_certs_by_year(i.toString());
     }
 
@@ -338,7 +345,9 @@ function fetch_expired_certs() {
 
         let newDiv = document.createElement("div");
         newDiv.id = year_month;
-        document.getElementById("scan_expired_certs").appendChild(newDiv);
+        document.getElementById("scan_expired_certs_2k20").appendChild(newDiv);
+        // Pause for 500ms to avoid overwhelming the server
+        await sleep(2000);
         fetch_expired_certs_by_year(year_month);
     }
 }
@@ -352,12 +361,12 @@ function fetch_expired_certs_by_year(year) {
     }
     var query = "?year=" + year;
 
-    make_get_request(url + query, display_expired_certs, year, "scan_expired_certs");
+    make_get_request(url + query, display_expired_certs, year, "scan_expired_certs_2k20");
 }
 
 function display_expired_certs_2k(results) {
     if (results.length === 0) {
-        document.getElementById("scan_expired_certs_2k").innerHTML = '<b>N/A</b><br/>';
+        document.getElementById("scan_expired_certs").innerHTML = '<b>N/A</b><br/>';
         return;
     }
 
@@ -381,7 +390,9 @@ function display_expired_certs_2k(results) {
             }
 
             try {
-                if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                    cns = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
                     cns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['subject']['common_name'];
                 } else {
                     cns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'];
@@ -390,7 +401,9 @@ function display_expired_certs_2k(results) {
                 cns = [];
             }
             try {
-                if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                    dns = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
                     dns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
                 } else {
                     dns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
@@ -418,7 +431,9 @@ function display_expired_certs_2k(results) {
         if (certSource === "censys") {
             displayHTML += create_table_entry(results[i]['p443']['https']['tls']['certificate']['parsed']['validity']['end']);
         } else {
-            if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+            if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                displayHTML += create_table_entry(results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end']);
+            } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
                 displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end']);
             } else {
                 displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end']);
@@ -427,7 +442,9 @@ function display_expired_certs_2k(results) {
 
         let zgrab_self_signed = false;
         if (certSource == "zgrab") {
-            if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+            if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                zgrab_self_signed = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
+            } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
                 zgrab_self_signed = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
             } else {
                 zgrab_self_signed = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
@@ -446,7 +463,7 @@ function display_expired_certs_2k(results) {
 
     displayHTML += end_table();
 
-    document.getElementById("scan_expired_certs_2k").innerHTML = displayHTML;
+    document.getElementById("scan_expired_certs").innerHTML = displayHTML;
 }
 
 
@@ -457,7 +474,7 @@ function fetch_expired_certs_2k() {
     } else {
         url = "/api/v1.0/zgrab/443/expired_certs_2k";
     }
-    var query = "";
+    var query = "?decade=2k10";
 
     make_get_request(url + query, display_expired_certs_2k);
 }
