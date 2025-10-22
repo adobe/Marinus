@@ -327,7 +327,7 @@ async function fetch_expired_certs() {
     for (let i = 2020; i < today.getFullYear(); i++) {
         let newDiv = document.createElement("div");
         newDiv.id = i.toString();
-        document.getElementById("scan_expired_certs").appendChild(newDiv);
+        document.getElementById("scan_expired_certs_2k20").appendChild(newDiv);
         // Pause for 500ms to avoid overwhelming the server
         await sleep(2000);
         fetch_expired_certs_by_year(i.toString());
