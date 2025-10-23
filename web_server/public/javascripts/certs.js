@@ -251,7 +251,9 @@ function display_expired_certs(results, year) {
             }
 
             try {
-                if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                if (results[i]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                    cns = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['subject']['common_name'];
+                } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
                     cns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['subject']['common_name'];
                 } else {
                     cns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'];
@@ -260,7 +262,9 @@ function display_expired_certs(results, year) {
                 cns = [];
             }
             try {
-                if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                if (results[i]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                    dns = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
+                } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
                     dns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
                 } else {
                     dns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
