@@ -50,20 +50,20 @@ export const zgrab2_port = {
     getRecordByDomainPromise: function (domain, port, count) {
         if (port === "22") {
             if (count) {
-                return z2PortSchema.zgrab2PortModel.find({ "domains": domain }).countDocuments().exec();
+                return z2PortSchema.zgrab2PortModel.find({ "domains": domain, 'data.ssh': { $exists: true } }).countDocuments().exec();
             } else {
-                return z2PortSchema.zgrab2PortModel.find({ "domains": domain }).exec();
+                return z2PortSchema.zgrab2PortModel.find({ "domains": domain, 'data.ssh': { $exists: true } }).exec();
             }
         } else if (port === "25") {
             if (count) {
                 return z2PortSchema.zgrab2PortModel.find({
-                    '$or': [{ 'domains': domain },
+                    '$or': [{ 'domains': domain, 'data.smtp': { $exists: true } },
                     { 'data.smtp.result.tls.handshake_log.server_certificates.certificate.parsed.subject.common_name': domain },
                     { 'data.smtp.result.tls.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': domain }]
                 }).countDocuments().exec();
             } else {
                 return z2PortSchema.zgrab2PortModel.find({
-                    '$or': [{ 'domains': domain },
+                    '$or': [{ 'domains': domain, 'data.smtp': { $exists: true } },
                     { 'data.smtp.result.tls.handshake_log.server_certificates.certificate.parsed.subject.common_name': domain },
                     { 'data.smtp.result.tls.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': domain }]
                 }, { 'ip': 1, 'data.smtp': 1 }).exec();
@@ -71,13 +71,13 @@ export const zgrab2_port = {
         } else if (port === "443") {
             if (count) {
                 return z2PortSchema.zgrab2PortModel.find({
-                    '$or': [{ 'domains': domain },
+                    '$or': [{ 'domains': domain, 'data.tls': { $exists: true } },
                     { 'data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name': domain },
                     { 'data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': domain }]
                 }).countDocuments().exec();
             } else {
                 return z2PortSchema.zgrab2PortModel.find({
-                    '$or': [{ 'domains': domain },
+                    '$or': [{ 'domains': domain, 'data.tls': { $exists: true } },
                     { 'data.tls.result.handshake_log.server_certificates.certificate.parsed.subject.common_name': domain },
                     { 'data.tls.result.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': domain }]
                 }, { 'ip': 1, 'data.tls': 1 }).exec();
@@ -85,13 +85,13 @@ export const zgrab2_port = {
         } else if (port === "465") {
             if (count) {
                 return z2PortSchema.zgrab2PortModel.find({
-                    '$or': [{ 'domains': domain },
+                    '$or': [{ 'domains': domain, 'data.smtps': { $exists: true } },
                     { 'data.smtps.result.tls.handshake_log.server_certificates.certificate.parsed.subject.common_name': domain },
                     { 'data.smtps.result.tls.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': domain }]
                 }).countDocuments().exec();
             } else {
                 return z2PortSchema.zgrab2PortModel.find({
-                    '$or': [{ 'domains': domain },
+                    '$or': [{ 'domains': domain, 'data.smtps': { $exists: true } },
                     { 'data.smtps.result.tls.handshake_log.server_certificates.certificate.parsed.subject.common_name': domain },
                     { 'data.smtps.result.tls.handshake_log.server_certificates.certificate.parsed.extensions.subject_alt_name.dns_names': domain }]
                 }, { 'ip': 1, 'data.smtps': 1 }).exec();

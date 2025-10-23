@@ -31,8 +31,12 @@ const zgrab2_cert_path = 'data.http.result.response.request.tls_log.handshake_lo
 // ZGrab 2.0 port 443 Module
 export const zgrab2_443_data = {
     zgrab2Model: z2_443_schema.zgrab2_443_model,
-    getRecordByDomainPromise: function (domain) {
-        return z2_443_schema.zgrab2_443_model.find({ 'domain': domain }).exec();
+    getRecordByDomainPromise: function (domain, count) {
+        if (count) {
+            return z2_443_schema.zgrab2_443_model.find({ 'domain': domain }).countDocuments().exec();
+        } else {
+            return z2_443_schema.zgrab2_443_model.find({ 'domain': domain }).exec();
+        }
     },
     getRecordByIPPromise: function (ip, count) {
         if (count) {

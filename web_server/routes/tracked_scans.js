@@ -562,7 +562,7 @@ export default function trackedScansRouter(envConfig) {
             } else if (port === "443" && req.query.hasOwnProperty("use_port_data") && req.query.use_port_data === "1") {
                 promise = zgrabPort.getRecordByDomainPromise(req.query.domain, port, count);
             } else if (port === "443") {
-                promise = zgrab443.getSSLByCommonNamePromise(req.query.domain, false);
+                promise = zgrab443.getRecordByDomainPromise(req.query.domain, count);
             } else if (port === "80") {
                 promise = zgrab80.getRecordByDomainPromise(req.query.domain, count);
             } else {
@@ -570,9 +570,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             promise.then(function (data) {
-                if (count && port === "443" && req.query.use_port_data !== "1") {
-                    res.status(200).json({ 'count': data.length });
-                } else if (count) {
+                if (count) {
                     res.status(200).json({ 'count': data });
                 } else {
                     if (!data) {
