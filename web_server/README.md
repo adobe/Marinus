@@ -1,6 +1,6 @@
 # Marinus
 
-The Marinus front end is based on Node.js, Express, and Coral UI. Marinus has been tested with Node.js version 12. It connects to a MongoDB backend via a Mongoose driver. For production deployments, Marinus can interact with third-party services such as SSO providers, Splunk, and New Relic.
+The Marinus front end is based on Node.js, Express, and Bootsrap. Marinus has been tested with Node.js version 20. It connects to a MongoDB backend via a Mongoose driver. For production deployments, Marinus can interact with third-party services such as SSO providers, Splunk, and New Relic.
 
 The code layout is as follows:
 * */config/*
