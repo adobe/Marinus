@@ -54,6 +54,9 @@ def main(logger=None):
         if lookup_result == []:
             logger.info("Removing " + result["fqdn"])
             dead_dns_collection.delete_one({"_id": ObjectId(result["_id"])})
+        elif lookup_result is not None:
+            logger.info("The domain now points to a valid resource")
+            dead_dns_collection.delete_one({"_id": ObjectId(result["_id"])})
 
     # Record status
     jobs_manager.record_job_complete()
