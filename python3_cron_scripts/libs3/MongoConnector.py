@@ -98,7 +98,7 @@ class MongoConnector(MongoConnectorBase):
         return self.m_connection.dead_dns
 
     def get_gcp_ips_connection(self):
-        """Returns a connection to the dead_dns collection in MongoDB"""
+        """Returns a connection to the gcp_ips collection in MongoDB"""
         return self.m_connection.gcp_ips
 
     def get_graphs_connection(self):
