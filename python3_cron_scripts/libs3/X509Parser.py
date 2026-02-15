@@ -142,6 +142,10 @@ class X509Parser(object):
             "id": "1219ENGn9XfCx+lf1wC/+YLJM1pl4dCzAXMXwMjFaXc=",
             "url": "ct.googleapis.com/logs/us1/argon2026h2/",
         },
+        "argon2027h1": {
+            "id": "1tWNqdAXU/NqSqDHV0kCr+vH3CzTjNn3ZMgMiRkenwI=",
+            "url": "ct.googleapis.com/logs/us1/argon2027h1/",
+        },
         "xenon2018": {
             "id": "sQzVWabWeEaBH335pRUyc5rEjXA76gMj2l04dVvArU4=",
             "url": "ct.googleapis.com/logs/xenon2018",
@@ -279,6 +283,22 @@ class X509Parser(object):
             "id": "wjF+V0UZo0XufzjespBB68fCIVoiv3/Vta12mtkOUs0=",
             "url": "wyvern.ct.digicert.com/2026h2/",
         },
+        "sphinx2027h1": {
+            "id": "RqI5Z8YNtkaHxm89+ZmUdpOmphEghFfVVefj0KHZtkY=",
+            "url": "sphinx.ct.digicert.com/2027h1/",
+        },
+        "sphinx2027h2": {
+            "id": "H7D4qS2K3aEhd2wF4qouFbrLxitlOTaVV2qqtS4R0R0=",
+            "url": "sphinx.ct.digicert.com/2027h2/",
+        },
+        "wyvern2027h1": {
+            "id": "ABpdGhwtk3W2SFV4+C9xoa5u7zl9KXyK4xV7yt7hoB4=",
+            "url": "wyvern.ct.digicert.com/2027h1/",
+        },
+        "wyvern2027h2": {
+            "id": "N6oHzCFvLm2RnHCdJNj3MbAPKxR8YhzAkaX6GoTYFt0=",
+            "url": "wyvern.ct.digicert.com/2027h2/",
+        },
         # Symantec [Retired]
         "symantec-ct": {
             "id": "3esdK3oNT6Ygi4GtgWhwfi6OnQHVXIiNPRHEzbbsvsw=",
@@ -347,6 +367,10 @@ class X509Parser(object):
             "id": "yzj3FYl8hKFEX1vB3fvJbvKaWc1HCmkFhbDLFMMUWOc=",
             "url": "ct.cloudflare.com/logs/nimbus2026",
         },
+        "nimbus2027": {
+            "id": "TGPcmOWcHauI9h6KPd6uj6tEozd7X5uUw/uhnPzBviY=",
+            "url": "ct.cloudflare.com/logs/nimbus2027",
+        },
         # Let's Encrypt
         "le-oak2021": {
             "id": "lCC8Ho7VjWyIcx+CiyIsDdHaTV5sT5Q9YdtOL1hNosI=",
@@ -383,6 +407,22 @@ class X509Parser(object):
         "le-oak2026h2": {
             "id": "rKswcGzr7IQx9BPS9JFfER5CJEOx8qaMTzwrO6ceAsM=",
             "url": "oak.ct.letsencrypt.org/2026h2/",
+        },
+        "willow2027h1": {
+            "id": "ooEAGHNOF24dR+CVQPOBulRml81jqENQcW64CU7a8Q0=",
+            "url": "mon.willow.ct.letsencrypt.org/2027h1",
+        },
+        "willow2027h2": {
+            "id": "ppWirZJtb5lujvxJAUJX2LvwRqfWJYm4jcLXh2x45S8=",
+            "url": "mon.willow.ct.letsencrypt.org/2027h2",
+        },
+        "sycamore2027h1": {
+            "id": "H0TnB5F0+95k+Qe47nR0/O86X1sK3a9Qc0EwZQK5o8s=",
+            "url": "mon.sycamore.ct.letsencrypt.org/2027h1",
+        },
+        "sycamore2027h2": {
+            "id": "XfDwXaQlHlDk5jE0ZF+0tB7xw0bV5W9d/8o55tIq2o8=",
+            "url": "mon.sycamore.ct.letsencrypt.org/2027h2",
         },
         # Misc [Retired]
         "venafi-ctlog-gen2": {
@@ -677,7 +717,7 @@ class X509Parser(object):
                         version, hash_alg, sig_alg
                     ),
                     "signature": ":".join("{:02x}".format(c) for c in signature),
-                    "extensions": extensions.decode("utf-8"),
+                    "extensions": ":".join("{:02x}".format(c) for c in extensions),
                 }
             )
 
