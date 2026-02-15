@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2019 Adobe. All rights reserved.
+# Copyright 2023 Adobe. All rights reserved.
 # This file is licensed to you under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License. You may obtain a copy
 # of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -29,6 +29,7 @@ import time
 from datetime import datetime, timedelta
 
 import whois
+from bson import ObjectId
 from libs3 import JobsManager, RemoteMongoConnector
 from libs3.LoggingUtil import LoggingUtil
 from libs3.ZoneManager import ZoneManager
@@ -155,7 +156,7 @@ def do_whois_lookup(logger, zone, whois_collection):
         logger.debug("Unable to to look up zone: " + zone)
 
     # Sleep so that we don't get blocked by whois servers for too many requests
-    time.sleep(45)
+    time.sleep(60)
 
 
 def main(logger=None):
@@ -182,7 +183,9 @@ def main(logger=None):
         # Ensure the zone contains at least one dot. This is left over from an old bug.
         if zone.find(".") > 0:
             logger.debug(zone)
-            zone_result = whois_collection.find_one({"zone": zone})
+            zone_result = mongo_connector.perform_find_one(
+                whois_collection, {"zone": zone}
+            )
 
             # If we haven't done a lookup in the past, try to collect the data.
             # A limit exists on the number of whois lookups you can perform so limit to new domains.
@@ -205,6 +208,14 @@ def main(logger=None):
         # This helps break updating old entries across different runs.
         if i > MAX_OLD_ENTRIES:
             break
+
+    # Delete old entries
+    last_year = datetime.now() - timedelta(days=365, hours=1)
+    zone_result = mongo_connector.perform_find(
+        whois_collection, {"updated": {"$lte": last_year}}, batch_size=10
+    )
+    for result in zone_result:
+        whois_collection.delete_one({"_id": ObjectId(result["_id"])})
 
     # Record status
     jobs_manager.record_job_complete()
