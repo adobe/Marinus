@@ -1268,6 +1268,16 @@ export default function trackedScansRouter(envConfig) {
      *         required: true
      *         description: The zone ("example.org", "example.com", etc.) to fetch.
      *         in: path
+     *       - name: limit
+     *         type: number
+     *         required: false
+     *         description: Limit the number of results per page.
+     *         in: query
+     *       - name: page
+     *         type: number
+     *         required: false
+     *         description: The page to request. This must be set in conjunction with the limit parameter. The default is 1.
+     *         in: query
      *     responses:
      *       200:
      *         description: Returns the relevant scans.
@@ -1306,16 +1316,6 @@ export default function trackedScansRouter(envConfig) {
      *         type: string
      *         required: true
      *         description: Set to 1 in order to retrieve the count of matching records
-     *         in: query
-     *       - name: limit
-     *         type: number
-     *         required: false
-     *         description: Limit the number of results per page.
-     *         in: query
-     *       - name: page
-     *         type: number
-     *         required: false
-     *         description: The page to request. This must be set in conjunction with the limit parameter. The default is 1.
      *         in: query
      *     responses:
      *       200:
