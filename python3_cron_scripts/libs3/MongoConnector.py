@@ -58,7 +58,7 @@ class MongoConnector(MongoConnectorBase):
         return self.m_connection.all_dns
 
     def get_all_ips_connection(self):
-        """Returns a connection to the all_dns collection in MongoDB"""
+        """Returns a connection to the all_ips collection in MongoDB"""
         return self.m_connection.all_ips
 
     def get_aws_ips_connection(self):
