@@ -723,19 +723,65 @@ class X509Parser(object):
 
         return scts
 
-    def __get_certificate_transparency(self, cert_object, openssl_cert):
+    def __get_certificate_transparency(self, cert_object, cert):
         """
-        Extract the SCTS extension records using pyOpenSSL and manual parsing.s
+        Extract the SCTS extension records using the Python Cryptography library.
         """
-        cert_object["scts"] = []
-        for ext_index in range(openssl_cert.get_extension_count()):
-            ext = openssl_cert.get_extension(ext_index)
-            if ext.get_short_name().decode("utf-8") == "ct_precert_scts":
-                cert_object["scts"] = self.__parse_sct(ext.get_data(), "precert")
-            elif ext.get_short_name().decode("utf-8") == "ct_cert_scts":
-                cert_object["scts"] = self.__parse_sct(ext.get_data(), "cert")
+        _hash_name_to_tlsext = {
+            "md5": self.TLSEXT_hash_md5,
+            "sha1": self.TLSEXT_hash_sha1,
+            "sha224": self.TLSEXT_hash_sha224,
+            "sha256": self.TLSEXT_hash_sha256,
+            "sha384": self.TLSEXT_hash_sha384,
+            "sha512": self.TLSEXT_hash_sha512,
+        }
 
-    def __get_extensions(self, cert_object, extensions, openssl_cert):
+        cert_object["scts"] = []
+
+        for oid, sct_type in [
+            (ExtensionOID.PRECERT_SIGNED_CERTIFICATE_TIMESTAMPS, "precert"),
+            (ExtensionOID.SIGNED_CERTIFICATE_TIMESTAMPS, "cert"),
+        ]:
+            try:
+                ext = cert.extensions.get_extension_for_oid(oid)
+            except ExtensionNotFound:
+                continue
+
+            scts = []
+            for sct in ext.value:
+                hash_alg = _hash_name_to_tlsext.get(
+                    (
+                        sct.signature_hash_algorithm.name
+                        if sct.signature_hash_algorithm
+                        else ""
+                    ),
+                    self.TLSEXT_hash_none,
+                )
+                sig_alg = sct.signature_algorithm.value
+                version = sct.version.value
+                scts.append(
+                    {
+                        "log_name": self.__find_ct_log_url_by_id(sct.log_id),
+                        "log_id": base64.b64encode(sct.log_id).decode("utf-8"),
+                        "sct_type": sct_type,
+                        "version": version,
+                        "timestamp": sct.timestamp,
+                        "hash_alg": hash_alg,
+                        "sig_alg": sig_alg,
+                        "sig_alg_name": self.__SCT_get_signature_nid(
+                            version, hash_alg, sig_alg
+                        ),
+                        "signature": ":".join(
+                            "{:02x}".format(c) for c in sct.signature
+                        ),
+                        "extensions": ":".join(
+                            "{:02x}".format(c) for c in sct.extension_bytes
+                        ),
+                    }
+                )
+            cert_object["scts"] = scts
+
+    def __get_extensions(self, cert_object, extensions, cert):
         """
         Process certificate extensions looking for CT extensions
         """
@@ -744,7 +790,7 @@ class X509Parser(object):
         self.__get_key_usages(cert_object, extensions)
         self.__get_extended_key_usages(cert_object, extensions)
         self.__get_basic_constraints(cert_object, extensions)
-        self.__get_certificate_transparency(cert_object, openssl_cert)
+        self.__get_certificate_transparency(cert_object, cert)
 
     def __get_raw_version(self, cert):
         """
@@ -839,7 +885,7 @@ class X509Parser(object):
         self.__get_signature_algorithm(cert_object, cert.signature_algorithm_oid)
 
         try:
-            self.__get_extensions(cert_object, cert.extensions, openssl_cert)
+            self.__get_extensions(cert_object, cert.extensions, cert)
         except ValueError as ve:
             # The X509 parser struggles with some certificates
             # Python cryptography will throw an error if the path_length is not None when ca is False
