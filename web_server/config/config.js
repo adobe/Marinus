@@ -33,7 +33,7 @@ import passport_conf from './passport_conf.js';
 
 function setUpLogger(app, envConfig) {
 
-  if (envConfig.hasOwnProperty('splunk_token')) {
+  if (Object.hasOwn(envConfig, 'splunk_token')) {
     let splunk_config = {
       token: envConfig.splunk_token,
       url: envConfig.splunk_url
@@ -82,7 +82,7 @@ export default function (app, envConfig) {
   app.use(bodyParser.urlencoded({ extended: false }));
 
   let secure = true;
-  if (envConfig.hasOwnProperty('use_http') && envConfig.use_http === true) {
+  if (Object.hasOwn(envConfig, 'use_http') && envConfig.use_http === true) {
     secure = false;
   }
 
