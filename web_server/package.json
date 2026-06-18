@@ -18,6 +18,8 @@
   "author": "Peleus Uhley",
   "license": "Apache-2.0",
   "dependencies": {
+    "@node-saml/passport-saml": "^5.1.0",
+    "@primer/octicons": "^19.15.0",
     "body-parser": "^1.20.3",
     "bootstrap": "^5.3.3",
     "celebrate": "15.0.3",
@@ -34,10 +36,8 @@
     "jquery": "^3.7.1",
     "mongoose": "^8.10.0",
     "morgan": "^1.10.0",
-    "newrelic": "^12.13.0",
-    "@primer/octicons": "^19.15.0",
+    "newrelic": "^14.1.0",
     "passport": "^0.7.0",
-    "@node-saml/passport-saml": "^5.0.0",
     "range_check": "^3.2.0",
     "secure-filters": "^1.1.0",
     "splunk-logging": "^0.11.1",
@@ -47,6 +47,8 @@
     "whois": "^2.14.2"
   },
   "devDependencies": {
-    "jshint": "^2.13.6"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.5.0",
+    "globals": "^17.6.0"
   }
 }
