@@ -29,6 +29,7 @@ let https;
 try {
     https = await import('node:https');
 } catch (err) {
+    logger(err.toString());
     console.error('https support is disabled!');
 }
 
@@ -52,7 +53,7 @@ var envConfig = envConfigurations[env];
  * New Relic support.
  */
 if ((envConfig.state === 'production' || envConfig.state === 'stage')
-    && envConfig.hasOwnProperty("new_relic_enabled") && envConfig.new_relic_enabled) {
+    && Object.hasOwn(envConfig, "new_relic_enabled") && envConfig.new_relic_enabled) {
     await import('newrelic');
 }
 
@@ -83,7 +84,7 @@ app.disable("x-powered-by");
  */
 
 var server;
-if (envConfig.hasOwnProperty('use_http') && envConfig.use_http === true) {
+if (Object.hasOwn(envConfig, 'use_http') && envConfig.use_http === true) {
     server = http.createServer(app).listen(envConfig.port);
 } else {
     server = https.createServer(options, app).listen(envConfig.port);
