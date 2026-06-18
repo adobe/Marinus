@@ -87,7 +87,7 @@ function checkApiKey(apiKey, req, res, next) {
  * @param {*} next The Express next function
  */
 function checkAuthentication(req, res, next) {
-    let apiKey = '';
+    let apiKey;
     if (typeof req.query.apiKey !== 'undefined') {
         apiKey = req.query.apiKey;
     } else if (typeof req.params.apiKey !== 'undefined') {
