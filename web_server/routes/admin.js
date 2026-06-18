@@ -90,7 +90,7 @@ function checkDataAdmin(req, res) {
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -404,7 +404,7 @@ export default function adminRouter(envConfig) {
         .get(function (req, res) {
             checkAdmin(req, res);
 
-            if (!(req.params.hasOwnProperty('userid'))) {
+            if (!(Object.hasOwn(req.params, 'userid'))) {
                 res.status(400).json({ 'message': 'A userid must be provided!' });
                 return;
             }
@@ -424,7 +424,7 @@ export default function adminRouter(envConfig) {
         })
         .post(function (req, res) {
             checkAdmin(req, res);
-            if (!(req.params.hasOwnProperty('userid'))) {
+            if (!(Object.hasOwn(req.params, 'userid'))) {
                 res.status(400).json({ 'message': 'A userid must be provided!' });
                 return;
             }
@@ -544,7 +544,7 @@ export default function adminRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('active')) {
+            if (Object.hasOwn(req.query, 'active')) {
                 if (req.query.active === 'false') {
                     activeOnly = false;
                 }
@@ -784,7 +784,7 @@ export default function adminRouter(envConfig) {
     router.route('/admin/groups/:group')
         .patch(function (req, res) {
             checkAdmin(req, res);
-            if (!(req.params.hasOwnProperty('group'))) {
+            if (!(Object.hasOwn(req.params, 'group'))) {
                 res.status(400).json({ 'message': 'A group must be provided!' });
                 return;
             }
@@ -975,7 +975,7 @@ export default function adminRouter(envConfig) {
     router.route('/admin/zones/:zone')
         .patch(function (req, res) {
             checkDataAdmin(req, res);
-            if (!(req.params.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.params, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided!' });
                 return;
             }
@@ -1175,7 +1175,7 @@ export default function adminRouter(envConfig) {
     router.route('/admin/ip_zones/:id')
         .patch(function (req, res) {
             checkDataAdmin(req, res);
-            if (!(req.params.hasOwnProperty('id'))) {
+            if (!(Object.hasOwn(req.params, 'id'))) {
                 res.status(400).json({ 'message': 'An IPv4 CIDR must be provided!' });
                 return;
             }
@@ -1272,7 +1272,7 @@ export default function adminRouter(envConfig) {
                 res.status(400).json({ 'message': 'An IPv6 zone must be provided!' });
                 return;
             }
-            let ipv6 = /^[0-9a-zA-z\:]+(\/([0-9]|[1-5][0-9]|6[0-4]))$/;
+            let ipv6 = /^[0-9a-zA-z:]+(\/([0-9]|[1-5][0-9]|6[0-4]))$/;
             if (!(req.body.zone.match(ipv6))) {
                 res.status(400).json({
                     'message': 'An invalid IPv6 zone has been provided',
@@ -1374,7 +1374,7 @@ export default function adminRouter(envConfig) {
     router.route('/admin/ipv6_zones/:id')
         .patch(function (req, res) {
             checkDataAdmin(req, res);
-            if (!(req.params.hasOwnProperty('id'))) {
+            if (!(Object.hasOwn(req.params, 'id'))) {
                 res.status(400).json({ 'message': 'An IPv6 CIDR must be provided!' });
                 return;
             }
@@ -1591,7 +1591,7 @@ export default function adminRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty("field")) {
+            if (Object.hasOwn(req.query, "field")) {
                 configField = req.query.field;
             }
             let promise;

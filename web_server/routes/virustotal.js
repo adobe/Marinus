@@ -26,7 +26,7 @@ import { virustotal as vt } from '../config/models/virustotal.js';
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -263,6 +263,8 @@ function is_valid_strings(params) {
  *       - $ref: '#/definitions/VT-DomainRecord'
  *
  */
+
+/* eslint-disable-next-line no-unused-vars */
 export default function virustotalRouter(envConfig) {
     /**
      * @swagger
@@ -365,17 +367,17 @@ export default function virustotalRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('type'))) {
+            if (!(Object.hasOwn(req.query, 'type'))) {
                 res.status(400).json({ 'message': 'A type must be provided' });
                 return;
             }
             let type = req.query.type;
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
             let promise;
-            if (req.query.hasOwnProperty('zone') &&
+            if (Object.hasOwn(req.query, 'zone') &&
                 req.query.zone.length > 0) {
                 if (type === 'referrer') {
                     promise = vt.getDetectedReferrerSamplesByZonePromise(req.query.zone, count);
@@ -468,7 +470,7 @@ export default function virustotalRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.query, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
             }
@@ -574,12 +576,12 @@ export default function virustotalRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.query, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
             }
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === "1") {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === "1") {
                 count = true;
             }
             let promise = vt.getMetaInfoByZonePromise(req.query.zone);
@@ -688,14 +690,14 @@ export default function virustotalRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('zone')) {
+            if (Object.hasOwn(req.query, 'zone')) {
                 let count = false;
-                if (req.query.hasOwnProperty('count') &&
+                if (Object.hasOwn(req.query, 'count') &&
                     req.query.count === '1') {
                     count = true;
                 }
                 promise = vt.getPcapsByZonePromise(req.query.zone, count);
-            } else if (req.query.hasOwnProperty('count') &&
+            } else if (Object.hasOwn(req.query, 'count') &&
                 req.query.count === '1') {
                 promise = vt.getAllPcapsPromise(true);
             } else {
@@ -707,7 +709,7 @@ export default function virustotalRouter(envConfig) {
                     res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') &&
+                if (Object.hasOwn(req.query, 'count') &&
                     req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
@@ -768,7 +770,7 @@ export default function virustotalRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.query, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
             }
@@ -872,7 +874,7 @@ export default function virustotalRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.query, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
             }
@@ -882,7 +884,7 @@ export default function virustotalRouter(envConfig) {
                     res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') &&
+                if (Object.hasOwn(req.query, 'count') &&
                     req.query.count === '1') {
                     let cnt = data[0]['resolutions'].length;
                     res.status(200).json({ 'count': cnt });
@@ -982,7 +984,7 @@ export default function virustotalRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.query, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
             }
@@ -992,7 +994,7 @@ export default function virustotalRouter(envConfig) {
                     res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') &&
+                if (Object.hasOwn(req.query, 'count') &&
                     req.query.count === '1') {
                     let cnt = 0;
                     if (data[0]['domain_siblings']) {

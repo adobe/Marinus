@@ -28,7 +28,7 @@ import { inRange } from 'range_check';
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -183,6 +183,7 @@ function is_valid_strings(params) {
  *
  */
 
+/* eslint-disable-next-line no-unused-vars */
 export default function zonesRouter(envConfig) {
     /**
      * @swagger
@@ -237,10 +238,10 @@ export default function zonesRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('source')) {
+            if (Object.hasOwn(req.query, 'source')) {
                 source = req.query.source;
             }
-            if (req.query.hasOwnProperty('status')) {
+            if (Object.hasOwn(req.query, 'status')) {
                 status = req.query.status;
             }
             let zonePromise = zones.getZoneCount(source, status);
@@ -303,7 +304,7 @@ export default function zonesRouter(envConfig) {
      */
     router.route('/zones/zone/:zone')
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.params, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
             }
@@ -372,12 +373,12 @@ export default function zonesRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('include_all')
+            if (Object.hasOwn(req.query, 'include_all')
                 && req.query.include_all === '1') {
                 includeAll = true;
             }
             let pattern = null;
-            if (req.query.hasOwnProperty('pattern')
+            if (Object.hasOwn(req.query, 'pattern')
                 && req.query.pattern.length > 0) {
                 pattern = req.query.pattern;
             }
@@ -483,7 +484,7 @@ export default function zonesRouter(envConfig) {
      */
     router.route('/zones/ipzone/:zone')
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.params, 'zone'))) {
                 res.status(400).json({ 'message': 'An IP zone must be provided.' });
                 return;
             }
@@ -544,7 +545,7 @@ export default function zonesRouter(envConfig) {
      */
     router.route('/zones/ipv6zone/:zone')
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.params, 'zone'))) {
                 res.status(400).json({ 'message': 'An IPv6 zone must be provided.' });
                 return;
             }
@@ -605,7 +606,7 @@ export default function zonesRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('include_fp')
+            if (Object.hasOwn(req.query, 'include_fp')
                 && req.query.include_fp === '1') {
                 includeFalsePositives = true;
             }
@@ -661,7 +662,7 @@ export default function zonesRouter(envConfig) {
     router.route('/zones/ipv6_list')
         .get(function (req, res) {
             let includeFalsePositives = false;
-            if (req.query.hasOwnProperty('include_fp')
+            if (Object.hasOwn(req.query, 'include_fp')
                 && req.query.include_fp === '1') {
                 includeFalsePositives = true;
             }
@@ -725,12 +726,12 @@ export default function zonesRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({ 'message': 'An IP must be provided.' });
                 return;
             }
             let includeFalsePositives = false;
-            if (req.query.hasOwnProperty('include_fp')
+            if (Object.hasOwn(req.query, 'include_fp')
                 && req.query.include_fp === '1') {
                 includeFalsePositives = true;
             }
@@ -807,12 +808,12 @@ export default function zonesRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({ 'message': 'An IPv6 address must be provided.' });
                 return;
             }
             let includeFalsePositives = false;
-            if (req.query.hasOwnProperty('include_fp')
+            if (Object.hasOwn(req.query, 'include_fp')
                 && req.query.include_fp === '1') {
                 includeFalsePositives = true;
             }
@@ -890,10 +891,10 @@ export default function zonesRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('source')) {
+            if (Object.hasOwn(req.query, 'source')) {
                 source = req.query.source;
             }
-            if (req.query.hasOwnProperty('status')) {
+            if (Object.hasOwn(req.query, 'status')) {
                 status = req.query.status;
             }
             let zonePromise = ipZones.getZoneCount(source, status);
@@ -963,10 +964,10 @@ export default function zonesRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('source')) {
+            if (Object.hasOwn(req.query, 'source')) {
                 source = req.query.source;
             }
-            if (req.query.hasOwnProperty('status')) {
+            if (Object.hasOwn(req.query, 'status')) {
                 status = req.query.status;
             }
             let zonePromise = ipv6Zones.getZoneCount(source, status);

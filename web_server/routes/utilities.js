@@ -26,7 +26,7 @@ const escapeHTML = secureFilters.html;
  */
 function is_valid_strings(params) {
   for (var prop in params) {
-    if (Object.prototype.hasOwnProperty.call(params, prop)) {
+    if (Object.hasOwn(params, prop)) {
       if (typeof params[prop] != "string") {
         return false;
       }
@@ -38,6 +38,7 @@ function is_valid_strings(params) {
   return true;
 }
 
+/* eslint-disable-next-line no-unused-vars */
 export default function utilitiesRouter(envConfig) {
   router.route('/utilities/whois')
     /**
@@ -68,8 +69,8 @@ export default function utilitiesRouter(envConfig) {
       whois.lookup(domain, whoisObject, function (err, data) {
         if (!err) {
           let myEscapedJSONString = data.replace(/[\\]/g, '\\\\')
-            .replace(/[\"]/g, '\\\"')
-            .replace(/[\/]/g, '\\/')
+            .replace(/"/g, '\\"')
+            .replace(/\//g, '\\/')
             .replace(/[\b]/g, '\\b')
             .replace(/[\f]/g, '\\f')
             .replace(/[\n]/g, '\\n')
@@ -100,14 +101,14 @@ export default function utilitiesRouter(envConfig) {
         return;
       }
 
-      if (req.query.hasOwnProperty('dnsServer')
+      if (Object.hasOwn(req.query, 'dnsServer')
         && req.query.dnsServer.length > 0) {
         let dnsServer = req.query.dnsServer;
         dns.setServers([dnsServer]);
       }
 
-      if (req.query.hasOwnProperty('dnsType') && req.query.dnsType.length > 0) {
-        dns.resolve(domain, recordType, function (err, hostnames) {
+      if (Object.hasOwn(req.query, 'dnsType') && req.query.dnsType.length > 0) {
+        dns.resolve(domain, req.query.dnsType.toUpperCase(), function (err, hostnames) {
           if (err && err.code === dns.NOTFOUND) {
             res.status(404).json({ 'Error': escapeHTML(err) });
             return;
@@ -120,7 +121,7 @@ export default function utilitiesRouter(envConfig) {
         }.bind(res));
       } else {
         let ipv4 = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
-        let ipv6 = /^[0-9a-zA-z\:]+$/;
+        let ipv6 = /^[0-9a-zA-z:]+$/;
         if (domain.match(ipv4) || domain.match(ipv6)) {
           try {
             dns.reverse(domain, function (err, hostnames) {

@@ -23,7 +23,7 @@ import { whois_db as whoisDB } from '../config/models/whois_db.js';
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -129,6 +129,7 @@ function is_valid_strings(params) {
  *
  */
 
+/* eslint-disable-next-line no-unused-vars */
 export default function whoisDBRouter(envConfig) {
     /**
      * @swagger
@@ -342,24 +343,24 @@ export default function whoisDBRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('zone')) {
+            if (Object.hasOwn(req.query, 'zone')) {
                 promise = whoisDB.getRecordByZonePromise(req.query.zone);
-            } else if (req.query.hasOwnProperty('name_server')) {
+            } else if (Object.hasOwn(req.query, 'name_server')) {
                 let ns = req.query.name_server;
                 if (ns === 'null') {
-                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                         promise = whoisDB.getWhoisDNSServerNullRecords(true);
                     } else {
                         promise = whoisDB.getWhoisDNSServerNullRecords(false);
                     }
                 } else {
-                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                         promise = whoisDB.getWhoisDNSServerRecords(ns, true);
                     } else {
                         promise = whoisDB.getWhoisDNSServerRecords(ns, false);
                     }
                 }
-            } else if (req.query.hasOwnProperty('distinct') && req.query.distinct === '1') {
+            } else if (Object.hasOwn(req.query, 'distinct') && req.query.distinct === '1') {
                 promise = whoisDB.getWhoisDistinctDNSServerRecords();
                 promise.then(function (data) {
                     if (data === null) {
@@ -377,7 +378,7 @@ export default function whoisDBRouter(envConfig) {
                     res.status(200).json({ "name_servers": Array.from(new_list) });
                 });
                 return;
-            } else if (req.query.hasOwnProperty('distinct_groups') && req.query.distinct_groups === '1') {
+            } else if (Object.hasOwn(req.query, 'distinct_groups') && req.query.distinct_groups === '1') {
                 promise = whoisDB.getWhoisDistinctDNSServerGroupRecords();
                 promise.then(function (data) {
                     if (data === null) {
@@ -387,7 +388,7 @@ export default function whoisDBRouter(envConfig) {
                     res.status(200).json({ "name_server_groups": data });
                 });
                 return;
-            } else if (req.query.hasOwnProperty('dnssec')) {
+            } else if (Object.hasOwn(req.query, 'dnssec')) {
                 let dnssec = req.query.dnssec;
                 if (dnssec !== 'signed'
                     && dnssec !== 'unsigned'
@@ -398,19 +399,19 @@ export default function whoisDBRouter(envConfig) {
                 }
 
                 if (dnssec === 'unknown') {
-                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                         promise = whoisDB.getWhoisDNSSECOtherRecords(true);
                     } else {
                         promise = whoisDB.getWhoisDNSSECOtherRecords(false);
                     }
                 } else {
-                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                         promise = whoisDB.getWhoisDNSSECRecords(dnssec, true);
                     } else {
                         promise = whoisDB.getWhoisDNSSECRecords(dnssec, false);
                     }
                 }
-            } else if (req.query.hasOwnProperty('email')) {
+            } else if (Object.hasOwn(req.query, 'email')) {
                 let email = req.query.email;
                 let re = new RegExp('^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$');
                 if (email !== 'none' && !(re.test(email))) {
@@ -420,7 +421,7 @@ export default function whoisDBRouter(envConfig) {
                     return;
                 }
                 let count = false;
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     count = true;
                 }
                 if (email === 'none') {
@@ -428,7 +429,7 @@ export default function whoisDBRouter(envConfig) {
                 } else {
                     promise = whoisDB.getWhoisEmailRecords(email, count);
                 }
-            } else if (req.query.hasOwnProperty('count')) {
+            } else if (Object.hasOwn(req.query, 'count')) {
                 promise = whoisDB.getWhoisRecordCount();
                 promise.then(function (data) {
                     if (data === null) {
@@ -436,7 +437,7 @@ export default function whoisDBRouter(envConfig) {
                         return;
                     }
 
-                    if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                    if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                         res.status(200).json({ 'count': data });
                     } else {
                         res.status(200).json(data);
@@ -453,7 +454,7 @@ export default function whoisDBRouter(envConfig) {
                     return;
                 }
 
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);

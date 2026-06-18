@@ -32,7 +32,7 @@ import { gcp_ips as gcpIPs } from '../config/models/gcp_ips.js';
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -44,7 +44,7 @@ function is_valid_strings(params) {
     return true;
 }
 
-
+/* eslint-disable-next-line no-unused-vars */
 export default function cloudServicesRouter(envConfig) {
     /**
      * @swagger
@@ -107,7 +107,7 @@ export default function cloudServicesRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({
                     'message': 'An IP must be provided',
                 });
@@ -206,7 +206,7 @@ export default function cloudServicesRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({
                     'message': 'An IPv6 IP must be provided',
                 });
@@ -305,7 +305,7 @@ export default function cloudServicesRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({ 'message': 'An IP must be provided' });
                 return;
             }
@@ -393,7 +393,7 @@ export default function cloudServicesRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({ 'message': 'An IP must be provided' });
                 return;
             }
@@ -478,7 +478,7 @@ export default function cloudServicesRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({
                     'message': 'An IP must be provided',
                 });
@@ -577,7 +577,7 @@ export default function cloudServicesRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({
                     'message': 'An IP must be provided',
                 });
@@ -676,7 +676,7 @@ export default function cloudServicesRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({
                     'message': 'An IPv6 IP must be provided',
                 });

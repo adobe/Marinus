@@ -58,7 +58,7 @@ function createRange(range) {
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -109,6 +109,7 @@ function is_valid_strings(params) {
  *
  */
 
+/* eslint-disable-next-line no-unused-vars */
 export default function ibloxRouter(envConfig) {
 
     /**
@@ -258,7 +259,7 @@ export default function ibloxRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('range')) {
+            if (Object.hasOwn(req.query, 'range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
                     res.status(500).json({ 'message': searchRange });
@@ -278,7 +279,7 @@ export default function ibloxRouter(envConfig) {
                             returnData.push(data[i]);
                         }
                     }
-                    if (req.query.hasOwnProperty('count') &&
+                    if (Object.hasOwn(req.query, 'count') &&
                         req.query.count === '1') {
                         res.status(200).json({ 'count': returnData.length });
                     } else {
@@ -287,17 +288,17 @@ export default function ibloxRouter(envConfig) {
                     return;
                 });
                 return;
-            } else if (req.query.hasOwnProperty('zone')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'zone')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = ibloxARecs.getIBAddrCountPromise(req.query.zone);
                 } else {
                     promise = ibloxARecs.getIBAddrByZonePromise(req.query.zone);
                 }
-            } else if (req.query.hasOwnProperty('domain')) {
+            } else if (Object.hasOwn(req.query, 'domain')) {
                 promise = ibloxARecs.getIBAddrByNamePromise(req.query.domain);
-            } else if (req.query.hasOwnProperty('ip')) {
+            } else if (Object.hasOwn(req.query, 'ip')) {
                 promise = ibloxARecs.getIBAddrByIPPromise(req.query.ip);
-            } else if (req.query.hasOwnProperty('count') &&
+            } else if (Object.hasOwn(req.query, 'count') &&
                 req.query.count === '1') {
                 promise = ibloxARecs.getIBAddrCountPromise();
             } else {
@@ -467,7 +468,7 @@ export default function ibloxRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('range')) {
+            if (Object.hasOwn(req.query, 'range')) {
                 let searchRange = isRange(req.query.range);
                 if (searchRange === false) {
                     res.status(400).json({ 'message': "Invalid IPv6 range" });
@@ -489,7 +490,7 @@ export default function ibloxRouter(envConfig) {
                             returnData.push(data[i]);
                         }
                     }
-                    if (req.query.hasOwnProperty('count') &&
+                    if (Object.hasOwn(req.query, 'count') &&
                         req.query.count === '1') {
                         res.status(200).json({ 'count': returnData.length });
                     } else {
@@ -498,17 +499,17 @@ export default function ibloxRouter(envConfig) {
                     return;
                 });
                 return;
-            } else if (req.query.hasOwnProperty('zone')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'zone')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = ibloxAAAARecs.getIBIPv6AddrCountPromise(req.query.zone);
                 } else {
                     promise = ibloxAAAARecs.getIBIPv6AddrByZonePromise(req.query.zone);
                 }
-            } else if (req.query.hasOwnProperty('domain')) {
+            } else if (Object.hasOwn(req.query, 'domain')) {
                 promise = ibloxAAAARecs.getIBIPv6AddrByNamePromise(req.query.domain);
-            } else if (req.query.hasOwnProperty('ip')) {
+            } else if (Object.hasOwn(req.query, 'ip')) {
                 promise = ibloxAAAARecs.getIBIPv6AddrByIPPromise(req.query.ip);
-            } else if (req.query.hasOwnProperty('count') &&
+            } else if (Object.hasOwn(req.query, 'count') &&
                 req.query.count === '1') {
                 promise = ibloxAAAARecs.getIBIPv6AddrCountPromise();
             } else {
@@ -693,7 +694,7 @@ export default function ibloxRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('range')) {
+            if (Object.hasOwn(req.query, 'range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
                     res.status(500).json({ 'message': searchRange });
@@ -719,7 +720,7 @@ export default function ibloxRouter(envConfig) {
                             returnData.push(data[i]);
                         }
                     }
-                    if (req.query.hasOwnProperty('count') &&
+                    if (Object.hasOwn(req.query, 'count') &&
                         req.query.count === '1') {
                         let cnt = returnData.length;
                         res.status(200).json({ 'count': cnt });
@@ -729,18 +730,18 @@ export default function ibloxRouter(envConfig) {
                     return;
                 });
                 return;
-            } else if (req.query.hasOwnProperty('zone')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'zone')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = ibloxHostRecs.getIBHostCountPromise(req.query.zone);
                 } else {
                     promise = ibloxHostRecs.getIBHostByZonePromise(req.query.zone);
                 }
-            } else if (req.query.hasOwnProperty('domain')) {
+            } else if (Object.hasOwn(req.query, 'domain')) {
                 promise = ibloxHostRecs.getIBHostByNamePromise(req.query.domain);
-            } else if (req.query.hasOwnProperty('ip')) {
+            } else if (Object.hasOwn(req.query, 'ip')) {
                 promise =
                     ibloxHostRecs.getIBHostByIPPromise(req.query.ip);
-            } else if (req.query.hasOwnProperty('count') &&
+            } else if (Object.hasOwn(req.query, 'count') &&
                 req.query.count === '1') {
                 promise = ibloxHostRecs.getIBHostCountPromise();
             } else {
@@ -754,7 +755,7 @@ export default function ibloxRouter(envConfig) {
                     res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data })
                 } else {
                     res.status(200).json(data);
@@ -900,21 +901,21 @@ export default function ibloxRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('zone')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'zone')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = ibloxCnameRecs.getIBCNameCountPromise(req.query.zone);
                 } else {
                     promise = ibloxCnameRecs.getIBCNameByZonePromise(req.query.zone);
                 }
-            } else if (req.query.hasOwnProperty('domain')) {
+            } else if (Object.hasOwn(req.query, 'domain')) {
                 promise = ibloxCnameRecs.getIBCNameByNamePromise(req.query.domain);
-            } else if (req.query.hasOwnProperty('cnameTLD')) {
-                if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
+            } else if (Object.hasOwn(req.query, 'cnameTLD')) {
+                if (Object.hasOwn(req.query, 'zone') && req.query.zone.length > 0) {
                     promise = ibloxCnameRecs.getIBCNameByCanonicalSearch(req.query.cnameTLD, req.query.zone);
                 } else {
                     promise = ibloxCnameRecs.getIBCNameByCanonicalSearch(req.query.cnameTLD, null);
                 }
-            } else if (req.query.hasOwnProperty('count') &&
+            } else if (Object.hasOwn(req.query, 'count') &&
                 req.query.count === '1') {
                 promise = ibloxCnameRecs.getIBCNameCountPromise();
             } else {
@@ -928,7 +929,7 @@ export default function ibloxRouter(envConfig) {
                     res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
@@ -1077,21 +1078,21 @@ export default function ibloxRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('zone')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'zone')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = ibloxMXRecs.getIBMXCountPromise(req.query.zone);
                 } else {
                     promise = ibloxMXRecs.getIBMXByZonePromise(req.query.zone);
                 }
-            } else if (req.query.hasOwnProperty('domain')) {
+            } else if (Object.hasOwn(req.query, 'domain')) {
                 promise = ibloxMXRecs.getIBMXByNamePromise(req.query.domain);
-            } else if (req.query.hasOwnProperty('mail_exchanger')) {
-                if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
+            } else if (Object.hasOwn(req.query, 'mail_exchanger')) {
+                if (Object.hasOwn(req.query, 'zone') && req.query.zone.length > 0) {
                     promise = ibloxMXRecs.getIBMXByMailExchanger(req.query.mail_exchanger, req.query.zone);
                 } else {
                     promise = ibloxMXRecs.getIBMXByMailExchanger(req.query.mail_exchanger, null);
                 }
-            } else if (req.query.hasOwnProperty('count') &&
+            } else if (Object.hasOwn(req.query, 'count') &&
                 req.query.count === '1') {
                 promise = ibloxMXRecs.getIBMXCountPromise();
             } else {
@@ -1105,7 +1106,7 @@ export default function ibloxRouter(envConfig) {
                     res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
@@ -1252,17 +1253,17 @@ export default function ibloxRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('zone')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'zone')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = ibloxTXTRecs.getIBTXTCountPromise(req.query.zone);
                 } else {
                     promise = ibloxTXTRecs.getIBTXTByZonePromise(req.query.zone);
                 }
-            } else if (req.query.hasOwnProperty('domain')) {
+            } else if (Object.hasOwn(req.query, 'domain')) {
                 promise = ibloxTXTRecs.getIBTXTByNamePromise(req.query.domain);
-            } else if (req.query.hasOwnProperty('txt')) {
+            } else if (Object.hasOwn(req.query, 'txt')) {
                 promise = ibloxTXTRecs.getIBTXTByRegex(req.query.txt);
-            } else if (req.query.hasOwnProperty('count') &&
+            } else if (Object.hasOwn(req.query, 'count') &&
                 req.query.count === '1') {
                 promise = ibloxTXTRecs.getIBTXTCountPromise();
             } else {
@@ -1276,7 +1277,7 @@ export default function ibloxRouter(envConfig) {
                     res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
@@ -1293,7 +1294,7 @@ export default function ibloxRouter(envConfig) {
     function extract_owners(data) {
         let owners = [];
         for (let i = 0; i < data.length; i++) {
-            let owner_info = {};
+            let owner_info;
             let owners_list = [];
             for (let extattr_key of Object.keys(data[i]['extattrs'])) {
                 if (extattr_key.toLowerCase().split(' ').indexOf('owner') > -1) {

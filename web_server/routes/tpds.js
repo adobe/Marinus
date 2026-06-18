@@ -24,7 +24,7 @@ import { tpds as tpdRecs } from '../config/models/tpds.js';
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -93,6 +93,7 @@ function is_valid_strings(params) {
  *
  */
 
+/* eslint-disable-next-line no-unused-vars */
 export default function tpdsRouter(envConfig) {
 
     /**
@@ -354,13 +355,13 @@ export default function tpdsRouter(envConfig) {
                 return;
             }
 
-            if ((req.query.hasOwnProperty('dataType'))) {
-                if (!req.query.hasOwnProperty('value')) {
+            if ((Object.hasOwn(req.query, 'dataType'))) {
+                if (!Object.hasOwn(req.query, 'value')) {
                     res.status(400).json({ 'message': 'A value must be provided.' });
                     return;
                 }
                 let listOnly = false;
-                if (req.query.hasOwnProperty('listOnly')
+                if (Object.hasOwn(req.query, 'listOnly')
                     && req.query.listOnly === '1') {
                     listOnly = true;
                 }

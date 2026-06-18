@@ -30,7 +30,7 @@ function isValidDate(d_string) {
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -284,13 +284,13 @@ export default function ctRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('org'))) {
+            if (!(Object.hasOwn(req.query, 'org'))) {
                 res.status(400).json({ 'message': 'An org must be provided.' });
                 return;
             }
             let org = req.query.org;
             let promise;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 promise = cert_transparency.getSSLOrgCountPromise(org);
             } else {
                 promise = cert_transparency.getCertTransOrgPromise(org);
@@ -300,7 +300,7 @@ export default function ctRouter(envConfig) {
                     res.status(404).json({ 'message': 'Org not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
@@ -398,12 +398,12 @@ export default function ctRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.query, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone name must be provided.' });
                 return;
             }
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
             let promise = cert_transparency.getCertTransZonePromise(req.query.zone, count);
@@ -413,7 +413,7 @@ export default function ctRouter(envConfig) {
                     res.status(404).json({ 'message': 'Zone not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
@@ -480,13 +480,13 @@ export default function ctRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('cn'))) {
+            if (!(Object.hasOwn(req.query, 'cn'))) {
                 res.status(400).json({ 'message': 'A CN/DNS name must be provided.' });
                 return;
             }
 
             let includeExpired = false;
-            if (req.query.hasOwnProperty('include_expired') && req.query.include_expired === '1') {
+            if (Object.hasOwn(req.query, 'include_expired') && req.query.include_expired === '1') {
                 includeExpired = true;
             }
             let promise = cert_transparency.getCertTransCNPromise(req.query.cn, includeExpired);
@@ -559,13 +559,13 @@ export default function ctRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({ 'message': 'An IP address must be provided.' });
                 return;
             }
 
             let includeExpired = false;
-            if (req.query.hasOwnProperty('include_expired') && req.query.include_expired === '1') {
+            if (Object.hasOwn(req.query, 'include_expired') && req.query.include_expired === '1') {
                 includeExpired = true;
             }
             let promise = cert_transparency.getCertTransIPPromise(req.query.ip, includeExpired);
@@ -672,13 +672,13 @@ export default function ctRouter(envConfig) {
                 return;
             }
 
-            if (!(req.params.hasOwnProperty('sn'))) {
+            if (!(Object.hasOwn(req.params, 'sn'))) {
                 res.status(400).json({ 'message': 'A serial_number name must be provided.' });
                 return;
             }
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count == "1") {
+            if (Object.hasOwn(req.query, 'count') && req.query.count == "1") {
                 count = true;
             }
 
@@ -790,7 +790,7 @@ export default function ctRouter(envConfig) {
                 return;
             }
 
-            if (!(req.params.hasOwnProperty('fingerprint'))) {
+            if (!(Object.hasOwn(req.params, 'fingerprint'))) {
                 res.status(400).json({
                     'message': 'An fingerprint value must be provided.',
                 });
@@ -798,7 +798,7 @@ export default function ctRouter(envConfig) {
             }
 
             var count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === "1") {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === "1") {
                 count = true;
             }
 
@@ -959,7 +959,7 @@ export default function ctRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('search_type'))) {
+            if (!(Object.hasOwn(req.query, 'search_type'))) {
                 res.status(400).json({
                     'message': 'A search type must be provided.',
                 });
@@ -975,7 +975,7 @@ export default function ctRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('marinus_date'))) {
+            if (!(Object.hasOwn(req.query, 'marinus_date'))) {
                 res.status(400).json({
                     'message': 'A Marinus date must be provided.',
                 });
@@ -992,12 +992,12 @@ export default function ctRouter(envConfig) {
             let timestamp = parseInt(req.query.marinus_date);
 
             var date_type = "created";
-            if (req.query.hasOwnProperty('date_type') && req.query.count === "updated") {
+            if (Object.hasOwn(req.query, 'date_type') && req.query.count === "updated") {
                 date_type = "updated";
             }
 
             var count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === "1") {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === "1") {
                 count = true;
             }
 
@@ -1015,7 +1015,7 @@ export default function ctRouter(envConfig) {
                     promise = cert_transparency.getCTCertByLTMarinusCreate(timestamp, count);
                 }
             } else {
-                if (!(req.query.hasOwnProperty('end_date'))) {
+                if (!(Object.hasOwn(req.query, 'end_date'))) {
                     res.status(400).json({
                         'message': 'An end_date must be provided for range searches.',
                     });
@@ -1180,7 +1180,7 @@ export default function ctRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
             let promise = cert_transparency.getCertTransIssuers(req.params.issuer, count, true);
@@ -1413,11 +1413,11 @@ export default function ctRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty("count") && req.query.count === "1") {
+            if (Object.hasOwn(req.query, "count") && req.query.count === "1") {
                 count = true;
             }
             let promise;
-            if (req.query.hasOwnProperty('exclude_expired') && req.query.exclude_expired === "1") {
+            if (Object.hasOwn(req.query, 'exclude_expired') && req.query.exclude_expired === "1") {
                 promise = cert_transparency.getCertTransCorpPromise(envConfig.internalDomain, true, count);
             } else {
                 promise = cert_transparency.getCertTransCorpPromise(envConfig.internalDomain, false, count);
@@ -1522,12 +1522,12 @@ export default function ctRouter(envConfig) {
             }
 
             let alg = 'RSA-SHA1';
-            if (req.query.hasOwnProperty('algorithm')) {
+            if (Object.hasOwn(req.query, 'algorithm')) {
                 alg = req.query.algorithm;
             }
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 

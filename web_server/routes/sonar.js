@@ -25,7 +25,7 @@ import { sonar_rdns as sonarRdns } from '../config/models/sonar_rdns.js';
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -96,6 +96,7 @@ function createRange(range) {
  *
  */
 
+/* eslint-disable-next-line no-unused-vars */
 export default function sonarRouter(envConfig) {
     /**
   * @swagger
@@ -211,7 +212,7 @@ export default function sonarRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('range')) {
+            if (Object.hasOwn(req.query, 'range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
                     res.status(500).json({ 'message': searchRange });
@@ -231,7 +232,7 @@ export default function sonarRouter(envConfig) {
                             returnData.push(data[i]);
                         }
                     }
-                    if (req.query.hasOwnProperty('count') &&
+                    if (Object.hasOwn(req.query, 'count') &&
                         req.query.count === '1') {
                         res.status(200).json({ 'count': returnData.length });
                     } else {
@@ -240,18 +241,18 @@ export default function sonarRouter(envConfig) {
                     return;
                 });
                 return;
-            } else if (req.query.hasOwnProperty('ip')) {
+            } else if (Object.hasOwn(req.query, 'ip')) {
                 promise = sonarRdns.getSRDNSByIPPromise(req.query.ip);
-            } else if (req.query.hasOwnProperty('domain')) {
+            } else if (Object.hasOwn(req.query, 'domain')) {
                 promise = sonarRdns.getSRDNSByDomainPromise(req.query.domain);
-            } else if ((req.query.hasOwnProperty('count')) &&
+            } else if ((Object.hasOwn(req.query, 'count')) &&
                 (req.query.count === '1')) {
-                if (req.query.hasOwnProperty('zone')) {
+                if (Object.hasOwn(req.query, 'zone')) {
                     promise = sonarRdns.getSRDNSCount(req.query.zone);
                 } else {
                     promise = sonarRdns.getSRDNSCount();
                 }
-            } else if (req.query.hasOwnProperty('zone')) {
+            } else if (Object.hasOwn(req.query, 'zone')) {
                 promise = sonarRdns.getSRDNSByZonePromise(req.query.zone);
             } else {
                 res.status(400).json({

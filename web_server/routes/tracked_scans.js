@@ -48,7 +48,7 @@ function reformatResponse(results) {
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -240,7 +240,7 @@ export default function trackedScansRouter(envConfig) {
     var zgrabPort = null;
 
     // Zgrab 2.0 support
-    if (envConfig.hasOwnProperty("zgrabVersion") && envConfig.zgrabVersion == 2) {
+    if (Object.hasOwn(envConfig, "zgrabVersion") && envConfig.zgrabVersion == 2) {
         zgrab443 = zgrab2_443_data;
         zgrab80 = zgrab2_80_data;
         zgrabPort = zgrab2_port;
@@ -370,25 +370,25 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('ip'))) {
+            if (!(Object.hasOwn(req.query, 'ip'))) {
                 res.status(400).json({ 'message': 'An IP must be provided' });
                 return;
             }
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let port = null;
-            if (req.query.hasOwnProperty('port')) {
+            if (Object.hasOwn(req.query, 'port')) {
                 port = req.query.port;
             }
 
             let promise;
             if (port === "22" || port === "25" || port === "465") {
                 promise = zgrabPort.getRecordByIPPromise(req.query.ip, port, count);
-            } else if (port === "443" && req.query.hasOwnProperty("use_port_data") && req.query.use_port_data === "1") {
+            } else if (port === "443" && Object.hasOwn(req.query, "use_port_data") && req.query.use_port_data === "1") {
                 promise = zgrabPort.getRecordByIPPromise(req.query.ip, port, count);
             } else if (port === "443") {
                 promise = zgrab443.getRecordByIPPromise(req.query.ip, count);
@@ -536,13 +536,13 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('domain'))) {
+            if (!(Object.hasOwn(req.query, 'domain'))) {
                 res.status(400).json({ 'message': 'A domain must be provided' });
                 return;
             }
 
             let port = null;
-            if (req.query.hasOwnProperty('port')) {
+            if (Object.hasOwn(req.query, 'port')) {
                 port = req.query.port;
             }
 
@@ -552,14 +552,14 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let promise;
             if (port === "22" || port === "25" || port === "465") {
                 promise = zgrabPort.getRecordByDomainPromise(req.query.domain, port, count);
-            } else if (port === "443" && req.query.hasOwnProperty("use_port_data") && req.query.use_port_data === "1") {
+            } else if (port === "443" && Object.hasOwn(req.query, "use_port_data") && req.query.use_port_data === "1") {
                 promise = zgrabPort.getRecordByDomainPromise(req.query.domain, port, count);
             } else if (port === "443") {
                 promise = zgrab443.getRecordByDomainPromise(req.query.domain, count);
@@ -703,13 +703,13 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.query, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided' });
                 return;
             }
 
             let port = null;
-            if (req.query.hasOwnProperty('port')) {
+            if (Object.hasOwn(req.query, 'port')) {
                 port = req.query.port;
             }
 
@@ -719,14 +719,14 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             var promise;
             if (port === "22" || port === "25" || port === "465") {
                 promise = zgrabPort.getRecordByZonePromise(req.query.zone, port, count);
-            } else if (port === "443" && req.query.hasOwnProperty("use_port_data") && req.query.use_port_data === "1") {
+            } else if (port === "443" && Object.hasOwn(req.query, "use_port_data") && req.query.use_port_data === "1") {
                 promise = zgrabPort.getRecordByZonePromise(req.query.zone, port, count);
             } else if (port === "443") {
                 promise = zgrab443.getRecordsByZonePromise(req.query.zone, count)
@@ -854,12 +854,12 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -871,7 +871,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -998,12 +998,12 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -1015,7 +1015,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -1143,12 +1143,12 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -1160,7 +1160,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -1344,19 +1344,19 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (!(req.params.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.params, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
             }
             let zone = req.params.zone;
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -1368,7 +1368,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -1487,12 +1487,12 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -1504,7 +1504,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -1631,12 +1631,12 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -1648,7 +1648,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -1865,7 +1865,7 @@ export default function trackedScansRouter(envConfig) {
      */
     router.route('/zgrab/443/headers/:header')
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('header'))) {
+            if (!(Object.hasOwn(req.params, 'header'))) {
                 res.status(400).json({
                     'message': 'A header value must be provided.',
                 });
@@ -1882,17 +1882,17 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let zone = '';
-            if (req.query.hasOwnProperty('zone') && req.query.zone !== '') {
+            if (Object.hasOwn(req.query, 'zone') && req.query.zone !== '') {
                 zone = req.query.zone;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 promise = zgrab443.getHttpHeaderPromise(header, zone, true);
                 count = true;
-            } else if (req.query.hasOwnProperty('distinct') &&
+            } else if (Object.hasOwn(req.query, 'distinct') &&
                 req.query.distinct === '1') {
                 promise = zgrab443.getDistinctHttpHeaderPromise(header, zone);
-            } else if (req.query.hasOwnProperty('value')) {
+            } else if (Object.hasOwn(req.query, 'value')) {
                 promise = zgrab443.getHttpHeaderByValuePromise(header, req.query.value, zone);
             } else {
                 promise = zgrab443.getHttpHeaderPromise(header, zone, false);
@@ -2031,7 +2031,7 @@ export default function trackedScansRouter(envConfig) {
     router.route('/zgrab/443/algorithm/:algorithm')
         // get info on a specific algorithm
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('algorithm')) ||
+            if (!(Object.hasOwn(req.params, 'algorithm')) ||
                 req.params.algorithm.length === 0) {
                 res.status(400).json({ 'message': 'An algorithm must be provided.' });
                 return;
@@ -2043,17 +2043,17 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let recursive = false;
-            if (req.query.hasOwnProperty('recursive') && req.query.recursive === '1') {
+            if (Object.hasOwn(req.query, 'recursive') && req.query.recursive === '1') {
                 recursive = true;
             }
 
             let limit = 100;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -2065,7 +2065,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -2077,7 +2077,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let promise;
-            if (req.query.hasOwnProperty('zone')) {
+            if (Object.hasOwn(req.query, 'zone')) {
                 promise = zgrab443.getSSLAlgorithmByZonePromise(req.params.algorithm, req.query.zone, count, recursive, limit, page);
             } else {
                 promise = zgrab443.getSSLAlgorithmPromise(req.params.algorithm, count, recursive, limit, page);
@@ -2262,7 +2262,7 @@ export default function trackedScansRouter(envConfig) {
         .get(function (req, res) {
 
             let recursive = false;
-            if (req.query.hasOwnProperty('recursive') && req.query.recursive === "1") {
+            if (Object.hasOwn(req.query, 'recursive') && req.query.recursive === "1") {
                 recursive = true;
             }
 
@@ -2272,7 +2272,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -2284,7 +2284,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -2297,36 +2297,36 @@ export default function trackedScansRouter(envConfig) {
 
             let promise;
 
-            if (req.query.hasOwnProperty('org')) {
+            if (Object.hasOwn(req.query, 'org')) {
                 let org = req.query.org;
 
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = zgrab443.getSSLOrgCountPromise(org, recursive);
                 } else {
                     promise = zgrab443.getRecordsBySSLOrgPromise(org, recursive, limit, page);
                 }
-            } else if (req.query.hasOwnProperty('common_name')) {
+            } else if (Object.hasOwn(req.query, 'common_name')) {
                 promise = zgrab443.getSSLByCommonNamePromise(req.query.common_name, recursive);
-            } else if (req.query.hasOwnProperty('serial_number')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'serial_number')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = zgrab443.getSSLBySerialNumberPromise(req.query.serial_number.toLowerCase(), true, recursive);
                 } else {
                     promise = zgrab443.getSSLBySerialNumberPromise(req.query.serial_number.toLowerCase(), false, recursive);
                 }
-            } else if (req.query.hasOwnProperty('zone')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'zone')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = zgrab443.getSSLByZonePromise(req.query.zone, true);
                 } else {
                     promise = zgrab443.getSSLByZonePromise(req.query.zone, false, limit, page);
                 }
-            } else if (req.query.hasOwnProperty('fingerprint_sha1')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'fingerprint_sha1')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = zgrab443.getRecordsBySSLFingerprintPromise(req.query.fingerprint_sha1, true, recursive);
                 } else {
                     promise = zgrab443.getRecordsBySSLFingerprintPromise(req.query.fingerprint_sha1, false, recursive);
                 }
-            } else if (req.query.hasOwnProperty('fingerprint_sha256')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'fingerprint_sha256')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = zgrab443.getRecordsBySSL256FingerprintPromise(req.query.fingerprint_sha256, true, recursive);
                 } else {
                     promise = zgrab443.getRecordsBySSL256FingerprintPromise(req.query.fingerprint_sha256, false, recursive);
@@ -2342,7 +2342,7 @@ export default function trackedScansRouter(envConfig) {
                     res.status(404).json({ 'message': 'Cert not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     if (recursive === true) {
                         res.status(200).json({ 'count': data });
                     } else {
@@ -2427,7 +2427,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let recursive = false;
-            if (req.query.hasOwnProperty('recursive') && req.query.recursive === "1") {
+            if (Object.hasOwn(req.query, 'recursive') && req.query.recursive === "1") {
                 recursive = true;
             }
 
@@ -2555,7 +2555,7 @@ export default function trackedScansRouter(envConfig) {
     router.route('/zgrab/443/cert_ca/:ca')
         // Get records for an individual CA
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('ca'))) {
+            if (!(Object.hasOwn(req.params, 'ca'))) {
                 res.status(400).json({ 'message': 'A CA value must be provided.' });
                 return;
             }
@@ -2570,7 +2570,7 @@ export default function trackedScansRouter(envConfig) {
             let ca = unescape(req.params.ca);
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -2582,7 +2582,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -2594,11 +2594,11 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let recursive = false;
-            if (req.query.hasOwnProperty('recursive') && req.query.recursive === "1") {
+            if (Object.hasOwn(req.query, 'recursive') && req.query.recursive === "1") {
                 recursive = true;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
                 promise = zgrab443.getRecordsBySSLCAPromise(ca, true, page, limit, recursive);
             } else {
@@ -2684,7 +2684,7 @@ export default function trackedScansRouter(envConfig) {
 
             let decade = "2k";
 
-            if (req.query.hasOwnProperty('decade')) {
+            if (Object.hasOwn(req.query, 'decade')) {
                 decade = req.query.decade;
             }
 
@@ -2769,10 +2769,10 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('year'))) {
+            if (!(Object.hasOwn(req.query, 'year'))) {
                 res.status(400).json({ 'message': 'A year must be provided.' });
                 return;
-            } else if (req.query.year.match(/^[0-9\-]+$/) == null) {
+            } else if (req.query.year.match(/^[0-9-]+$/) == null) {
                 res.status(400).json({ 'message': 'A valid year must be provided.' });
                 return;
             }
@@ -2792,7 +2792,7 @@ export default function trackedScansRouter(envConfig) {
                 let today = new Date();
                 let thisYear = today.getFullYear().toString();
                 let test;
-                if (data[0]['data']['http'].hasOwnProperty('request') && data[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                if (Object.hasOwn(data[0]['data']['http'], 'request') && Object.hasOwn(data[0]['data']['http']['request'], 'tls_log')) {
                     test = data[0]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'].startsWith(thisYear);
                 } else {
                     test = data[0]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end'].startsWith(thisYear);
@@ -2801,7 +2801,7 @@ export default function trackedScansRouter(envConfig) {
                     let results = [];
                     for (let i = 0; i < data.length; i++) {
                         let tempDate;
-                        if (data[i]['data']['http'].hasOwnProperty('request') && data[i]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                        if (Object.hasOwn(data[i]['data']['http'], 'request') && Object.hasOwn(data[i]['data']['http']['request'], 'tls_log')) {
                             tempDate = new Date(data[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end']);
                         } else {
                             tempDate = new Date(data[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end']);
@@ -2908,7 +2908,7 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true
             }
 
@@ -3067,7 +3067,7 @@ export default function trackedScansRouter(envConfig) {
     router.route('/zgrab/80/zones/:zone')
         // get info on a specific zones
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.params, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
             }
@@ -3078,11 +3078,11 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true
             }
 
-            let promise = zgrab80.getRecordsByZonePromise(zone, count);
+            let promise = zgrab80.getRecordsByZonePromise(req.params.zone, count);
 
             promise.then(function (data) {
                 if (!data) {
@@ -3190,12 +3190,12 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -3207,7 +3207,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -3326,12 +3326,12 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -3343,7 +3343,7 @@ export default function trackedScansRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -3559,7 +3559,7 @@ export default function trackedScansRouter(envConfig) {
      */
     router.route('/zgrab/80/headers/:header')
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('header'))) {
+            if (!(Object.hasOwn(req.params, 'header'))) {
                 res.status(400).json({
                     'message': 'A header value must be provided.',
                 });
@@ -3575,17 +3575,17 @@ export default function trackedScansRouter(envConfig) {
             let promise;
             let count = false;
             let zone = '';
-            if (req.query.hasOwnProperty('zone') && req.query.zone !== '') {
+            if (Object.hasOwn(req.query, 'zone') && req.query.zone !== '') {
                 zone = req.query.zone;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 promise = zgrab80.getHttpHeaderPromise(header, zone, true);
                 count = true;
-            } else if (req.query.hasOwnProperty('distinct') &&
+            } else if (Object.hasOwn(req.query, 'distinct') &&
                 req.query.distinct === '1') {
                 promise = zgrab80.getDistinctHttpHeaderPromise(header, zone);
-            } else if (req.query.hasOwnProperty('value')) {
+            } else if (Object.hasOwn(req.query, 'value')) {
                 promise = zgrab80.getHttpHeaderByValuePromise(header, req.query.value, zone);
             } else {
                 promise = zgrab80.getHttpHeaderPromise(header, zone, false);
@@ -3656,7 +3656,7 @@ export default function trackedScansRouter(envConfig) {
                 return;
             }
 
-            if (!(req.query.hasOwnProperty('collection'))) {
+            if (!(Object.hasOwn(req.query, 'collection'))) {
                 res.status(400).json({
                     'message': 'A collection value must be provided.',
                 });

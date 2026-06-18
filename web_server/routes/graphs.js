@@ -30,7 +30,7 @@ import { cert_graphs as certGraphRecs } from '../config/models/cert_graphs.js';
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -320,6 +320,7 @@ function is_valid_strings(params) {
  *
  */
 
+/* eslint-disable-next-line no-unused-vars */
 export default function graphsRouter(envConfig) {
 
     /**
@@ -533,7 +534,7 @@ export default function graphsRouter(envConfig) {
      */
     router.route('/graphs/:zone')
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.params, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
             }
@@ -545,16 +546,16 @@ export default function graphsRouter(envConfig) {
 
             let graphPromise;
             let count = false;
-            if (req.query.hasOwnProperty('dataType') &&
+            if (Object.hasOwn(req.query, 'dataType') &&
                 req.query.dataType === 'links') {
                 graphPromise = graphLinksRecs.getGraphLinksByZone(req.params.zone);
-            } else if (req.query.hasOwnProperty('dataType') &&
+            } else if (Object.hasOwn(req.query, 'dataType') &&
                 req.query.dataType === 'config') {
                 graphPromise = graphRecs.getGraphConfigByZone(req.params.zone);
-            } else if (req.query.hasOwnProperty('dataType') &&
+            } else if (Object.hasOwn(req.query, 'dataType') &&
                 req.query.dataType === 'docs') {
                 graphPromise = graphDocsRecs.getGraphDocsByZone(req.params.zone);
-            } else if (req.query.hasOwnProperty('count') && req.query.count == "1") {
+            } else if (Object.hasOwn(req.query, 'count') && req.query.count == "1") {
                 count = true;
                 graphPromise = graphDataRecs.getGraphCountByZone(req.params.zone)
             } else {
@@ -712,16 +713,16 @@ export default function graphsRouter(envConfig) {
                 return;
             }
 
-            if (!(req.params.hasOwnProperty('tpd'))) {
+            if (!(Object.hasOwn(req.params, 'tpd'))) {
                 res.status(400).json({ 'message': 'A TPD TLD must be provided.' });
                 return;
             }
 
             let graphPromise;
-            if (req.query.hasOwnProperty('dataType') &&
+            if (Object.hasOwn(req.query, 'dataType') &&
                 req.query.dataType === 'links') {
                 graphPromise = tpdGraphRecs.getTPDGraphLinksByTPD(req.params.tpd);
-            } else if (req.query.hasOwnProperty('dataType') &&
+            } else if (Object.hasOwn(req.query, 'dataType') &&
                 req.query.dataType === 'config') {
                 graphPromise = tpdGraphRecs.getTPDGraphConfigByTPD(req.params.tpd);
             } else {
@@ -874,16 +875,16 @@ export default function graphsRouter(envConfig) {
                 return;
             }
 
-            if (!(req.params.hasOwnProperty('cidr'))) {
+            if (!(Object.hasOwn(req.params, 'cidr'))) {
                 res.status(400).json({ 'message': 'A Class 3 zone (e.g. "8.8.8") must be provided.' });
                 return;
             }
 
             let graphPromise;
-            if (req.query.hasOwnProperty('dataType') &&
+            if (Object.hasOwn(req.query, 'dataType') &&
                 req.query.dataType === 'links') {
                 graphPromise = cidrGraphRecs.getCIDRGraphLinksByZone(req.params.cidr);
-            } else if (req.query.hasOwnProperty('dataType') &&
+            } else if (Object.hasOwn(req.query, 'dataType') &&
                 req.query.dataType === 'config') {
                 graphPromise = cidrGraphRecs.getCIDRGraphConfigByZone(req.params.cidr);
             } else {
@@ -947,7 +948,7 @@ export default function graphsRouter(envConfig) {
 
     router.route('/cert_graphs/:zone')
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.params, 'zone'))) {
                 res.status(500).json({ 'message': 'A zone must be provided.' });
                 return;
             }

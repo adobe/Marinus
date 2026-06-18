@@ -293,17 +293,17 @@ export default function censysRouter(envConfig) {
     router.route('/censys/zones/:zone')
         // get info on a specific zones
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('zone'))) {
+            if (!(Object.hasOwn(req.params, 'zone'))) {
                 res.status(400).json({ 'message': 'A zone must be provided.' });
                 return;
             }
 
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true
             }
 
-            let promise = censys.getRecordsByZonePromise(zone, count);
+            let promise = censys.getRecordsByZonePromise(req.params.zone, count);
 
             promise.then(function (data) {
                 if (!data) {
@@ -517,28 +517,28 @@ export default function censysRouter(envConfig) {
     router.route('/censys/ports')
         // get info on specific ports
         .get(function (req, res) {
-            if (!(req.query.hasOwnProperty('port'))) {
+            if (!(Object.hasOwn(req.query, 'port'))) {
                 res.status(400).json({ 'message': 'A port must be provided.' });
                 return;
             }
 
             let ip = null;
-            if (req.query.hasOwnProperty('ip')) {
+            if (Object.hasOwn(req.query, 'ip')) {
                 ip = req.query.ip;
             }
 
             let qtype = '';
-            if (req.query.hasOwnProperty('type')) {
+            if (Object.hasOwn(req.query, 'type')) {
                 qtype = req.query.type;
             }
 
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = req.query.limit;
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -700,14 +700,14 @@ export default function censysRouter(envConfig) {
         // get info on a specific ip or range
         .get(function (req, res) {
             let promise;
-            if (req.query.hasOwnProperty('range')) {
+            if (Object.hasOwn(req.query, 'range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
                     res.status(400).json({ 'message': escapeHTML(searchRange) });
                     return;
                 }
                 let count = false;
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     count = true;
                 }
                 promise = censys.getRecordByIpRangePromise(searchRange);
@@ -721,7 +721,7 @@ export default function censysRouter(envConfig) {
                     let returnData = [];
                     for (let i = 0; i < data.length; i++) {
                         if (matcher.contains(data[i]['ip'])) {
-                            returnData.push(rdata[i]);
+                            returnData.push(data[i]);
                         }
                     }
                     if (count) {
@@ -732,7 +732,7 @@ export default function censysRouter(envConfig) {
                     return;
                 });
                 return;
-            } else if (req.query.hasOwnProperty('ip')) {
+            } else if (Object.hasOwn(req.query, 'ip')) {
                 promise = censys.getRecordByIpPromise(req.query.ip);
             } else {
                 res.status(400).json({
@@ -1055,7 +1055,7 @@ export default function censysRouter(envConfig) {
     router.route('/censys/headers/:header')
         // Retrieve information on headers
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('header'))) {
+            if (!(Object.hasOwn(req.params, 'header'))) {
                 res.status(400).json({
                     'message': 'A header value must be provided.',
                 });
@@ -1072,32 +1072,32 @@ export default function censysRouter(envConfig) {
             }
 
             let header_type = "known";
-            if (req.query.hasOwnProperty("header_type") && req.query.header_type === "unknown") {
+            if (Object.hasOwn(req.query, "header_type") && req.query.header_type === "unknown") {
                 header_type = "unknown";
             }
 
             let promise;
             let count = false;
             let zone = '';
-            if (req.query.hasOwnProperty('zone') && req.query.zone !== '') {
+            if (Object.hasOwn(req.query, 'zone') && req.query.zone !== '') {
                 zone = req.query.zone;
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 if (header_type === "unknown") {
                     promise = censys.getUnknownHttpHeaderPromise(header, zone, true);
                 } else {
                     promise = censys.getHttpHeaderPromise(header, zone, true);
                 }
                 count = true;
-            } else if (req.query.hasOwnProperty('distinct') &&
+            } else if (Object.hasOwn(req.query, 'distinct') &&
                 req.query.distinct === '1') {
                 if (header_type === "unknown") {
                     promise = censys.getDistinctUnknownHttpHeaderPromise(header, zone);
                 } else {
                     promise = censys.getDistinctHttpHeaderPromise(header, zone);
                 }
-            } else if (req.query.hasOwnProperty('value')) {
+            } else if (Object.hasOwn(req.query, 'value')) {
                 if (header_type === "unknown") {
                     promise = censys.getUnknownHttpHeaderByValuePromise(header, req.query.value, zone);
                 } else {
@@ -1248,18 +1248,18 @@ export default function censysRouter(envConfig) {
     router.route('/censys/algorithm/:algorithm')
         // get info on a specific algorithm
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('algorithm')) ||
+            if (!(Object.hasOwn(req.params, 'algorithm')) ||
                 req.params.algorithm.length === 0) {
                 res.status(400).json({ 'message': 'An algorithm must be provided.' });
                 return;
             }
             let count = false;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
             }
 
             let promise;
-            if (req.query.hasOwnProperty('zone')) {
+            if (Object.hasOwn(req.query, 'zone')) {
                 promise = censys.getSSLAlgorithmByZonePromise(req.params.algorithm, req.query.zone, count);
             } else {
                 promise = censys.getSSLAlgorithmPromise(req.params.algorithm, count);
@@ -1450,36 +1450,36 @@ export default function censysRouter(envConfig) {
         // get info on a specific domain
         .get(function (req, res) {
             let promise;
-            if (req.query.hasOwnProperty('org')) {
+            if (Object.hasOwn(req.query, 'org')) {
                 let org = req.query.org;
 
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = censys.getSSLOrgCountPromise(org);
                 } else {
                     promise = censys.getRecordsBySSLOrgPromise(org);
                 }
-            } else if (req.query.hasOwnProperty('common_name')) {
+            } else if (Object.hasOwn(req.query, 'common_name')) {
                 promise = censys.getSSLByCommonNamePromise(req.query.common_name);
-            } else if (req.query.hasOwnProperty('zone')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'zone')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = censys.getSSLByZonePromise(req.query.zone, true);
                 } else {
                     promise = censys.getSSLByZonePromise(req.query.zone, false);
                 }
-            } else if (req.query.hasOwnProperty('serial_number')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'serial_number')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = censys.getRecordsBySSLSerialNumberPromise(req.query.serial_number, true);
                 } else {
                     promise = censys.getRecordsBySSLSerialNumberPromise(req.query.serial_number, false);
                 }
-            } else if (req.query.hasOwnProperty('fingerprint_sha1')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'fingerprint_sha1')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = censys.getRecordsBySSLFingerprintPromise(req.query.fingerprint_sha1, true);
                 } else {
                     promise = censys.getRecordsBySSLFingerprintPromise(req.query.fingerprint_sha1, false);
                 }
-            } else if (req.query.hasOwnProperty('fingerprint_sha256')) {
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            } else if (Object.hasOwn(req.query, 'fingerprint_sha256')) {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     promise = censys.getRecordsBySSL256FingerprintPromise(req.query.fingerprint_sha256, true);
                 } else {
                     promise = censys.getRecordsBySSL256FingerprintPromise(req.query.fingerprint_sha256, false);
@@ -1495,7 +1495,7 @@ export default function censysRouter(envConfig) {
                     res.status(404).json({ 'message': 'Cert not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
@@ -1711,7 +1711,7 @@ export default function censysRouter(envConfig) {
     router.route('/censys/cert_ca/:ca')
         // Get records for an individual CA
         .get(function (req, res) {
-            if (!(req.params.hasOwnProperty('ca'))) {
+            if (!(Object.hasOwn(req.params, 'ca'))) {
                 res.status(400).json({ 'message': 'A CA value must be provided.' });
                 return;
             }
@@ -1720,11 +1720,11 @@ export default function censysRouter(envConfig) {
             let count = false;
             let ca = unescape(req.params.ca);
             let limit = 0;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
             }
 
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 count = true;
                 promise = censys.getRecordsBySSLCAPromise(ca, true, limit);
             } else {
@@ -1859,10 +1859,10 @@ export default function censysRouter(envConfig) {
     router.route('/censys/expired_certs_by_year')
         // get info on expired certs
         .get(function (req, res) {
-            if (!(req.query.hasOwnProperty('year'))) {
+            if (!(Object.hasOwn(req.query, 'year'))) {
                 res.status(400).json({ 'message': 'A year must be provided.' });
                 return;
-            } else if (req.query.year.match(/^[0-9\-]+$/) == null) {
+            } else if (req.query.year.match(/^[0-9-]+$/) == null) {
                 res.status(400).json({ 'message': 'A valid year must be provided.' });
                 return;
             }
@@ -1983,13 +1983,13 @@ export default function censysRouter(envConfig) {
     router.route('/censys/heartbleed')
         .get(function (req, res) {
             let org;
-            if (req.query.hasOwnProperty('org')) {
+            if (Object.hasOwn(req.query, 'org')) {
                 org = req.query.org;
             } else {
                 org = null;
             }
             let promise;
-            if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+            if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                 promise = censys.getSSLHeartbleedPromise(org, true);
             } else {
                 promise = censys.getSSLHeartbleedPromise(org, false);
@@ -1999,7 +1999,7 @@ export default function censysRouter(envConfig) {
                     res.status(404).json({ 'message': 'Data not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
@@ -2055,7 +2055,7 @@ export default function censysRouter(envConfig) {
     router.route('/censys/protocol_count')
         .get(function (req, res) {
             let promise;
-            if (req.query.hasOwnProperty('protocol') &&
+            if (Object.hasOwn(req.query, 'protocol') &&
                 ((req.query.protocol === 'ssl_2') ||
                     (req.query.protocol === 'ssl_3') ||
                     (req.query.protocol === 'tls') ||

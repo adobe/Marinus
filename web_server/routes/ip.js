@@ -73,6 +73,7 @@ import { ip as ipRecs } from '../config/models/ip.js';
  *             example: ["The raw splunk records for the associated host"]
  */
 
+/* eslint-disable-next-line no-unused-vars */
 export default function ipRouter(envConfig) {
     /**
      * @swagger
@@ -227,12 +228,12 @@ export default function ipRouter(envConfig) {
             let promise;
             let count = false;
 
-            if (req.query.hasOwnProperty('count') && req.query.count == "1") {
+            if (Object.hasOwn(req.query, 'count') && req.query.count == "1") {
                 count = true;
             }
 
             let limit = 1000;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -244,7 +245,7 @@ export default function ipRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -255,30 +256,30 @@ export default function ipRouter(envConfig) {
                 }
             }
 
-            if (req.query.hasOwnProperty('partner')) {
+            if (Object.hasOwn(req.query, 'partner')) {
                 let partner = req.query.partner;
                 if (partner != "AWS" && partner != "AZURE" && partner != "TRACKED") {
                     res.status(400).json({ 'message': 'Unknown hosting partner' });
                     return;
                 }
                 promise = ipRecs.getIPRecordsByHostPartnerPromise(partner, count, limit, page);
-            } else if (req.query.hasOwnProperty('ip')) {
+            } else if (Object.hasOwn(req.query, 'ip')) {
                 promise = ipRecs.getIPRecordsByIPPromise(req.query.ip);
-            } else if (req.query.hasOwnProperty('zone')) {
+            } else if (Object.hasOwn(req.query, 'zone')) {
                 promise = ipRecs.getIPRecordsByZonePromise(req.query.zone, count);
-            } else if (req.query.hasOwnProperty('domain')) {
+            } else if (Object.hasOwn(req.query, 'domain')) {
                 promise = ipRecs.getIPRecordsByDomainPromise(req.query.domain, count);
-            } else if (req.query.hasOwnProperty('host_cidr')) {
+            } else if (Object.hasOwn(req.query, 'host_cidr')) {
                 promise = ipRecs.getIPRecordsByHostCIDRPromise(req.query.host_cidr, count);
-            } else if (req.query.hasOwnProperty('ip_version')) {
+            } else if (Object.hasOwn(req.query, 'ip_version')) {
                 if (req.query.ip_version != "4" && req.query.ip_version != "6") {
                     res.status(400).json({ 'message': 'Acceptable values are either "4" or "6"' });
                     return;
                 }
                 promise = ipRecs.getIPRecordsByIPVersionPromise(req.query.ip_version, count, limit, page);
-            } else if (req.query.hasOwnProperty('managed_hosts')) {
+            } else if (Object.hasOwn(req.query, 'managed_hosts')) {
                 promise = ipRecs.getAllManagedIPRecordsPromise(count, limit, page);
-            } else if (req.query.hasOwnProperty('data_center')) {
+            } else if (Object.hasOwn(req.query, 'data_center')) {
                 promise = ipRecs.getAllTrackedIPRecordsPromise(count, limit, page);
             } else if (count) {
                 promise = ipRecs.getAllIPRecordsCountPromise();

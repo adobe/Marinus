@@ -59,7 +59,7 @@ function isValidDate(d) {
  */
 function is_valid_strings(params) {
     for (var prop in params) {
-        if (Object.prototype.hasOwnProperty.call(params, prop)) {
+        if (Object.hasOwn(params, prop)) {
             if (typeof params[prop] != "string") {
                 return false;
             }
@@ -138,6 +138,7 @@ function is_valid_strings(params) {
  *
  */
 
+/* eslint-disable-next-line no-unused-vars */
 export default function dnsRouter(envConfig) {
 
     /**
@@ -407,12 +408,12 @@ export default function dnsRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('source')) {
+            if (Object.hasOwn(req.query, 'source')) {
                 source = req.query.source;
             }
 
             let limit = 1000;
-            if (req.query.hasOwnProperty('limit')) {
+            if (Object.hasOwn(req.query, 'limit')) {
                 limit = parseInt(req.query.limit);
                 if (isNaN(limit)) {
                     res.status(400).json({ 'message': 'A valid limit value must be provided.' });
@@ -424,7 +425,7 @@ export default function dnsRouter(envConfig) {
             }
 
             let page = 1;
-            if (req.query.hasOwnProperty('page')) {
+            if (Object.hasOwn(req.query, 'page')) {
                 page = parseInt(req.query.page);
                 if (isNaN(page)) {
                     res.status(400).json({ 'message': 'A valid page value must be provided.' });
@@ -436,7 +437,7 @@ export default function dnsRouter(envConfig) {
             }
 
             let created_date = null;
-            if (req.query.hasOwnProperty('created')) {
+            if (Object.hasOwn(req.query, 'created')) {
                 created_date = new Date(req.query.created);
                 if (!isValidDate(created_date)) {
                     res.status(400).json({
@@ -446,7 +447,7 @@ export default function dnsRouter(envConfig) {
                 }
             }
 
-            if (req.query.hasOwnProperty('range')) {
+            if (Object.hasOwn(req.query, 'range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
                     res.status(400).json({ 'message': escapeHTML(searchRange) });
@@ -466,7 +467,7 @@ export default function dnsRouter(envConfig) {
                             returnData.push(data[i]);
                         }
                     }
-                    if (req.query.hasOwnProperty('count')) {
+                    if (Object.hasOwn(req.query, 'count')) {
                         res.status(200).json({ 'count': returnData.length });
                     } else {
                         res.status(200).json(returnData);
@@ -474,7 +475,7 @@ export default function dnsRouter(envConfig) {
                     return;
                 });
                 return;
-            } else if (req.query.hasOwnProperty('ipv6_range')) {
+            } else if (Object.hasOwn(req.query, 'ipv6_range')) {
                 if (!isRange(req.query.ipv6_range)) {
                     res.status(400).json({ 'message': 'A valid IPv6 range must be provided' });
                     return;
@@ -492,7 +493,7 @@ export default function dnsRouter(envConfig) {
                             returnData.push(data[i]);
                         }
                     }
-                    if (req.query.hasOwnProperty('count')) {
+                    if (Object.hasOwn(req.query, 'count')) {
                         res.status(200).json({ 'count': returnData.length });
                     } else {
                         res.status(200).json(returnData);
@@ -500,31 +501,31 @@ export default function dnsRouter(envConfig) {
                     return;
                 });
                 return;
-            } else if (req.query.hasOwnProperty('domain')) {
+            } else if (Object.hasOwn(req.query, 'domain')) {
                 promise = allDNS.getAllDNSByDomainPromise(req.query.domain, source);
-            } else if (req.query.hasOwnProperty('ip')) {
+            } else if (Object.hasOwn(req.query, 'ip')) {
                 promise = allDNS.getAllDNSByIPPromise(req.query.ip, source);
-            } else if (req.query.hasOwnProperty('ipv6')) {
+            } else if (Object.hasOwn(req.query, 'ipv6')) {
                 promise = allDNS.getAllDNSByIPv6Promise(req.query.ipv6, source);
-            } else if (req.query.hasOwnProperty('amazonSearch')) {
+            } else if (Object.hasOwn(req.query, 'amazonSearch')) {
                 promise = allDNS.getAllDNSAmazonEntriesPromise(req.query.amazonSearch, source);
-            } else if (req.query.hasOwnProperty('txtSearch')) {
+            } else if (Object.hasOwn(req.query, 'txtSearch')) {
                 let zone = null;
                 let count = false;
-                if (req.query.hasOwnProperty('zone')) {
+                if (Object.hasOwn(req.query, 'zone')) {
                     zone = req.query.zone;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     count = true;
                 }
                 if (req.query.txtSearch === 'spf') {
-                    if (req.query.hasOwnProperty('list') && req.query.list === '1') {
+                    if (Object.hasOwn(req.query, 'list') && req.query.list === '1') {
                         promise = allDNS.getAllDNSTxtByZoneCountPromise('spf', source);
                     } else {
                         promise = allDNS.getAllDNSByTxtSearchPromise('spf', zone, source, count);
                     }
                 } else if (req.query.txtSearch === 'dkim') {
-                    if (req.query.hasOwnProperty('list') && req.query.list === '1') {
+                    if (Object.hasOwn(req.query, 'list') && req.query.list === '1') {
                         promise = allDNS.getAllDNSTxtByZoneCountPromise('dkim', source);
                     } else {
                         promise = allDNS.getAllDNSByTxtSearchPromise('dkim', zone, source, count);
@@ -533,44 +534,44 @@ export default function dnsRouter(envConfig) {
                     res.status(400).json({ 'message': 'Unknown text search type.' });
                     return;
                 }
-            } else if (req.query.hasOwnProperty('dnsType')) {
+            } else if (Object.hasOwn(req.query, 'dnsType')) {
                 let zone = null;
                 let count = false;
-                if (req.query.hasOwnProperty('zone')) {
+                if (Object.hasOwn(req.query, 'zone')) {
                     zone = req.query.zone;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     count = true;
                 }
-                if (req.query.hasOwnProperty('list') && req.query.list === '1') {
+                if (Object.hasOwn(req.query, 'list') && req.query.list === '1') {
                     promise = allDNS.getAllDNSTypeByZoneCountPromise(req.query.dnsType, source);
                 } else {
                     promise = allDNS.getAllDNSByTypePromise(req.query.dnsType, zone, source, count, created_date, limit, page);
                 }
-            } else if (req.query.hasOwnProperty('cnameTLD')) {
-                if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
+            } else if (Object.hasOwn(req.query, 'cnameTLD')) {
+                if (Object.hasOwn(req.query, 'zone') && req.query.zone.length > 0) {
                     promise = allDNS.getAllDNSByCanonicalSearch(req.query.cnameTLD, req.query.zone, source);
                 } else {
                     promise = allDNS.getAllDNSByCanonicalSearch(req.query.cnameTLD, null, source);
                 }
-            } else if (req.query.hasOwnProperty('cname')) {
-                if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
+            } else if (Object.hasOwn(req.query, 'cname')) {
+                if (Object.hasOwn(req.query, 'zone') && req.query.zone.length > 0) {
                     promise = allDNS.getAllDNSByCNameSearch(req.query.cname, req.query.zone, source);
                 } else {
                     promise = allDNS.getAllDNSByCNameSearch(req.query.cname, null, source);
                 }
-            } else if ((req.query.hasOwnProperty('count')) &&
+            } else if ((Object.hasOwn(req.query, 'count')) &&
                 (req.query.count === '1')) {
-                if (req.query.hasOwnProperty('zone')) {
+                if (Object.hasOwn(req.query, 'zone')) {
                     promise = allDNS.getAllDNSCount(req.query.zone, source);
                 } else {
                     promise = allDNS.getAllDNSCount(null, source);
                 }
-            } else if (req.query.hasOwnProperty('zone')) {
+            } else if (Object.hasOwn(req.query, 'zone')) {
                 promise = allDNS.getAllDNSByZonePromise(req.query.zone, source, created_date, limit, page);
-            } else if (req.query.hasOwnProperty('accountInfoValue')) {
+            } else if (Object.hasOwn(req.query, 'accountInfoValue')) {
                 promise = allDNS.getByAccountInfo(req.query.accountInfoValue);
-            } else if (req.query.hasOwnProperty('subdomain')) {
+            } else if (Object.hasOwn(req.query, 'subdomain')) {
                 let escaped_domain = req.query.subdomain.replace(/\./g, "\\.");
                 promise = allDNS.getRegexDNSWithCreatedPromise(escaped_domain, created_date, limit, page);
             } else if (created_date != null) {
@@ -586,7 +587,7 @@ export default function dnsRouter(envConfig) {
                     res.status(404).json({ 'message': 'Info not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
@@ -791,10 +792,10 @@ export default function dnsRouter(envConfig) {
                 return;
             }
 
-            if (req.query.hasOwnProperty('source')) {
+            if (Object.hasOwn(req.query, 'source')) {
                 source = req.query.source;
             }
-            if (req.query.hasOwnProperty('range')) {
+            if (Object.hasOwn(req.query, 'range')) {
                 let searchRange = createRange(req.query.range);
                 if (searchRange.startsWith('Error')) {
                     res.status(500).json({ 'message': escapeHTML(searchRange) });
@@ -814,7 +815,7 @@ export default function dnsRouter(envConfig) {
                             returnData.push(data[i]);
                         }
                     }
-                    if (req.query.hasOwnProperty('count')) {
+                    if (Object.hasOwn(req.query, 'count')) {
                         res.status(200).json({ 'count': returnData.length });
                     } else {
                         res.status(200).json(returnData);
@@ -822,40 +823,40 @@ export default function dnsRouter(envConfig) {
                     return;
                 });
                 return;
-            } else if (req.query.hasOwnProperty('domain')) {
+            } else if (Object.hasOwn(req.query, 'domain')) {
                 promise = deadDNS.getDeadDNSByDomainPromise(req.query.domain, source);
-            } else if (req.query.hasOwnProperty('ip')) {
+            } else if (Object.hasOwn(req.query, 'ip')) {
                 promise = deadDNS.getDeadDNSByIPPromise(req.query.ip, source);
-            } else if (req.query.hasOwnProperty('amazonSearch')) {
+            } else if (Object.hasOwn(req.query, 'amazonSearch')) {
                 promise = deadDNS.getDeadDNSAmazonEntriesPromise(req.query.amazonSearch, source);
-            } else if (req.query.hasOwnProperty('dnsType')) {
+            } else if (Object.hasOwn(req.query, 'dnsType')) {
                 let zone = null;
                 let count = false;
-                if (req.query.hasOwnProperty('zone')) {
+                if (Object.hasOwn(req.query, 'zone')) {
                     zone = req.query.zone;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     count = true;
                 }
-                if (req.query.hasOwnProperty('list') && req.query.list === '1') {
+                if (Object.hasOwn(req.query, 'list') && req.query.list === '1') {
                     promise = deadDNS.getDeadDNSTypeByZoneCountPromise(req.query.dnsType, source);
                 } else {
                     promise = deadDNS.getDeadDNSByTypePromise(req.query.dnsType, zone, source, count);
                 }
-            } else if (req.query.hasOwnProperty('cnameTLD')) {
-                if (req.query.hasOwnProperty('zone') && req.query.zone.length > 0) {
+            } else if (Object.hasOwn(req.query, 'cnameTLD')) {
+                if (Object.hasOwn(req.query, 'zone') && req.query.zone.length > 0) {
                     promise = deadDNS.getDeadDNSByCanonicalSearch(req.query.cnameTLD, req.query.zone, source);
                 } else {
                     promise = deadDNS.getDeadDNSByCanonicalSearch(req.query.cnameTLD, null, source);
                 }
-            } else if ((req.query.hasOwnProperty('count')) &&
+            } else if ((Object.hasOwn(req.query, 'count')) &&
                 (req.query.count === '1')) {
-                if (req.query.hasOwnProperty('zone')) {
+                if (Object.hasOwn(req.query, 'zone')) {
                     promise = deadDNS.getDeadDNSCount(req.query.zone, source);
                 } else {
                     promise = deadDNS.getDeadDNSCount(null, source);
                 }
-            } else if (req.query.hasOwnProperty('zone')) {
+            } else if (Object.hasOwn(req.query, 'zone')) {
                 promise = deadDNS.getDeadDNSByZonePromise(req.query.zone, source);
             } else {
                 promise = deadDNS.getAllDeadDNSPromise();
@@ -865,7 +866,7 @@ export default function dnsRouter(envConfig) {
                     res.status(404).json({ 'message': 'Info not found' });
                     return;
                 }
-                if (req.query.hasOwnProperty('count') && req.query.count === '1') {
+                if (Object.hasOwn(req.query, 'count') && req.query.count === '1') {
                     res.status(200).json({ 'count': data });
                 } else {
                     res.status(200).json(data);
