@@ -173,9 +173,9 @@ function assignVTEventListeners() {
 
 function displayVtCountData(obj, divRef) {
     var cSpan = document.getElementById(divRef)
-    if (obj.hasOwnProperty("count")) {
+    if (Object.hasOwn(obj, "count")) {
         cSpan.innerHTML = obj.count;
-    } else if (obj.hasOwnProperty("message")) {
+    } else if (Object.hasOwn(obj, "message")) {
         cSpan.innerHTML = "Error: " + obj.message;
     } else {
         cSpan.innerHTML = "Error parsing response";

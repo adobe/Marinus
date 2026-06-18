@@ -111,6 +111,7 @@ function find_by_name(arr, value) {
     return result ? result[0] : null;
 }
 
+/* eslint-disable-next-line no-unused-vars */
 function drawGraph(z_type) {
     $('#graph').empty();
 
@@ -323,6 +324,7 @@ function drawGraph(z_type) {
                 highlightObject(event, d);
             }
         })
+        /* eslint-disable-next-line no-unused-vars */
         .on('mouseout', function (event, d) {
             if (!selected.obj) {
                 if (graph.mouseoutTimeout) {
@@ -439,11 +441,11 @@ function drawGraph(z_type) {
         .attr('class', 'category')
         .on("click", function (d) {
             if (d.data_type === "tracked_domain") {
-                window.open("/graph?zone=" + d.group.replace(/\!/g, "."), "_blank");
+                window.open("/graph?zone=" + d.group.replace(/!/g, "."), "_blank");
             } else if (d.data_type === "cidr") {
-                window.open("/graph?cidr=" + d.group.replace(/\!/g, "."), "_blank");
+                window.open("/graph?cidr=" + d.group.replace(/!/g, "."), "_blank");
             } else if (d.group !== "aws" && d.group !== "akamai") {
-                window.open("/graph?tpd=" + d.group.replace(/\!/g, "."), "_blank");
+                window.open("/graph?tpd=" + d.group.replace(/!/g, "."), "_blank");
             }
         });
 
@@ -475,6 +477,7 @@ function drawGraph(z_type) {
         .on('mouseover', function (event, d) {
             highlightGroup(event, d);
         })
+        /* eslint-disable-next-line no-unused-vars */
         .on('mouseout', function (event, d) {
             highlightGroup(null, null);
         });
@@ -485,7 +488,7 @@ function drawGraph(z_type) {
             return graph.legendConfig.yOffsetText + i * graph.legendConfig.lineHeight;
         })
         .text(function (d) {
-            return d.typeName + (d.group ? ': ' + d.group.replace(/\!/g, ".") : '');
+            return d.typeName + (d.group ? ': ' + d.group.replace(/!/g, ".") : '');
         });
 }
 
@@ -523,6 +526,7 @@ function preventCollisions() {
             oy1 = obj.y + obj.extent.top,
             oy2 = obj.y + obj.extent.bottom;
 
+        /* eslint-disable-next-line no-unused-vars */
         quadtree.visit(function (quad, x1, y1, x2, y2) {
             if (!quad.length) {
                 do {
@@ -565,6 +569,7 @@ function preventCollisions() {
                         }
                         return ix;
                     }
+                /* eslint-disable-next-line no-cond-assign */
                 } while (quad = quad.next)
             }
             return 0;
@@ -708,6 +713,7 @@ function highlightGroup(event, obj) {
                     && d.type !== obj.type
                     && d.type !== obj.type);
             });
+            /* eslint-disable-next-line no-unused-vars */
             graph.line.classed('inactive', function (d) {
                 return (true);
             });
@@ -750,7 +756,7 @@ var showingDocs = false,
 
 function resize(showDocs) {
     var docsHeight = 0,
-        graphHeight = 0,
+        graphHeight,
         $docs = $('#docs-container'),
         $graphCtnr = $('#graph-container'),
         $graphBox = $('#graph'),
@@ -785,12 +791,14 @@ function resize(showDocs) {
     });
 }
 
+/* eslint-disable-next-line no-unused-vars */
 function doZoom(event, obj) {
     graph.svg.attr("transform", "translate(" + event.transform.x + ", " + event.transform.y + ") scale(" + event.transform.k + ")");
 }
 
 function doSearch() {
     var item = document.getElementById('searchField').value;
+    /* eslint-disable-next-line no-unused-vars */
     var selected = graph.svg.selectAll('.node').filter(function (d, i) {
         return d.name.toLowerCase().search(item.toLowerCase()) === -1;
     });
@@ -808,6 +816,7 @@ function doReload() {
     window.location.href = "/graph?zone=" + document.getElementById('reloadField').value;
 }
 
+/* eslint-disable-next-line no-unused-vars */
 var drag_table = d3.drag().subject(this)
     .on('start', function (event, d) {
         if (d.x1) {

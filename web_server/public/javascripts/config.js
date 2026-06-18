@@ -85,8 +85,8 @@ function confirm_patch_update(results, requestId) {
 function patch_zone(ev) {
     var requestId = this.id;
     ev.preventDefault();
-    var query = "";
-    var url = "";
+    var query;
+    var url;
     if (requestId.includes("updateZoneStatus")) {
         url = admin_api_map["zones"] + "/" + last_zone_id;
         query = "status=" + document.getElementById("zoneStatus").value;
@@ -144,8 +144,8 @@ function confirm_user_update(results, requestID) {
 
 function add_user(ev) {
     var requestId = this.id;
-    var query = "";
-    var url = "";
+    var query ;
+    var url;
     document.getElementById('errorMessage').innerHTML = "";
     if (requestId.includes("Group")) {
         if (document.getElementById("selectGroup").value.length === 0) {
@@ -224,8 +224,8 @@ function confirm_zone_update(results, id) {
 
 function add_zone() {
     var requestId = this.id;
-    var query = "";
-    var url = "";
+    var query;
+    var url;
     document.getElementById('errorMessage').innerHTML = "";
     if (requestId.includes("IPZone")) {
         if (document.getElementById("ipZone_add_input").value.length === 0) {
@@ -381,7 +381,7 @@ function display_group_table(results) {
         displayHTML += create_table_entry(results[i]['name']);
         displayHTML += create_table_entry(results[i]['creation_date']);
 
-        if (results[i].hasOwnProperty("updated")) {
+        if (Object.hasOwn(results[i], "updated")) {
             displayHTML += create_table_entry(results[i]['updated']);
         } else {
             displayHTML += create_table_entry(results[i]['creation_date']);
@@ -421,7 +421,7 @@ function display_user_table(results) {
         displayHTML += create_table_row();
         displayHTML += create_table_entry(results[i]['userid']);
 
-        if (results[i].hasOwnProperty("updated")) {
+        if (Object.hasOwn(results[i], "updated")) {
             displayHTML += create_table_entry(results[i]['updated']);
         } else {
             displayHTML += create_table_entry(results[i]['creation_date']);

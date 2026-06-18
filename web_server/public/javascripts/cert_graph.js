@@ -2,9 +2,7 @@ var graph = {},
     selected = {},
     highlighted = null,
     isIE = false,
-    config = {},
-    remoteDocs = {},
-    z_type = 'zone';
+    config = {};
 
 function displayErrorMessage(message) {
     document.getElementById("errorMessage").innerHTML = message;
@@ -98,11 +96,14 @@ $(function () {
     $(window).on('resize', resize);
 });
 
+/**
 function find_by_name(arr, value) {
     var result = arr.filter(function (obj) { return obj.id === value; })
     return result ? result[0] : null;
 }
+*/
 
+/* eslint-disable-next-line no-unused-vars */
 function drawGraph(z_type) {
     $('#graph').empty();
 
@@ -331,6 +332,7 @@ function drawGraph(z_type) {
                 highlightObject(event, d);
             }
         })
+        /* eslint-disable-next-line no-unused-vars */
         .on('mouseout', function (event, d) {
             if (!selected.obj) {
                 if (graph.mouseoutTimeout) {
@@ -474,6 +476,7 @@ function drawGraph(z_type) {
         .on('mouseover', function (event, d) {
             highlightGroup(event, d);
         })
+        /* eslint-disable-next-line no-unused-vars */
         .on('mouseout', function (event, d) {
             highlightGroup(null, null);
         });
@@ -523,6 +526,7 @@ function preventCollisions() {
             oy1 = obj.y + obj.extent.top,
             oy2 = obj.y + obj.extent.bottom;
 
+        /* eslint-disable-next-line no-unused-vars */
         quadtree.visit(function (quad, x1, y1, x2, y2) {
             if (!quad.length) {
                 do {
@@ -565,6 +569,7 @@ function preventCollisions() {
                         }
                         return ix;
                     }
+                /* eslint-disable-next-line no-cond-assign */
                 } while (quad = quad.next)
             }
             return 0;
@@ -719,6 +724,7 @@ function highlightGroup(event, obj) {
                     && obj.key !== d.id
                     && findLinkedNodes(d, obj.key) === false);
             });
+            /* eslint-disable-next-line no-unused-vars */
             graph.line.classed('inactive', function (d) {
                 return (true);
             });
@@ -760,7 +766,7 @@ var showingDocs = false,
 
 function resize(showDocs) {
     var docsHeight = 0,
-        graphHeight = 0,
+        graphHeight,
         $docs = $('#docs-container'),
         $graphCtnr = $('#graph-container'),
         $graphBox = $('#graph'),
@@ -795,12 +801,14 @@ function resize(showDocs) {
     });
 }
 
+/* eslint-disable-next-line no-unused-vars */
 function doZoom(event, obj) {
     graph.svg.attr("transform", "translate(" + event.transform.x + ", " + event.transform.y + ") scale(" + event.transform.k + ")");
 }
 
 function doSearch() {
     var item = document.getElementById('searchField').value;
+    /* eslint-disable-next-line no-unused-vars */
     var selected = graph.svg.selectAll('.node').filter(function (d, i) {
         return d.id.toLowerCase().search(item.toLowerCase()) === -1;
     });

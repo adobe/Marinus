@@ -34,6 +34,20 @@ function assignDNSServerList(result) {
 }
 make_get_request(api_map['whois_db'] + "?distinct_groups=1", assignDNSServerList)
 
+function whois_lookup(event) {
+    dynamic_whois(document.getElementById("whois_input").value, "dynamic_whois");
+    event.preventDefault();
+    return false;
+}
+
+function createWhoisSearchBox() {
+    let whoisHTML = '<h3>Whois</h3>\n';
+    whoisHTML += '<form id="whois_search"><label id="zoneLabel" for="whois_input">Please enter a zone.</label>\n';
+    whoisHTML += '<input type="text" value="" name="whoisSearch" id="whois_input"></input></form>\n';
+    whoisHTML += '<div id="dynamic_whois" class="bg-light"></div>\n';
+    document.getElementById("dynamicWhoisSection").innerHTML = whoisHTML;
+    document.getElementById("whois_search").addEventListener("submit", whois_lookup);
+}
 
 if (DynamicWhoisEnabled) {
     createWhoisSearchBox();
@@ -88,7 +102,7 @@ function displayWhoisList(jsonResults) {
     var resultHTML = "";
     for (let i = 0; i < jsonResults.length; i++) {
         resultHTML += "<a href='/zone?search=" + jsonResults[i]['zone'] + "'>" + jsonResults[i]['zone'] + "</a><br/>";
-        if (jsonResults[i].hasOwnProperty("name_servers") && jsonResults[i]['name_servers'] != null && jsonResults[i]['name_servers'].length > 0) {
+        if (Object.hasOwn(jsonResults[i], "name_servers") && jsonResults[i]['name_servers'] != null && jsonResults[i]['name_servers'].length > 0) {
             resultHTML += " - " + jsonResults[i]['name_servers'].toString() + "<br/>";
         }
         resultHTML += "<br/>";
@@ -142,9 +156,9 @@ function displayWhoisCountData(res, divRef) {
 
     if (cSpan == null) {
         document.getElementById('errorMessage').innerHTML = "Page rendering error";
-    } else if (res.hasOwnProperty("count")) {
+    } else if (Object.hasOwn(res, "count")) {
         cSpan.innerHTML = res.count;
-    } else if (res.hasOwnProperty("message")) {
+    } else if (Object.hasOwn(res, "message")) {
         cSpan.innerHTML = "Error: " + res.message;
     } else {
         cSpan.innerHTML = "Error parsing response";

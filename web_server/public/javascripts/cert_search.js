@@ -13,7 +13,7 @@
  */
 
 window.addEventListener("load", buildPage);
-var lastCensysResult;
+// var lastCensysResult;
 
 function buildPage() {
     if (ScanDataSources.includes("censys")) {

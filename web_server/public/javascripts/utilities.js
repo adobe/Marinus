@@ -52,6 +52,7 @@ var api_map = {
 };
 
 function qs(key) {
+    /* eslint-disable-next-line no-useless-escape */
     key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&"); // escape RegEx meta chars
     var match = location.search.match(new RegExp("[?&]" + key + "=([^&]+)(&|$)"));
     return match && decodeURIComponent(match[1].replace(/\+/g, " "));
@@ -66,7 +67,7 @@ function get_tls_log(results, index) {
     let tls_log;
 
     try {
-        if (results[index]['data']['http'].hasOwnProperty('result')) {
+        if (Object.hasOwn(results[index]['data']['http'], 'result')) {
             // ZGrab 2.0
             tls_log = results[index]['data']['http']['result']['response']['request']['tls_log']['handshake_log'];
         } else {
@@ -88,12 +89,12 @@ function get_port_tls_log(results, index) {
     let tls_log;
 
     try {
-        if (results[index]['data']['tls'].hasOwnProperty('result')) {
+        if (Object.hasOwn(results[index]['data']['tls'], 'result')) {
             // ZGrab 2.0
             tls_log = results[index]['data']['tls']['result']['handshake_log'];
         } else {
             // ZGrab
-            tls_log = rresults[index]['data']['tls']['tls_handshake'];
+            tls_log = results[index]['data']['tls']['tls_handshake'];
         }
     } catch (error) {
         tls_log = {};

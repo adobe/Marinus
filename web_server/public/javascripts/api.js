@@ -161,14 +161,14 @@ function queries(event) {
 function display_nslookup(results) {
     var resDiv = document.getElementById('hostingLocation');
     var displayHTML = create_h3("NSLookup Results");
-    if (results.hasOwnProperty("ips")) {
+    if (Object.hasOwn(results, "ips")) {
         for (let i = 0; i < results['ips'].length; i++) {
             displayHTML += create_anchor("/ip?search=" + results["ips"][i]["address"], results["ips"][i]["address"], "_blank") + ", ";
         }
         displayHTML = displayHTML.substring(0, displayHTML.length - 2);
-    } else if (results.hasOwnProperty["Error"]) {
+    } else if (Object.hasOwn(results, "Error")) {
         resDiv.innerHTML = results["Error"].toString();
-    } else if (results.hasOwnProperty("domains")) {
+    } else if (Object.hasOwn(results, "domains")) {
         for (let i = 0; i < results['domains'].length; i++) {
             displayHTML += results['domains'][i] + " ";
         }
@@ -211,7 +211,7 @@ function allDNSResult(results) {
         sources = sources.substring(0, sources.length - 2);
         displayHTML += create_table_entry(sources);
 
-        if (results[i].hasOwnProperty("accountInfo")) {
+        if (Object.hasOwn(results[i], "accountInfo")) {
             let text = "";
             for (let entry in results[i]['accountInfo']) {
                 text += results[i]['accountInfo'][entry]['key'] + " : " + results[i]['accountInfo'][entry]['value'] + ", ";
@@ -534,8 +534,8 @@ function update_censys_preview(ev) {
     var index = parts[1].split(/_/);
     var result = lastCensysResult[index[0]][parts[0]];
     var temp = JSON.stringify(result);
-    var parsed = temp.replace(/\</g, "&lt;");
-    parsed = parsed.replace(/\>/g, "&gt;");
+    var parsed = temp.replace(/</g, "&lt;");
+    parsed = parsed.replace(/>/g, "&gt;");
     parsed = parsed.replace(/\{/g, "<br>{");
 
 
@@ -579,7 +579,7 @@ function censysResult(results) {
 
     for (var i = 0; i < results.length; i++) {
 
-        if (!(results[i].hasOwnProperty("tags")) || results[i]["tags"].length === 0) {
+        if (!(Object.hasOwn(results[i], "tags")) || results[i]["tags"].length === 0) {
             for (let val in results[i]) {
                 if (val !== "_id") {
                     htmlOut += create_list_entry(val + ':' + i.toString(), val, "#");

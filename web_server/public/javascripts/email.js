@@ -36,13 +36,13 @@ function get_lists(reqType) {
 function displayMetaResults(results, reqType) {
     var htmlOut = "";
     htmlOut += '<div class="list-group" id="' + reqType + 'Col">';
-    for (var i = 0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         htmlOut += ' <a href="#" class="list-group-item list-group-item-action" id="' + reqType + 'Tbl:' + results[i]['_id'] + '">' + results[i]['_id'] + ' (' + results[i]['count'].toString() + ')' + '</a>';
     }
     htmlOut += '</div><br/>';
     var mxTable = document.getElementById(reqType + "Table");
     mxTable.innerHTML = htmlOut;
-    for (var i = 0; i < results.length; i++) {
+    for (let i = 0; i < results.length; i++) {
         document.getElementById(reqType + 'Tbl:' + results[i]['_id']).addEventListener("click", update_div_preview);
     }
 }

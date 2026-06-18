@@ -104,9 +104,9 @@ function displayCountData(obj, divRef) {
   var elem = document.getElementById(divRef);
   elem.className = "";
 
-  if (obj.hasOwnProperty("count")) {
+  if (Object.hasOwn(obj, "count")) {
     elem.innerHTML = obj.count;
-  } else if (obj.hasOwnProperty("message")) {
+  } else if (Object.hasOwn(obj, "message")) {
     elem.innerHTML = obj.message;
   } else {
     elem.innerHTML = "Error parsing response.";

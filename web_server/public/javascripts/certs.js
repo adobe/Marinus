@@ -67,7 +67,7 @@ function display_ct_corp_certs(results) {
         var cns = results[i]['subject_common_names'];
         var dns = results[i]['subject_dns_names'];
         displayHTML += '<td class="td-word-wrap">';
-        var j = 0;
+        let j;
         for (j = 0; j < cns.length; j++) {
             displayHTML += cns[j] + ", ";
         }
@@ -97,7 +97,7 @@ function display_ct_corp_certs(results) {
     document.getElementById("ct_corp_certs").innerHTML = displayHTML;
 }
 
-function reload_corp_certs(ev) {
+function reload_corp_certs() {
     toggleState = !toggleState;
     document.getElementById("ct_corp_certs").innerHTML = '<img src="/stylesheets/octicons/svg/gear-24.svg" class="rotateAnimation" alt="timer"/>';
     fetch_ct_corp_certs(toggleState);
@@ -144,7 +144,7 @@ function display_corp_certs(results) {
 
         displayHTML += '<td class="td-word-wrap">';
 
-        var j = 0;
+        let j;
         for (j = 0; j < cns.length; j++) {
             displayHTML += cns[j] + ", ";
         }
@@ -187,7 +187,7 @@ function display_corp_certs(results) {
 }
 
 
-function fetch_corp_certs(exclude_expired = false) {
+function fetch_corp_certs() {
     let url, query;
     if (certSource === "censys") {
         url = "/api/v1.0/censys/corp_certs";
@@ -210,9 +210,9 @@ function display_expired_certs(results, year) {
     if (certSource === "censys") {
         end = results[0]['p443']['https']['tls']['certificate']['parsed']['validity']['end'];
     } else {
-        if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+        if (Object.hasOwn(results[0]['data']['http'], 'request') && Object.hasOwn(results[0]['data']['http']['request'], 'tls_log')) {
             end = results[0]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'];
-        } else if (results[0]['data']['http']['response'].hasOwnProperty('request') && results[0]['data']['http']['response']['request'].hasOwnProperty('tls_handshake')) {
+        } else if (Object.hasOwn(results[0]['data']['http']['response'], 'request') && Object.hasOwn(results[0]['data']['http']['response']['request'], 'tls_handshake')) {
             end = results[0]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'];
         } else {
             end = results[0]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end'];
@@ -221,7 +221,7 @@ function display_expired_certs(results, year) {
 
     var today = new Date();
     var this_year = today.getFullYear().toString();
-    var displayYear = "";
+    var displayYear;
     var parts = end.split("-");
     if (end.startsWith(this_year)) {
         displayYear = parts[0] + "-" + parts[1];
@@ -251,25 +251,27 @@ function display_expired_certs(results, year) {
             }
 
             try {
-                if (results[i]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                if (Object.hasOwn(results[i]['data']['http'], 'request') && Object.hasOwn(results[0]['data']['http']['request'], 'tls_log')) {
                     cns = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['subject']['common_name'];
-                } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                } else if (Object.hasOwn(results[i]['data']['http']['response']['request'], 'tls_log')) {
                     cns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['subject']['common_name'];
                 } else {
                     cns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'];
                 }
             } catch (error) {
+                console.debug(error);
                 cns = [];
             }
             try {
-                if (results[i]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                if (Object.hasOwn(results[i]['data']['http'], 'request') && Object.hasOwn(results[0]['data']['http']['request'], 'tls_log')) {
                     dns = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
-                } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                } else if (Object.hasOwn(results[i]['data']['http']['response']['request'], 'tls_log')) {
                     dns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
                 } else {
                     dns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
                 }
             } catch (error) {
+                console.debug(error);
                 dns = [];
             }
         }
@@ -278,7 +280,7 @@ function display_expired_certs(results, year) {
         if (cns === undefined) { cns = []; }
         if (dns === undefined) { dns = []; }
 
-        var j = 0;
+        let j;
         for (j = 0; j < cns.length; j++) {
             displayHTML += cns[j] + ", ";
         }
@@ -296,13 +298,13 @@ function display_expired_certs(results, year) {
                 displayHTML += create_table_entry("");
             }
         } else {
-            let zgrab_self_signed = false;
+            let zgrab_self_signed;
             let end;
 
-            if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+            if (Object.hasOwn(results[0]['data']['http'], 'request') && Object.hasOwn(results[0]['data']['http']['request'], 'tls_log')) {
                 zgrab_self_signed = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
                 end = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'];
-            } else if (results[i]['data']['http'].hasOwnProperty('response') && results[i]['data']['http']['response'].hasOwnProperty('request') && results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+            } else if (Object.hasOwn(results[i]['data']['http'], 'response') && Object.hasOwn(results[i]['data']['http']['response'], 'request') && Object.hasOwn(results[i]['data']['http']['response']['request'], 'tls_log')) {
                 zgrab_self_signed = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
                 end = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end'];
             } else {
@@ -340,7 +342,7 @@ async function fetch_expired_certs() {
     var this_year = today.getFullYear().toString();
 
     for (let i = 1; i < today.getMonth() + 1; i++) {
-        var year_month = "";
+        let year_month;
         if (i.toString().length === 1) {
             year_month = this_year + "-0" + i.toString();
         } else {
@@ -381,7 +383,6 @@ function display_expired_certs_2k(results) {
     for (var i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
         let cns, dns;
-        let tls_log;
         if (certSource === "censys") {
             displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
             cns = results[i]['p443']['https']['tls']['certificate']['parsed']['subject']['common_name'];
@@ -394,25 +395,27 @@ function display_expired_certs_2k(results) {
             }
 
             try {
-                if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                if (Object.hasOwn(results[0]['data']['http'], 'request') && Object.hasOwn(results[0]['data']['http']['request'], 'tls_log')) {
                     cns = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['subject']['common_name'];
-                } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                } else if (Object.hasOwn(results[i]['data']['http']['response']['request'], 'tls_log')) {
                     cns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['subject']['common_name'];
                 } else {
                     cns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['subject']['common_name'];
                 }
             } catch (error) {
+                console.debug(error);
                 cns = [];
             }
             try {
-                if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+                if (Object.hasOwn(results[0]['data']['http'], 'request') && Object.hasOwn(results[0]['data']['http']['request'], 'tls_log')) {
                     dns = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
-                } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+                } else if (Object.hasOwn(results[i]['data']['http']['response']['request'], 'tls_log')) {
                     dns = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
                 } else {
                     dns = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
                 }
             } catch (error) {
+                console.debug(error);
                 dns = "";
             }
         }
@@ -422,7 +425,7 @@ function display_expired_certs_2k(results) {
         if (cns === undefined) { cns = []; }
         if (dns === undefined) { dns = []; }
 
-        var j = 0;
+        let j;
         for (j = 0; j < cns.length; j++) {
             displayHTML += cns[j] + ", ";
         }
@@ -435,9 +438,9 @@ function display_expired_certs_2k(results) {
         if (certSource === "censys") {
             displayHTML += create_table_entry(results[i]['p443']['https']['tls']['certificate']['parsed']['validity']['end']);
         } else {
-            if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+            if (Object.hasOwn(results[0]['data']['http'], 'request') && Object.hasOwn(results[0]['data']['http']['request'], 'tls_log')) {
                 displayHTML += create_table_entry(results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end']);
-            } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+            } else if (Object.hasOwn(results[i]['data']['http']['response']['request'], 'tls_log')) {
                 displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['validity']['end']);
             } else {
                 displayHTML += create_table_entry(results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['validity']['end']);
@@ -446,9 +449,9 @@ function display_expired_certs_2k(results) {
 
         let zgrab_self_signed = false;
         if (certSource == "zgrab") {
-            if (results[0]['data']['http'].hasOwnProperty('request') && results[0]['data']['http']['request'].hasOwnProperty('tls_log')) {
+            if (Object.hasOwn(results[0]['data']['http'], 'request') && Object.hasOwn(results[0]['data']['http']['request'], 'tls_log')) {
                 zgrab_self_signed = results[i]['data']['http']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
-            } else if (results[i]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+            } else if (Object.hasOwn(results[i]['data']['http']['response']['request'], 'tls_log')) {
                 zgrab_self_signed = results[i]['data']['http']['response']['request']['tls_log']['handshake_log']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
             } else {
                 zgrab_self_signed = results[i]['data']['http']['response']['request']['tls_handshake']['server_certificates']['certificate']['parsed']['signature']['self_signed'];
@@ -494,8 +497,8 @@ function display_algorithm_certs(results) {
 
     for (var i = 0; i < results.length; i++) {
         displayHTML += create_table_row();
-        let cns = [];
-        let dns = [];
+        let cns;
+        let dns;
         if (certSource === "censys") {
             displayHTML += create_table_entry(create_anchor("/ip?search=" + results[i]['ip'], results[i]['ip']));
             cns = results[i]['p443']['https']['tls']['certificate']['parsed']['subject']['common_name'];
@@ -510,17 +513,19 @@ function display_algorithm_certs(results) {
             try {
                 cns = tls_log['server_certificates']['certificate']['parsed']['subject']['common_name'];
             } catch (error) {
+                console.debug(error);
                 cns = [];
             }
             try {
                 dns = tls_log['server_certificates']['certificate']['parsed']['extensions']['subject_alt_name']['dns_names'];
             } catch (error) {
+                console.debug(error);
                 dns = [];
             }
         }
 
         displayHTML += '<td class="td-word-wrap">';
-        var j = 0;
+        let j;
 
         if (cns === undefined) { cns = []; }
         if (dns === undefined) { dns = []; }
@@ -573,7 +578,7 @@ function display_certificate(results, req_type) {
         displayHTML += '<div class="bg-light"><pre>' + cert_string + "</pre></div><br/>";
     } else {
         let tls_log;
-        if (results[0]['data']['http']['response']['request'].hasOwnProperty('tls_log')) {
+        if (Object.hasOwn(results[0]['data']['http']['response']['request'], 'tls_log')) {
             // ZGrab 2.0
             tls_log = results[0]['data']['http']['response']['request']['tls_log']['handshake_log'];
         } else {

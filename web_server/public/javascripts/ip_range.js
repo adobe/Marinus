@@ -13,7 +13,7 @@
  */
 
 window.addEventListener("load", buildPage);
-var lastCensysResult;
+// var lastCensysResult;
 var useCensys = false;
 
 var divRefTable = {};

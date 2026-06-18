@@ -113,7 +113,7 @@ function display_zone_data(results) {
     innerHTML += create_table_entry(sources);
     innerHTML += create_table_entry(results["status"]);
 
-    if (results.hasOwnProperty("notes") && results['notes'] != null && results['notes'].length > 0) {
+    if (Object.hasOwn(results, "notes") && results['notes'] != null && results['notes'].length > 0) {
         innerHTML += create_table_entry(results['notes'].toString());
     } else {
         innerHTML += create_table_entry("-");
@@ -244,7 +244,7 @@ function display_whois_data(results) {
     var names = "Not Found";
     if (dnsResults != null && dnsResults.length > 0) {
         names = "";
-        for (name in dnsResults) {
+        for (let name in dnsResults) {
             names += dnsResults[name] + ", ";
         }
     }

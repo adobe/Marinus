@@ -21,6 +21,7 @@ function buildPage() {
 }
 
 function login_qs(key) {
+    /* eslint-disable-next-line no-useless-escape */
     key = key.replace(/[*+?^$.\[\]{}()|\\\/]/g, "\\$&"); // escape RegEx meta chars
     var match = location.search.match(new RegExp("[?&]" + key + "=([^&]+)(&|$)"));
     if (match == null) {

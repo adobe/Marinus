@@ -70,15 +70,6 @@ function build_page() {
     }
 }
 
-function createWhoisSearchBox() {
-    let whoisHTML = '<h3>Whois</h3>\n';
-    whoisHTML += '<form id="whois_search"><label id="zoneLabel" for="whois_input">Please enter a zone.</label>\n';
-    whoisHTML += '<input type="text" value="" name="whoisSearch" id="whois_input"></input></form>\n';
-    whoisHTML += '<div id="dynamic_whois" class="bg-light"></div>\n';
-    document.getElementById("dynamicWhoisSection").innerHTML = whoisHTML;
-    document.getElementById("whois_search").addEventListener("submit", whois_lookup);
-}
-
 function display_zone_list(results) {
     var display_list = '<div class="list-group" id="0">';
     var current_alpha_index = 0;
@@ -171,7 +162,7 @@ function create_table(results, type) {
         }
         displayHTML += create_table_entry(results[i]['source']);
         displayHTML += create_table_entry(results[i]['status']);
-        if (results[i].hasOwnProperty("notes")) {
+        if (Object.hasOwn(results[i], "notes")) {
             displayHTML += create_table_entry(results[i]['notes'].toString());
         } else {
             displayHTML += create_table_entry("");
@@ -472,9 +463,9 @@ function displayPortCountData(obj, divRef) {
     var cell2 = row.insertCell(1);
     cell2.style = "text-align:center; padding: 10px;";
     cell1.innerHTML = "Port " + port;
-    if (obj.hasOwnProperty("count")) {
+    if (Object.hasOwn(obj, "count")) {
         cell2.appendChild(create_button(obj.count, 'p' + port, 'variant'));
-    } else if (obj.hasOwnProperty("message")) {
+    } else if (Object.hasOwn(obj, "message")) {
         cell2.innerHTML = "Error: " + obj.message;
     } else {
         cell2.innerHTML = "Error parsing response";
@@ -491,9 +482,9 @@ function displayDomainPortCountData(obj, divRef) {
     var cell2 = row.insertCell(1);
     cell2.style = "text-align:center; padding: 10px;";
     cell1.innerHTML = "Port " + port;
-    if (obj.hasOwnProperty("count")) {
+    if (Object.hasOwn(obj, "count")) {
         cell2.appendChild(create_button(obj.count, 'dp' + port, 'variant'));
-    } else if (obj.hasOwnProperty("message")) {
+    } else if (Object.hasOwn(obj, "message")) {
         cell2.innerHTML = "Error: " + obj.message;
     } else {
         cell2.innerHTML = "Error parsing response";
@@ -529,7 +520,7 @@ function process_srv(results) {
         let value = results[result]['value'];
         let parts = value.split(" ");
         let port = parts[2];
-        if (!(SrvRecords.hasOwnProperty(port))) {
+        if (!(Object.hasOwn(SrvRecords, port))) {
             SrvRecords[port] = [];
         }
         SrvRecords[port].push([results[result]['fqdn'], results[result]['value']])
@@ -699,11 +690,4 @@ function initialize_tpd_list() {
     var query = "";
 
     make_get_request(url + query, display_tpds, "", "tpds");
-}
-
-
-function whois_lookup(event) {
-    dynamic_whois(document.getElementById("whois_input").value, "dynamic_whois");
-    event.preventDefault();
-    return false;
 }
