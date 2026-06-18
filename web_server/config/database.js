@@ -17,7 +17,7 @@ import mongoose from 'mongoose';
 export default function database(envConfig) {
     const db_options = {};
 
-    if (envConfig.hasOwnProperty('mongodbSSLCA') && envConfig.mongodbSSLCA !== "") {
+    if (Object.hasOwn(envConfig, 'mongodbSSLCA') && envConfig.mongodbSSLCA !== "") {
         db_options['tlsCAFile'] = envConfig.mongodbSSLCA;
     }
 
