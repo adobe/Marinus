@@ -93,7 +93,7 @@ export const dead_dns = {
             search['zone'] = zone;
         }
         if (source != null) {
-            query['sources.source'] = source;
+            search['sources.source'] = source;
         }
         let promise;
         if (count) {

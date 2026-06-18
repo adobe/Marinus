@@ -114,7 +114,7 @@ export const zgrab_80_data = {
         return z80Schema.zgrab80Model.aggregate([query, { '$group': { '_id': '$' + headerQuery, 'count': { '$sum': 1 } } }]).sort({ 'count': 'descending' }).exec();
     },
     getDistinctUnknownHttpHeaderPromise: function (header, zone) {
-        let query = {}
+        let query;
         if (zone == null || zone === '') {
             query = { 'data.http.response.headers.unknown.key': header };
         } else {

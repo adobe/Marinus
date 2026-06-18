@@ -227,7 +227,7 @@ export const zgrab_443_data = {
         let promise;
         if (recursive === true) {
             promise = zSchema.zgrab443Model.find({
-                [zgrab_cert_path + 'certificate.parsed.validity.end']: isBefore2010,
+                [zgrab_cert_path + 'certificate.parsed.validity.end']: search,
             }, { 'domain': 1, 'ip': 1, 'data.http': 1 }).exec();
         } else {
             promise = zSchema.zgrab443Model.aggregate([{
@@ -239,7 +239,7 @@ export const zgrab_443_data = {
                         { "$ifNull": ["$data.http.redirect_response_chain", ["$data.http.response"]] }
                 }
             },
-            { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.validity.end': isBefore2010 } }]
+            { "$match": { 'data.http.0.request.tls_handshake.server_certificates.certificate.parsed.validity.end': search } }]
             ).exec();
         }
         return (promise);
@@ -679,7 +679,7 @@ export const zgrab_443_data = {
         return zSchema.zgrab443Model.aggregate([query, { '$group': { '_id': '$' + headerQuery, 'count': { '$sum': 1 } } }]).sort({ 'count': 'descending' }).exec();
     },
     getDistinctUnknownHttpHeaderPromise: function (header, zone) {
-        let query = {}
+        let query;
         if (zone == null || zone === '') {
             query = { 'data.http.response.headers.unknown.key': header };
         } else {

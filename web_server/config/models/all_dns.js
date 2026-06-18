@@ -202,10 +202,10 @@ export const all_dns = {
             search['zone'] = zone;
         }
         if (source != null) {
-            query['sources.source'] = source;
+            search['sources.source'] = source;
         }
         if (created_date != null) {
-            query['created'] = { "$gt": new Date(created_date) };
+            search['created'] = { "$gt": new Date(created_date) };
         }
 
         let promise;

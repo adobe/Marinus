@@ -332,7 +332,7 @@ export const censys = {
         return cSchema.censysModel.aggregate([query, { '$group': { '_id': '$' + headerQuery, 'count': { '$sum': 1 } } }]).sort({ 'count': 'descending' }).exec();
     },
     getDistinctUnknownHttpHeaderPromise: function (header, zone) {
-        let query = {}
+        let query;
         if (zone == null || zone === '') {
             query = { 'p80.http.get.headers.unknown.key': header };
         } else {

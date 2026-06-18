@@ -132,7 +132,7 @@ export const zgrab2_80_data = {
         return z2_80_schema.zgrab2_80_model.aggregate([query, { '$group': { '_id': '$' + headerQuery, 'count': { '$sum': 1 } } }]).sort({ 'count': 'descending' }).exec();
     },
     getDistinctUnknownHttpHeaderPromise: function (header, zone) {
-        let query = {}
+        let query;
         if (zone == null || zone === '') {
             query = { 'data.http.result.response.headers.unknown.key': header };
         } else {

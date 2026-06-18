@@ -27,7 +27,7 @@ const jobsModel = mongoose.model('jobsModel', jobsSchema);
 
 export const jobs = {
     JobsModel: jobsModel,
-    getAllJobsPromise: function (name) {
+    getAllJobsPromise: function () {
         return jobsModel.find({}).exec();
     },
 };

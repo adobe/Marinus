@@ -59,7 +59,7 @@ export const user = {
             }).exec();
         } else {
             promise = userModel.findOne({
-                'userid': userid,
+                'apiKey': apiKey,
             }).exec();
         }
         return promise;

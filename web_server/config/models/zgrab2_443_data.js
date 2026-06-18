@@ -778,7 +778,7 @@ export const zgrab2_443_data = {
         return z2_443_schema.zgrab2_443_model.aggregate([query, { '$group': { '_id': '$' + headerQuery, 'count': { '$sum': 1 } } }]).sort({ 'count': 'descending' }).exec();
     },
     getDistinctUnknownHttpHeaderPromise: function (header, zone) {
-        let query = {}
+        let query;
         if (zone == null || zone === '') {
             query = { 'data.http.result.response.headers.unknown.key': header };
         } else {
