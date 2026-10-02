@@ -15,7 +15,7 @@ This module manages consolidating DNS records from various sources.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from bson.objectid import ObjectId
 from libs3 import IPManager
@@ -62,36 +62,6 @@ class DNSManager(object):
                 exit(1)
         else:
             self.all_dns_collection = mongo_connector.get_all_dns_connection()
-
-    @staticmethod
-    def monthdelta(date, delta):
-        """
-        Return the date from the given delta
-
-        :param date: The original date
-        :param delta: The change from the original date that is to be calculated.
-        """
-        m, y = (date.month + delta) % 12, date.year + ((date.month) + delta - 1) // 12
-        if not m:
-            m = 12
-        d = min(
-            date.day,
-            [
-                31,
-                29 if y % 4 == 0 and not y % 400 == 0 else 28,
-                31,
-                30,
-                31,
-                30,
-                31,
-                31,
-                30,
-                31,
-                30,
-                31,
-            ][m - 1],
-        )
-        return date.replace(day=d, month=m, year=y)
 
     def insert_record(self, result, source_name, source_metadata=None):
         """
@@ -324,7 +294,8 @@ class DNSManager(object):
         :param month_delta: How many months to keep (e.g. Keep the last two months)
         :return: A boolean indicating success or failure
         """
-        d_minus_2m = self.monthdelta(datetime.now(), month_delta)
+        d_minus_2m = datetime.now() - timedelta(month=abs(month_delta))
+        
         results = self.all_dns_collection.find(
             {
                 "sources": {
