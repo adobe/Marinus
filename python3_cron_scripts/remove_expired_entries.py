@@ -188,7 +188,7 @@ def main(logger=None):
         if "route53" in entry:
             removal_date = datetime.now() - timedelta(days=2)
         else:
-            removal_date = monthdelta(datetime.now(), entry["diff"])
+            removal_date = datetime.now() - timedelta(month=abs(entry["diff"]))
 
         source = entry["name"]
         logger.debug("Removing " + source + " as of: " + str(removal_date))
