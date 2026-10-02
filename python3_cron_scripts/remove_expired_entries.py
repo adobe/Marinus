@@ -44,33 +44,6 @@ def is_tracked_zone(fqdn, zone):
     return False
 
 
-def monthdelta(date, delta):
-    """
-    Get the date relevant to the delta from today's date
-    """
-    m, y = (date.month + delta) % 12, date.year + ((date.month) + delta - 1) // 12
-    if not m:
-        m = 12
-    d = min(
-        date.day,
-        [
-            31,
-            29 if y % 4 == 0 and not y % 400 == 0 else 28,
-            31,
-            30,
-            31,
-            30,
-            31,
-            31,
-            30,
-            31,
-            30,
-            31,
-        ][m - 1],
-    )
-    return date.replace(day=d, month=m, year=y)
-
-
 def get_int_for_unk_type(dtype):
     """
     Returns the int for an unknown type from Sonar.
@@ -321,7 +294,7 @@ def main(logger=None):
                         )
 
     # Get the date for today minus two months
-    d_minus_2m = monthdelta(datetime.now(), -2)
+    d_minus_2m = datetime.now() - timedelta(month=2)
 
     logger.info("Removing SRDNS as of: " + str(d_minus_2m))
 
