@@ -15,7 +15,8 @@ This module manages consolidating DNS records from various sources.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from bson.objectid import ObjectId
 from libs3 import IPManager
@@ -294,7 +295,7 @@ class DNSManager(object):
         :param month_delta: How many months to keep (e.g. Keep the last two months)
         :return: A boolean indicating success or failure
         """
-        d_minus_2m = datetime.now() - timedelta(month=abs(month_delta))
+        d_minus_2m = datetime.now() - relativedelta(months=abs(month_delta))
         
         results = self.all_dns_collection.find(
             {
