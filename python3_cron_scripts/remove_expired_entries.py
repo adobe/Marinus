@@ -27,6 +27,7 @@ import argparse
 import logging
 import time
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 from libs3 import DNSManager, GoogleDNS, IPManager, JobsManager, MongoConnector
 from libs3.LoggingUtil import LoggingUtil
@@ -188,7 +189,7 @@ def main(logger=None):
         if "route53" in entry:
             removal_date = datetime.now() - timedelta(days=2)
         else:
-            removal_date = datetime.now() - timedelta(month=abs(entry["diff"]))
+            removal_date = datetime.now() - relativedelta(months=abs(entry["diff"]))
 
         source = entry["name"]
         logger.debug("Removing " + source + " as of: " + str(removal_date))
@@ -294,7 +295,7 @@ def main(logger=None):
                         )
 
     # Get the date for today minus two months
-    d_minus_2m = datetime.now() - timedelta(month=2)
+    d_minus_2m = datetime.now() - relativedelta(months=2)
 
     logger.info("Removing SRDNS as of: " + str(d_minus_2m))
 
